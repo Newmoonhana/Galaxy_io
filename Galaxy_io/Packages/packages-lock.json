@@ -1,12 +1,5 @@
 {
   "dependencies": {
-    "com.cysharp.unitask": {
-      "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "ceac8d6946b1125fe782cd171fbcb245b567dbf9"
-    },
     "com.newmoonhana.nmhnengine": {
       "version": "https://github.com/Newmoonhana/com.newmoonhana.nmhnengine.git",
       "depth": 0,
@@ -16,7 +9,7 @@
         "com.unity.addressables": "2.9.1",
         "com.unity.render-pipelines.core": "17.3.0"
       },
-      "hash": "e4cee6bbe4417b9c1ccffef111dd7325e9a5d4f1"
+      "hash": "f9b15b4d0648f8ceeeb2840c97560e120e174669"
     },
     "com.unity.2d.animation": {
       "version": "13.0.5",
