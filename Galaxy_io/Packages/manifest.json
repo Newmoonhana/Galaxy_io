@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#main",
     "com.newmoonhana.nmhnengine": "https://github.com/Newmoonhana/com.newmoonhana.nmhnengine.git",
     "com.unity.2d.animation": "13.0.5",
     "com.unity.2d.pixel-perfect": "5.1.1",
