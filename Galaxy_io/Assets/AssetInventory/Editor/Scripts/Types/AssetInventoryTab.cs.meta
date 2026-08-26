@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 710080d851224520d1cb2c41581e68c3
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory 4
+  packageVersion: 4.7.1
+  assetPath: Assets/AssetInventory/Editor/Scripts/Types/AssetInventoryTab.cs
+  uploadId: 969138

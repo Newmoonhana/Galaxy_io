@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: cf206c5583413304c8977da04d7a7051
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 287785
+  packageName: 'Master Audio 2024: AAA Sound'
+  packageVersion: 1.0.5
+  assetPath: Assets/Plugins/DarkTonic/MasterAudio/Scripts/Settings/BusPitchGlideInfo.cs
+  uploadId: 940310

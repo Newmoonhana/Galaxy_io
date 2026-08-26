@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: e926080ea711027418e38c39ddea7741
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+AssetOrigin:
+  serializedVersion: 1
+  productId: 287785
+  packageName: 'Master Audio 2024: AAA Sound'
+  packageVersion: 1.0.5
+  assetPath: Assets/Plugins/DarkTonic/MasterAudio/Scripts/Settings/DynamicSoundGroup.cs
+  uploadId: 940310

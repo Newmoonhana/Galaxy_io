@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: ce49ec02494a43d49571a86ce61e2c23
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory 4
+  packageVersion: 4.7.1
+  assetPath: Assets/AssetInventory/Editor/Scripts/Validators/DuplicatePackageEntriesValidator.cs
+  uploadId: 969138

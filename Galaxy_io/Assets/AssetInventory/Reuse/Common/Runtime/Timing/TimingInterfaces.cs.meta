@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 4a6233a26d264c4fabd249595c6fb8a4
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory 4
+  packageVersion: 4.7.1
+  assetPath: Assets/AssetInventory/Reuse/Common/Runtime/Timing/TimingInterfaces.cs
+  uploadId: 969138

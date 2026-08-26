@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 81631a8c0bd923347a8a45da480efb89
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+AssetOrigin:
+  serializedVersion: 1
+  productId: 287785
+  packageName: 'Master Audio 2024: AAA Sound'
+  packageVersion: 1.0.5
+  assetPath: Assets/Plugins/Editor/DarkTonic/MasterAudio/DynamicSoundGroupInspector.cs
+  uploadId: 940310

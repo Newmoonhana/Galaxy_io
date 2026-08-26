@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 442b28e4c0ef4443988afd5f10f87be1
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory 4
+  packageVersion: 4.7.1
+  assetPath: Assets/AssetInventory/Reuse/Common/Runtime/Timing/HostTime.cs
+  uploadId: 969138

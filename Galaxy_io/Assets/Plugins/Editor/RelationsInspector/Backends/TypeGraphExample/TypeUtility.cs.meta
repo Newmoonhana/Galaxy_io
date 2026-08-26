@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 76f4fef70f27cca48abb1f740541310e
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 287785
+  packageName: 'Master Audio 2024: AAA Sound'
+  packageVersion: 1.0.5
+  assetPath: Assets/Plugins/Editor/RelationsInspector/Backends/TypeGraphExample/TypeUtility.cs
+  uploadId: 940310

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 81e3544b1acdf00428cecfc64b33022c
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+AssetOrigin:
+  serializedVersion: 1
+  productId: 287785
+  packageName: 'Master Audio 2024: AAA Sound'
+  packageVersion: 1.0.5
+  assetPath: Assets/Plugins/DarkTonic/MasterAudio/Scripts/Singleton/AudioPrioritizer.cs
+  uploadId: 940310

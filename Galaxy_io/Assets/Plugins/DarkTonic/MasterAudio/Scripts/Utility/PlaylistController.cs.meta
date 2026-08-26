@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 1aee0c42cfbeb2b45b09ce685ab0323c
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: -80
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 287785
+  packageName: 'Master Audio 2024: AAA Sound'
+  packageVersion: 1.0.5
+  assetPath: Assets/Plugins/DarkTonic/MasterAudio/Scripts/Utility/PlaylistController.cs
+  uploadId: 940310

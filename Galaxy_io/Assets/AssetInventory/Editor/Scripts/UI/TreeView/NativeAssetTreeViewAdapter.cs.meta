@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 32c68294239af46a0bc1aa4241ca8e24
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory 4
+  packageVersion: 4.7.1
+  assetPath: Assets/AssetInventory/Editor/Scripts/UI/TreeView/NativeAssetTreeViewAdapter.cs
+  uploadId: 969138

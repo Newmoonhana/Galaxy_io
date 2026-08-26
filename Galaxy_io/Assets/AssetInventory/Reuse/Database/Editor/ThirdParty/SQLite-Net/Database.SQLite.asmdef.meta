@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 7e16b9a2c4d84658a27c36a958c1392f
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory 4
+  packageVersion: 4.7.1
+  assetPath: Assets/AssetInventory/Reuse/Database/Editor/ThirdParty/SQLite-Net/Database.SQLite.asmdef
+  uploadId: 969138

@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: d16b1050ab327cf4bb5e77d28d802448
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 287785
+  packageName: 'Master Audio 2024: AAA Sound'
+  packageVersion: 1.0.5
+  assetPath: Assets/Plugins/DarkTonic/MasterAudio/Scripts/Singleton/SoundGroupOrganizer.cs
+  uploadId: 940310

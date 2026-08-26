@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 5b423b33d4015c24486b718aec44fa06
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 287785
+  packageName: 'Master Audio 2024: AAA Sound'
+  packageVersion: 1.0.5
+  assetPath: Assets/Plugins/Editor/DarkTonic/MasterAudio/PersistChanges/MAComponentPatch.cs
+  uploadId: 940310

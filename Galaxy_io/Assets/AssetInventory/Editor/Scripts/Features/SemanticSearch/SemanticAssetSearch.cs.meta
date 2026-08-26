@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 85dd7573eabe4857bf4279d121007a6c
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory 4
+  packageVersion: 4.7.1
+  assetPath: Assets/AssetInventory/Editor/Scripts/Features/SemanticSearch/SemanticAssetSearch.cs
+  uploadId: 969138

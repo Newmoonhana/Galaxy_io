@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: 900523e2ab6a4dd48b5ee0908e74df26
+timeCreated: 1457936153
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 287785
+  packageName: 'Master Audio 2024: AAA Sound'
+  packageVersion: 1.0.5
+  assetPath: Assets/Plugins/DarkTonic/MasterAudio/Scripts/Settings/MasterCustomEventAttribute.cs
+  uploadId: 940310

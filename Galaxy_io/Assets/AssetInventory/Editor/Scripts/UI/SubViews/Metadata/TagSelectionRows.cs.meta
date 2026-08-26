@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: cb823708065b439b994d3b6448bf153d
+timeCreated: 1783340000
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory 4
+  packageVersion: 4.7.1
+  assetPath: Assets/AssetInventory/Editor/Scripts/UI/SubViews/Metadata/TagSelectionRows.cs
+  uploadId: 969138

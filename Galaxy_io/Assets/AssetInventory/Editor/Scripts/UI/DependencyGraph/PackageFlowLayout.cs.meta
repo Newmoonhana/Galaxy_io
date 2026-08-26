@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 70345343aeef4d3b92e05fdc1288e889
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory 4
+  packageVersion: 4.7.1
+  assetPath: Assets/AssetInventory/Editor/Scripts/UI/DependencyGraph/PackageFlowLayout.cs
+  uploadId: 969138

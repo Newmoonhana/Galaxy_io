@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 00a7ea38da4d4d30a08b174d1f381769
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory 4
+  packageVersion: 4.7.1
+  assetPath: Assets/AssetInventory/Reuse/Common/Editor/Timing/TimingPropertyDrawers.cs
+  uploadId: 969138

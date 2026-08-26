@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 323f37f9db9f07e4f8d097348bb1f70e
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 287785
+  packageName: 'Master Audio 2024: AAA Sound'
+  packageVersion: 1.0.5
+  assetPath: Assets/Plugins/Editor/DarkTonic/MasterAudio/AmbientSoundInspector.cs
+  uploadId: 940310

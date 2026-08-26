@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 8ff15fbffc6748788e1bdd965107fe1c
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory 4
+  packageVersion: 4.7.1
+  assetPath: Assets/AssetInventory/Editor/Scripts/Persistence/AssetInventoryColumnLayoutCoordinator.cs
+  uploadId: 969138

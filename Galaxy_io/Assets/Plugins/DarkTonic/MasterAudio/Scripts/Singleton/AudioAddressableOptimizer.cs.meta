@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: dee9885e7d9a027499a8730ffb4c5aeb
+timeCreated: 1575952646
+licenseType: Store
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 287785
+  packageName: 'Master Audio 2024: AAA Sound'
+  packageVersion: 1.0.5
+  assetPath: Assets/Plugins/DarkTonic/MasterAudio/Scripts/Singleton/AudioAddressableOptimizer.cs
+  uploadId: 940310

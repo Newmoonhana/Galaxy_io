@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 425c0d1bf6d5c1c47b4e1d0071f0c7b1
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 287785
+  packageName: 'Master Audio 2024: AAA Sound'
+  packageVersion: 1.0.5
+  assetPath: Assets/Plugins/DarkTonic/MasterAudio/Scripts/Utility/TransformFollower.cs
+  uploadId: 940310

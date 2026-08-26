@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: d80656d04ba1421b89883429456d85fc
+timeCreated: 1783780000
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory 4
+  packageVersion: 4.7.1
+  assetPath: Assets/AssetInventory/Reuse/Common/Editor/UI/UITK/CommonMultiColumnState.cs
+  uploadId: 969138

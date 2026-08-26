@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: fe6e09e8c05e4915838002a91e5867de
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory 4
+  packageVersion: 4.7.1
+  assetPath: Assets/AssetInventory/Reuse/Common/Editor/UI/UITK/CommonSingleChoiceCard.cs
+  uploadId: 969138

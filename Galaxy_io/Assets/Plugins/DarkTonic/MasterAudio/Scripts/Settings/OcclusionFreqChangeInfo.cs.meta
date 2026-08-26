@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: cb666fd3b02635e4f849bacf1c542e67
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 287785
+  packageName: 'Master Audio 2024: AAA Sound'
+  packageVersion: 1.0.5
+  assetPath: Assets/Plugins/DarkTonic/MasterAudio/Scripts/Settings/OcclusionFreqChangeInfo.cs
+  uploadId: 940310

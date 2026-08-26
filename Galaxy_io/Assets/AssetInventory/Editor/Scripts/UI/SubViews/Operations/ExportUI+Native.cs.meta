@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 9e1059e9823e74e25a1a868b2bff7709
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory 4
+  packageVersion: 4.7.1
+  assetPath: Assets/AssetInventory/Editor/Scripts/UI/SubViews/Operations/ExportUI+Native.cs
+  uploadId: 969138

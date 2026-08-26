@@ -1,0 +1,70 @@
+#documentation-inspector-surface {
+    --unity-colors-default-text: rgb(210, 210, 210);
+    --unity-colors-default-text-hover: rgb(235, 235, 235);
+    --unity-colors-window-text: rgb(210, 210, 210);
+    --unity-colors-label-text: rgb(184, 184, 184);
+    --unity-colors-label-text-focus: rgb(220, 220, 220);
+    --unity-colors-input_field-background: rgb(43, 43, 43);
+    --unity-colors-input_field-border: rgb(28, 28, 28);
+    --unity-colors-input_field-border-focus: rgb(86, 140, 153);
+    --unity-colors-input_field-border-hover: rgb(92, 92, 92);
+    --unity-colors-input_field_placeholder-text: rgb(126, 126, 126);
+    --unity-colors-object_field-background: rgb(47, 47, 47);
+    --unity-colors-object_field-border: rgb(28, 28, 28);
+    --unity-colors-object_field-border-focus: rgb(86, 140, 153);
+    --unity-colors-object_field-border-hover: rgb(92, 92, 92);
+    --unity-colors-object_field_button-background: rgb(65, 65, 65);
+    --unity-colors-object_field_button-background-hover: rgb(78, 78, 78);
+    --unity-colors-dropdown-background: rgb(52, 52, 52);
+    --unity-colors-dropdown-border: rgb(28, 28, 28);
+    --unity-colors-dropdown-border_accent: rgb(86, 140, 153);
+    --unity-colors-dropdown-text: rgb(210, 210, 210);
+    --unity-colors-popup-background: rgb(43, 43, 43);
+    --unity-colors-slider_groove-background: rgb(91, 91, 91);
+    --unity-colors-slider_groove-background-disabled: rgb(67, 67, 67);
+    --unity-colors-slider_thumb-background: rgb(156, 156, 156);
+    --unity-colors-slider_thumb-background-disabled: rgb(105, 105, 105);
+    --theme-input-text-color: rgb(210, 210, 210);
+    --theme-input-text-color-selected: rgb(238, 238, 238);
+    --theme-input-text-color-hover: rgb(228, 228, 228);
+    --theme-input-background-color: rgb(43, 43, 43);
+    --theme-input-border: rgb(28, 28, 28);
+    --theme-input-border-focus-color: rgb(86, 140, 153);
+    --theme-input-border-hover-color: rgb(92, 92, 92);
+    --theme-object-field-background-color: rgb(47, 47, 47);
+    --theme-object-field-border: rgb(28, 28, 28);
+    --theme-object-field-border-focus: rgb(86, 140, 153);
+    --theme-object-field-border-hover: rgb(92, 92, 92);
+    --theme-object-field-button-background-color: rgb(65, 65, 65);
+    --theme-object-field-button-background-color-hover: rgb(78, 78, 78);
+}
+
+#documentation-inspector-surface .unity-base-text-field__input,
+#documentation-inspector-surface .unity-popup-field__input,
+#documentation-inspector-surface .unity-enum-field__input,
+#documentation-inspector-surface .unity-object-field__input {
+    color: rgb(210, 210, 210);
+    background-color: rgb(43, 43, 43);
+}
+
+#documentation-inspector-surface .unity-base-field__label {
+    color: rgb(184, 184, 184);
+}
+
+#documentation-inspector-surface .unity-base-field:disabled {
+    opacity: 1;
+}
+
+#documentation-inspector-surface .unity-base-field:disabled > .unity-base-field__label,
+#documentation-inspector-surface .unity-base-field:disabled .unity-label,
+#documentation-inspector-surface .unity-base-field:disabled .unity-text-element {
+    color: rgb(174, 174, 174);
+}
+
+#documentation-inspector-surface .unity-base-field:disabled .unity-base-text-field__input,
+#documentation-inspector-surface .unity-base-field:disabled .unity-popup-field__input,
+#documentation-inspector-surface .unity-base-field:disabled .unity-enum-field__input,
+#documentation-inspector-surface .unity-base-field:disabled .unity-object-field__input {
+    color: rgb(188, 188, 188);
+    background-color: rgb(48, 48, 48);
+}

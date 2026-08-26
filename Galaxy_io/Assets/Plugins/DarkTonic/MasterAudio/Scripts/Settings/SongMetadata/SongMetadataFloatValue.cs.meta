@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+guid: 8de3d7ce1df92814691a26f54e739e3f
+MonoImporter:
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 287785
+  packageName: 'Master Audio 2024: AAA Sound'
+  packageVersion: 1.0.5
+  assetPath: Assets/Plugins/DarkTonic/MasterAudio/Scripts/Settings/SongMetadata/SongMetadataFloatValue.cs
+  uploadId: 940310
