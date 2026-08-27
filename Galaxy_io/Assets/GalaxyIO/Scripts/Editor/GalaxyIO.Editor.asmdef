@@ -1,0 +1,26 @@
+{
+    "name": "GalaxyIO.Scripts.Editor",
+    "rootNamespace": "GalaxyIO.Editor",
+    "references": [
+        "GalaxyIO",
+        "Unity.Entities",
+        "Unity.Entities.Hybrid",
+        "Unity.Scenes",
+        "Unity.Transforms",
+        "Unity.Mathematics",
+        "Unity.Collections",
+        "Unity.InputSystem",
+        "UnityEngine.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
