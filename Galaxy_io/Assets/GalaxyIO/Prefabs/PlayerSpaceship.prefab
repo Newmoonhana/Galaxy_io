@@ -10,8 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1057815230147300486}
   - component: {fileID: 3936434868018834435}
+  - component: {fileID: -6648208624474899887}
   m_Layer: 0
-  m_Name: SpaceShip
+  m_Name: PlayerSpaceship
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -81,7 +82,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 8ee81abf56189254fbbcdb9f3ed051a3, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 8baadc01af5bf0e49ae9d4f7c7e14419, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -91,3 +92,22 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+--- !u!114 &-6648208624474899887
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1177794197835979121}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ba5f85943ed340039e28b4335d174b2c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.SpaceshipAuthoring
+  Speed: 1
+  Acceleration: 0.3
+  Maneuver: 20
+  MaxHealth: 100
+  Repair: 5
+  Size: 40
+  TagFlag: 1
