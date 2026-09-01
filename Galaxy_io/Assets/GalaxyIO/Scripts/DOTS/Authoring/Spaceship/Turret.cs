@@ -16,7 +16,7 @@ namespace GalaxyIO.Authoring
         public uint RPS;
 
         [SerializeField]
-        [Tooltip("정확도 (0 -> 360 deg, 1 -> 0 deg)")]
+        [Tooltip("정확도 (0 -> 90 deg, 1 -> 0 deg)")]
         [Range(0.0F, 1.0F)]
         public float Accuracy;
     }

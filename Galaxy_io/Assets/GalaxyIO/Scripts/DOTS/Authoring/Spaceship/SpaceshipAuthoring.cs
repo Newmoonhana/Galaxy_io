@@ -90,7 +90,7 @@ namespace GalaxyIO.Authoring
                     ),
                     FireCooldown     = 0.0F,
                     MaxFireCooldown  = (turret == null || turret.Projectile == null) ? 0.0F : 1.0F / turret.RPS,
-                    Spread           = (turret == null || turret.Projectile == null) ? 0.0F : (1.0F - turret.Accuracy) * math.TORADIANS * 360.0F,
+                    Spread           = (turret == null || turret.Projectile == null) ? 0.0F : (1.0F - turret.Accuracy) * math.TORADIANS * 90.0F,
                     ProjectilePrefab = (turret == null || turret.Projectile == null)
                         ? Entity.Null : GetEntity(turret.Projectile, TransformUsageFlags.Dynamic)
                 });
