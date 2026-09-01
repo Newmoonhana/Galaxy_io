@@ -1,7 +1,9 @@
-﻿using GalaxyIO.Components;
+﻿using System.Collections.Generic;
+using GalaxyIO.Components;
 using GalaxyIO.Components.Tags;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.Transforms;
 using UnityEngine;
 
 namespace GalaxyIO.Authoring
@@ -33,10 +35,17 @@ namespace GalaxyIO.Authoring
         // 자가 수리 속도
         public float Repair;
 
+        [Header("Turrets")]
+
+        // 터렛 List
+        public List<Transform> Turrets;
+
         [Header("Colliders")]
 
         // 충돌체 크기
         public float Size;
+
+        [Header("Tags")]
 
         public uint TagFlag;
     }
@@ -54,7 +63,7 @@ namespace GalaxyIO.Authoring
                 Health    = authoring.MaxHealth,
             });
 
-            AddComponent(entity, new MovementComponent
+            AddComponent(entity, new SpaceshipMovementComponent
             {
                 MaxSpeed        = authoring.Speed,
                 Speed           = 0.0F,
@@ -64,6 +73,28 @@ namespace GalaxyIO.Authoring
                 TurnBrake       = authoring.TurnBrake,
                 Forward         = new float2(1.0F, 0.0F)
             });
+
+            var buffer = AddBuffer<TurretElement>(entity);
+
+            // (클래스의 참조가 아님. Entity의 Index로 참조)
+            foreach (Transform t in authoring.Turrets)
+            {
+                Turret turret = t.GetComponent<Turret>();
+
+                buffer.Add(new TurretElement
+                {
+                    MuzzleLocation = LocalTransform.FromPositionRotationScale(
+                        t.localPosition,
+                        t.localRotation,
+                        t.localScale.x
+                    ),
+                    FireCooldown     = 0.0F,
+                    MaxFireCooldown  = (turret == null || turret.Projectile == null) ? 0.0F : 1.0F / turret.RPS,
+                    Spread           = (turret == null || turret.Projectile == null) ? 0.0F : (1.0F - turret.Accuracy) * math.TORADIANS * 360.0F,
+                    ProjectilePrefab = (turret == null || turret.Projectile == null)
+                        ? Entity.Null : GetEntity(turret.Projectile, TransformUsageFlags.Dynamic)
+                });
+            }
 
             if ((authoring.TagFlag | SpaceshipTags.LOCAL_PLAYER) == 1)
             {

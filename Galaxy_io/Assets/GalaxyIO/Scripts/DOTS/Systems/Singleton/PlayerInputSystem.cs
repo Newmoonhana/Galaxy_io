@@ -25,6 +25,9 @@ namespace GalaxyIO.Systems
         private float heat;
         private float maxHeat;
 
+        // 탄 퍼짐 계산에 사용하는 난수 생성기.
+        private Unity.Mathematics.Random random;
+
         private bool initialized;
 
         // 화면 좌표 -> 월드 좌표 변환에 사용하는 카메라 캐시.
@@ -32,7 +35,11 @@ namespace GalaxyIO.Systems
 
         protected override void OnCreate()
         {
+            // Random의 시드는 0이 될 수 없음.
+            random = Unity.Mathematics.Random.CreateFromIndex((uint)System.DateTime.Now.Ticks & 0x7FFFFFFFu);
+
             RequireForUpdate<PlayerInputInitializer>();
+            RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             RequireForUpdate(SystemAPI.QueryBuilder().WithAll<LocalPlayerTag>().Build());
         }
 
@@ -78,7 +85,7 @@ namespace GalaxyIO.Systems
         protected override void OnUpdate()
         {
             Entity entity = SystemAPI.GetSingletonEntity<LocalPlayerTag>();
-            var movementComponent = SystemAPI.GetComponentRW<MovementComponent>(entity);
+            var movementComponent = SystemAPI.GetComponentRW<SpaceshipMovementComponent>(entity);
             var transformComponent = SystemAPI.GetComponentRO<LocalTransform>(entity);
             float deltaTime = SystemAPI.Time.DeltaTime;
             Vector2 wasdMove = _wasdMove.ReadValue<Vector2>();
@@ -166,9 +173,89 @@ namespace GalaxyIO.Systems
             float turnBrake = math.saturate(math.abs(appliedAngle) * movementComponent.ValueRO.TurnBrake);
             movementComponent.ValueRW.Speed = nextSpeed * (1.0F - turnBrake);
 
-            // TODO: 투사체 발사, 부스터
-            bool fireRaw = _fire.ReadValue<float>() > 0.0F;
+            DynamicBuffer<TurretElement> turrets = EntityManager.GetBuffer<TurretElement>(entity);
+            bool firePressed = _fire.ReadValue<float>() > 0.0F;
+
+            // 발사되었을때만 commandBuffer가 필요하므로 최적화
+            var commandBuffer = firePressed ? SystemAPI
+                .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
+                .CreateCommandBuffer(World.Unmanaged) : new EntityCommandBuffer();
+
+            // ref참조를 위해 foreach가 아닌 for로 접근
+            for (int i = 0; i < turrets.Length; i++)
+            {
+                ref TurretElement turret = ref turrets.ElementAt(i);
+
+                // 투사체가 없는 터렛
+                if (turret.ProjectilePrefab == Entity.Null)
+                {
+                    continue;
+                }
+
+                // 발사 재사용 대기중인 터렛
+                if (turret.FireCooldown > 0.0F)
+                {
+                    turret.FireCooldown -= deltaTime;
+                    continue;
+                }
+
+                // 발사 누를시에만 투사체를 발사함.
+                // FireCooldown때문에 Early-exit 불가.
+                if (!firePressed)
+                {
+                    continue;
+                }
+
+                LocalTransform spaceshipTransform = PredictMovedTransform(
+                    transformComponent.ValueRO,
+                    movementComponent.ValueRO,
+                    deltaTime
+                );
+
+                LocalTransform muzzleTransform = spaceshipTransform.TransformTransform(turret.MuzzleLocation);
+
+                // 탄퍼짐
+                if (turret.Spread > 0.0F)
+                {
+                    float halfSpread = turret.Spread * 0.5F;
+                    muzzleTransform = muzzleTransform.RotateZ(random.NextFloat(-halfSpread, halfSpread));
+                }
+
+                Entity projectile = commandBuffer.Instantiate(turret.ProjectilePrefab);
+                commandBuffer.SetComponent(projectile, muzzleTransform);
+
+                turret.FireCooldown = turret.MaxFireCooldown;
+            }
+
+            // TODO: 부스터
             bool boostRaw = _boost.ReadValue<float>() > 0.0F;
+        }
+
+        /// <summary>
+        /// 이번 프레임의 이동(<see cref="SpaceshipMovementSystem"/>)이 적용된 뒤의
+        /// Transform을 미리 계산해서 반환한다. 계산식은 <see cref="MoveJob"/>과 동일하다.
+        /// </summary>
+        private static LocalTransform PredictMovedTransform(
+            in LocalTransform current,
+            in SpaceshipMovementComponent movement,
+            float deltaTime
+        )
+        {
+            float length = math.length(movement.Forward);
+
+            // Forward가 0벡터면 이동/회전 방향을 알 수 없으므로 현재 Transform을 그대로 사용.
+            if (length <= math.EPSILON)
+            {
+                return current;
+            }
+
+            float2 velocity = movement.Forward * (movement.Speed / length);
+
+            return LocalTransform.FromPositionRotationScale(
+                new float3(current.Position.xy + velocity * deltaTime, current.Position.z),
+                quaternion.RotateZ(-math.atan2(movement.Forward.x, movement.Forward.y)),
+                current.Scale
+            );
         }
 
         /// <summary>

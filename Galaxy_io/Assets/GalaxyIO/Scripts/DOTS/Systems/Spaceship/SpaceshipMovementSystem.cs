@@ -12,7 +12,7 @@ namespace GalaxyIO.Systems
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<MovementComponent>().Build());
+            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<SpaceshipMovementComponent>().Build());
         }
 
         [BurstCompile]
@@ -26,23 +26,23 @@ namespace GalaxyIO.Systems
     }
 
     [BurstCompile]
-    [WithAll(typeof(MovementComponent))]
+    [WithAll(typeof(SpaceshipMovementComponent))]
     public partial struct MoveJob : IJobEntity
     {
         public float DeltaTime;
 
-        private void Execute(ref LocalTransform transform, ref MovementComponent spaceshipMovement)
+        private void Execute(ref LocalTransform transform, ref SpaceshipMovementComponent spaceshipSpaceshipMovement)
         {
-            float len = math.length(spaceshipMovement.Forward);
-            float sca = spaceshipMovement.Speed / len;
-            float2 Velocity = spaceshipMovement.Forward * sca;
+            float len = math.length(spaceshipSpaceshipMovement.Forward);
+            float sca = spaceshipSpaceshipMovement.Speed / len;
+            float2 Velocity = spaceshipSpaceshipMovement.Forward * sca;
 
             transform.Position = new float3(transform.Position.xy + Velocity * DeltaTime, transform.Position.z);
 
             if (len > math.EPSILON)
             {
                 transform.Rotation = quaternion.RotateZ(
-                    -math.atan2(spaceshipMovement.Forward.x, spaceshipMovement.Forward.y)
+                    -math.atan2(spaceshipSpaceshipMovement.Forward.x, spaceshipSpaceshipMovement.Forward.y)
                 );
             }
         }
