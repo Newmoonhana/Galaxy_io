@@ -129,15 +129,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -6648208624474899887, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
       propertyPath: Speed
-      value: 50
+      value: 20
       objectReference: {fileID: 0}
     - target: {fileID: -6648208624474899887, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
       propertyPath: Maneuver
-      value: 360
+      value: 400
       objectReference: {fileID: 0}
     - target: {fileID: -6648208624474899887, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
       propertyPath: Acceleration
-      value: 20
+      value: 50
       objectReference: {fileID: 0}
     - target: {fileID: -6648208624474899887, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
       propertyPath: ManeuverPenalty
@@ -186,6 +186,46 @@ PrefabInstance:
     - target: {fileID: 1177794197835979121, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
       propertyPath: m_Name
       value: PlayerSpaceship
+      objectReference: {fileID: 0}
+    - target: {fileID: 2225960894660375326, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
+    - target: {fileID: 2484309260766813077, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
+      propertyPath: RPS
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 2484309260766813077, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
+      propertyPath: Accuracy
+      value: 0.99
+      objectReference: {fileID: 0}
+    - target: {fileID: 3936434868018834435, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 8baadc01af5bf0e49ae9d4f7c7e14419, type: 3}
+    - target: {fileID: 4079496504209129029, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
+    - target: {fileID: 4161514095705550160, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
+      propertyPath: RPS
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 4161514095705550160, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
+      propertyPath: Accuracy
+      value: 0.99
+      objectReference: {fileID: 0}
+    - target: {fileID: 6766743962313914150, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
+      propertyPath: m_TagString
+      value: Untagged
+      objectReference: {fileID: 0}
+    - target: {fileID: 7881231228980092686, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
+      propertyPath: RPS
+      value: 12
+      objectReference: {fileID: 0}
+    - target: {fileID: 7881231228980092686, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
+      propertyPath: Accuracy
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

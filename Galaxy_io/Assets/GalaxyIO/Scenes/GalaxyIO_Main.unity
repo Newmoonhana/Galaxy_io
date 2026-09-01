@@ -360,7 +360,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8a42a54c1c864b02aaba5bb54de094df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Scripts.Managed.Camera.FollowPlayerEntity
-  smoothSpeed: 10
+  inputActionAsset: {fileID: -944628639613478452, guid: 400d44837e5718d44ae57a22c23f8874, type: 3}
+  lookAheadDistance: 5
+  smoothSpeed: 4
 --- !u!1 &1700765120
 GameObject:
   m_ObjectHideFlags: 0

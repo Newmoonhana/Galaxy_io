@@ -9,7 +9,7 @@ namespace GalaxyIO.Components
     /// <see cref="SpaceshipAuthoring"/>의 이동과 관련된 DOTS 구조체.
     /// <see cref="SpaceshipMovementSystem"/>에서 접근하기 위해 이동 관련된 필드만 추출함.
     /// </summary>
-    public struct MovementComponent : IComponentData
+    public struct SpaceshipMovementComponent : IComponentData
     {
         // 월드 좌표 상 최대 이동속도
         public float MaxSpeed;
