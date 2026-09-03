@@ -54,8 +54,6 @@ namespace GalaxyIO.DOTS.Client.Networking
                     TargetConnection = connectionEntity
                 }
             );
-
-            Debug.Log("Spawning Player");
         }
     }
 }
