@@ -1,10 +1,10 @@
-﻿using GalaxyIO.Components.Projectiles;
+﻿using GalaxyIO.DOTS.Components.Projectiles;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace GalaxyIO.Systems
+namespace GalaxyIO.DOTS.Systems
 {
     [BurstCompile]
     [UpdateInGroup(typeof(MovementSystemGroup))]

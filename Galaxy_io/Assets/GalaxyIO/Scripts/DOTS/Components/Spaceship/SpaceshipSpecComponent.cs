@@ -1,7 +1,7 @@
-﻿using GalaxyIO.Authoring;
+﻿using GalaxyIO.DOTS.Authoring;
 using Unity.Entities;
 
-namespace GalaxyIO.Components
+namespace GalaxyIO.DOTS.Components
 {
     /// <summary>
     /// <see cref="SpaceshipAuthoring"/>의 DOTS 구조체.

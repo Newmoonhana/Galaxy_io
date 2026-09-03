@@ -1,5 +1,6 @@
-﻿using GalaxyIO.Components.Tags;
+﻿using Unity.Collections;
 using Unity.Entities;
+using Unity.NetCode;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -39,19 +40,35 @@ namespace GalaxyIO.Camera
         private InputAction wasdMove;
 
         // Action을 이 컴포넌트가 직접 활성화했는지 여부.
-        // `PlayerInputSystem`이 이미 켜 둔 Action을 OnDisable에서 꺼 버리면
+        // `PlayerTurretFireSystem`이 이미 켜 둔 Action을 OnDisable에서 꺼 버리면
         // 우주선 조작이 죽으므로, 직접 켠 경우에만 되돌린다.
         private bool wasdMoveEnabledBySelf;
 
         // 현재 적용 중인 오프셋. 목표 오프셋을 향해 매 프레임 수렴한다.
         private Vector2 currentLookAhead;
 
+        private void Awake()
+        {
+            // 서버에서 비활성화함
+            if (Application.isBatchMode)
+            {
+                gameObject.SetActive(false);
+            }
+        }
+
         private void Start()
         {
-            entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+            World clientWorld = ClientServerBootstrap.ClientWorld;
 
+            if (clientWorld == null)
+            {
+                enabled = false;
+                return;
+            }
+
+            entityManager = clientWorld.EntityManager;
             playerQuery = entityManager.CreateEntityQuery(
-                ComponentType.ReadOnly<LocalPlayerTag>(),
+                ComponentType.ReadOnly<GhostOwnerIsLocal>(),
                 ComponentType.ReadOnly<LocalTransform>()
             );
         }
@@ -74,7 +91,7 @@ namespace GalaxyIO.Camera
                 .FindActionMap("Gameplay", throwIfNotFound: true)
                 .FindAction("Move_By_Buttons", throwIfNotFound: true);
 
-            // `PlayerInputSystem`의 활성화 여부에 의존하지 않도록 직접 활성화한다.
+            // `PlayerTurretFireSystem`의 활성화 여부에 의존하지 않도록 직접 활성화한다.
             // (비활성 Action의 ReadValue는 항상 0을 반환한다.)
             if (!wasdMove.enabled)
             {
@@ -101,7 +118,8 @@ namespace GalaxyIO.Camera
                 return;
             }
 
-            Entity player = playerQuery.GetSingletonEntity();
+            using var players = playerQuery.ToEntityArray(Allocator.Temp);
+            Entity player = players[0];
             LocalTransform playerTransform = entityManager.GetComponentData<LocalTransform>(player);
 
             // 오프셋만 보간한다. 프레임률과 무관한 지수 감쇠.
@@ -127,7 +145,7 @@ namespace GalaxyIO.Camera
         {
             Vector2 wasdValue = wasdMove != null ? wasdMove.ReadValue<Vector2>() : Vector2.zero;
 
-            // WASD 이동은 항상 최대 속력이므로(`PlayerInputSystem` 참고) 세기를 따질 필요 없이
+            // WASD 이동은 항상 최대 속력이므로(`PlayerTurretFireSystem` 참고) 세기를 따질 필요 없이
             // 입력 방향으로 lookAheadDistance만큼 밀어낸다. 대각 입력의 길이가 √2가 되지
             // 않도록 정규화한다.
             if (wasdValue != Vector2.zero)
