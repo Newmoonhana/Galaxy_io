@@ -1,4 +1,4 @@
-﻿using GalaxyIO.DOTS.Components;
+﻿using GalaxyIO.DOTS.Client.Components;
 using Unity.Entities;
 using Unity.NetCode;
 using UnityEngine;
@@ -11,9 +11,19 @@ namespace GalaxyIO.DOTS.Client.Networking
     public static class ClientNetworkRequestManager
     {
         /// <summary>
-        /// 플레이어 스폰 요청
+        /// 플레이어 스폰 요청.
+        /// <p/>
+        /// 여기서는 의사 표시만 남기고, 실제 접속과 RPC 전송은
+        /// <see cref="Systems.ClientConnectionSystem"/>이 처리한다.
+        /// 서버가 아직 떠 있지 않아도 접속될 때까지 재시도하므로
+        /// 버튼을 여러 번 누를 필요는 없다.
         /// </summary>
-        public static void RequestPlayerSpawn()
+        /// <returns>
+        /// 요청이 접수되었으면 true. Client World 자체가 없어서 접수할 수 없으면 false.
+        /// <p/>
+        /// 주의: true 는 "접수됨"이지 "접속 완료"가 아니다. 접속은 비동기로 진행된다.
+        /// </returns>
+        public static bool RequestPlayerSpawn()
         {
             // Thin Client 를 제외한 실제 Client World.
             var clientWorld = ClientServerBootstrap.ClientWorld;
@@ -21,39 +31,23 @@ namespace GalaxyIO.DOTS.Client.Networking
             if (clientWorld == null)
             {
                 Debug.LogWarning("Client World not found.");
-                return;
+                return false;
             }
 
             var entityManager = clientWorld.EntityManager;
-            using var connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkStreamConnection>());
 
-            if (connectionQuery.IsEmpty)
-            {
-                Debug.LogWarning("Not connected to server.");
-                return;
-            }
-
-            var connectionEntity = connectionQuery.GetSingletonEntity();
-
-            // 서버가 보내는 Ghost 스냅샷을 받으려면 클라이언트 Connection 도 InGame 이어야 한다.
-            if (!entityManager.HasComponent<NetworkStreamInGame>(connectionEntity))
-            {
-                entityManager.AddComponent<NetworkStreamInGame>(connectionEntity);
-            }
-
-            var rpcEntity = entityManager.CreateEntity();
-
-            entityManager.AddComponentData(
-                rpcEntity,
-                new SpawnRequestRPC()
+            using var requestQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<PlayerSpawnRequest>()
             );
 
-            entityManager.AddComponentData(
-                rpcEntity,
-                new SendRpcCommandRequest {
-                    TargetConnection = connectionEntity
-                }
-            );
+            // 이미 처리 대기 중인 요청이 있으면 중복 생성하지 않는다.
+            if (requestQuery.IsEmpty)
+            {
+                Entity request = entityManager.CreateEntity();
+                entityManager.AddComponent<PlayerSpawnRequest>(request);
+            }
+
+            return true;
         }
     }
 }

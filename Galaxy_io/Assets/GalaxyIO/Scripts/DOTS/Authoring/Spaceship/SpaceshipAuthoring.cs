@@ -43,10 +43,6 @@ namespace GalaxyIO.DOTS.Authoring
 
         // 충돌체 크기
         public float Size;
-
-        [Header("Tags")]
-
-        public uint TagFlag;
     }
 
     public sealed class SpaceshipBaker : Baker<SpaceshipAuthoring>

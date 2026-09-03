@@ -50,16 +50,9 @@ namespace GalaxyIO.DOTS.Systems
                     float2 cursorPos = inputRequest.ValueRO.MouseCursor;
                     desiredDirection = cursorPos - transform.ValueRO.Position.xy;
 
-                    // TODO: 화면 중심과 마우스 포인터의 거리에 따른 속력 감쇄 구현
-                    // Old Code: 카메라 / 화면 사이즈를 싱글플레이에서 모두 얻어왔음. 멀티플레이에선 불가능함.
-                    /*
-                    float maxCursorDistance = math.max(math.cmin(screenCenter) / 0.5F, 1.0F);
-                    float throttle = math.saturate(
-                        math.distance(new float2(cursorPos.x, cursorPos.y), screenCenter) / maxCursorDistance
-                    );
-                    */
-
-                    desiredSpeed = movementComponent.ValueRO.MaxSpeed;
+                    // 마우스 포인터 위치에 따른 감속
+                    float throttle = math.min(1.0F, math.length(desiredDirection) / 4.0F);
+                    desiredSpeed = movementComponent.ValueRO.MaxSpeed * throttle;
                 }
 
                 // 가속: 목표 속력까지 Acceleration 한계 내에서 접근.

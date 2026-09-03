@@ -10,8 +10,10 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         public void OnPressGameStart()
         {
-            Screen.SetActive(false);
-            ClientNetworkRequestManager.RequestPlayerSpawn();
+            if (ClientNetworkRequestManager.RequestPlayerSpawn())
+            {
+                Screen.SetActive(false);
+            }
         }
     }
 }

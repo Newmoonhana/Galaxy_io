@@ -4,6 +4,7 @@ using GalaxyIO.DOTS.Components;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.NetCode;
+using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -75,12 +76,17 @@ namespace GalaxyIO.DOTS.Client.Systems
 
         protected override void OnUpdate()
         {
-            foreach (var playerInput in SystemAPI.Query<RefRW<PlayerInputComponent>>().WithAll<GhostOwnerIsLocal>())
+            foreach (var (playerInput, transform) in SystemAPI.Query<RefRW<PlayerInputComponent>, RefRW<LocalTransform>>().WithAll<GhostOwnerIsLocal>())
             {
                 Vector2 arrowMovement = wasdAction.ReadValue<Vector2>();
 
-                // WASD 움직임이 감지되면, 마우스 포인터 움직임보다 제어 우선순위를 가짐
-                if (arrowMovement != Vector2.zero)
+                // Unfocused 상태에선 움직이지 않음.
+                if (!Application.isFocused)
+                {
+                    playerInput.ValueRW.MouseCursor = new float2(transform.ValueRW.Position.x, transform.ValueRW.Position.y);
+                    playerInput.ValueRW.MoveArrows = new float2(0, 0);
+                }
+                else if (arrowMovement != Vector2.zero) // WASD 움직임이 감지되면, 마우스 포인터 움직임보다 제어 우선순위를 가짐
                 {
                     playerInput.ValueRW.MoveArrows = new float2(arrowMovement.x, arrowMovement.y);
                 }
