@@ -1,10 +1,9 @@
 ﻿using System;
-using GalaxyIO.DOTS.Components;
 using GalaxyIO.DOTS.Client.Components;
+using GalaxyIO.DOTS.Components;
 using Unity.Entities;
 using Unity.NetCode;
 using Unity.Transforms;
-using UnityEngine;
 using Random = Unity.Mathematics.Random;
 
 namespace GalaxyIO.DOTS.Systems
@@ -65,8 +64,6 @@ namespace GalaxyIO.DOTS.Systems
                         turret.FireCooldown -= SystemAPI.Time.DeltaTime;
                         continue;
                     }
-
-                    if (inputRequest.ValueRO.TurretTriggered) Debug.Log(turret.FireCooldown);
 
                     // 발사 누를시에만 투사체를 발사함.
                     // FireCooldown때문에 Early-exit 불가.
