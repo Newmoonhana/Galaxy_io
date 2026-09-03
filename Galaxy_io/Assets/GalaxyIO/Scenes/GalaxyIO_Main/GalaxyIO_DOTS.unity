@@ -119,120 +119,7 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
---- !u!1001 &464939846
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: -6648208624474899887, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: Speed
-      value: 20
-      objectReference: {fileID: 0}
-    - target: {fileID: -6648208624474899887, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: Maneuver
-      value: 400
-      objectReference: {fileID: 0}
-    - target: {fileID: -6648208624474899887, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: Acceleration
-      value: 50
-      objectReference: {fileID: 0}
-    - target: {fileID: -6648208624474899887, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: ManeuverPenalty
-      value: 0.6
-      objectReference: {fileID: 0}
-    - target: {fileID: 1057815230147300486, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1057815230147300486, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1057815230147300486, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1057815230147300486, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 1057815230147300486, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1057815230147300486, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1057815230147300486, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1057815230147300486, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1057815230147300486, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1057815230147300486, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 1177794197835979121, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: m_Name
-      value: PlayerSpaceship
-      objectReference: {fileID: 0}
-    - target: {fileID: 2225960894660375326, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: m_TagString
-      value: Untagged
-      objectReference: {fileID: 0}
-    - target: {fileID: 2484309260766813077, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: RPS
-      value: 12
-      objectReference: {fileID: 0}
-    - target: {fileID: 2484309260766813077, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: Accuracy
-      value: 0.96
-      objectReference: {fileID: 0}
-    - target: {fileID: 3936434868018834435, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: m_Sprite
-      value: 
-      objectReference: {fileID: 21300000, guid: 8baadc01af5bf0e49ae9d4f7c7e14419, type: 3}
-    - target: {fileID: 4079496504209129029, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: m_TagString
-      value: Untagged
-      objectReference: {fileID: 0}
-    - target: {fileID: 4161514095705550160, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: RPS
-      value: 12
-      objectReference: {fileID: 0}
-    - target: {fileID: 4161514095705550160, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: Accuracy
-      value: 0.96
-      objectReference: {fileID: 0}
-    - target: {fileID: 6766743962313914150, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: m_TagString
-      value: Untagged
-      objectReference: {fileID: 0}
-    - target: {fileID: 7881231228980092686, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: RPS
-      value: 12
-      objectReference: {fileID: 0}
-    - target: {fileID: 7881231228980092686, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-      propertyPath: Accuracy
-      value: 1
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
---- !u!1 &1293003940
+--- !u!1 &163557122
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -240,47 +127,91 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1293003942}
-  - component: {fileID: 1293003941}
+  - component: {fileID: 163557124}
+  - component: {fileID: 163557123}
   m_Layer: 0
-  m_Name: PlayerControlAuthoring
+  m_Name: SpaceshipPreset
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &1293003941
+--- !u!114 &163557123
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1293003940}
+  m_GameObject: {fileID: 163557122}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 98fbf9e3b3a0424bb761ff64698b2f61, type: 3}
+  m_Script: {fileID: 11500000, guid: b10c2e9cfeaf45fbbc3b098970151cbf, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.PlayerControlAuthoring
-  InputActionAsset: {fileID: -944628639613478452, guid: 400d44837e5718d44ae57a22c23f8874, type: 3}
-  MaxHeat: 100
---- !u!4 &1293003942
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Scripts.DOTS.Authoring.Config.SpaceshipPresetAuthoring
+  PlayerDefaultShip: {fileID: 1177794197835979121, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
+--- !u!4 &163557124
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1293003940}
+  m_GameObject: {fileID: 163557122}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 2.17581, y: -0.02673, z: 0}
+  m_LocalPosition: {x: 534.0136, y: 66.49458, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1598268223
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1598268224}
+  - component: {fileID: 1598268225}
+  m_Layer: 0
+  m_Name: PlayerControl
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1598268224
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1598268223}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 534.0136, y: 66.49458, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1598268225
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1598268223}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdc0e065d6f142beac7b9b4feca4a2e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Client.Authoring.PlayerControlAuthoring
+  InputActionAsset: {fileID: -944628639613478452, guid: 400d44837e5718d44ae57a22c23f8874, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
   m_Roots:
-  - {fileID: 464939846}
-  - {fileID: 1293003942}
+  - {fileID: 1598268224}
+  - {fileID: 163557124}

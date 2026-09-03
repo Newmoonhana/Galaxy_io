@@ -1,11 +1,11 @@
 ﻿using UnityEngine;
 
-namespace GalaxyIO.Authoring
+namespace GalaxyIO.DOTS.Authoring
 {
     /// <summary>
-    /// 터렛 속성 정의. Baking은 <see cref="SpaceshipBaker"/>에 의해 이루어짐
+    /// 터렛 속성 정의. 터렛의 Baking은 <see cref="SpaceshipBaker"/>에 의해 이루어짐
     /// </summary>
-    public sealed class Turret : MonoBehaviour
+    public sealed class TurretAuthoring : MonoBehaviour
     {
         [SerializeField]
         [Tooltip("발사체")]

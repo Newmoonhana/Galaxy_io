@@ -1,9 +1,9 @@
-﻿using GalaxyIO.Authoring;
-using GalaxyIO.Systems;
+﻿using GalaxyIO.DOTS.Authoring;
+using GalaxyIO.DOTS.Systems;
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace GalaxyIO.Components
+namespace GalaxyIO.DOTS.Components
 {
     /// <summary>
     /// <see cref="SpaceshipAuthoring"/>의 이동과 관련된 DOTS 구조체.

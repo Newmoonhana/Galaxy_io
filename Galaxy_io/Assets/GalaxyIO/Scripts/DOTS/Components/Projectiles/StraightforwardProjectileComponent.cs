@@ -1,6 +1,6 @@
 ﻿using Unity.Entities;
 
-namespace GalaxyIO.Components.Projectiles
+namespace GalaxyIO.DOTS.Components.Projectiles
 {
     /// <summary>
     /// 직선으로 나아가는 투사체

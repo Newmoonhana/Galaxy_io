@@ -1,10 +1,10 @@
-﻿using GalaxyIO.Components;
+﻿using GalaxyIO.DOTS.Components;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 
-namespace GalaxyIO.Systems
+namespace GalaxyIO.DOTS.Systems
 {
     [BurstCompile]
     public partial struct SpaceshipMovementSystem : ISystem

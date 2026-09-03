@@ -1,9 +1,9 @@
-﻿using GalaxyIO.Components;
-using GalaxyIO.Components.Projectiles;
+﻿using GalaxyIO.DOTS.Components;
+using GalaxyIO.DOTS.Components.Projectiles;
 using Unity.Entities;
 using UnityEngine;
 
-namespace GalaxyIO.Authoring
+namespace GalaxyIO.DOTS.Authoring
 {
     public sealed class StraightforwardProjectileAuthoring : ProjectileAuthoring
     {

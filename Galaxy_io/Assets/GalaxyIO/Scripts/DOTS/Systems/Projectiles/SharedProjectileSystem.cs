@@ -1,8 +1,8 @@
-﻿using GalaxyIO.Components;
+﻿using GalaxyIO.DOTS.Components;
 using Unity.Burst;
 using Unity.Entities;
 
-namespace GalaxyIO.Systems
+namespace GalaxyIO.DOTS.Systems
 {
     [BurstCompile]
     [UpdateInGroup(typeof(DespawnSystemGroup))]

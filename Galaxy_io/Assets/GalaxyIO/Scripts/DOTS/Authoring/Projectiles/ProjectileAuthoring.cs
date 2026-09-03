@@ -2,7 +2,7 @@
 using Unity.Entities;
 using UnityEngine;
 
-namespace GalaxyIO.Authoring
+namespace GalaxyIO.DOTS.Authoring
 {
     /// <summary>
     /// 투사체 공통 설정값.

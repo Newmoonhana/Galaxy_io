@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
-using GalaxyIO.Components;
-using GalaxyIO.Components.Tags;
+using GalaxyIO.DOTS.Components;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
-namespace GalaxyIO.Authoring
+namespace GalaxyIO.DOTS.Authoring
 {
     public sealed class SpaceshipAuthoring : MonoBehaviour
     {
@@ -79,7 +78,7 @@ namespace GalaxyIO.Authoring
             // (클래스의 참조가 아님. Entity의 Index로 참조)
             foreach (Transform t in authoring.Turrets)
             {
-                Turret turret = t.GetComponent<Turret>();
+                TurretAuthoring turretAuthoring = t.GetComponent<TurretAuthoring>();
 
                 buffer.Add(new TurretElement
                 {
@@ -89,16 +88,11 @@ namespace GalaxyIO.Authoring
                         t.localScale.x
                     ),
                     FireCooldown     = 0.0F,
-                    MaxFireCooldown  = (turret == null || turret.Projectile == null) ? 0.0F : 1.0F / turret.RPS,
-                    Spread           = (turret == null || turret.Projectile == null) ? 0.0F : (1.0F - turret.Accuracy) * math.TORADIANS * 90.0F,
-                    ProjectilePrefab = (turret == null || turret.Projectile == null)
-                        ? Entity.Null : GetEntity(turret.Projectile, TransformUsageFlags.Dynamic)
+                    MaxFireCooldown  = (turretAuthoring == null || turretAuthoring.Projectile == null) ? 0.0F : 1.0F / turretAuthoring.RPS,
+                    Spread           = (turretAuthoring == null || turretAuthoring.Projectile == null) ? 0.0F : (1.0F - turretAuthoring.Accuracy) * math.TORADIANS * 90.0F,
+                    ProjectilePrefab = (turretAuthoring == null || turretAuthoring.Projectile == null)
+                        ? Entity.Null : GetEntity(turretAuthoring.Projectile, TransformUsageFlags.Dynamic)
                 });
-            }
-
-            if ((authoring.TagFlag | SpaceshipTags.LOCAL_PLAYER) == 1)
-            {
-                AddComponent(entity, new LocalPlayerTag());
             }
         }
     }

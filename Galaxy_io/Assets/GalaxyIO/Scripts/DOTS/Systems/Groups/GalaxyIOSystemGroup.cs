@@ -1,19 +1,22 @@
 ﻿using Unity.Entities;
 
-namespace GalaxyIO.Systems
+namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
-    /// 몹, 투사체, 아이템 등 월드 내에 새로운 오브젝트를 추가하는 스폰 시스템 그룹
+    /// 월드 내 이동 가능한 오브젝트들을 옮기는 그룹
     /// </summary>
-    public partial class GalaxyIOSystemGroup : ComponentSystemGroup
+    public partial class MovementSystemGroup : ComponentSystemGroup
     {
     }
 
     /// <summary>
-    /// 월드 내 이동 가능한 오브젝트들을 옮기는 그룹
+    /// 몹, 투사체, 아이템 등 월드 내에 새로운 오브젝트를 추가하는 스폰 시스템 그룹
+    /// <see cref="MovementSystemGroup"/>다음 실행, 투사체 등 다른 Entity의
+    /// Transform을 기준으로 생성되는 Entity들은 Transform이 업데이트 된 후
+    /// 실행되어야 함.
     /// </summary>
-    [UpdateAfter(typeof(GalaxyIOSystemGroup))]
-    public partial class MovementSystemGroup : ComponentSystemGroup
+    [UpdateAfter(typeof(MovementSystemGroup))]
+    public partial class GalaxyIOSystemGroup : ComponentSystemGroup
     {
     }
 

@@ -1,6 +1,6 @@
 ﻿using Unity.Entities;
 
-namespace GalaxyIO.Systems
+namespace GalaxyIO.DOTS.Systems
 {
     public partial struct SpaceshipSpecHandleSystem : ISystem
     {
