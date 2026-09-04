@@ -20,6 +20,10 @@ namespace GalaxyIO.DOTS.Authoring
         // 가속도
         public float Acceleration;
 
+        // 감속도. 가속 키를 뗐을 때 초당 줄어드는 속력.
+        [Min(0.0F)]
+        public float Deceleration = 5.0F;
+
         // 회전 속도(Degree/초)
         public float Maneuver;
 
@@ -66,6 +70,7 @@ namespace GalaxyIO.DOTS.Authoring
                 MaxSpeed        = authoring.Speed,
                 Speed           = 0.0F,
                 Acceleration    = authoring.Acceleration,
+                Deceleration    = authoring.Deceleration,
                 Maneuver        = authoring.Maneuver,
                 ManeuverPenalty = authoring.ManeuverPenalty,
                 TurnBrake       = authoring.TurnBrake,
