@@ -1,0 +1,16 @@
+{
+    "name": "MAEditor",
+    "references": [
+        "MAScripts",
+        "RIScripts",
+        "Unity.Addressables"
+    ],
+    "optionalUnityReferences": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": []
+}
