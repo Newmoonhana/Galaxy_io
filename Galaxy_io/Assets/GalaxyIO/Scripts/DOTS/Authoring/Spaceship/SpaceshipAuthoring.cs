@@ -31,10 +31,6 @@ namespace GalaxyIO.DOTS.Authoring
         [Range(0.0F, 1.0F)]
         public float ManeuverPenalty = 0.6F;
 
-        // 선회 제동: 회전한 각도(Radian)당 깎이는 속력 비율.
-        [Min(0.0F)]
-        public float TurnBrake = 0.5F;
-
         // 최대 체력
         public float MaxHealth;
 
@@ -73,7 +69,6 @@ namespace GalaxyIO.DOTS.Authoring
                 Deceleration    = authoring.Deceleration,
                 Maneuver        = authoring.Maneuver,
                 ManeuverPenalty = authoring.ManeuverPenalty,
-                TurnBrake       = authoring.TurnBrake,
                 Forward         = new float2(1.0F, 0.0F)
             });
 

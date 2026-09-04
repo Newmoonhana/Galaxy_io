@@ -14,7 +14,7 @@ namespace GalaxyIO.DOTS.Systems
     /// <p/>
     /// WASD와 마우스 커서는 방향 제어만 담당하고, 속력은 가속 키가 담당함.
     /// </summary>
-    [UpdateInGroup(typeof(PredictedSimulationSystemGroup))]
+    [UpdateInGroup(typeof(MovementSystemGroup))]
     public partial struct PlayerMovementSystem : ISystem
     {
         // 커서가 기체로부터 이 거리(월드 유닛) 안에 있으면 방향 제어 입력으로 치지 않음.
@@ -23,7 +23,6 @@ namespace GalaxyIO.DOTS.Systems
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<PlayerInputComponent>();
-            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         }
 
         // 플레이어 입력 > 우주선의 Forward, Velocity 수정

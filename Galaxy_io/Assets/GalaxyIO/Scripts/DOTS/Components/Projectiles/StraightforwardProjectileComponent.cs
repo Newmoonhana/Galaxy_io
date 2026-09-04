@@ -1,4 +1,5 @@
 ﻿using Unity.Entities;
+using Unity.NetCode;
 
 namespace GalaxyIO.DOTS.Components.Projectiles
 {
@@ -11,6 +12,8 @@ namespace GalaxyIO.DOTS.Components.Projectiles
         public float Acceleration;
 
         // 최초 발사시 투사체 속도. 발사 시점에 우주선 속력이 더해질 수 있음.
+        // 예측 롤백 시 서버 값으로 되감아야 하므로 복제함.
+        [GhostField]
         public float Speed;
 
         // 발사한 우주선의 속력을 Speed에 더할지 여부.

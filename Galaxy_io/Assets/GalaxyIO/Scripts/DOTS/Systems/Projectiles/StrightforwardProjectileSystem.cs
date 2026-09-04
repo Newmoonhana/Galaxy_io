@@ -11,7 +11,6 @@ namespace GalaxyIO.DOTS.Systems
     /// 자신의 Up 방향으로 전진시키는 시스템.
     /// </summary>
     [BurstCompile]
-    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(MovementSystemGroup))]
     public partial struct StraightforwardProjectileSystem : ISystem
     {
@@ -35,7 +34,7 @@ namespace GalaxyIO.DOTS.Systems
     /// 투사체의 가속도를 속도에 반영하고 진행 방향으로 이동시킴.
     /// </summary>
     [BurstCompile]
-    [WithAll(typeof(StraightforwardProjectileComponent))]
+    [WithAll(typeof(StraightforwardProjectileComponent), typeof(Simulate))]
     public partial struct StraightforwardProjectileJob : IJobEntity
     {
         public float DeltaTime;

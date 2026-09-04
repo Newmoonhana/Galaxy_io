@@ -112,10 +112,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.SpaceshipAuthoring
   Speed: 30
   Acceleration: 10
-  Deceleration: 15
+  Deceleration: 20
   Maneuver: 360
   ManeuverPenalty: 0.9
-  TurnBrake: 0.5
   MaxHealth: 100
   Repair: 5
   Turrets:
