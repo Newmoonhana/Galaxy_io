@@ -12,7 +12,7 @@ namespace GalaxyIO.DOTS.Systems
     /// 우주선의 Transform에 반영하는 시스템.
     /// </summary>
     [BurstCompile]
-    [UpdateInGroup(typeof(PredictedSimulationSystemGroup))]
+    [UpdateInGroup(typeof(MovementSystemGroup))]
     [UpdateAfter(typeof(PlayerMovementSystem))]
     public partial struct SpaceshipMovementSystem : ISystem
     {

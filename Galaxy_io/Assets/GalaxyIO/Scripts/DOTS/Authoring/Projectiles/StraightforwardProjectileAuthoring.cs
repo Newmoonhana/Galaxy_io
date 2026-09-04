@@ -41,6 +41,9 @@ namespace GalaxyIO.DOTS.Authoring
                 Speed = authoring.Speed,
                 ReflectOwnerVelocity = authoring.ReflectOwnerVelocity,
             });
+
+            // 예측 스폰 짝짓기용 식별자. 값은 발사 시점에 채움.
+            AddComponent<ProjectileSpawnIdComponent>(entity);
         }
     }
 }
