@@ -9,12 +9,17 @@ using UnityEngine;
 namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
-    /// <see cref="PlayerInputComponent"/>를 읽어들여 플레이어 Spaceship의 Transform을
+    /// <see cref="PlayerInputComponent"/>를 읽어들여 플레이어 Spaceship의 기수 방향과 속력을
     /// Update하는 시스템. 클라이언트에서 먼저 업데이트되고 서버가 나중에 검증함.
+    /// <p/>
+    /// WASD와 마우스 커서는 방향 제어만 담당하고, 속력은 가속 키가 담당함.
     /// </summary>
     [UpdateInGroup(typeof(PredictedSimulationSystemGroup))]
     public partial struct PlayerMovementSystem : ISystem
     {
+        // 커서가 기체로부터 이 거리(월드 유닛) 안에 있으면 방향 제어 입력으로 치지 않음.
+        private const float CursorDeadzone = 0.5F;
+
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<PlayerInputComponent>();
@@ -34,29 +39,34 @@ namespace GalaxyIO.DOTS.Systems
                 float deltaTime = SystemAPI.Time.DeltaTime;
                 Vector2 wasdMove = inputRequest.ValueRO.MoveArrows;
                 float2 desiredDirection;
-                float desiredSpeed;
 
-                // WASD이동
+                // WASD 방향 제어
                 if (wasdMove != Vector2.zero)
                 {
                     desiredDirection = new float2(wasdMove.x, wasdMove.y);
-                    // WASD이동은 항상 최대 속력
-                    desiredSpeed = movementComponent.ValueRO.MaxSpeed;
                 }
-                else // 마우스 커서로 이동
+                else // 마우스 커서 방향 제어
                 {
                     float2 cursorPos = inputRequest.ValueRO.MouseCursor;
                     desiredDirection = cursorPos - transform.ValueRO.Position.xy;
 
-                    // 마우스 포인터 위치에 따른 감속
-                    float throttle = math.min(1.0F, math.length(desiredDirection) / 4.0F);
-                    desiredSpeed = movementComponent.ValueRO.MaxSpeed * throttle;
+                    // 커서가 기체에 겹치면 방향이 튀므로 방향 제어 입력 없음으로 취급.
+                    if (math.lengthsq(desiredDirection) < CursorDeadzone * CursorDeadzone)
+                    {
+                        desiredDirection = float2.zero;
+                    }
                 }
 
-                // 가속: 목표 속력까지 Acceleration 한계 내에서 접근.
                 float currentSpeed = movementComponent.ValueRO.Speed;
                 float maxSpeed = movementComponent.ValueRO.MaxSpeed;
-                float maxSpeedDelta = movementComponent.ValueRO.Acceleration * deltaTime;
+
+                // 가속 키를 누르면 MaxSpeed로, 떼면 0으로 접근.
+                bool accelerating = inputRequest.ValueRO.AccelerationTriggered;
+                float desiredSpeed = accelerating ? maxSpeed : 0.0F;
+                float maxSpeedDelta = deltaTime * (accelerating
+                    ? movementComponent.ValueRO.Acceleration
+                    : movementComponent.ValueRO.Deceleration);
+
                 float nextSpeed = currentSpeed + math.clamp(desiredSpeed - currentSpeed, -maxSpeedDelta, maxSpeedDelta);
 
                 // 회전: 목표 방향까지 Maneuver 한계 내에서 접근.

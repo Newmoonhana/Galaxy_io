@@ -22,6 +22,9 @@ namespace GalaxyIO.DOTS.Components
         // 가속도
         public float Acceleration;
 
+        // 감속도. 가속 키를 떼면 이 값으로 0까지 감속함.
+        public float Deceleration;
+
         // 회전속도(도/초)
         public float Maneuver;
 
