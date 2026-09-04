@@ -11,10 +11,11 @@ using UnityEngine.InputSystem;
 namespace GalaxyIO.DOTS.Client.Systems
 {
     /// <summary>
-    /// 로컬 디바이스의 Input을 처리받아 서버에 보낼
+    /// 로컬 디바이스의 Input을 읽어 서버에 보낼
     /// <see cref="PlayerInputComponent"/>를 생성하는 시스템.
     /// </summary>
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
+    [UpdateInGroup(typeof(GhostInputSystemGroup))]
     public sealed partial class PlayerInputEncodeSystem : SystemBase
     {
         private UnityEngine.Camera mainCamera;
@@ -23,7 +24,7 @@ namespace GalaxyIO.DOTS.Client.Systems
         private InputAction wasdAction;
         private InputAction turretAction;
         private InputAction artilleryAction;
-        private InputAction afterburnerAction;
+        private InputAction accelerationAction;
 
         private bool fireLastlyPressed;
 
@@ -41,7 +42,7 @@ namespace GalaxyIO.DOTS.Client.Systems
             {
                 PlayerControlComponent initializer = SystemAPI.ManagedAPI.GetSingleton<PlayerControlComponent>();
 
-                // Asset이 null인경우: Editor에서 `PlayerControlAuthoring` 컴포넌트에 `InputAction` 바인딩 안한 경우
+                // Asset이 null인 경우: 에디터에서 `InputAction`을 바인딩하지 않음.
                 if (initializer.InputAction == null || UnityEngine.Camera.main == null)
                 {
                     Debug.LogError(
@@ -49,7 +50,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                         $"Main 카메라가 없어 {nameof(PlayerInputEncodeSystem)}을 비활성화합니다."
                     );
 
-                    // `InputAction` 정상적으로 초기화되지 않은 경우: 시스템 비활성화
+                    // 초기화에 실패한 경우: 시스템 비활성화
                     Enabled = false;
                 }
                 else
@@ -60,7 +61,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                     wasdAction = gameplayMapping.FindAction("Move_By_Buttons", throwIfNotFound: true);
                     turretAction = gameplayMapping.FindAction("Turret", throwIfNotFound: true);
                     artilleryAction = gameplayMapping.FindAction("Artillery", throwIfNotFound: true);
-                    afterburnerAction = gameplayMapping.FindAction("Afterburner", throwIfNotFound: true);
+                    accelerationAction = gameplayMapping.FindAction("Acceleration", throwIfNotFound: true);
                 }
 
                 initialized = true;
@@ -90,7 +91,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                 {
                     playerInput.ValueRW.MoveArrows = new float2(arrowMovement.x, arrowMovement.y);
                 }
-                else // WASD 움직임 입력이 없을경우 마우스 포인터 움직임으로 대체
+                else // WASD 입력이 없을 경우 마우스 포인터 움직임으로 대체
                 {
                     Vector2 cursorPos = mouseCursor.ReadValue<Vector2>();
                     Vector3 cursorWorldPos = mainCamera.ScreenToWorldPoint(
@@ -109,7 +110,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                 fireLastlyPressed = firePressed;
 
                 playerInput.ValueRW.ArtilleryTriggered = artilleryAction.ReadValue<float>() > 0.0F;
-                playerInput.ValueRW.AfterburnerTriggered = afterburnerAction.ReadValue<float>() > 0.0F;
+                playerInput.ValueRW.AccelerationTriggered = accelerationAction.ReadValue<float>() > 0.0F;
             }
         }
     }

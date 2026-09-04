@@ -7,6 +7,9 @@ using UnityEngine;
 
 namespace GalaxyIO.DOTS.Authoring
 {
+    /// <summary>
+    /// 우주선의 속성과 터렛 배치 정의.
+    /// </summary>
     public sealed class SpaceshipAuthoring : MonoBehaviour
     {
         [Header("Attributes")]
@@ -71,7 +74,7 @@ namespace GalaxyIO.DOTS.Authoring
 
             var buffer = AddBuffer<TurretElement>(entity);
 
-            // (클래스의 참조가 아님. Entity의 Index로 참조)
+            // 투사체는 GameObject가 아닌 Entity 참조로 저장됨.
             foreach (Transform t in authoring.Turrets)
             {
                 TurretAuthoring turretAuthoring = t.GetComponent<TurretAuthoring>();

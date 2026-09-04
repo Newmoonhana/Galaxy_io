@@ -8,13 +8,7 @@ using Debug = UnityEngine.Debug;
 namespace GalaxyIO.Scripts.Editor
 {
     /// <summary>
-    /// 멀티플레이 테스트용 빌드 / 실행 도구.
-    /// 서버 1개와 클라이언트 N개를 각각 별도의 프로세스로 띄운다.
-    /// <p/>
-    /// 클라이언트 실행 파일이 PlayType.ClientAndServer 로 빌드되면 프로세스마다
-    /// 서버 월드까지 생성되어, 서버 월드의 Companion GameObject가
-    /// 클라이언트의 것과 함께 그려진다(우주선이 두 번 보이는 현상).
-    /// 이를 막기 위해 역할별 스크립팅 정의를 명시적으로 넘긴다.
+    /// 멀티플레이 테스트용 빌드/실행 도구를 포함한 에디터 툴.
     /// </summary>
     public static class Multiplayer
     {
@@ -52,10 +46,8 @@ namespace GalaxyIO.Scripts.Editor
         {
             EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, Target);
 
-            // 서버 / 클라이언트를 각각 한 번씩만 빌드하고, 실행만 여러 번 한다.
-            // NETCODE_DEBUG: Netcode 의 접속 / Handshake 진단 로그를 켠다.
-            // Build Settings 창을 거치는 빌드에는 development 빌드일 때 자동으로 붙지만,
-            // BuildPipeline.BuildPlayer 를 직접 호출하는 이 경로에서는 붙지 않는다.
+            // 서버 / 클라이언트를 각각 한 번씩만 빌드하고, 실행만 여러 번 함.
+            // NETCODE_DEBUG: Netcode 의 접속 / Handshake 진단 로그 활성화.
             string server = Build("Server", new[] { "UNITY_SERVER", "NETCODE_DEBUG" });
 
             if (server == null)
@@ -70,8 +62,8 @@ namespace GalaxyIO.Scripts.Editor
                 return;
             }
 
-            // 프로세스마다 로그 파일을 분리한다. -logFile 을 주지 않으면 모든 인스턴스가
-            // productName 기준의 같은 Player.log 를 공유해서 서로의 로그를 덮어쓴다.
+            // 프로세스별 로그 파일 분리. -logFile 파라미터로 로그 파일의
+            // 이름을 분리함. 여러 프로세스가 서로 같은 파일에 덮어쓰는 것 방지.
             Directory.CreateDirectory(LogRoot);
 
             Launch(server, "Server");
@@ -83,7 +75,7 @@ namespace GalaxyIO.Scripts.Editor
         }
 
         /// <summary>
-        /// 전용 로그 파일을 지정해서 플레이어를 실행한다.
+        /// 전용 로그 파일을 지정해서 플레이어를 실행함.
         /// </summary>
         private static void Launch(string executable, string logName)
         {
@@ -103,8 +95,7 @@ namespace GalaxyIO.Scripts.Editor
         }
 
         /// <summary>
-        /// 지정한 역할로 플레이어를 빌드하고, 성공 시 실행 파일의 절대 경로를 반환한다.
-        /// 실패하면 null.
+        /// 지정한 역할로 플레이어를 빌드함. 성공 시 실행 파일의 절대 경로, 실패 시 null 반환.
         /// </summary>
         private static string Build(string role, string[] extraDefines)
         {
@@ -119,11 +110,9 @@ namespace GalaxyIO.Scripts.Editor
                 targetGroup      = BuildTargetGroup.Standalone,
                 options          = BuildOptions.Development,
 
-                // BuildPipeline.BuildPlayer 를 스크립트에서 직접 호출하면, Build Settings 창이
-                // 주입해 주는 DOTS 정의(UNITY_CLIENT / UNITY_SERVER)가 적용되지 않는다.
-                // 해당 정의는 BuildPlayerWindow.RegisterGetBuildPlayerOptionsHandler 로 등록된
-                // 핸들러에서만 붙기 때문에, 창을 거치지 않는 이 경로에서는 직접 넘겨야 한다.
-                // ClientServerBootstrap.RequestedPlayType 이 이 정의로 결정된다.
+                // 스크립트에서 직접 빌드하면 UNITY_CLIENT / UNITY_SERVER 정의가 자동으로
+                // 붙지 않으므로 직접 넘김. ClientServerBootstrap.RequestedPlayType 이
+                // 이 정의로 결정됨.
                 extraScriptingDefines = extraDefines,
             };
 

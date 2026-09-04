@@ -5,7 +5,6 @@ namespace GalaxyIO.DOTS.Components
 {
     /// <summary>
     /// <see cref="SpaceshipAuthoring"/>의 DOTS 구조체.
-    ///
     /// </summary>
     public struct SpaceshipSpecComponent : IComponentData
     {

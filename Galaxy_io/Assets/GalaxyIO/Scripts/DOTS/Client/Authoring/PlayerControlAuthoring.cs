@@ -6,8 +6,7 @@ using UnityEngine.InputSystem;
 namespace GalaxyIO.DOTS.Client.Authoring
 {
     /// <summary>
-    /// <see cref="InputActionAsset"/>을 System에 전달해 주는 오브젝트
-    /// 에 부착할 컴포넌트 (월드 당 한 개)
+    /// <see cref="InputActionAsset"/>을 System에 전달하는 컴포넌트. 월드당 한 개.
     /// </summary>
     public sealed class PlayerControlAuthoring : MonoBehaviour
     {

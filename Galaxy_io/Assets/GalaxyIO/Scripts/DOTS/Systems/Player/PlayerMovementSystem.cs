@@ -9,14 +9,11 @@ using UnityEngine;
 namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
-    /// 클라이언트 Input을 매 프레임 캡쳐하는 <see cref="PlayerInputComponent"/>를
-    /// 읽어들여 플레이어 Spaceship의 Transform을 Update하는 시스템.
-    ///
-    /// PredictedSimulationSystemGroup—Transform이 클라이언트에서 먼저 업데이트되고,
-    /// 서버에서 이를 나중에 검증한다.
+    /// <see cref="PlayerInputComponent"/>를 읽어들여 플레이어 Spaceship의 Transform을
+    /// Update하는 시스템. 클라이언트에서 먼저 업데이트되고 서버가 나중에 검증함.
     /// </summary>
     [UpdateInGroup(typeof(PredictedSimulationSystemGroup))]
-    public partial struct PlayerVelocityUpdateSystem : ISystem
+    public partial struct PlayerMovementSystem : ISystem
     {
         public void OnCreate(ref SystemState state)
         {
@@ -31,6 +28,7 @@ namespace GalaxyIO.DOTS.Systems
                 var (transform, inputRequest, movementComponent) in
                 SystemAPI
                     .Query<RefRO<LocalTransform>, RefRO<PlayerInputComponent>, RefRW<SpaceshipMovementComponent>>()
+                    .WithAll<Simulate>()
             )
             {
                 float deltaTime = SystemAPI.Time.DeltaTime;
@@ -70,8 +68,7 @@ namespace GalaxyIO.DOTS.Systems
                     math.dot(currentForward, desiredForward)
                 );
 
-                // 빠른 속도로 이동중에 급선회를 방지하기 위해 현재 속도에 비례하여 Maneuver를
-                // 감쇄시킴. 정지 상태에 가까울수록 원래의 Maneuver를 유지하며 회전.
+                // 급선회 방지. 속도가 빠를수록 Maneuver를 감쇄시킴.
                 float speedRatio = maxSpeed > math.EPSILON ? math.saturate(currentSpeed / maxSpeed) : 0.0F;
                 float maneuverScale = math.lerp(
                     1.0F,

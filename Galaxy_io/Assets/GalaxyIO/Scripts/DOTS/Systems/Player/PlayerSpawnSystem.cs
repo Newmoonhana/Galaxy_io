@@ -6,6 +6,10 @@ using Unity.NetCode;
 
 namespace GalaxyIO.DOTS.Systems
 {
+    /// <summary>
+    /// <see cref="SpawnRequestRPC"/>를 받아 플레이어 우주선을 생성하고
+    /// 요청한 클라이언트에게 Ownership을 부여하는 시스템.
+    /// </summary>
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     public partial struct PlayerSpawnSystem : ISystem
     {
@@ -19,8 +23,7 @@ namespace GalaxyIO.DOTS.Systems
         {
             SpaceshipPresetComponent shipPresets = SystemAPI.GetSingleton<SpaceshipPresetComponent>();
 
-            // Query 순회 도중 Instantiate / DestroyEntity 를 직접 호출하면 순회가 무효화되므로
-            // 구조 변경(Structural Change)은 ECB 로 미뤄서 처리한다.
+            // Query 순회 중의 구조 변경(Structural Change)은 ECB 로 미뤄서 처리함.
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
             foreach (
@@ -31,13 +34,12 @@ namespace GalaxyIO.DOTS.Systems
             ) {
                 Entity connectionEntity = request.ValueRO.SourceConnection;
 
-                // 해당 Connection 이 InGame 상태여야 Ghost 스냅샷이 전송된다.
+                // 해당 Connection 이 InGame 상태여야 Ghost 스냅샷이 전송됨.
                 ecb.AddComponent<NetworkStreamInGame>(connectionEntity);
 
                 Entity playerShip = ecb.Instantiate(shipPresets.PlayerDefaultShip);
 
-                // 해당 Client에게 Ownership 부여
-                // (GhostOwner 는 Ghost Prefab 의 Has Owner 옵션이 켜져 있어야 존재한다)
+                // 해당 Client에게 Ownership 부여. (Ghost Prefab 의 Has Owner 옵션 필요)
                 var networkId = SystemAPI.GetComponent<NetworkId>(connectionEntity);
 
                 ecb.SetComponent(
