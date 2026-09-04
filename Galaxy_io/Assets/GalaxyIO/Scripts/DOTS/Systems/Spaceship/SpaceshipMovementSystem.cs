@@ -2,6 +2,7 @@
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.NetCode;
 using Unity.Transforms;
 
 namespace GalaxyIO.DOTS.Systems
@@ -11,6 +12,8 @@ namespace GalaxyIO.DOTS.Systems
     /// 우주선의 Transform에 반영하는 시스템.
     /// </summary>
     [BurstCompile]
+    [UpdateInGroup(typeof(PredictedSimulationSystemGroup))]
+    [UpdateAfter(typeof(PlayerMovementSystem))]
     public partial struct SpaceshipMovementSystem : ISystem
     {
         /// <summary>
@@ -64,7 +67,7 @@ namespace GalaxyIO.DOTS.Systems
     /// 우주선의 위치 이동과 기수 방향 회전.
     /// </summary>
     [BurstCompile]
-    [WithAll(typeof(SpaceshipMovementComponent))]
+    [WithAll(typeof(SpaceshipMovementComponent), typeof(Simulate))]
     public partial struct MoveJob : IJobEntity
     {
         public float DeltaTime;

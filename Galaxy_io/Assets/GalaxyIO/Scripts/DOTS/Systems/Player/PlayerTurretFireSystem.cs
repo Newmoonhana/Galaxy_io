@@ -1,6 +1,7 @@
 ﻿using System;
 using GalaxyIO.DOTS.Client.Components;
 using GalaxyIO.DOTS.Components;
+using GalaxyIO.DOTS.Components.Projectiles;
 using Unity.Entities;
 using Unity.NetCode;
 using Unity.Transforms;
@@ -9,13 +10,12 @@ using Random = Unity.Mathematics.Random;
 namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
-    /// 클라이언트 Input을 매 프레임 캡쳐하는 <see cref="PlayerInputComponent"/>를
-    /// 읽어들여 터렛의 투사체를 생성하는 시스템.
-    ///
-    /// PredictedSimulationSystemGroup—투사체는 클라이언트에서 먼저 스폰되고, 서버에서
-    /// 이를 나중에 검증한다.
+    /// <see cref="PlayerInputComponent"/>를 읽어들여 터렛의 투사체를 생성하는 시스템.
+    /// 투사체는 서버에서만 생성되고 클라이언트는 복제된 Ghost를 받음.
     /// </summary>
     [UpdateInGroup(typeof(PredictedSimulationSystemGroup))]
+    [UpdateAfter(typeof(SpaceshipMovementSystem))]
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     public partial struct PlayerTurretFireSystem : ISystem
     {
         private float heat;
@@ -33,21 +33,26 @@ namespace GalaxyIO.DOTS.Systems
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
         }
 
-        // 플레이어 입력 > 우주선의 Forward, Velocity 수정
+        // 플레이어 입력 > 터렛 투사체 생성
         public void OnUpdate(ref SystemState state)
         {
             foreach (
-                var (transform, inputRequest, turrets) in
-                    SystemAPI.Query<RefRO<LocalTransform>, RefRO<PlayerInputComponent>, DynamicBuffer<TurretElement>>()
+                var (transform, inputRequest, movement, turrets) in
+                    SystemAPI.Query<
+                        RefRO<LocalTransform>,
+                        RefRO<PlayerInputComponent>,
+                        RefRO<SpaceshipMovementComponent>,
+                        DynamicBuffer<TurretElement>
+                    >()
             ) {
-                // 발사되었을때만 commandBuffer가 필요하므로 최적화
+                // 발사할 때만 commandBuffer 생성.
                 var commandBuffer = inputRequest.ValueRO.TurretTriggered
                     ? SystemAPI
                         .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                         .CreateCommandBuffer(state.WorldUnmanaged)
                     : new EntityCommandBuffer();
 
-                // ref참조를 위해 foreach가 아닌 for로 접근
+                // ref 참조를 위해 foreach가 아닌 for로 접근
                 for (int i = 0; i < turrets.Length; i++)
                 {
                     ref TurretElement turret = ref turrets.ElementAt(i);
@@ -72,8 +77,7 @@ namespace GalaxyIO.DOTS.Systems
                         continue;
                     }
 
-                    // `TransformTransform`호출시 방어적 복사 발생: OK, 두 Transform 모두 원본을 수정하지
-                    // 말아야 하며 여기서 필요한건 임시로 합성된 `muzzleTransform`.
+                    // 터렛의 로컬 좌표를 월드 좌표로 합성. 원본 Transform은 수정하지 않음.
                     LocalTransform muzzleTransform = transform.ValueRO.TransformTransform(turret.MuzzleLocation);
 
                     // 탄퍼짐
@@ -85,6 +89,19 @@ namespace GalaxyIO.DOTS.Systems
 
                     Entity projectile = commandBuffer.Instantiate(turret.ProjectilePrefab);
                     commandBuffer.SetComponent(projectile, muzzleTransform);
+
+                    // 기수 방향으로 나가는 직진 투사체는 우주선의 속력을 물려받음.
+                    if (SystemAPI.HasComponent<StraightforwardProjectileComponent>(turret.ProjectilePrefab))
+                    {
+                        var straightforward =
+                            SystemAPI.GetComponent<StraightforwardProjectileComponent>(turret.ProjectilePrefab);
+
+                        if (straightforward.ReflectOwnerVelocity)
+                        {
+                            straightforward.Speed += movement.ValueRO.Speed;
+                            commandBuffer.SetComponent(projectile, straightforward);
+                        }
+                    }
 
                     turret.FireCooldown = turret.MaxFireCooldown;
                 }

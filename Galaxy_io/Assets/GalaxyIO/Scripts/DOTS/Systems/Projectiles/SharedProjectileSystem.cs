@@ -4,7 +4,11 @@ using Unity.Entities;
 
 namespace GalaxyIO.DOTS.Systems
 {
+    /// <summary>
+    /// 투사체의 남은 지속시간을 줄이고 만료된 투사체를 제거하는 시스템.
+    /// </summary>
     [BurstCompile]
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(DespawnSystemGroup))]
     public partial struct SharedProjectileSystem : ISystem
     {
@@ -28,6 +32,9 @@ namespace GalaxyIO.DOTS.Systems
         }
     }
 
+    /// <summary>
+    /// 투사체 지속시간 감소 및 만료 판정.
+    /// </summary>
     [BurstCompile]
     [WithAll(typeof(SharedProjectileComponent))]
     public partial struct SharedProjectileJob : IJobEntity
@@ -39,6 +46,7 @@ namespace GalaxyIO.DOTS.Systems
         {
             sharedProjectileComponent.Lifetime -= DeltaTime;
 
+            // 수명이 다한 투사체는 제거. 병렬 실행이라 ECB로 미뤄서 처리함.
             if (sharedProjectileComponent.Lifetime <= 0.0F)
             {
                 CommandBuffer.DestroyEntity(chunkIndex, entity);

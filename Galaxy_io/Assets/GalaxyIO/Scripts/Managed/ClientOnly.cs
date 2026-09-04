@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace GalaxyIO.Scripts.Managed
 {
+    /// <summary>
+    /// 서버 프로세스에서는 이 GameObject를 비활성화하는 컴포넌트.
+    /// </summary>
     [DisallowMultipleComponent]
     public sealed class ClientOnly : MonoBehaviour
     {

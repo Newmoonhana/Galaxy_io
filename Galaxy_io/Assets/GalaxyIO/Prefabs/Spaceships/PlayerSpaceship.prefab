@@ -122,7 +122,6 @@ MonoBehaviour:
   - {fileID: 3305843298488137801}
   - {fileID: 8240234519857750097}
   Size: 40
-  TagFlag: 1
 --- !u!114 &8909345426696020667
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -167,7 +166,7 @@ MonoBehaviour:
   UseSingleBaseline: 0
   RollbackPredictedSpawnedGhostState: 0
   RollbackPredictionOnStructuralChanges: 1
-  DefaultGhostMode: 0
+  DefaultGhostMode: 2
   SupportedGhostModes: 3
   OptimizationMode: 0
   Importance: 250

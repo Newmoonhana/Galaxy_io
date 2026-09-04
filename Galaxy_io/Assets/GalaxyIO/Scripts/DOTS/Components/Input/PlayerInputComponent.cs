@@ -4,7 +4,7 @@ using Unity.NetCode;
 namespace GalaxyIO.DOTS.Client.Components
 {
     /// <summary>
-    /// 클라이언트 사용자의 입력을 실시간으로 추적해서 기록해놓은 데이터
+    /// 클라이언트 사용자의 입력을 실시간으로 추적해서 기록해놓은 데이터.
     /// </summary>
     public struct PlayerInputComponent : IInputComponentData
     {
@@ -18,8 +18,8 @@ namespace GalaxyIO.DOTS.Client.Components
         // 주포 사격 버튼이 눌렸는지
         public bool ArtilleryTriggered;
 
-        // 애프터버너 어빌리티 발동 버튼이 눌렸는지
-        public bool AfterburnerTriggered;
+        // 가속 버튼이 눌렸는지
+        public bool AccelerationTriggered;
 
         // WASD 또는 상하좌우 화살표 버튼 입력의 합산 벡터
         public float2 MoveArrows;

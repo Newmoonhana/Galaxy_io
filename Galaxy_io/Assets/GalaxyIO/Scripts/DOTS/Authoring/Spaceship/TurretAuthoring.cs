@@ -3,7 +3,7 @@
 namespace GalaxyIO.DOTS.Authoring
 {
     /// <summary>
-    /// 터렛 속성 정의. 터렛의 Baking은 <see cref="SpaceshipBaker"/>에 의해 이루어짐
+    /// 터렛 속성 정의. Baking은 <see cref="SpaceshipBaker"/>가 담당함.
     /// </summary>
     public sealed class TurretAuthoring : MonoBehaviour
     {
