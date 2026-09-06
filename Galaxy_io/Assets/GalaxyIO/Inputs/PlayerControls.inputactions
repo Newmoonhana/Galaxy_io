@@ -27,7 +27,7 @@
                     "priority": 0
                 },
                 {
-                    "name": "Fire",
+                    "name": "Turret",
                     "type": "Button",
                     "id": "a5b8ec10-f18f-406e-aa8c-b8cfe96ff5fe",
                     "expectedControlType": "",
@@ -37,7 +37,17 @@
                     "priority": 0
                 },
                 {
-                    "name": "Boost",
+                    "name": "Artillery",
+                    "type": "Button",
+                    "id": "7be611cc-2515-4338-8c81-a49992679bc1",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
+                },
+                {
+                    "name": "Acceleration",
                     "type": "Button",
                     "id": "7c515e70-f391-4fef-8c61-33cabb6d30c0",
                     "expectedControlType": "",
@@ -176,7 +186,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Fire",
+                    "action": "Turret",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -187,7 +197,18 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Boost",
+                    "action": "Acceleration",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "785d17ea-7d3b-412b-abe5-202f5ffb8c38",
+                    "path": "<Mouse>/rightButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Artillery",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

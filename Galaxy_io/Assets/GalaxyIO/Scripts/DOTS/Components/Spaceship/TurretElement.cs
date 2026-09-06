@@ -1,11 +1,11 @@
-﻿using GalaxyIO.Authoring;
+﻿using GalaxyIO.DOTS.Authoring;
 using Unity.Entities;
 using Unity.Transforms;
 
-namespace GalaxyIO.Components
+namespace GalaxyIO.DOTS.Components
 {
     /// <summary>
-    /// <see cref="Turret"/>의 DOTS 구조체.
+    /// <see cref="TurretAuthoring"/>의 DOTS 구조체.
     /// </summary>
     public struct TurretElement : IBufferElementData
     {
