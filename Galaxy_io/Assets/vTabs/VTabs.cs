@@ -569,7 +569,7 @@ namespace VTabs
 
                 void setInitial()
                 {
-                    if (m_rootInstanceID != 0) return;
+                    if (m_rootInstanceID != default) return;
 
                     var folderPath = browser.GetLockedFolderPath_oneColumn();
                     var folderIid = AssetDatabase.LoadAssetAtPath<Object>(folderPath).GetObjectID();
@@ -585,7 +585,7 @@ namespace VTabs
                 }
                 void update()
                 {
-                    if (m_rootInstanceID == 0) return;
+                    if (m_rootInstanceID == default) return;
 
                     var folderIid = m_rootInstanceID;
                     var folderPath = _EditorUtility_ObjectIDToObject(folderIid).GetPath();
@@ -600,7 +600,7 @@ namespace VTabs
                     if (browser.GetMemberValue<bool>("isLocked")) return;
 
 #if UNITY_6000_3_OR_NEWER
-                    data.SetMemberValue("m_rootInstanceID", (EntityId)0);
+                    data.SetMemberValue("m_rootInstanceID", (EntityId)default);
 #else
                     data.SetMemberValue("m_rootInstanceID", 0);
 #endif
@@ -1585,7 +1585,7 @@ namespace VTabs
 
 
 
-        const string version = "2.1.7";
+        const string version = "2.1.8";
 
     }
 }
