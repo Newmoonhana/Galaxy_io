@@ -8,6 +8,7 @@ using UnityEditor;
 #if !USE_TUTORIALS
 using UnityEditor.PackageManager;
 #endif
+using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -85,6 +86,8 @@ namespace AssetInventory
             root.Clear();
             AssetInventoryUITK.ApplyWindowStyles(root);
             root.AddToClassList(MainShellClass);
+            root.UnregisterCallback<KeyDownEvent>(OnNativeShellKeyDown, TrickleDown.TrickleDown);
+            root.RegisterCallback<KeyDownEvent>(OnNativeShellKeyDown, TrickleDown.TrickleDown);
 
             _mainToolbar = new VisualElement();
             _mainToolbar.AddToClassList(MainToolbarClass);
@@ -134,6 +137,84 @@ namespace AssetInventory
 
             RefreshUITKShell();
             root.schedule.Execute(RefreshUITKShell).Every(250);
+        }
+
+        private void OnNativeShellKeyDown(KeyDownEvent evt)
+        {
+            int pageDelta = GetSearchPageShortcutDelta(
+                evt.keyCode,
+                evt.actionKey,
+                evt.shiftKey,
+                evt.altKey);
+            if (pageDelta != 0 && GetCurrentMainTab() == AssetInventoryTab.Search)
+            {
+                int targetPage = Mathf.Clamp(_curPage + pageDelta, 1, Mathf.Max(1, _pageCount));
+                if (targetPage != _curPage)
+                {
+                    SetPage(targetPage);
+                    ScheduleNativeSearchInspectorRebuild();
+                }
+                CommonUITK.ConsumeEvent(evt, true);
+                return;
+            }
+
+            if (!evt.actionKey || evt.shiftKey || evt.altKey || evt.keyCode != KeyCode.F) return;
+
+            ToolbarSearchField searchField = GetCurrentNativeSearchField();
+            if (!FocusAndSelectSearchField(searchField)) return;
+
+            CommonUITK.ConsumeEvent(evt, true);
+        }
+
+        private ToolbarSearchField GetCurrentNativeSearchField()
+        {
+            switch (GetCurrentMainTab())
+            {
+                case AssetInventoryTab.Search:
+                    return _nativeSearchField;
+                case AssetInventoryTab.Packages:
+                    return _nativePackageSearchField;
+                case AssetInventoryTab.Code:
+                    return _nativeCodeSearchField;
+                default:
+                    return null;
+            }
+        }
+
+        internal static int GetSearchPageShortcutDelta(
+            KeyCode keyCode,
+            bool actionKey,
+            bool shiftKey,
+            bool altKey)
+        {
+            if (!actionKey || shiftKey || altKey) return 0;
+
+            switch (keyCode)
+            {
+                case KeyCode.PageUp:
+                    return -1;
+                case KeyCode.PageDown:
+                    return 1;
+                default:
+                    return 0;
+            }
+        }
+
+        internal static bool FocusAndSelectSearchField(ToolbarSearchField searchField)
+        {
+            if (searchField == null) return false;
+
+            TextField textField = searchField.Q<TextField>();
+            if (textField == null)
+            {
+                searchField.Focus();
+                return true;
+            }
+
+            VisualElement textInput = textField.Q(TextField.textInputUssName);
+            (textInput ?? textField).Focus();
+            textField.SelectAll();
+            return true;
         }
 
         private void RefreshUITKShell()

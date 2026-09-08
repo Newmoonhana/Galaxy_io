@@ -11,12 +11,21 @@ namespace AssetInventory
     {
         public IEnumerator IndexOnline(Action callback)
         {
+            return IndexOnline(null, callback);
+        }
+
+        /// <summary>Downloads and indexes only the supplied package identities, bypassing automatic size scheduling.</summary>
+        internal IEnumerator IndexOnline(IReadOnlyCollection<int> selectedAssetIds, Action callback)
+        {
+            HashSet<int> selectedIds = selectedAssetIds != null ? new HashSet<int>(selectedAssetIds) : null;
+            bool explicitSelection = selectedIds != null;
             List<AssetInfo> packages = Assets.Load()
                 .Where(info =>
                     info.AssetSource == Asset.Source.AssetStorePackage
                     && !info.Exclude
                     && info.ParentId <= 0
-                    && !info.IsAbandoned && (!info.IsIndexed || info.CurrentState == Asset.State.SubInProcess) && info.OfficialState != Asset.OfficialStateType.None
+                    && !info.IsAbandoned && (explicitSelection || !info.IsIndexed || info.CurrentState == Asset.State.SubInProcess) && info.OfficialState != Asset.OfficialStateType.None
+                    && (!explicitSelection || selectedIds.Contains(info.AssetId))
                     && !info.IsDownloaded)
                 .ToList();
 
@@ -26,16 +35,16 @@ namespace AssetInventory
                 AssetInfo info = packages[i];
 
                 // Skip packages marked as no-index
-                if (HasNoIndex(info.AssetId)) continue;
+                if (PackageIndexingPolicy.HasNoIndex(info)) continue;
 
                 MainCount = packages.Count;
                 SetProgress(info.GetDisplayName(), i + 1);
 
-                if (!CanDownload(info)) continue;
+                if (!CanDownload(info, !explicitSelection)) continue;
 
                 // trigger already next one in background
                 AssetInfo nextInfo = i < packages.Count - 1 ? packages[i + 1] : null;
-                if (nextInfo != null && !HasNoIndex(nextInfo.AssetId) && CanDownload(nextInfo) && !nextInfo.IsDownloading())
+                if (nextInfo != null && !PackageIndexingPolicy.HasNoIndex(nextInfo) && CanDownload(nextInfo, !explicitSelection) && !nextInfo.IsDownloading())
                 {
                     nextInfo.PackageDownloader.Download(true);
                 }

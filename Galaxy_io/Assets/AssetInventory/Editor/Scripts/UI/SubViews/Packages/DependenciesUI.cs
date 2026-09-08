@@ -26,12 +26,12 @@ namespace AssetInventory
         private const string DependenciesPathClass = "ai-dependencies-path";
         private const string DependenciesScriptPathClass = "ai-dependencies-path-script";
         private const string DependenciesInventoryButtonClass = "ai-dependencies-inventory-button";
-        private const string DependenciesGraphToolbarClass = "ai-dependencies-graph-toolbar";
-        private const string DependenciesGraphToggleClass = "ai-dependencies-graph-toggle";
+        private const string DependenciesSearchBarClass = "ai-dependencies-search-bar";
+        private const string DependenciesGraphFooterClass = "ai-dependencies-graph-footer";
         private const string DependenciesGraphContainerClass = "ai-dependencies-graph-container";
         private const string DependenciesGraphBodyClass = "ai-dependencies-graph-body";
         private const string DependenciesGraphInspectorClass = "ai-dependencies-graph-inspector";
-        private const string DependenciesGraphSearchClass = "ai-dependencies-graph-search";
+        private const string DependenciesSearchClass = "ai-dependencies-search";
         private const string DependenciesGraphPreviewClass = "ai-dependencies-graph-preview";
 
         private AssetInfo _info;
@@ -39,10 +39,13 @@ namespace AssetInventory
         private bool _uitkActive;
         private VisualElement _graphInspector;
         private DependencyGraphNode _selectedGraphNode;
+        private string _dependencySearchText = string.Empty;
         private Action<AssetFile> _showInInventory;
 
         // Virtualization caches
         private List<ListViewEntry> _listViewEntries;
+        private List<ListViewEntry> _visibleListViewEntries;
+        private ListView _dependencyList;
         private HashSet<int> _scriptDependencyIds;
         private Dictionary<int, Asset> _crossPackageDict;
         private static GUIContent _iconInstalled;
@@ -99,6 +102,7 @@ namespace AssetInventory
             if (_info?.Dependencies == null)
             {
                 _listViewEntries = null;
+                _visibleListViewEntries = null;
                 return;
             }
 
@@ -109,26 +113,35 @@ namespace AssetInventory
             // Pre-build all entries with cached display strings
             _listViewEntries = new List<ListViewEntry>(_info.Dependencies.Count + _crossPackageDict.Count + 1);
 
-            int curAssetId = -1;
+            int? curAssetId = null;
             Asset mainAsset = _info.ToAsset();
             int srpSupportId = _info.SRPSupportPackage?.Id ?? -1;
 
             foreach (AssetFile file in _info.Dependencies)
             {
                 // Add header when asset changes
-                if (file.AssetId != curAssetId)
+                if (!curAssetId.HasValue || file.AssetId != curAssetId.Value)
                 {
                     curAssetId = file.AssetId;
-                    Asset curAsset;
-                    if (!_crossPackageDict.TryGetValue(curAssetId, out curAsset))
+                    string headerText;
+                    if (file.AssetId < 0)
                     {
-                        curAsset = mainAsset;
+                        headerText = PackageNode.GetDefaultName(file.AssetId);
+                    }
+                    else
+                    {
+                        Asset curAsset;
+                        if (!_crossPackageDict.TryGetValue(file.AssetId, out curAsset))
+                        {
+                            curAsset = mainAsset;
+                        }
+                        headerText = !string.IsNullOrWhiteSpace(curAsset.DisplayName) ? curAsset.DisplayName : curAsset.SafeName;
                     }
 
                     _listViewEntries.Add(new ListViewEntry
                     {
                         IsHeader = true,
-                        HeaderText = !string.IsNullOrWhiteSpace(curAsset.DisplayName) ? curAsset.DisplayName : curAsset.SafeName
+                        HeaderText = headerText
                     });
                 }
 
@@ -144,6 +157,8 @@ namespace AssetInventory
                     IsScriptDependency = _scriptDependencyIds.Contains(file.Id)
                 });
             }
+
+            RebuildVisibleListViewCache();
         }
 
         private void OnEnable()
@@ -177,6 +192,7 @@ namespace AssetInventory
             VisualElement root = rootVisualElement;
             if (root == null) return;
 
+            _dependencyList = null;
             root.Clear();
             AssetInventoryUITK.ApplyWindowStyles(root);
             root.AddToClassList(DependenciesRootClass);
@@ -198,6 +214,7 @@ namespace AssetInventory
 
             root.Add(CreateHeader());
             root.Add(CreateSummarySection());
+            root.Add(CreateDependencySearchBar());
             root.Add(CreateViewBar());
 
             VisualElement content = new VisualElement();
@@ -303,8 +320,8 @@ namespace AssetInventory
                 return AssetInventoryUITK.CreateHelpBox("No dependencies to display.", MessageType.Info);
             }
 
-            ListView list = new ListView(
-                _listViewEntries,
+            _dependencyList = new ListView(
+                _visibleListViewEntries,
                 32f,
                 CreateDependencyRow,
                 BindDependencyRow)
@@ -320,8 +337,62 @@ namespace AssetInventory
                 showFoldoutHeader = false,
                 virtualizationMethod = CollectionVirtualizationMethod.FixedHeight
             };
-            list.AddToClassList(DependenciesListClass);
-            return list;
+            _dependencyList.AddToClassList(DependenciesListClass);
+            return _dependencyList;
+        }
+
+        private void RebuildVisibleListViewCache()
+        {
+            if (_listViewEntries == null)
+            {
+                _visibleListViewEntries = null;
+                return;
+            }
+
+            string searchText = _dependencySearchText?.Trim();
+            if (string.IsNullOrEmpty(searchText))
+            {
+                _visibleListViewEntries = _listViewEntries;
+                return;
+            }
+
+            List<ListViewEntry> filtered = new List<ListViewEntry>();
+            for (int index = 0; index < _listViewEntries.Count;)
+            {
+                ListViewEntry header = _listViewEntries[index];
+                int groupStart = header.IsHeader ? index + 1 : index;
+                int groupEnd = groupStart;
+                while (groupEnd < _listViewEntries.Count && !_listViewEntries[groupEnd].IsHeader) groupEnd++;
+
+                bool headerMatches = header.IsHeader && ContainsIgnoreCase(header.HeaderText, searchText);
+                int headerIndex = filtered.Count;
+                if (header.IsHeader) filtered.Add(header);
+
+                for (int fileIndex = groupStart; fileIndex < groupEnd; fileIndex++)
+                {
+                    ListViewEntry entry = _listViewEntries[fileIndex];
+                    if (headerMatches || DependencyEntryMatches(entry, searchText)) filtered.Add(entry);
+                }
+
+                if (header.IsHeader && filtered.Count == headerIndex + 1) filtered.RemoveAt(headerIndex);
+                index = groupEnd;
+            }
+
+            _visibleListViewEntries = filtered;
+        }
+
+        private static bool DependencyEntryMatches(ListViewEntry entry, string searchText)
+        {
+            AssetFile file = entry.File;
+            return ContainsIgnoreCase(entry.DisplayText, searchText)
+                || ContainsIgnoreCase(file?.FileName, searchText)
+                || ContainsIgnoreCase(file?.Path, searchText)
+                || ContainsIgnoreCase(file?.Type, searchText);
+        }
+
+        private static bool ContainsIgnoreCase(string value, string searchText)
+        {
+            return !string.IsNullOrEmpty(value) && value.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0;
         }
 
         private VisualElement CreateDependencyRow()
@@ -379,9 +450,9 @@ namespace AssetInventory
 
         private void BindDependencyRow(VisualElement element, int index)
         {
-            if (_listViewEntries == null || index < 0 || index >= _listViewEntries.Count) return;
+            if (_visibleListViewEntries == null || index < 0 || index >= _visibleListViewEntries.Count) return;
 
-            ListViewEntry entry = _listViewEntries[index];
+            ListViewEntry entry = _visibleListViewEntries[index];
             Label header = element.Q<Label>("header");
             VisualElement file = element.Q<VisualElement>("file");
 
@@ -435,10 +506,10 @@ namespace AssetInventory
         {
             VisualElement panel = new VisualElement();
             panel.AddToClassList(DependenciesContentClass);
-            panel.Add(CreateGraphToolbar());
 
             InitializeGraph();
             _graphRenderer.SetGraph(_graphData, _graphLayoutMode == GraphLayoutMode.Organic ? _forceLayout : null);
+            _graphRenderer.SetSearchText(_dependencySearchText);
             _graphRenderer.AddToClassList(DependenciesGraphContainerClass);
 
             VisualElement body = new VisualElement();
@@ -451,6 +522,7 @@ namespace AssetInventory
             _graphInspector.AddToClassList(DependenciesGraphInspectorClass);
             body.Add(_graphInspector);
             panel.Add(body);
+            panel.Add(CreateGraphFooter());
 
             if (_selectedGraphNode != null && !_graphData.Nodes.Contains(_selectedGraphNode)) _selectedGraphNode = null;
             _graphRenderer.SelectNode(_selectedGraphNode, false);
@@ -465,51 +537,55 @@ namespace AssetInventory
             return panel;
         }
 
-        private VisualElement CreateGraphToolbar()
+        private VisualElement CreateDependencySearchBar()
         {
-            VisualElement toolbar = new VisualElement();
-            toolbar.AddToClassList(DependenciesGraphToolbarClass);
-
-            PopupField<string> layoutControl = new PopupField<string>(
-                new List<string> {"Left to Right", "Grouped", "Organic"},
-                (int)_graphLayoutMode);
-            layoutControl.tooltip = "Arrange dependencies";
-            layoutControl.AddToClassList("ai-dependencies-layout-popup");
-            layoutControl.RegisterValueChangedCallback(evt => SetGraphLayoutMode(layoutControl.index));
-            toolbar.Add(layoutControl);
-
-            VisualElement depthControl = null;
-            depthControl = AssetInventoryUITK.CreateSegmentedControl(
-                new[]
-                {
-                    new GUIContent("Direct", "Show the first dependency levels"),
-                    new GUIContent("All", "Show the complete dependency graph")
-                },
-                _showAllDependencies ? 1 : 0,
-                index =>
-                {
-                    SetGraphShowAll(index == 1);
-                    AssetInventoryUITK.RefreshSegmentedControl(depthControl, index);
-                });
-            depthControl.AddToClassList(DependenciesGraphToggleClass);
-            toolbar.Add(depthControl);
-
-            toolbar.Add(AssetInventoryUITK.CreateFlexibleSpacer());
+            VisualElement searchBar = new VisualElement();
+            searchBar.AddToClassList(DependenciesSearchBarClass);
 
             ToolbarSearchField search = new ToolbarSearchField();
-            search.AddToClassList(DependenciesGraphSearchClass);
-            search.tooltip = "Find assets by name, path, type, or package";
-            search.RegisterValueChangedCallback(evt => _graphRenderer?.SetSearchText(evt.newValue));
+            search.AddToClassList(DependenciesSearchClass);
+            search.tooltip = "Find dependencies by name, path, type, or package. In Graph view, press Enter to focus the next match.";
+            search.SetValueWithoutNotify(_dependencySearchText);
+            search.RegisterValueChangedCallback(evt => SetDependencySearchText(evt.newValue));
             search.RegisterCallback<KeyDownEvent>(evt =>
             {
+                if (_viewMode != ViewMode.Graph) return;
                 if (evt.keyCode != KeyCode.Return && evt.keyCode != KeyCode.KeypadEnter) return;
                 _graphRenderer?.FocusNextMatch();
                 evt.StopPropagation();
             });
-            toolbar.Add(search);
-            toolbar.Add(AssetInventoryUITK.CreateIconButton("Focus next match", "d_Search Icon", () => _graphRenderer?.FocusNextMatch()));
-            toolbar.Add(AssetInventoryUITK.CreateIconButton("Frame all dependencies (F)", "d_ViewToolZoom", RequestGraphFrameAll));
-            return toolbar;
+            searchBar.Add(search);
+            return searchBar;
+        }
+
+        internal void SetDependencySearchText(string searchText)
+        {
+            _dependencySearchText = searchText ?? string.Empty;
+            _graphRenderer?.SetSearchText(_dependencySearchText);
+            RebuildVisibleListViewCache();
+            if (_dependencyList == null) return;
+
+            _dependencyList.itemsSource = _visibleListViewEntries;
+            _dependencyList.Rebuild();
+        }
+
+        private VisualElement CreateGraphFooter()
+        {
+            VisualElement footer = AssetInventoryUITK.CreateFooter();
+            footer.AddToClassList(DependenciesGraphFooterClass);
+
+            PopupField<string> layoutControl = new PopupField<string>(
+                new List<string> {"Left to Right", "Grouped", "Organic"},
+                (int)_graphLayoutMode);
+            layoutControl.tooltip = "Choose how dependencies are arranged.";
+            layoutControl.AddToClassList("ai-dependencies-layout-popup");
+            layoutControl.RegisterValueChangedCallback(evt => SetGraphLayoutMode(layoutControl.index));
+            footer.Add(layoutControl);
+
+            Button frameAll = AssetInventoryUITK.CreateSecondaryButton("Frame All", RequestGraphFrameAll);
+            frameAll.tooltip = "Fit all dependencies in the graph (F).";
+            footer.Add(frameAll);
+            return footer;
         }
 
         private void RebuildGraphInspector()

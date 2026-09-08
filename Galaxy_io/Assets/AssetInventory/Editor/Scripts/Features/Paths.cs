@@ -13,7 +13,10 @@ namespace AssetInventory
     /// <summary>
     /// Path-related operations including folder locations, relative paths, caching, and cache size calculations.
     /// </summary>
-    public static class Paths
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class Paths
     {
         private const int FOLDER_CACHE_TIME = 20;
         private const string CONFIG_NAME = "AssetInventoryConfig.json";
@@ -318,7 +321,7 @@ namespace AssetInventory
             return result;
         }
 
-        private static string NormalizePathForComparison(string path)
+        internal static string NormalizePathForComparison(string path)
         {
             if (string.IsNullOrWhiteSpace(path)) return null;
 
@@ -368,7 +371,8 @@ namespace AssetInventory
                 // ignore root detection failures for malformed or partial paths
             }
 
-            if (string.IsNullOrEmpty(root) || normalized.Length > root.Length)
+            bool isWindowsDriveRoot = normalized.Length == 3 && char.IsLetter(normalized[0]) && normalized[1] == ':' && normalized[2] == '/';
+            if (!isWindowsDriveRoot && (string.IsNullOrEmpty(root) || normalized.Length > root.Length))
             {
                 normalized = normalized.TrimEnd('/');
             }
@@ -376,7 +380,7 @@ namespace AssetInventory
             return normalized + suffix;
         }
 
-        private static void SplitStoredPath(string path, out string filesystemPath, out string suffix)
+        internal static void SplitStoredPath(string path, out string filesystemPath, out string suffix)
         {
             int separatorIndex = path.IndexOf(Asset.SUB_PATH);
             if (separatorIndex < 0)
@@ -400,14 +404,89 @@ namespace AssetInventory
             return string.Equals(normalizedLeft, normalizedRight, PATH_COMPARISON);
         }
 
-        private static bool IsSameOrChildPath(string path, string root)
+        internal static bool IsSameOrChildPath(string path, string root)
         {
             if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(root)) return false;
             if (string.Equals(path, root, PATH_COMPARISON)) return true;
             if (path.Length <= root.Length) return false;
             if (!path.StartsWith(root, PATH_COMPARISON)) return false;
 
-            return path[root.Length] == '/';
+            return root.EndsWith("/", StringComparison.Ordinal) || path[root.Length] == '/';
+        }
+
+        internal static bool TryGetRelativePath(string path, string root, out string relativePath)
+        {
+            relativePath = null;
+            if (string.IsNullOrWhiteSpace(path) || string.IsNullOrWhiteSpace(root)) return false;
+
+            SplitStoredPath(path, out string filesystemPath, out _);
+            SplitStoredPath(root, out string rootFilesystemPath, out _);
+            string normalizedPath = NormalizePathForComparison(filesystemPath);
+            string normalizedRoot = NormalizePathForComparison(rootFilesystemPath);
+            if (!IsSameOrChildPath(normalizedPath, normalizedRoot)) return false;
+
+            if (string.Equals(normalizedPath, normalizedRoot, PATH_COMPARISON))
+            {
+                relativePath = string.Empty;
+                return true;
+            }
+
+            int startIndex = normalizedRoot.EndsWith("/", StringComparison.Ordinal) ? normalizedRoot.Length : normalizedRoot.Length + 1;
+            relativePath = normalizedPath.Substring(startIndex);
+            return true;
+        }
+
+        internal static bool TryRebaseUnderRoot(string storedPath, string oldRoot, string newRoot, out string rebasedPath)
+        {
+            return TryRebaseUnderRoot(storedPath, oldRoot, newRoot, false, out rebasedPath, out _);
+        }
+
+        internal static bool TryRebaseUnderRoot(string storedPath, string oldRoot, string newRoot, bool collapseBoundaryOverlap, out string rebasedPath, out int collapsedSegments)
+        {
+            rebasedPath = storedPath;
+            collapsedSegments = 0;
+            if (string.IsNullOrWhiteSpace(storedPath) || string.IsNullOrWhiteSpace(oldRoot) || string.IsNullOrWhiteSpace(newRoot)) return false;
+
+            SplitStoredPath(storedPath, out string filesystemPath, out string storedSuffix);
+            if (!TryGetRelativePath(filesystemPath, oldRoot, out string relativePath)) return false;
+
+            string normalizedNewRoot = NormalizePathForComparison(newRoot);
+            if (string.IsNullOrWhiteSpace(normalizedNewRoot)) return false;
+
+            string[] relativeSegments = relativePath.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
+            if (collapseBoundaryOverlap && relativeSegments.Length > 0)
+            {
+                string[] newRootSegments = normalizedNewRoot.Split(new[] {'/'}, StringSplitOptions.RemoveEmptyEntries);
+                int maxOverlap = Math.Min(relativeSegments.Length, newRootSegments.Length);
+                for (int segmentCount = maxOverlap; segmentCount > 0; segmentCount--)
+                {
+                    bool matches = true;
+                    int newRootStart = newRootSegments.Length - segmentCount;
+                    for (int i = 0; i < segmentCount; i++)
+                    {
+                        if (string.Equals(newRootSegments[newRootStart + i], relativeSegments[i], PATH_COMPARISON)) continue;
+
+                        matches = false;
+                        break;
+                    }
+
+                    if (!matches) continue;
+                    collapsedSegments = segmentCount;
+                    break;
+                }
+            }
+
+            string rebasedFilesystemPath = normalizedNewRoot;
+            if (relativeSegments.Length > collapsedSegments)
+            {
+                string remainingPath = string.Join("/", relativeSegments.Skip(collapsedSegments));
+                rebasedFilesystemPath = normalizedNewRoot.EndsWith("/", StringComparison.Ordinal)
+                    ? normalizedNewRoot + remainingPath
+                    : normalizedNewRoot + "/" + remainingPath;
+            }
+
+            rebasedPath = rebasedFilesystemPath + storedSuffix;
+            return true;
         }
 
         private static string TryMakeRelative(string normalizedPath, RelativeLocation location)
@@ -648,7 +727,10 @@ namespace AssetInventory
         #endregion
     }
 
-    internal static class AssetInventoryCacheDeletionGuard
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    internal static partial class AssetInventoryCacheDeletionGuard
     {
 #if UNITY_EDITOR_WIN
         private const StringComparison PATH_COMPARISON = StringComparison.OrdinalIgnoreCase;

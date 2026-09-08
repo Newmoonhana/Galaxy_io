@@ -8,9 +8,16 @@ namespace Automator
     /// <summary>
     /// Registry for action steps. Discovers implementations via reflection.
     /// </summary>
-    public static class ActionStepRegistry
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class ActionStepRegistry
     {
         private static List<ActionStep> _steps;
+#if UNITY_6000_7_OR_NEWER
+        // Synchronization identity must remain stable while generated cleanup resets discovered steps.
+        [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
         private static readonly object _lock = new object();
 
         /// <summary>

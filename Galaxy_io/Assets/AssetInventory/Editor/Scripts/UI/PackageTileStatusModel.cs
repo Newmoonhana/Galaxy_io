@@ -26,7 +26,8 @@ namespace AssetInventory
             PackageTileStatus.SemanticIndex,
             PackageTileStatus.CodeIndex,
             PackageTileStatus.Backup,
-            PackageTileStatus.KeepCached
+            PackageTileStatus.KeepCached,
+            PackageTileStatus.SyntySource
         };
 
         private static readonly string[] StatusLabels =
@@ -34,7 +35,7 @@ namespace AssetInventory
             "Store Status",
             "Update Available",
             "Outdated",
-            "No Index",
+            "Future Indexing Off",
             "Excluded",
             "In Project",
             "Downloaded",
@@ -43,7 +44,8 @@ namespace AssetInventory
             "Semantic Index",
             "Code Index",
             "Backup",
-            "Keep Cached"
+            "Keep Cached",
+            "Synty Source"
         };
 
         internal static IReadOnlyList<PackageTileStatus> PriorityOrder => StatusPriority;
@@ -66,13 +68,13 @@ namespace AssetInventory
             switch (status)
             {
                 case PackageTileStatus.StoreStatus:
-                    return info.IsDeprecated || info.IsAbandoned;
+                    return info.AssetSource != Asset.Source.Synty && (info.IsDeprecated || info.IsAbandoned);
                 case PackageTileStatus.UpdateAvailable:
-                    return info.IsUpdateAvailable(allAssets, false) || info.WasOutdated;
+                    return info.AssetSource != Asset.Source.Synty && (info.IsUpdateAvailable(allAssets, false) || info.WasOutdated);
                 case PackageTileStatus.Outdated:
-                    return info.CurrentSubState == Asset.SubState.Outdated;
+                    return info.AssetSource != Asset.Source.Synty && info.CurrentSubState == Asset.SubState.Outdated;
                 case PackageTileStatus.NoIndex:
-                    return info.NoIndex;
+                    return PackageIndexingPolicy.HasNoIndex(info);
                 case PackageTileStatus.Excluded:
                     return info.Exclude;
                 case PackageTileStatus.InProject:
@@ -91,6 +93,8 @@ namespace AssetInventory
                     return info.Backup;
                 case PackageTileStatus.KeepCached:
                     return info.KeepExtracted;
+                case PackageTileStatus.SyntySource:
+                    return info.AssetSource == Asset.Source.Synty;
                 default:
                     return false;
             }
@@ -107,7 +111,7 @@ namespace AssetInventory
                 case PackageTileStatus.Outdated:
                     return "Outdated";
                 case PackageTileStatus.NoIndex:
-                    return "No Index";
+                    return PackageIndexingPolicy.HasIndexedContent(info) ? "No Future Indexing" : "Not Included";
                 case PackageTileStatus.Excluded:
                     return "Excluded";
                 case PackageTileStatus.InProject:
@@ -126,6 +130,8 @@ namespace AssetInventory
                     return "Backup";
                 case PackageTileStatus.KeepCached:
                     return "Keep Cached";
+                case PackageTileStatus.SyntySource:
+                    return "Synty";
                 default:
                     return string.Empty;
             }
@@ -144,9 +150,11 @@ namespace AssetInventory
                 case PackageTileStatus.Outdated:
                     return "The downloaded package cache is outdated.";
                 case PackageTileStatus.NoIndex:
-                    return "Future indexing is disabled for this package.";
+                    return PackageIndexingPolicy.IsInheritedNoIndex(info)
+                        ? "Future indexing is disabled by the parent package."
+                        : "This package is not included in future indexing. Existing indexed content is retained.";
                 case PackageTileStatus.Excluded:
-                    return "This package is excluded from indexing and search results.";
+                    return "This package and its existing results are excluded from package and search views.";
                 case PackageTileStatus.InProject:
                     return "Content from this package is present in the current project.";
                 case PackageTileStatus.Downloaded:
@@ -163,6 +171,8 @@ namespace AssetInventory
                     return "Automatic backups are enabled for this package.";
                 case PackageTileStatus.KeepCached:
                     return "This package is configured to stay extracted in the cache.";
+                case PackageTileStatus.SyntySource:
+                    return "This package was discovered in the local Synty Importer cache.";
                 default:
                     return string.Empty;
             }
@@ -182,6 +192,7 @@ namespace AssetInventory
                 case PackageTileStatus.InProject:
                 case PackageTileStatus.Downloaded:
                 case PackageTileStatus.Indexed:
+                case PackageTileStatus.SyntySource:
                     return PackageTileStatusTone.Success;
                 default:
                     return PackageTileStatusTone.Accent;

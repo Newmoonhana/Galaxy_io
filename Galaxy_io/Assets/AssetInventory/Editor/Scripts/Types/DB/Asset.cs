@@ -43,7 +43,8 @@ namespace AssetInventory
             RegistryPackage = 3,
             Archive = 4,
             AssetManager = 5,
-            CurrentProject = 6
+            CurrentProject = 6,
+            Synty = 7
         }
 
         public enum Strategy
@@ -151,6 +152,7 @@ namespace AssetInventory
         // keep in sync with copy in AssetInfo
         internal string GetCalculatedLocation()
         {
+            if (AssetSource == Source.Synty) return SyntyCache.GetPackagePath(OriginalLocationKey);
             if (string.IsNullOrEmpty(SafePublisher) || string.IsNullOrEmpty(SafeCategory) || string.IsNullOrEmpty(SafeName)) return null;
 
             return Path.Combine(Paths.GetAssetCacheFolder(), SafePublisher, SafeCategory, SafeName + ".unitypackage").Replace("\\", "/");

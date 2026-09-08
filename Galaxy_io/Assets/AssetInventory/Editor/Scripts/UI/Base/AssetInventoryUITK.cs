@@ -7,7 +7,11 @@ using UnityEngine.UIElements;
 
 namespace AssetInventory
 {
-    internal static class AssetInventoryUITK
+#if UNITY_6000_7_OR_NEWER
+    // UI class maps and the shared logo reference are immutable editor code-lifetime state.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    internal static partial class AssetInventoryUITK
     {
         internal const string RootClass = "ai-uitk-root";
         internal const string SectionClass = "ai-section";

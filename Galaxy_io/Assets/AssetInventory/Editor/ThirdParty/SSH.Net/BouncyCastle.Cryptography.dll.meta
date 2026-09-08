@@ -70,7 +70,7 @@ PluginImporter:
 AssetOrigin:
   serializedVersion: 1
   productId: 349582
-  packageName: Asset Inventory 4
-  packageVersion: 4.7.1
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.0
   assetPath: Assets/AssetInventory/Editor/ThirdParty/SSH.Net/BouncyCastle.Cryptography.dll
-  uploadId: 969138
+  uploadId: 983278

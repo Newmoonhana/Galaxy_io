@@ -9,7 +9,10 @@ using UnityEngine;
 namespace AssetInventory
 {
     /// <summary>Exports selected Asset Inventory fields and rows to a configurable comma-separated file.</summary>
-    public sealed class CSVExport
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public sealed partial class CSVExport
     {
         public const string DEFAULT_FILE_NAME = "assets.csv";
 

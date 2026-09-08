@@ -5,7 +5,11 @@ using UnityEngine.UIElements;
 
 namespace AudioTool
 {
-    internal sealed class AudioToolsWelcomeWindow : EditorWindow
+#if UNITY_6000_7_OR_NEWER
+    // The controller owns editor callbacks and intentionally persists for the loaded-code lifetime.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    internal sealed partial class AudioToolsWelcomeWindow : EditorWindow
     {
         private const string PackageId = "com.wetzold.audio-tools";
         private const int WelcomeRevision = 1;
@@ -52,7 +56,7 @@ namespace AudioTool
                 {
                     new CommonWelcomeStep(
                         "Choose audio",
-                        "Open Audio Editor, select an AudioClip, browse for a file, or use Assets/Edit Audio... in the Project window."),
+                        "Open Audio Editor, select an AudioClip, browse for a file, or use Assets/Edit Audio in the Project window."),
                     new CommonWelcomeStep(
                         "Shape the edit",
                         "Drag across the waveform, refine the handles, and remove quiet edges with Select Audible Content."),

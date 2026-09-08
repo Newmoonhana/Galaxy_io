@@ -60,8 +60,6 @@ namespace AssetInventory
                         asset.DisplayName = project.Name;
                         asset.OriginalLocation = organization.Name;
                         asset.OriginalLocationKey = organization.Id.ToString();
-                        asset.CurrentState = Asset.State.InProcess;
-
                         if (project.Metadata != null)
                         {
                             ProjectMetadata pmd = JsonConvert.DeserializeObject<ProjectMetadata>(project.Metadata.GetAsString());
@@ -81,6 +79,16 @@ namespace AssetInventory
                                 }
                             }
                         }
+
+                        if (HasNoIndex(asset))
+                        {
+                            asset.LastOnlineRefresh = DateTime.Now;
+                            Persist(asset);
+                            continue;
+                        }
+
+                        asset.CurrentState = Asset.State.InProcess;
+                        Persist(asset);
 
                         cam.SetSelectedProject(project);
                         await cam.GetProjectAssetsAsync();

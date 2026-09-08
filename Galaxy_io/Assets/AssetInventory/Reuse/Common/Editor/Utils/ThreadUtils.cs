@@ -6,7 +6,10 @@ using UnityEngine;
 
 namespace ImpossibleRobert.Common
 {
-    public static class ThreadUtils
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class ThreadUtils
     {
         private static SynchronizationContext _mainThreadContext;
 

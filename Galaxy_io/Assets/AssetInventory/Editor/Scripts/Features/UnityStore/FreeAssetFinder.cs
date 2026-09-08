@@ -61,7 +61,7 @@ namespace AssetInventory
 
                 SetProgress($"Checking ({ids[i]})", i + 1);
 
-                if (assets.Any(a => a.ForeignId == ids[i])) continue;
+                if (assets.Any(a => a.AssetSource != Asset.Source.Synty && a.ForeignId == ids[i])) continue;
 
                 AssetDetails details = await AssetStore.RetrieveAssetDetails(ids[i]);
                 if (details?.originPrice != null && details.originPrice != "0.00")

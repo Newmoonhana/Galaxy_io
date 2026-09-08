@@ -6,7 +6,10 @@ namespace ImpossibleRobert.Common
     /// <summary>
     /// Registry for custom variable groups resolved by VariableResolver (e.g., $Config.xxx).
     /// </summary>
-    public static class VariableGroupRegistry
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class VariableGroupRegistry
     {
         private static readonly Dictionary<string, Func<object>> _instanceGetters = new Dictionary<string, Func<object>>(StringComparer.OrdinalIgnoreCase);
 

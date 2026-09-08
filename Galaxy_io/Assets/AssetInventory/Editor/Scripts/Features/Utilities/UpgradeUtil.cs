@@ -10,11 +10,14 @@ using UnityEngine;
 
 namespace AssetInventory
 {
-    public class UpgradeUtil : ActionProgress
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public partial class UpgradeUtil : ActionProgress
     {
         public static event Action OnUpgradeDone;
 
-        public const int CURRENT_CONFIG_VERSION = 10;
+        public const int CURRENT_CONFIG_VERSION = 11;
         public const int CURRENT_DB_VERSION = 29;
         public const int CURRENT_SEED_VERSION = 1;
 
@@ -328,6 +331,10 @@ namespace AssetInventory
             if (oldConfigVersion < 10 && AI.Config.tagListHeight == 250)
             {
                 AI.Config.tagListHeight = 320;
+            }
+            if (oldConfigVersion < 11)
+            {
+                AI.Config.assetManagerFeatureEnabled = IsConfiguredActionEnabled(AI.Config, ActionHandler.ACTION_ASSET_MANAGER_INDEX);
             }
             if (oldConfigVersion < CURRENT_CONFIG_VERSION)
             {

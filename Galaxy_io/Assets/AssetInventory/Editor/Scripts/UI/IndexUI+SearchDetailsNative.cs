@@ -178,6 +178,7 @@ namespace AssetInventory
                 hash = hash * 31 + AI.Config.tileText;
                 hash = hash * 31 + AI.Config.searchListRowHeight;
                 hash = hash * 31 + (AI.Config.packageBackupFeatureEnabled ? 1 : 0);
+                hash = hash * 31 + (AI.Config.assetManagerFeatureEnabled ? 1 : 0);
                 hash = hash * 31 + (AI.Config.aiCaptionsFeatureEnabled ? 1 : 0);
                 hash = hash * 31 + (AI.Config.semanticSearchFeatureEnabled ? 1 : 0);
                 hash = hash * 31 + (AI.Config.codeSearchFeatureEnabled ? 1 : 0);
@@ -763,7 +764,7 @@ namespace AssetInventory
                 AddNativeSearchCaptionActions(actions, info, busy);
             }
 #if USE_ASSET_MANAGER && USE_CLOUD_IDENTITY
-            if (AI.Actions.IndexAssetManager)
+            if (AI.Actions.AssetManagerEnabled)
             {
                 if (info.AssetSource == Asset.Source.AssetManager)
                 {
@@ -924,7 +925,7 @@ namespace AssetInventory
                 }
             }
 #if USE_ASSET_MANAGER && USE_CLOUD_IDENTITY
-            if (AI.Actions.IndexAssetManager)
+            if (AI.Actions.AssetManagerEnabled)
             {
                 if (_assetFileAMProjectCount + _assetFileAMCollectionCount > 0)
                 {

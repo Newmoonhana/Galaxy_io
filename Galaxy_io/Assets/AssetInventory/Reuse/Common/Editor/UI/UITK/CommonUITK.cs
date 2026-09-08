@@ -9,7 +9,10 @@ namespace ImpossibleRobert.Common
     /// <summary>
     /// Small UI Toolkit helpers for editor tooling. Product-specific styling stays in each tool's USS.
     /// </summary>
-    public static class CommonUITK
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class CommonUITK
     {
         public const string WindowFooterClass = "common-window-footer";
 

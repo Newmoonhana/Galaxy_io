@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 08605e9e8f58432e89406e5d2c8f51f0
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.0
+  assetPath: Assets/AssetInventory/Editor/Adapters/UnityAIAssistant/AssistantActionTools.cs
+  uploadId: 983278

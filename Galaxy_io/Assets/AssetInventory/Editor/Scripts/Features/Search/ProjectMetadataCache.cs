@@ -4,7 +4,10 @@ using System.IO;
 
 namespace AssetInventory
 {
-    public static class ProjectMetadataCache
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class ProjectMetadataCache
     {
         public struct Metadata
         {

@@ -11,6 +11,9 @@ using UnityEngine.UIElements;
 
 namespace AssetInventory
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public partial class CustomPreviewSettingsUI
     {
         private const string PreviewSettingsTitleClass = "ai-custom-preview-title";
@@ -37,9 +40,17 @@ namespace AssetInventory
         private const string PreviewFrameImageClass = "ai-custom-preview-frame-image";
         private const string PreviewFrameFallbackClass = "ai-custom-preview-frame-fallback";
 
+#if UNITY_6000_7_OR_NEWER
+        // Form builders are immutable configuration shared by every preview settings view.
+        [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
         private static readonly CommonFormBuilder NativePreviewFieldFormBuilder = AssetInventoryUITK.CreateFormBuilder(
             inlineClass: PreviewControlWithUnitClass,
             suffixClass: PreviewUnitLabelClass);
+#if UNITY_6000_7_OR_NEWER
+        // Form builders are immutable configuration shared by every preview settings view.
+        [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
         private static readonly CommonFormBuilder NativePreviewToggleFormBuilder = AssetInventoryUITK.CreateFormBuilder(
             labelTogglesControl: true);
 

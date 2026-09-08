@@ -29,7 +29,10 @@ namespace AssetInventory
     /// The custom converter acts as a fallback when Unity's converter is unavailable,
     /// disabled, or fails.
     /// </summary>
-    public static class PipelineConverter
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class PipelineConverter
     {
         private static readonly HashSet<string> LoggedUnsafePreviewShaders = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private static readonly string[] TmpSdfPropertyNames =

@@ -511,7 +511,9 @@ namespace AssetInventory
             row.AddToClassList("ai-progress-row");
             row.AddToClassList("ai-preview-progress-row");
 
-            _runningProgress = AssetInventoryUITK.CreateProgressBar(GetRunningProgressTitle(), GetRunningProgressValue());
+            string progressTitle = GetRunningProgressTitle();
+            _runningProgress = AssetInventoryUITK.CreateProgressBar(progressTitle, GetRunningProgressValue());
+            _runningProgress.tooltip = progressTitle;
             row.Add(_runningProgress);
 
             Button button = AssetInventoryUITK.CreateSecondaryButton(buttonText, click);
@@ -788,7 +790,9 @@ namespace AssetInventory
                 return;
             }
 
-            _runningProgress.title = GetRunningProgressTitle();
+            string progressTitle = GetRunningProgressTitle();
+            _runningProgress.title = progressTitle;
+            _runningProgress.tooltip = progressTitle;
             _runningProgress.value = GetRunningProgressValue();
         }
 

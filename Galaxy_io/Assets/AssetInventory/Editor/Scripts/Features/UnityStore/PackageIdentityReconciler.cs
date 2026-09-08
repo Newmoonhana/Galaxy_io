@@ -53,7 +53,7 @@ namespace AssetInventory
             if (foreignId <= 0) return null;
 
             List<Asset> assets = DBAdapter.DB.Table<Asset>()
-                .Where(asset => asset.ForeignId == foreignId && asset.ParentId == 0)
+                .Where(asset => asset.ForeignId == foreignId && asset.ParentId == 0 && asset.AssetSource != Asset.Source.Synty)
                 .ToList();
 
             return assets

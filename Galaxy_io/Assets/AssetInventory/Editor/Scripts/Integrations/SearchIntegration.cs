@@ -10,7 +10,10 @@ using UnityEditorInternal;
 namespace AssetInventory
 {
     // Registers a Unity Search (Ctrl+K) provider
-    public static class SearchIntegration
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class SearchIntegration
     {
         private const string ProviderId = "assetinventory";
         private const string FilterPrefix = "assetinv:";

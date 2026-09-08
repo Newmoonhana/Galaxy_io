@@ -21,7 +21,10 @@ using TMPro;
 namespace AssetInventory
 {
     // Custom preview generator for prefabs
-    public static class CustomPrefabPreviewGenerator
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class CustomPrefabPreviewGenerator
     {
         private const int DETECTION_SIZE = 128; // Small size for fast detection
 

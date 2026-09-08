@@ -8,7 +8,10 @@ using Random = UnityEngine.Random;
 namespace AssetInventory
 {
     /// <summary>Stateless API for creating tags, assigning or removing package and file tags, and querying tag metadata.</summary>
-    public static class Tagging
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class Tagging
     {
         /// <summary>Raised after tags changed so open views and integrations can refresh their cached catalog state.</summary>
         public static event Action OnTagsChanged;

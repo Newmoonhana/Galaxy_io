@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 5e76c752e57549f8a385295a008a298e
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.0
+  assetPath: Assets/AssetInventory/Editor/Adapters/UnityPipeline/README.md
+  uploadId: 983278

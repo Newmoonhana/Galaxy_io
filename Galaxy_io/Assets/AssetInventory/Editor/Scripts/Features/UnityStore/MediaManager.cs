@@ -29,6 +29,8 @@ namespace AssetInventory
             info.Media = info.AllMedia
                 .Where(m => m.Type == "main"
                     || m.Type == "screenshot"
+                    || m.Type == "synty_main"
+                    || m.Type == "synty_screenshot"
                     || m.Type == "youtube"
                     || m.Type == "vimeo"
                     || m.Type == "sketchfab"

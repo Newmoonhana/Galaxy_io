@@ -11,7 +11,10 @@ namespace ImpossibleRobert.Common
     /// Centralises all #if version guards so call sites stay clean.
     /// Supports Unity 2022.3 through 6.x on all graphics backends.
     /// </summary>
-    public static class UnityUtils
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class UnityUtils
     {
         static readonly Dictionary<Type, TextMeshProWrappingAccessors> TextMeshProWrappingCache = new Dictionary<Type, TextMeshProWrappingAccessors>();
 
@@ -88,6 +91,21 @@ namespace ImpossibleRobert.Common
 #else
             return obj.GetInstanceID();
 #endif
+        }
+
+        /// <summary>
+        /// Returns the realtime indirect-emission flag under its current Unity API name.
+        /// </summary>
+        public static MaterialGlobalIlluminationFlags RealtimeIndirectEmissionFlag
+        {
+            get
+            {
+#if UNITY_6000_7_OR_NEWER
+                return MaterialGlobalIlluminationFlags.RealtimeIndirectEmission;
+#else
+                return MaterialGlobalIlluminationFlags.RealtimeEmissive;
+#endif
+            }
         }
 
         /// <summary>

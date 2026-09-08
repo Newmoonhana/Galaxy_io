@@ -13,7 +13,10 @@ using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace AssetInventory
 {
-    public static class AssetStore
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class AssetStore
     {
         public static Action OnPackageListUpdated;
 
@@ -297,7 +300,7 @@ namespace AssetInventory
         {
             if (info.ForeignId > 0)
             {
-                OpenAssetInPackageManager(info.GetItemLink());
+                OpenAssetInPackageManager(info.GetAssetStoreLink());
             }
             else if (info.AssetSource == Asset.Source.RegistryPackage)
             {

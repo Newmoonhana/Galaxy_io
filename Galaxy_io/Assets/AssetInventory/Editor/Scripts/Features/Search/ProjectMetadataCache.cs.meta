@@ -3,7 +3,7 @@ guid: e7773654491544134bac2b06ce4a399b
 AssetOrigin:
   serializedVersion: 1
   productId: 349582
-  packageName: Asset Inventory 4
-  packageVersion: 4.7.1
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.0
   assetPath: Assets/AssetInventory/Editor/Scripts/Features/Search/ProjectMetadataCache.cs
-  uploadId: 969138
+  uploadId: 983278

@@ -20,7 +20,10 @@ namespace ImpossibleRobert.Common
     /// <summary>
     /// Shared UI Toolkit building blocks for polished commercial-tool inspectors.
     /// </summary>
-    public static class CommonInspectorElements
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class CommonInspectorElements
     {
         const string AnchorAssetName = "CommonInspectorElements";
         const string AnchorPathSuffix = "Editor/UI/UITK/CommonInspectorElements.cs";

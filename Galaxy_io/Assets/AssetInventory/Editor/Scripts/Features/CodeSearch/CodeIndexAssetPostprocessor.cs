@@ -6,7 +6,10 @@ using UnityEditor;
 
 namespace AssetInventory
 {
-    public sealed class CodeIndexAssetPostprocessor : AssetPostprocessor
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public sealed partial class CodeIndexAssetPostprocessor : AssetPostprocessor
     {
         private static readonly HashSet<string> ChangedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         private static readonly HashSet<string> DeletedPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);

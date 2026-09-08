@@ -12,7 +12,10 @@ namespace AssetInventory
     /// These assets are still available for download but will be deprecated and receive no more updates.
     /// The data is lazy-loaded from a JSON file only when first queried.
     /// </summary>
-    public static class ChinaBasedAssets
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class ChinaBasedAssets
     {
         private const string DATA_FILE = "ChinaBasedAssets.json";
         private const string DATA_FILE_GUID = "ab6b8a5962015490184d9f7ff08e4493";

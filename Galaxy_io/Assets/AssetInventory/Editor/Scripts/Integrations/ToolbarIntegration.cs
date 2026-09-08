@@ -6,7 +6,10 @@ using UnityEngine;
 
 namespace AssetInventory
 {
-    public static class ToolbarIntegration
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class ToolbarIntegration
     {
         private static Texture2D _icon32;
         private static Texture2D ToolbarIcon

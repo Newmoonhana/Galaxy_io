@@ -2,6 +2,7 @@ using ImpossibleRobert.Common;
 using Database;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using MySqlConnector;
@@ -14,14 +15,17 @@ namespace AssetInventory
     /// Searches indexed files using catalog metadata, tags, dimensions, media properties, and
     /// caller-provided paging and sorting options.
     /// </summary>
-    public static class AssetSearch
+    public static partial class AssetSearch
     {
         private const string PACKAGE_TAG_JOIN_CLAUSE = "inner join TagAssignment as tap on (Asset.Id = tap.TargetId and tap.TagTarget = 0)";
         private const string FILE_TAG_JOIN_CLAUSE = "inner join TagAssignment as taf on (AssetFile.Id = taf.TargetId and taf.TagTarget = 1)";
         private const string SQLITE_PATH_INDEX_SOURCE = "AssetFile INDEXED BY AssetFile_Path";
 
         /// <summary>Controls opt-in Asset Search timing and SQL diagnostics without changing query results.</summary>
-        public static class Diagnostics
+#if UNITY_6000_7_OR_NEWER
+        [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+        public static partial class Diagnostics
         {
             public static bool Enabled { get; set; }
             public static bool IncludeSql { get; set; }
@@ -135,6 +139,12 @@ namespace AssetInventory
             public bool CheckMaxSize = false;
             public string SearchVertexCount = string.Empty;
             public bool CheckMaxVertexCount = false;
+            public int MinWidth;
+            public int MaxWidth;
+            public int MinHeight;
+            public int MaxHeight;
+            public long MinSizeBytes;
+            public long MaxSizeBytes;
             public int SelectedPackageTag = 0;
             public int SelectedFileTag = 0;
             public int SelectedPackageTypes = 0;
@@ -842,7 +852,7 @@ namespace AssetInventory
                 wheres.Add($"AssetFile.Height > 0 and AssetFile.Height {comp} ?");
                 args.Add(height);
             }
-            if (IsFilterApplicable("Length", opt.RawSearchType) && !string.IsNullOrWhiteSpace(opt.SearchLength) && float.TryParse(opt.SearchLength, out float length) && length > 0)
+            if (IsFilterApplicable("Length", opt.RawSearchType) && !string.IsNullOrWhiteSpace(opt.SearchLength) && TryParseDecimalFilterValue(opt.SearchLength, out float length) && length > 0)
             {
                 string comp = opt.CheckMaxLength ? "<=" : ">=";
                 wheres.Add($"AssetFile.Length > 0 and AssetFile.Length {comp} ?");
@@ -853,6 +863,36 @@ namespace AssetInventory
                 string comp = opt.CheckMaxSize ? "<=" : ">=";
                 wheres.Add($"AssetFile.Size > 0 and AssetFile.Size {comp} ?");
                 args.Add(size * 1024);
+            }
+            if (IsFilterApplicable("Width", opt.RawSearchType) && opt.MinWidth > 0)
+            {
+                wheres.Add("AssetFile.Width > 0 and AssetFile.Width >= ?");
+                args.Add(opt.MinWidth);
+            }
+            if (IsFilterApplicable("Width", opt.RawSearchType) && opt.MaxWidth > 0)
+            {
+                wheres.Add("AssetFile.Width > 0 and AssetFile.Width <= ?");
+                args.Add(opt.MaxWidth);
+            }
+            if (IsFilterApplicable("Height", opt.RawSearchType) && opt.MinHeight > 0)
+            {
+                wheres.Add("AssetFile.Height > 0 and AssetFile.Height >= ?");
+                args.Add(opt.MinHeight);
+            }
+            if (IsFilterApplicable("Height", opt.RawSearchType) && opt.MaxHeight > 0)
+            {
+                wheres.Add("AssetFile.Height > 0 and AssetFile.Height <= ?");
+                args.Add(opt.MaxHeight);
+            }
+            if (opt.MinSizeBytes > 0)
+            {
+                wheres.Add("AssetFile.Size > 0 and AssetFile.Size >= ?");
+                args.Add(opt.MinSizeBytes);
+            }
+            if (opt.MaxSizeBytes > 0)
+            {
+                wheres.Add("AssetFile.Size > 0 and AssetFile.Size <= ?");
+                args.Add(opt.MaxSizeBytes);
             }
             if (IsFilterApplicable("VertexCount", opt.RawSearchType) && !string.IsNullOrWhiteSpace(opt.SearchVertexCount) && int.TryParse(opt.SearchVertexCount, out int vertexCount) && vertexCount > 0)
             {
@@ -1264,6 +1304,12 @@ namespace AssetInventory
                 return restrictions.Contains(searchType);
             }
             return true;
+        }
+
+        internal static bool TryParseDecimalFilterValue(string value, out float result)
+        {
+            if (float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out result)) return true;
+            return float.TryParse(value, NumberStyles.Float, CultureInfo.CurrentCulture, out result);
         }
 
         internal static string[] GetConfiguredExcludedExtensions(bool ignoreExcludedExtensions)

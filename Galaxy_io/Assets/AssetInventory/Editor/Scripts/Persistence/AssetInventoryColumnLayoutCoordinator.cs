@@ -16,7 +16,11 @@ namespace AssetInventory
     }
 
     [InitializeOnLoad]
-    internal static class AssetInventoryColumnLayoutCoordinator
+#if UNITY_6000_7_OR_NEWER
+    // Static-constructor state is code-load scoped; cleanup is handled explicitly where the type crosses Play Mode.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    internal static partial class AssetInventoryColumnLayoutCoordinator
     {
         private const double SaveDelaySeconds = 0.25d;
 

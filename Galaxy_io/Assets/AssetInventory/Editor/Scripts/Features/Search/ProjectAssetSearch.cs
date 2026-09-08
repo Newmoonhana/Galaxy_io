@@ -9,7 +9,10 @@ using UnityEditor;
 namespace AssetInventory
 {
     /// <summary>Searches assets already present in the open Unity project and returns their catalog relationships.</summary>
-    public static class ProjectAssetSearch
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class ProjectAssetSearch
     {
         private static int _virtualIdCounter;
 
@@ -51,6 +54,14 @@ namespace AssetInventory
             public bool CheckMaxSize;
             public string SearchVertexCount = string.Empty;
             public bool CheckMaxVertexCount;
+            public int MinWidth;
+            public int MaxWidth;
+            public int MinHeight;
+            public int MaxHeight;
+            public long MinSizeBytes;
+            public long MaxSizeBytes;
+            public int MinVertexCount;
+            public int MaxVertexCount;
             public int SelectedImageType;
             public string[] ImageTypeOptions;
 
@@ -229,11 +240,13 @@ namespace AssetInventory
         public static bool HasMetadataFilter(Options opt)
         {
             return !string.IsNullOrEmpty(opt.SearchSize)
+                || opt.MinSizeBytes > 0
+                || opt.MaxSizeBytes > 0
                 || (AssetSearch.IsFilterApplicable("ImageType", opt.RawSearchType) && opt.SelectedImageType > 0)
-                || (AssetSearch.IsFilterApplicable("Width", opt.RawSearchType) && !string.IsNullOrEmpty(opt.SearchWidth))
-                || (AssetSearch.IsFilterApplicable("Height", opt.RawSearchType) && !string.IsNullOrEmpty(opt.SearchHeight))
+                || (AssetSearch.IsFilterApplicable("Width", opt.RawSearchType) && (!string.IsNullOrEmpty(opt.SearchWidth) || opt.MinWidth > 0 || opt.MaxWidth > 0))
+                || (AssetSearch.IsFilterApplicable("Height", opt.RawSearchType) && (!string.IsNullOrEmpty(opt.SearchHeight) || opt.MinHeight > 0 || opt.MaxHeight > 0))
                 || (AssetSearch.IsFilterApplicable("Length", opt.RawSearchType) && !string.IsNullOrEmpty(opt.SearchLength))
-                || (AssetSearch.IsFilterApplicable("VertexCount", opt.RawSearchType) && !string.IsNullOrEmpty(opt.SearchVertexCount));
+                || (AssetSearch.IsFilterApplicable("VertexCount", opt.RawSearchType) && (!string.IsNullOrEmpty(opt.SearchVertexCount) || opt.MinVertexCount > 0 || opt.MaxVertexCount > 0));
         }
 
         private static List<AssetInfo> ApplyMetadataFilters(List<AssetInfo> files, Options opt)
@@ -243,11 +256,18 @@ namespace AssetInventory
             int heightPx = 0;
             float lengthSec = 0;
             int vertexCount = 0;
-            bool filterSize = !string.IsNullOrEmpty(opt.SearchSize) && long.TryParse(opt.SearchSize, out sizeKb);
-            bool filterWidth = AssetSearch.IsFilterApplicable("Width", opt.RawSearchType) && !string.IsNullOrEmpty(opt.SearchWidth) && int.TryParse(opt.SearchWidth, out widthPx);
-            bool filterHeight = AssetSearch.IsFilterApplicable("Height", opt.RawSearchType) && !string.IsNullOrEmpty(opt.SearchHeight) && int.TryParse(opt.SearchHeight, out heightPx);
-            bool filterLength = AssetSearch.IsFilterApplicable("Length", opt.RawSearchType) && !string.IsNullOrEmpty(opt.SearchLength) && float.TryParse(opt.SearchLength, out lengthSec);
-            bool filterVertexCount = AssetSearch.IsFilterApplicable("VertexCount", opt.RawSearchType) && !string.IsNullOrEmpty(opt.SearchVertexCount) && int.TryParse(opt.SearchVertexCount, out vertexCount);
+            bool filterLegacySize = !string.IsNullOrEmpty(opt.SearchSize) && long.TryParse(opt.SearchSize, out sizeKb);
+            bool filterSize = filterLegacySize || opt.MinSizeBytes > 0 || opt.MaxSizeBytes > 0;
+            bool widthApplicable = AssetSearch.IsFilterApplicable("Width", opt.RawSearchType);
+            bool filterLegacyWidth = widthApplicable && !string.IsNullOrEmpty(opt.SearchWidth) && int.TryParse(opt.SearchWidth, out widthPx);
+            bool filterWidth = filterLegacyWidth || (widthApplicable && (opt.MinWidth > 0 || opt.MaxWidth > 0));
+            bool heightApplicable = AssetSearch.IsFilterApplicable("Height", opt.RawSearchType);
+            bool filterLegacyHeight = heightApplicable && !string.IsNullOrEmpty(opt.SearchHeight) && int.TryParse(opt.SearchHeight, out heightPx);
+            bool filterHeight = filterLegacyHeight || (heightApplicable && (opt.MinHeight > 0 || opt.MaxHeight > 0));
+            bool filterLength = AssetSearch.IsFilterApplicable("Length", opt.RawSearchType) && !string.IsNullOrEmpty(opt.SearchLength) && AssetSearch.TryParseDecimalFilterValue(opt.SearchLength, out lengthSec);
+            bool vertexCountApplicable = AssetSearch.IsFilterApplicable("VertexCount", opt.RawSearchType);
+            bool filterLegacyVertexCount = vertexCountApplicable && !string.IsNullOrEmpty(opt.SearchVertexCount) && int.TryParse(opt.SearchVertexCount, out vertexCount);
+            bool filterVertexCount = filterLegacyVertexCount || (vertexCountApplicable && (opt.MinVertexCount > 0 || opt.MaxVertexCount > 0));
             bool filterImageType = AssetSearch.IsFilterApplicable("ImageType", opt.RawSearchType) && opt.SelectedImageType > 0 && opt.ImageTypeOptions != null && opt.SelectedImageType < opt.ImageTypeOptions.Length;
 
             string[] imageTypePatterns = null;
@@ -289,15 +309,20 @@ namespace AssetInventory
                             meta.Size = 0;
                         }
                     }
-                    long sizeInKb = meta.Size / 1024;
-                    if (opt.CheckMaxSize)
+                    if (filterLegacySize)
                     {
-                        if (sizeInKb > sizeKb) { ProjectMetadataCache.Store(info.Guid, meta); continue; }
+                        long sizeInKb = meta.Size / 1024;
+                        if (opt.CheckMaxSize)
+                        {
+                            if (sizeInKb > sizeKb) { ProjectMetadataCache.Store(info.Guid, meta); continue; }
+                        }
+                        else
+                        {
+                            if (sizeInKb < sizeKb) { ProjectMetadataCache.Store(info.Guid, meta); continue; }
+                        }
                     }
-                    else
-                    {
-                        if (sizeInKb < sizeKb) { ProjectMetadataCache.Store(info.Guid, meta); continue; }
-                    }
+                    if (opt.MinSizeBytes > 0 && meta.Size < opt.MinSizeBytes) { ProjectMetadataCache.Store(info.Guid, meta); continue; }
+                    if (opt.MaxSizeBytes > 0 && meta.Size > opt.MaxSizeBytes) { ProjectMetadataCache.Store(info.Guid, meta); continue; }
                 }
 
                 // Image type (trivial — filename suffix matching)
@@ -339,7 +364,7 @@ namespace AssetInventory
                         }
                     }
 
-                    if (filterWidth)
+                    if (filterLegacyWidth)
                     {
                         if (opt.CheckMaxWidth)
                         {
@@ -350,7 +375,9 @@ namespace AssetInventory
                             if (meta.Width < widthPx) { ProjectMetadataCache.Store(info.Guid, meta); continue; }
                         }
                     }
-                    if (filterHeight)
+                    if (opt.MinWidth > 0 && meta.Width < opt.MinWidth) { ProjectMetadataCache.Store(info.Guid, meta); continue; }
+                    if (opt.MaxWidth > 0 && meta.Width > opt.MaxWidth) { ProjectMetadataCache.Store(info.Guid, meta); continue; }
+                    if (filterLegacyHeight)
                     {
                         if (opt.CheckMaxHeight)
                         {
@@ -361,6 +388,8 @@ namespace AssetInventory
                             if (meta.Height < heightPx) { ProjectMetadataCache.Store(info.Guid, meta); continue; }
                         }
                     }
+                    if (opt.MinHeight > 0 && meta.Height < opt.MinHeight) { ProjectMetadataCache.Store(info.Guid, meta); continue; }
+                    if (opt.MaxHeight > 0 && meta.Height > opt.MaxHeight) { ProjectMetadataCache.Store(info.Guid, meta); continue; }
                 }
 
                 // Audio length (cheap — binary header parse)
@@ -391,14 +420,16 @@ namespace AssetInventory
                         meta.VertexCount = fbxData?.vertexCount ?? 0;
                     }
 
-                    if (opt.CheckMaxVertexCount)
+                    if (filterLegacyVertexCount && opt.CheckMaxVertexCount)
                     {
                         if (meta.VertexCount > vertexCount) { ProjectMetadataCache.Store(info.Guid, meta); continue; }
                     }
-                    else
+                    else if (filterLegacyVertexCount)
                     {
                         if (meta.VertexCount < vertexCount) { ProjectMetadataCache.Store(info.Guid, meta); continue; }
                     }
+                    if (opt.MinVertexCount > 0 && meta.VertexCount < opt.MinVertexCount) { ProjectMetadataCache.Store(info.Guid, meta); continue; }
+                    if (opt.MaxVertexCount > 0 && meta.VertexCount > opt.MaxVertexCount) { ProjectMetadataCache.Store(info.Guid, meta); continue; }
                 }
 
                 // Populate AssetInfo fields for display

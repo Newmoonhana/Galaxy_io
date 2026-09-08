@@ -301,7 +301,7 @@ namespace AssetInventory
         private void ShowNativeSavedCodeSearchMenu(SavedCodeSearch search, VisualElement anchor)
         {
             GenericMenu menu = new GenericMenu();
-            menu.AddItem(new GUIContent("Edit..."), false, () =>
+            menu.AddItem(new GUIContent("Edit"), false, () =>
             {
                 SavedCodeSearchUI savedSearchUI = SavedCodeSearchUI.ShowWindow();
                 savedSearchUI.Init(search, OnNativeSavedCodeSearchEdited);

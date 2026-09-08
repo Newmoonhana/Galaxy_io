@@ -24,7 +24,7 @@ namespace AssetInventory
         }
 
 #if !ASSET_INVENTORY_HIDE_TOOLS_MENU
-        [MenuItem("Tools/Asset Inventory/Welcome...", false, 699)]
+        [MenuItem("Tools/Asset Inventory/Welcome", false, 699)]
 #endif
         public static void ShowWelcome()
         {
@@ -32,7 +32,7 @@ namespace AssetInventory
         }
 
 #if !ASSET_INVENTORY_HIDE_TOOLS_MENU
-        [MenuItem("Tools/Asset Inventory/About...", false, 700)]
+        [MenuItem("Tools/Asset Inventory/About", false, 700)]
 #endif
         public static void ShowAbout()
         {

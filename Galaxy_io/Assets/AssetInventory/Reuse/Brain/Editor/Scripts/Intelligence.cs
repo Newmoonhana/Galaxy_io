@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using UnityEditor;
 using UnityEngine;
 
 namespace Brain
@@ -12,7 +13,11 @@ namespace Brain
     /// <summary>
     /// Main service for AI backend connectivity. Manages connections to Ollama, LM Studio, and BLIP.
     /// </summary>
-    internal static class Intelligence
+#if UNITY_6000_7_OR_NEWER
+    // Editor service state owns active requests and disposes them before code reload or shutdown.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    internal static partial class Intelligence
     {
         public const string OLLAMA_WEBSITE = "https://www.ollama.com";
         public const string OLLAMA_LIBRARY = "https://ollama.com/search?c=vision";
@@ -60,6 +65,29 @@ namespace Brain
         private static string _ollamaVersion;
         private static OllamaClient _ollamaClient;
         private static string _ollamaClientUrl;
+
+        [InitializeOnLoadMethod]
+        private static void RegisterEditorLifecycle()
+        {
+            AssemblyReloadEvents.beforeAssemblyReload -= Shutdown;
+            AssemblyReloadEvents.beforeAssemblyReload += Shutdown;
+            EditorApplication.quitting -= Shutdown;
+            EditorApplication.quitting += Shutdown;
+        }
+
+        private static void Shutdown()
+        {
+            CancellationTokenSource downloadToken = OllamaDownloadToken;
+            OllamaDownloadToken = null;
+            downloadToken?.Cancel();
+            downloadToken?.Dispose();
+            LoadingModels = false;
+            DownloadingModel = false;
+
+            _ollamaClient?.Dispose();
+            _ollamaClient = null;
+            _ollamaClientUrl = null;
+        }
 
         internal static bool ReleaseOllamaDownloadToken(CancellationTokenSource downloadToken)
         {

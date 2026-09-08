@@ -45,6 +45,7 @@ namespace AssetInventory
         public const string ACTION_ASSET_MANAGER_INDEX = "AssetManagerIndex";
         public const string ACTION_ASSET_MANAGER_COLLECTION_INDEX = "AssetManagerCollectionIndex";
         public const string ACTION_ASSET_STORE_DOWNLOADS = "AssetStoreDownloads";
+        public const string ACTION_SYNTY_CACHE_INDEX = "SyntyCacheIndex";
         public const string ACTION_COLOR_INDEX = "ColorIndexer";
         public const string ACTION_BACKUP = "Backup";
         public const string ACTION_AI_CAPTIONS = "AICaptions";
@@ -124,6 +125,53 @@ namespace AssetInventory
         }
         internal bool HasPendingOrRunningActions => Actions.Any(action => action.scheduled || action.IsRunning());
 
+        internal bool IsPackageIndexingActionRunning(AssetInfo info)
+        {
+            if (info == null) return false;
+
+            AssetInfo root = info.GetRoot() ?? info;
+            foreach (UpdateAction action in Actions)
+            {
+                if (action == null || !action.IsRunning()) continue;
+                if (IsPackageIndexingActionForSource(action.key, root.AssetSource)) return true;
+            }
+            return false;
+        }
+
+        private static bool IsPackageIndexingActionForSource(string actionKey, Asset.Source source)
+        {
+            switch (source)
+            {
+                case Asset.Source.AssetStorePackage:
+                    return actionKey == ACTION_ASSET_STORE_CACHE_INDEX
+                           || actionKey == ACTION_ASSET_STORE_DOWNLOADS
+                           || actionKey == ACTION_SUB_PACKAGES_INDEX;
+                case Asset.Source.CustomPackage:
+                    return actionKey == ACTION_ASSET_STORE_CACHE_INDEX
+                           || actionKey == ACTION_PACKAGE_FOLDERS_INDEX
+                           || actionKey == ACTION_SUB_PACKAGES_INDEX;
+                case Asset.Source.Synty:
+                    return actionKey == ACTION_SYNTY_CACHE_INDEX
+                           || actionKey == ACTION_SUB_PACKAGES_INDEX;
+                case Asset.Source.RegistryPackage:
+                    return actionKey == ACTION_PACKAGE_CACHE_INDEX;
+                case Asset.Source.Archive:
+                    return actionKey == ACTION_FOLDERS_INDEX
+                           || actionKey == ACTION_ARCHIVE_FOLDERS_INDEX
+                           || actionKey == ACTION_SUB_ARCHIVES_INDEX;
+                case Asset.Source.AssetManager:
+                    return actionKey == ACTION_ASSET_MANAGER_INDEX
+                           || actionKey == ACTION_ASSET_MANAGER_COLLECTION_INDEX;
+                case Asset.Source.Directory:
+                    return actionKey == ACTION_FOLDERS_INDEX
+                           || actionKey == ACTION_MEDIA_FOLDERS_INDEX
+                           || actionKey == ACTION_PACKAGE_FOLDERS_INDEX
+                           || actionKey == ACTION_DEVPACKAGE_FOLDERS_INDEX;
+                default:
+                    return false;
+            }
+        }
+
         public List<UpdateAction> Actions = new List<UpdateAction>();
         public List<CustomAction> UserActions = new List<CustomAction>();
         public List<ActionStep> ActionSteps = new List<ActionStep>();
@@ -151,14 +199,14 @@ namespace AssetInventory
 
             Actions.Add(new UpdateAction {key = ACTION_ASSET_STORE_PURCHASES, name = "Fetch Asset Store Purchases", description = "Refreshes purchases from Unity Asset Store and adds these as packages (without indexing the content yet).", phase = Phase.Pre, nonBlocking = true});
             Actions.Add(new UpdateAction {key = ACTION_ASSET_STORE_DETAILS, name = "Fetch Asset Store Details", description = "Downloads metadata for packages in the index like publisher and pricing information as well as screenshots.", phase = Phase.Pre, supportsForce = true, allowParallel = true, nonBlocking = true});
-
             Actions.Add(new UpdateAction {key = ACTION_ASSET_STORE_CACHE_SCAN, name = "Scan Asset Store Cache", description = "Add found or changed packages to package catalog and queue without indexing the contents yet.", phase = Phase.Index, supportsForce = true, nonBlocking = true});
             Actions.Add(new UpdateAction {key = ACTION_ASSET_STORE_CACHE_INDEX, name = "Index Store Assets", description = "The main source for the asset index. Will scan the Unity Asset Store cache of already downloaded items and index these.", phase = Phase.Index});
             Actions.Add(new UpdateAction {key = ACTION_ASSET_STORE_DOWNLOADS, name = "Download & Index New Asset Store Packages", description = "Download uncached items from the Asset Store for indexing. Will delete them again afterwards if not selected otherwise below. Attention: downloading an item will revoke the right to easily return it through the Asset Store.", phase = Phase.Index});
             Actions.Add(new UpdateAction {key = ACTION_PACKAGE_CACHE_SCAN, name = "Scan Registry Package Cache", description = "Add found or changed registry packages to package catalog and queue without indexing the contents yet.", phase = Phase.Index, nonBlocking = true});
             Actions.Add(new UpdateAction {key = ACTION_PACKAGE_CACHE_INDEX, name = "Index Registry Package Cache", description = "Will index registry packages like from the Unity registry or custom registries and Github.", phase = Phase.Index});
-            Actions.Add(new UpdateAction {key = ACTION_FOLDERS_INDEX, name = "Index Additional Folders", description = "Will scan all folders listed under additional folders for packages, media files and more to add to the index. Put all your texture and audio libraries as well as humble bundle, Synty and other assets there.", phase = Phase.Index});
-            Actions.Add(new UpdateAction {key = ACTION_ASSET_MANAGER_INDEX, name = "Index Unity Asset Manager", description = "Activate if you have assets stored in Unity Asset Manager in the cloud to make them searchable as well.", phase = Phase.Index});
+            Actions.Add(new UpdateAction {key = ACTION_FOLDERS_INDEX, name = "Index Additional Folders", description = "Will scan all folders listed under additional folders for packages, media files and more to add to the index. Put all your texture and audio libraries as well as bundles and other downloaded assets there.", phase = Phase.Index});
+            Actions.Add(new UpdateAction {key = ACTION_ASSET_MANAGER_INDEX, name = "Index Unity Asset Manager", description = "Synchronizes assets stored in Unity Asset Manager so they can be searched in Asset Inventory.", phase = Phase.Index});
+            Actions.Add(new UpdateAction {key = ACTION_SYNTY_CACHE_INDEX, name = "Index Synty Importer Cache", description = "Discovers and indexes valid packages already downloaded by the official Synty Importer. Asset Inventory does not sign in or download packages.", phase = Phase.Index});
 
             Actions.Add(new UpdateAction {key = ACTION_COLOR_INDEX, name = "Extract Colors", description = "Will make assets searchable by color. Relies on existing preview images.", phase = Phase.Post, nonBlocking = true});
             Actions.Add(new UpdateAction {key = ACTION_BACKUP, name = "Create Backups", description = "Store downloaded assets in a separate folder", phase = Phase.Post, nonBlocking = true});
@@ -324,6 +372,8 @@ namespace AssetInventory
                 new UpdateActionState {key = ACTION_ASSET_STORE_CACHE_SCAN, enabled = true},
                 new UpdateActionState {key = ACTION_ASSET_STORE_CACHE_INDEX, enabled = true},
                 new UpdateActionState {key = ACTION_ASSET_STORE_DOWNLOADS, enabled = true},
+                new UpdateActionState {key = ACTION_ASSET_MANAGER_INDEX, enabled = true},
+                new UpdateActionState {key = ACTION_SYNTY_CACHE_INDEX, enabled = false},
                 new UpdateActionState {key = ACTION_PACKAGE_CACHE_SCAN, enabled = true},
                 new UpdateActionState {key = ACTION_MEDIA_FOLDERS_INDEX, enabled = true},
                 new UpdateActionState {key = ACTION_COLOR_INDEX, enabled = true},
@@ -494,6 +544,28 @@ namespace AssetInventory
             }
         }
 
+        /// <summary>Discovers Asset Store and Unity cache packages without downloading or deep-indexing package contents.</summary>
+        public async void RunDiscoveryActions()
+        {
+            await RunActions(GetDiscoveryActions(), awaitNonBlocking: true);
+        }
+
+        internal List<UpdateAction> GetDiscoveryActions()
+        {
+            List<string> discoveryKeys = new List<string>
+            {
+                ACTION_ASSET_STORE_PURCHASES,
+                ACTION_ASSET_STORE_DETAILS,
+                ACTION_ASSET_STORE_CACHE_SCAN,
+                ACTION_PACKAGE_CACHE_SCAN,
+                ACTION_FOLDERS_INDEX,
+                ACTION_ASSET_MANAGER_INDEX
+            };
+            return Actions
+                .Where(action => IsAvailable(action) && IsActive(action) && discoveryKeys.Contains(action.key))
+                .ToList();
+        }
+
         public async Task RunActions(List<UpdateAction> actions, bool force = false, bool awaitNonBlocking = false)
         {
             actions = actions.Where(IsAvailable).ToList();
@@ -619,6 +691,13 @@ namespace AssetInventory
                             imp => imp.Run());
                         break;
 
+                    case ACTION_SYNTY_CACHE_INDEX:
+                        await RunWithProgress<SyntyCacheImporter>(
+                            ACTION_SYNTY_CACHE_INDEX,
+                            "Indexing Synty Importer cache",
+                            imp => imp.Run());
+                        break;
+
                     case ACTION_COLOR_INDEX:
                         await RunWithProgress<ColorImporter>(
                             ACTION_COLOR_INDEX,
@@ -718,6 +797,13 @@ namespace AssetInventory
 
         public async void Reindex(AssetInfo info)
         {
+            await ReindexAsync(info);
+        }
+
+        /// <summary>Indexes one package and completes when its source-specific importer finishes.</summary>
+        public async Task ReindexAsync(AssetInfo info)
+        {
+            if (info == null) return;
             CancellationRequested = false;
 
             switch (info.AssetSource)
@@ -727,6 +813,13 @@ namespace AssetInventory
                     await RunWithProgress<UnityPackageImporter>(
                         ACTION_ASSET_STORE_CACHE_INDEX,
                         "Indexing package",
+                        imp => imp.IndexDetails(info.Id));
+                    break;
+
+                case Asset.Source.Synty:
+                    await RunWithProgress<UnityPackageImporter>(
+                        ACTION_SYNTY_CACHE_INDEX,
+                        "Indexing Synty package",
                         imp => imp.IndexDetails(info.Id));
                     break;
 
@@ -765,6 +858,31 @@ namespace AssetInventory
                 default:
                     Debug.LogError($"Unsupported asset source of '{info.GetDisplayName()}' for index refresh: {info.AssetSource}");
                     break;
+            }
+
+            OnActionsDone?.Invoke();
+        }
+
+        /// <summary>Downloads and indexes only the explicitly selected uncached Asset Store packages.</summary>
+        public async Task DownloadAndIndexSelectedAsync(IReadOnlyCollection<AssetInfo> packages)
+        {
+            List<int> assetIds = packages?
+                .Where(info => info != null && info.ParentId <= 0 && info.AssetSource == Asset.Source.AssetStorePackage)
+                .Select(info => info.AssetId)
+                .Distinct()
+                .ToList() ?? new List<int>();
+            CancellationRequested = false;
+            if (assetIds.Count > 0)
+            {
+                await RunWithProgress<UnityPackageDownloadImporter>(
+                    ACTION_ASSET_STORE_DOWNLOADS,
+                    "Downloading and indexing selected packages",
+                    async importer =>
+                    {
+                        TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>();
+                        EditorCoroutineUtility.StartCoroutineOwnerless(importer.IndexOnline(assetIds, () => completion.TrySetResult(true)));
+                        await completion.Task;
+                    });
             }
 
             OnActionsDone?.Invoke();
@@ -840,6 +958,11 @@ namespace AssetInventory
                     return SemanticSearchEnabled;
                 case ACTION_CODE_INDEX:
                     return CodeSearchEnabled;
+                case ACTION_ASSET_MANAGER_INDEX:
+                case ACTION_ASSET_MANAGER_COLLECTION_INDEX:
+                    return AssetManagerEnabled;
+                case ACTION_SYNTY_CACHE_INDEX:
+                    return AI.Config != null && AI.Config.syntyFeatureEnabled;
                 default:
                     return true;
             }
@@ -935,6 +1058,8 @@ namespace AssetInventory
         public bool SemanticSearchEnabled => AI.Config?.semanticSearchFeatureEnabled ?? false;
 
         public bool CodeSearchEnabled => AI.Config?.codeSearchFeatureEnabled ?? false;
+
+        public bool AssetManagerEnabled => AI.Config?.assetManagerFeatureEnabled ?? false;
 
         public bool ExtractColors
         {

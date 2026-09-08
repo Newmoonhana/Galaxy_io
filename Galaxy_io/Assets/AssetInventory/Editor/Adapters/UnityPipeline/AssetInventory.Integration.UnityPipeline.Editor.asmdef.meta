@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 3d60530a84af48a9a0d6f0131d866291
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.0
+  assetPath: Assets/AssetInventory/Editor/Adapters/UnityPipeline/AssetInventory.Integration.UnityPipeline.Editor.asmdef
+  uploadId: 983278

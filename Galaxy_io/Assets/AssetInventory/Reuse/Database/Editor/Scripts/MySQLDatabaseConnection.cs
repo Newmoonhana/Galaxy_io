@@ -18,7 +18,10 @@ namespace Database
     /// MySQL implementation of IDatabaseConnection using MySqlConnector.
     /// Full MySQL support with expression tree to SQL translation.
     /// </summary>
-    public class MySQLDatabaseConnection : BaseDatabaseConnection
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public partial class MySQLDatabaseConnection : BaseDatabaseConnection
     {
         private sealed class ExistingColumnSchema
         {

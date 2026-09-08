@@ -17,7 +17,7 @@ namespace AssetInventory
     public abstract class AssetImporter : ActionProgress
     {
         /// <summary>Reports whether the package has a supported remote source and is not already being downloaded.</summary>
-        protected static bool CanDownload(AssetInfo info)
+        protected static bool CanDownload(AssetInfo info, bool applyAutomaticLimit = true)
         {
             if (info == null) return false;
 
@@ -27,7 +27,7 @@ namespace AssetInventory
             if (info.IsAbandoned) return false;
 
             // skip if too large or unknown download size yet
-            if (AI.Config.limitAutoDownloads && (info.PackageSize == 0 || Mathf.RoundToInt(info.PackageSize / 1024f / 1024f) >= AI.Config.downloadLimit)) return false;
+            if (applyAutomaticLimit && AI.Config.limitAutoDownloads && (info.PackageSize == 0 || Mathf.RoundToInt(info.PackageSize / 1024f / 1024f) >= AI.Config.downloadLimit)) return false;
 
             AI.GetObserver().Attach(info);
             if (!info.PackageDownloader.IsDownloadSupported()) return false;
@@ -194,13 +194,7 @@ namespace AssetInventory
         /// <summary>Reports whether the package is configured to remain in the catalog without indexing its contents.</summary>
         protected static bool HasNoIndex(Asset asset)
         {
-            if (asset == null) return false;
-            if (asset.NoIndex) return true;
-
-            if (asset.ParentId <= 0) return false;
-
-            Asset parent = asset.ParentAsset ?? DBAdapter.DB.Find<Asset>(asset.ParentId);
-            return parent != null && parent.NoIndex;
+            return PackageIndexingPolicy.HasNoIndex(asset);
         }
 
         /// <summary>
@@ -387,6 +381,14 @@ namespace AssetInventory
             if (asset.AssetSource == Asset.Source.AssetManager)
             {
                 return DBAdapter.DB.Find<Asset>(a => a.ParentId == asset.ParentId && a.SafeName == asset.SafeName);
+            }
+            if (asset.AssetSource == Asset.Source.Synty)
+            {
+                Asset synty = DBAdapter.DB.Find<Asset>(a => a.AssetSource == Asset.Source.Synty && a.ParentId == asset.ParentId && a.OriginalLocationKey == asset.OriginalLocationKey);
+                if (synty == null && !string.IsNullOrWhiteSpace(asset.Location)) synty = DBAdapter.DB.Find<Asset>(a => a.AssetSource == Asset.Source.Synty && a.ParentId == asset.ParentId && a.Location == asset.Location);
+                if (synty == null && !string.IsNullOrWhiteSpace(asset.SafeName)) synty = DBAdapter.DB.Find<Asset>(a => a.AssetSource == Asset.Source.Synty && a.ParentId == asset.ParentId && a.SafeName == asset.SafeName);
+                if (synty == null && asset.ParentId == 0 && !string.IsNullOrWhiteSpace(asset.Location)) synty = DBAdapter.DB.Find<Asset>(a => a.AssetSource == Asset.Source.CustomPackage && a.ParentId == 0 && a.Location == asset.Location);
+                return synty;
             }
 
             Asset result = null;

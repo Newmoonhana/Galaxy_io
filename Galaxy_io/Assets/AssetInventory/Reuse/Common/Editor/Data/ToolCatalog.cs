@@ -27,7 +27,10 @@ namespace ImpossibleRobert.Common
     }
 
     [Serializable]
-    public sealed class ToolCatalog
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public sealed partial class ToolCatalog
     {
         public string publisher;
         public string discordLink;

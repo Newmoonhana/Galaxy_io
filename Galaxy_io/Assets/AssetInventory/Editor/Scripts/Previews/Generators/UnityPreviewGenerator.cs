@@ -10,7 +10,11 @@ using Object = UnityEngine.Object;
 
 namespace AssetInventory
 {
-    public static class UnityPreviewGenerator
+#if UNITY_6000_7_OR_NEWER
+    // Preview requests are editor-session operations and are cleared by the owning workflow's CleanUp call.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class UnityPreviewGenerator
     {
         public const string PREVIEW_FOLDER = "_AssetInventoryPreviewsTemp";
 

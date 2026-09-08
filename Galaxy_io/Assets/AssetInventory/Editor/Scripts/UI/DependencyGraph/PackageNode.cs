@@ -34,7 +34,12 @@ namespace AssetInventory
             IsExpanded = false; // Start collapsed - will auto-expand for consistent layout
             IsVisible = true;
             Color = Color.white;
-            Name = $"Package {assetId}";
+            Name = GetDefaultName(assetId);
+        }
+
+        internal static string GetDefaultName(int assetId)
+        {
+            return assetId < 0 ? "Current Project" : $"Package {assetId}";
         }
 
         public void AddFile(DependencyGraphNode node)

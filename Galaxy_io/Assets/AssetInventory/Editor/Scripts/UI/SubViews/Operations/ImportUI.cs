@@ -18,7 +18,10 @@ using Debug = UnityEngine.Debug;
 
 namespace AssetInventory
 {
-    public sealed class ImportUI : EditorWindow
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public sealed partial class ImportUI : EditorWindow
     {
         public static event Action OnImportDone;
 

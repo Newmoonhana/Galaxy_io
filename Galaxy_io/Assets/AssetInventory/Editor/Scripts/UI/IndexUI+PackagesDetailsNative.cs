@@ -42,6 +42,8 @@ namespace AssetInventory
         private const string PackagesDetailActionTextClass = "ai-package-detail-action-text";
         private const string PackagesDetailActionIconClass = "ai-package-detail-action-icon";
         private const string PackagesDetailCompactActionClass = "ai-package-detail-compact-action";
+        private const string PackagesDetailStatusControlClass = "ai-package-detail-status-control";
+        private const string PackagesDetailStatusActionClass = "ai-package-detail-status-action";
         private const string PackagesDetailToggleClass = "ai-package-detail-toggle";
         private const string PackagesDetailPreviewContainerClass = "ai-package-detail-preview-container";
         private const string PackagesDetailPreviewClass = "ai-package-detail-preview";
@@ -125,6 +127,7 @@ namespace AssetInventory
                 hash = hash * 31 + AI.Config.mediaThumbnailWidth;
                 hash = hash * 31 + AI.Config.mediaThumbnailHeight;
                 hash = hash * 31 + (AI.Config.packageBackupFeatureEnabled ? 1 : 0);
+                hash = hash * 31 + (AI.Config.assetManagerFeatureEnabled ? 1 : 0);
                 hash = hash * 31 + (AI.Config.aiCaptionsFeatureEnabled ? 1 : 0);
                 hash = hash * 31 + (AI.Config.semanticSearchFeatureEnabled ? 1 : 0);
                 hash = hash * 31 + (AI.Config.codeSearchFeatureEnabled ? 1 : 0);
@@ -141,6 +144,7 @@ namespace AssetInventory
                     hash = hash * 31 + (info.IsSemanticIndexEnabled ? 1 : 0);
                     hash = hash * 31 + (info.IsCodeIndexEnabled ? 1 : 0);
                     hash = hash * 31 + (info.NoIndex ? 1 : 0);
+                    hash = hash * 31 + (info.ParentInfo?.NoIndex == true ? 1 : 0);
                     hash = hash * 31 + (info.KeepExtracted ? 1 : 0);
                     hash = hash * 31 + (info.Exclude ? 1 : 0);
                     hash = hash * 31 + (info.IsDownloaded ? 1 : 0);
@@ -372,7 +376,15 @@ namespace AssetInventory
 
             string source = FormatNativePackageSource(info);
             string sourceTooltip = $"IDs: Asset ({info.AssetId}), Foreign ({info.ForeignId}), Upload ({info.UploadId})\n\nLocation: {info.GetLocation(false)}\n\nResolved Location: {info.GetLocation(true)}\n\nCurrent State: {info.CurrentState}";
-            if (root.ForeignId > 0 && (root.AssetSource == Asset.Source.AssetStorePackage || root.AssetSource == Asset.Source.RegistryPackage))
+            if (root.AssetSource == Asset.Source.Synty)
+            {
+                AddNativePackageDetailRow(section, "package.source", "Source", source, sourceTooltip);
+                if (root.ForeignId > 0)
+                {
+                    AddNativePackageLinkRow(section, "package.assetstorelink", "Asset Link", "Unity Asset Store", root.GetAssetStoreLink(), true);
+                }
+            }
+            else if (root.ForeignId > 0 && (root.AssetSource == Asset.Source.AssetStorePackage || root.AssetSource == Asset.Source.RegistryPackage))
             {
                 AddNativePackageLinkRow(section, "package.source", "Source", source, root.GetItemLink(), true, sourceTooltip);
             }
@@ -380,9 +392,9 @@ namespace AssetInventory
             {
                 AddNativePackageDetailRow(section, "package.source", "Source", source, sourceTooltip);
             }
-            if (info.AssetSource != Asset.Source.AssetStorePackage && info.AssetSource != Asset.Source.RegistryPackage && info.ForeignId > 0)
+            if (info.AssetSource != Asset.Source.Synty && info.AssetSource != Asset.Source.AssetStorePackage && info.AssetSource != Asset.Source.RegistryPackage && info.ForeignId > 0)
             {
-                AddNativePackageLinkRow(section, "package.sourcelink", "Asset Link", "Asset Store", info.GetItemLink(), true);
+                AddNativePackageLinkRow(section, "package.sourcelink", "Asset Link", "Asset Store", info.GetAssetStoreLink(), true);
             }
             return section;
         }
@@ -434,13 +446,14 @@ namespace AssetInventory
                 return;
             }
 
-            if ((info.AssetSource != Asset.Source.AssetStorePackage && info.AssetSource != Asset.Source.CustomPackage) || info.ForeignId <= 0)
+            int backupKey = AssetBackup.GetBackupKey(info);
+            if ((info.AssetSource != Asset.Source.AssetStorePackage && info.AssetSource != Asset.Source.CustomPackage && info.AssetSource != Asset.Source.Synty) || backupKey == 0)
             {
                 AddNativePackageDetailRow(section, "package.version", "Version", info.GetVersion(true));
                 return;
             }
 
-            if (_cachedBackupState != null && _cachedBackupState.TryGetValue(info.ForeignId, out List<BackupInfo> versions) && versions != null && versions.Count > 0)
+            if (_cachedBackupState != null && _cachedBackupState.TryGetValue(backupKey, out List<BackupInfo> versions) && versions != null && versions.Count > 0)
             {
                 string currentVersion = info.GetVersion(true);
                 string displayVersion = !string.IsNullOrWhiteSpace(info.ForcedUnityPackageVersion) ? info.ForcedUnityPackageVersion : currentVersion;
@@ -480,6 +493,10 @@ namespace AssetInventory
             section.AddToClassList(PackagesDetailSectionClass);
             CommonFormBuilder form = CreateNativePackageDetailFormBuilder(PackagesDetailToggleClass);
 
+            bool indexingActionRunning = AI.Actions != null && AI.Actions.IsPackageIndexingActionRunning(info);
+            PackageIndexingStatus status = PackageIndexingPolicy.GetStatus(info, indexingActionRunning);
+            AddNativePackageIndexingStatusRow(section, info, status);
+
             if (AI.Actions.PackageBackupsEnabled && info.AssetSource != Asset.Source.RegistryPackage && info.AssetSource != Asset.Source.CurrentProject && info.ParentId == 0)
             {
                 AddNativePackageToggle(section, form, "package.backup", "Backup", "Create backups for this package whenever the package backup action runs.", info.Backup, value =>
@@ -504,16 +521,28 @@ namespace AssetInventory
             {
                 AddNativePackageToggle(section, form, "package.codeindex", "Code Index", "Include this package when updating the code search index.", info.IsCodeIndexEnabled, value => AI.SetAssetCodeIndexUse(info, value));
             }
-            if (ShowAdvanced() && info.AssetSource != Asset.Source.CurrentProject)
+            if (info.AssetSource != Asset.Source.CurrentProject)
             {
-                AddNativePackageToggle(section, form, "package.noindex", "No Index", "Skip future indexing work without hiding existing results.", info.NoIndex, value =>
+                if (PackageIndexingPolicy.IsInheritedNoIndex(info))
                 {
-                    info.NoIndex = value;
-                    AI.SetAssetNoIndex(info, value);
-                    _requireAssetTreeRebuild = true;
-                });
+                    AddNativePackageDetailRow(
+                        section,
+                        "package.noindex",
+                        "Do Not Index",
+                        $"Controlled by {info.ParentInfo.GetDisplayName()}",
+                        "Sub-packages inherit Do Not Index from their parent package.");
+                }
+                else
+                {
+                    AddNativePackageToggle(section, form, "package.noindex", "Do Not Index", "Skip this package in future indexing runs. Existing indexed content is kept.", info.NoIndex, value =>
+                    {
+                        info.NoIndex = value;
+                        AI.SetAssetNoIndex(info, value);
+                        _requireAssetTreeRebuild = true;
+                    });
+                }
             }
-            if (info.AssetSource == Asset.Source.CustomPackage || info.AssetSource == Asset.Source.Archive || info.AssetSource == Asset.Source.AssetStorePackage)
+            if (info.AssetSource == Asset.Source.CustomPackage || info.AssetSource == Asset.Source.Archive || info.AssetSource == Asset.Source.AssetStorePackage || info.AssetSource == Asset.Source.Synty)
             {
                 AddNativePackageToggle(section, form, "package.extract", "Keep Cached", "Keep this package extracted to minimize access delays.", info.KeepExtracted, value =>
                 {
@@ -523,7 +552,7 @@ namespace AssetInventory
             }
             if (info.AssetSource != Asset.Source.CurrentProject)
             {
-                AddNativePackageToggle(section, form, "package.exclude", "Exclude", "Do not index this package or show its existing results in search.", info.Exclude, value =>
+                AddNativePackageToggle(section, form, "package.exclude", "Exclude", "Exclude this package and its existing results from package and search views. This is separate from future indexing participation and can be reversed with the Excluded maintenance filter.", info.Exclude, value =>
                 {
                     info.Exclude = value;
                     AI.SetAssetExclusion(info, value);
@@ -533,6 +562,40 @@ namespace AssetInventory
                 });
             }
             return section;
+        }
+
+        private void AddNativePackageIndexingStatusRow(VisualElement section, AssetInfo info, PackageIndexingStatus status)
+        {
+            string statusText = FormatNativePackageIndexingStatus(status);
+            string statusTooltip = GetNativePackageIndexingStatusTooltip(status);
+            bool showIndexNow = (status == PackageIndexingStatus.NeedsIndexing || status == PackageIndexingStatus.Incomplete)
+                && info.ParentId <= 0
+                && info.AssetSource != Asset.Source.CurrentProject
+                && (info.AssetSource != Asset.Source.AssetManager || AI.Actions.AssetManagerEnabled)
+                && info.SafeName != Asset.NONE;
+            if (!showIndexNow)
+            {
+                AddNativePackageDetailRow(section, "package.indexingstatus", "Status", statusText, statusTooltip);
+                return;
+            }
+
+            VisualElement control = new VisualElement
+            {
+                tooltip = statusTooltip
+            };
+            control.AddToClassList(PackagesDetailStatusControlClass);
+
+            Label value = AssetInventoryUITK.CreateCopyLabel(statusText);
+            value.AddToClassList(PackagesDetailValueClass);
+            control.Add(value);
+
+            Button indexNow = AssetInventoryUITK.CreateButton("Index Now", () => IncludeAndIndexPackagesNow(new[] {info}));
+            indexNow.tooltip = "Index this package now. It is already included in future indexing.";
+            indexNow.AddToClassList(PackagesDetailStatusActionClass);
+            indexNow.SetEnabled(!AI.Actions.ActionsInProgress && CanIndexPackageNow(info));
+            control.Add(indexNow);
+
+            AddNativePackageControlRow(section, "package.indexingstatus", "Status", control);
         }
 
         private void AddNativePackageToggle(
@@ -561,7 +624,7 @@ namespace AssetInventory
 
             VisualElement section = AssetInventoryUITK.CreateSection("Metadata");
             section.AddToClassList(PackagesDetailSectionClass);
-            CommonFormBuilder form = AssetInventoryUITK.CreateFormBuilder();
+            CommonFormBuilder form = CreateNativePackageDetailFormBuilder();
             foreach (MetadataInfo meta in entries)
             {
                 VisualElement row = CreateNativePackageMetadataRow(info, meta, form);
@@ -810,19 +873,22 @@ namespace AssetInventory
             section.AddToClassList(PackagesDetailMediaClass);
             if (info.Media == null || info.Media.Count == 0)
             {
-                if (info.NoIndex)
+                if (PackageIndexingPolicy.HasNoIndex(info))
                 {
                     section.Add(AssetInventoryUITK.CreateHelpBox("Gallery metadata is unavailable because indexing is disabled for this package."));
                 }
                 else
                 {
                     section.Add(AssetInventoryUITK.CreateHelpBox("No gallery metadata is available for this package."));
-                    Button refresh = AssetInventoryUITK.CreateSecondaryButton(
-                        "Refresh Metadata",
-                        () => _ = AI.Actions.FetchAssetDetails(true, info.AssetId));
-                    refresh.tooltip = "Fetch current package details and gallery metadata from the Asset Store.";
-                    refresh.SetEnabled(!AI.Actions.ActionsInProgress && info.GetRoot().ForeignId > 0);
-                    section.Add(refresh);
+                    if (info.GetRoot().ForeignId > 0)
+                    {
+                        Button refresh = AssetInventoryUITK.CreateSecondaryButton(
+                            "Refresh Metadata",
+                            () => _ = RefreshNativePackageMetadataAsync(info));
+                        refresh.tooltip = "Fetch current package details and gallery metadata from the Asset Store.";
+                        refresh.SetEnabled(!AI.Actions.ActionsInProgress);
+                        section.Add(refresh);
+                    }
                 }
                 return section;
             }
@@ -1453,10 +1519,14 @@ namespace AssetInventory
             {
                 AddNativePackageHint(root, "package.hints.subpackage", $"This is a sub-package inside '{info.ParentInfo.GetDisplayName()}'.", MessageType.Info);
             }
+            if (PackageIndexingPolicy.IsInheritedNoIndex(info))
+            {
+                AddNativePackageHint(root, "package.hints.inheritednoindex", $"Future indexing is disabled by parent package '{info.ParentInfo.GetDisplayName()}'. Change the parent package to include this sub-package.", MessageType.Info);
+            }
             if (info.IsDeprecated) AddNativePackageHint(root, "package.hints.deprecation", "This asset is deprecated.", MessageType.Warning);
             if (info.IsAbandoned) AddNativePackageHint(root, "package.hints.abandoned", "This asset is no longer available for download.", MessageType.Error);
 #if !USE_ASSET_MANAGER || !USE_CLOUD_IDENTITY
-            if (info.AssetSource == Asset.Source.AssetManager)
+            if (info.AssetSource == Asset.Source.AssetManager && AI.Actions.AssetManagerEnabled)
             {
                 AddNativePackageHint(root, "package.hints.noassetmanager", "This package links to Unity Asset Manager, but its SDK is not installed. No actions are available.", MessageType.Info);
             }
@@ -1476,7 +1546,7 @@ namespace AssetInventory
             root.Add(CreateNativePackageKeyedBlock(key, () => AssetInventoryUITK.CreateHelpBox(text, type)));
         }
 
-        private VisualElement CreateNativePackageActionsSection(AssetInfo info)
+        internal VisualElement CreateNativePackageActionsSection(AssetInfo info)
         {
             VisualElement section = AssetInventoryUITK.CreateSection("Actions");
             section.AddToClassList(PackagesDetailSectionClass);
@@ -1500,6 +1570,8 @@ namespace AssetInventory
                 AddNativeImportedPackageActions(actions, info, busy, ref primaryUsed);
             }
 
+            AddNativeIndexingParticipationActions(actions, info, busy, ref primaryUsed);
+
             if (info.ForeignId > 0 || info.AssetSource == Asset.Source.RegistryPackage)
             {
                 AddNativePackageAction(actions, "package.actions.openinpackagemanager", "Package Manager...", () => AssetStore.OpenInPackageManager(info));
@@ -1515,7 +1587,7 @@ namespace AssetInventory
             }
 
 #if USE_ASSET_MANAGER && USE_CLOUD_IDENTITY
-            if (info.SafeName != Asset.NONE && info.AssetSource == Asset.Source.AssetManager)
+            if (info.SafeName != Asset.NONE && info.AssetSource == Asset.Source.AssetManager && AI.Actions.AssetManagerEnabled)
             {
                 Button create = null;
                 create = AddNativePackageAction(actions, "package.actions.createcollection", "Create Collection...", () =>
@@ -1568,16 +1640,15 @@ namespace AssetInventory
                         window.Init(_selectedTreeAssets, false, 0, assetColumnState.VisibleColumns);
                     });
                 }
-                if (info.IsDownloaded || info.AssetSource == Asset.Source.AssetStorePackage)
+                if ((info.IsDownloaded || info.AssetSource == Asset.Source.AssetStorePackage)
+                    && PackageIndexingPolicy.IsIndexingEnabled(info)
+                    && PackageIndexingPolicy.HasIndexedContent(info))
                 {
-                    bool showIndexAction = (info.CurrentState == Asset.State.New || info.CurrentState == Asset.State.InProcess)
-                        && (info.AssetSource != Asset.Source.RegistryPackage || AI.Actions.IndexPackageCache);
-                    string caption = info.IsIndexed ? "Reindex Package Now" : "Index Package Now";
-                    AddNativePackageAction(actions, "package.actions.reindexnow", caption, () =>
+                    AddNativePackageAction(actions, "package.actions.reindexnow", "Reindex Package Now", () =>
                     {
                         ReindexPackageNow(info);
                         ScheduleNativePackageDetailsRebuild();
-                    }, enabled: !busy, alwaysShow: showIndexAction);
+                    }, enabled: !busy);
                 }
                 if (info.IsIndexed && info.FileCount > 0)
                 {
@@ -1595,26 +1666,21 @@ namespace AssetInventory
                     tooltip: "Show only files from this package in Search.");
             }
 
-            if (info.ForeignId <= 0 && info.ParentId <= 0 && info.AssetId > 0 && info.AssetSource != Asset.Source.RegistryPackage)
+            if (ShouldShowPackageDataEditorAction(info))
             {
                 VisualElement connectionActions = new VisualElement();
                 connectionActions.AddToClassList(PackagesDetailActionsClass);
                 connectionActions.AddToClassList(PackagesDetailActionGridClass);
-                Button connect = null;
-                connect = AddNativePackageAction(connectionActions, null, "Connect to Store...", () =>
+                if (info.ForeignId <= 0)
                 {
-                    AssetConnectionUI.ShowDropdown(CommonUITK.ToScreenDropdownAnchor(this, connect), details => ConnectToAssetStore(info, details));
-                }, enabled: !busy, tooltip: "Connect this package to its Unity Asset Store listing.");
-                AddNativePackageAction(connectionActions, null, "Edit Data...", () =>
-                {
-                    PackageUI window = PackageUI.ShowWindow();
-                    window.Init(info, _ =>
+                    Button connect = null;
+                    connect = AddNativePackageAction(connectionActions, null, "Connect to Store...", () =>
                     {
-                        _requireAssetTreeRebuild = true;
-                        UpdateStatistics(true);
-                        ScheduleNativePackageDetailsRebuild();
-                    });
-                }, enabled: !busy);
+                        AssetConnectionUI.ShowDropdown(CommonUITK.ToScreenDropdownAnchor(this, connect), details => ConnectToAssetStore(info, details));
+                    }, enabled: !busy, tooltip: "Connect this package to its Unity Asset Store listing.");
+                }
+                AddNativePackageAction(connectionActions, null, "Edit Data...", () => OpenPackageDataEditor(info), enabled: !busy,
+                    tooltip: "Edit package metadata and its local location when supported.");
                 actions.Add(CreateNativePackageKeyedBlock("package.actions.connecttoassetstore", () => connectionActions));
             }
 
@@ -1630,7 +1696,7 @@ namespace AssetInventory
                         ScheduleNativePackageDetailsRebuild();
                     }, enabled: !busy, wide: true);
                 }
-                if (AI.Config.tab > 0 && info.IsIndexed && info.FileCount > 0 && (info.IsDownloaded || info.AssetSource == Asset.Source.AssetStorePackage))
+                if (AI.Config.tab > 0 && PackageIndexingPolicy.IsIndexingEnabled(info) && info.IsIndexed && info.FileCount > 0 && (info.IsDownloaded || info.AssetSource == Asset.Source.AssetStorePackage))
                 {
                     AddNativePackageAction(actions, "package.actions.reindexnextrun", "Reindex Package on Next Run", () =>
                     {
@@ -1659,6 +1725,90 @@ namespace AssetInventory
                 section.Add(AssetInventoryUITK.CreateMutedLabel("No actions are available for this package."));
             }
             return section;
+        }
+
+        private static bool ShouldShowPackageDataEditorAction(AssetInfo info)
+        {
+            if (info == null || info.ParentId > 0 || info.AssetId <= 0) return false;
+            if (info.AssetSource == Asset.Source.RegistryPackage || info.AssetSource == Asset.Source.Synty) return false;
+
+            return info.ForeignId <= 0
+                || info.AssetSource == Asset.Source.CustomPackage
+                || info.AssetSource == Asset.Source.Archive;
+        }
+
+        private void OpenPackageDataEditor(AssetInfo info)
+        {
+            PackageUI window = PackageUI.ShowWindow();
+            window.Init(info, _ =>
+            {
+                _requireAssetTreeRebuild = true;
+                UpdateStatistics(true);
+                ScheduleNativePackageDetailsRebuild();
+            });
+        }
+
+        private void AddNativeIndexingParticipationActions(VisualElement actions, AssetInfo info, bool busy, ref bool primaryUsed)
+        {
+            if (info == null || info.ParentId > 0 || info.AssetSource == Asset.Source.CurrentProject || info.SafeName == Asset.NONE) return;
+            bool assetManagerDisabled = info.AssetSource == Asset.Source.AssetManager && !AI.Actions.AssetManagerEnabled;
+
+            if (info.Exclude)
+            {
+                AddNativePackageAction(actions, "package.actions.restorecatalog", "Include Again", () =>
+                {
+                    AI.SetAssetExclusion(info, false);
+                    _requireLookupUpdate = ChangeImpact.Write;
+                    _requireSearchUpdate = true;
+                    _requireAssetTreeRebuild = true;
+                    ScheduleNativePackageDetailsRebuild();
+                }, enabled: !busy, alwaysShow: true, tooltip: "Include the package and its existing indexed content in package and search views again.");
+
+                if (!assetManagerDisabled)
+                {
+                    AddNativePackageAction(actions, "package.actions.restoreandindex", "Include Again & Index Now", () => IncludeAndIndexPackagesNow(new[] {info}, true),
+                        enabled: !busy && CanIndexPackageNow(info),
+                        primary: !primaryUsed,
+                        alwaysShow: true,
+                        tooltip: "Include the package again, enable future indexing, and index it now.");
+                    primaryUsed = true;
+                }
+                return;
+            }
+
+            bool requiresInclusion = PackageIndexingPolicy.HasNoIndex(info);
+            if (!assetManagerDisabled && (requiresInclusion || PackageIndexingPolicy.NeedsIndexing(info)))
+            {
+                string caption = requiresInclusion ? "Include & Index Now" : "Index Now";
+                string tooltip = requiresInclusion
+                    ? "Include this package in future indexing and index its content now."
+                    : "Index this package now. It is already included in future indexing.";
+                AddNativePackageAction(actions, "package.actions.includeandindex", caption, () => IncludeAndIndexPackagesNow(new[] {info}),
+                    enabled: !busy && CanIndexPackageNow(info),
+                    primary: !primaryUsed,
+                    alwaysShow: true,
+                    tooltip: tooltip);
+                primaryUsed = true;
+            }
+
+            if (requiresInclusion && PackageIndexingPolicy.HasIndexedContent(info))
+            {
+                AddNativePackageAction(actions, "package.actions.removeindexedcontent", "Remove Indexed Content...", () => RemoveIndexedContent(new[] {info}),
+                    enabled: !busy,
+                    destructive: true,
+                    alwaysShow: true,
+                    tooltip: "Remove searchable content and generated data while keeping the package record and source archive.");
+            }
+
+            AddNativePackageAction(actions, "package.actions.hidefromcatalog", "Exclude...", () =>
+            {
+                if (!EditorUtility.DisplayDialog("Exclude Package", $"Exclude '{info.GetDisplayName()}' and its existing search results?\n\nYou can find it again with the Excluded maintenance filter.", "Exclude", "Cancel")) return;
+                AI.SetAssetExclusion(info, true);
+                _requireLookupUpdate = ChangeImpact.Write;
+                _requireSearchUpdate = true;
+                _requireAssetTreeRebuild = true;
+                ScheduleNativePackageDetailsRebuild();
+            }, enabled: !busy, tooltip: "Exclude this package from package and search views. This can be reversed.");
         }
 
         private void AddNativeRegistryPackageActions(VisualElement actions, AssetInfo info, bool busy, ref bool primaryUsed)
@@ -1756,7 +1906,7 @@ namespace AssetInventory
 
         private void AddNativeImportedPackageActions(VisualElement actions, AssetInfo info, bool busy, ref bool primaryUsed)
         {
-            bool downloadable = !info.IsDownloaded && info.AssetSource == Asset.Source.AssetStorePackage;
+            bool downloadable = !info.IsDownloaded && IsOnDemandPackageSource(info) && HasAssetStoreDownloadMetadata(info);
             if (info.AssetSource != Asset.Source.Directory)
             {
                 if (info.IsDownloaded && (info.IsUpdateAvailable(_assets) || info.WasOutdated || !info.IsDownloadedCompatible))
@@ -1794,7 +1944,8 @@ namespace AssetInventory
             VisualElement root = new VisualElement();
             root.AddToClassList(PackagesDetailActionItemClass);
             AssetInfo packageRoot = info.GetRoot();
-            if (!string.IsNullOrEmpty(packageRoot.OriginalLocation) && packageRoot.UploadId > 0)
+            bool hasDownloadMetadata = HasAssetStoreDownloadMetadata(packageRoot);
+            if (hasDownloadMetadata)
             {
                 if (!updateMode)
                 {
@@ -1810,6 +1961,7 @@ namespace AssetInventory
                     root.Add(CreateNativePackageKeyedBlock("package.hints.incompatibledownload", () => AssetInventoryUITK.CreateHelpBox(message, MessageType.Warning)));
                 }
 
+                if (packageRoot.ParentId == 0 && packageRoot.PackageDownloader == null) AI.GetObserver().Attach(packageRoot);
                 if (packageRoot.ParentId == 0 && packageRoot.PackageDownloader != null)
                 {
                     AssetDownloadState state = packageRoot.PackageDownloader.GetState();
@@ -1855,10 +2007,14 @@ namespace AssetInventory
             {
                 if (info.IsLocationUnmappedRelative()) root.Add(AssetInventoryUITK.CreateHelpBox("The package uses a relative location with no mapping for this system.", MessageType.Warning));
                 else if (info.AssetSource == Asset.Source.CustomPackage && !File.Exists(info.GetLocation(true))) root.Add(AssetInventoryUITK.CreateHelpBox("The custom package was deleted and is no longer available.", MessageType.Warning));
+                else if (info.AssetSource == Asset.Source.Synty)
+                {
+                    root.Add(AssetInventoryUITK.CreateHelpBox("This package is not present in the local Synty Importer cache. Download it in the official importer, then run Index Synty Importer Cache.", MessageType.Info));
+                }
                 else
                 {
-                    root.Add(AssetInventoryUITK.CreateHelpBox("Metadata has not been collected yet. Update the index to load current package information.", MessageType.Warning));
-                    root.Add(AssetInventoryUITK.CreateSecondaryButton("Load Metadata", () => _ = AI.Actions.FetchAssetDetails(true, info.AssetId)));
+                    root.Add(AssetInventoryUITK.CreateHelpBox("Metadata has not been collected yet. Update the Asset Store catalog to load current package information.", MessageType.Warning));
+                    root.Add(AssetInventoryUITK.CreateSecondaryButton("Load Metadata", () => _ = RefreshNativePackageMetadataAsync(info)));
                 }
             }
             else if (info.AssetSource == Asset.Source.CustomPackage)
@@ -1871,6 +2027,8 @@ namespace AssetInventory
 
         private void StartNativePackageDownload(AssetInfo info, bool update)
         {
+            if (info.PackageDownloader == null) AI.GetObserver().Attach(info);
+            if (info.PackageDownloader == null || !info.PackageDownloader.IsDownloadSupported()) return;
             if (update)
             {
                 info.WasOutdated = true;
@@ -1878,6 +2036,11 @@ namespace AssetInventory
             }
             info.PackageDownloader.Download(false);
             ScheduleNativePackageDetailsRebuild();
+        }
+
+        private static Task RefreshNativePackageMetadataAsync(AssetInfo info)
+        {
+            return AI.Actions.FetchAssetDetails(true, info?.AssetId ?? 0);
         }
 
         private Button AddNativePackageAction(
@@ -2028,6 +2191,12 @@ namespace AssetInventory
                 AddNativePackageDetailRow(summary, "package.bulk.storeprice", "Asset Store", bulkAssets[0].GetPriceText(storeCosts));
                 AddNativePackageDetailRow(summary, "package.bulk.otherprice", "Other Sources", bulkAssets[0].GetPriceText(totalCosts - storeCosts));
             }
+            int selectedRootCount = bulkAssets.Count(info => info != null && info.ParentId <= 0);
+            int visibleRootCount = GetSelectableRootPackages().Count;
+            if (visibleRootCount > selectedRootCount)
+            {
+                summary.Add(AssetInventoryUITK.CreateSecondaryButton($"Select All {visibleRootCount:N0} Results", SelectAllVisiblePackages));
+            }
             root.Add(summary);
 
             VisualElement actions = AssetInventoryUITK.CreateSection("Bulk Actions");
@@ -2038,6 +2207,8 @@ namespace AssetInventory
                 int progress = Mathf.RoundToInt(observer.PrioInitializationProgress * 100f);
                 actions.Add(AssetInventoryUITK.CreateHelpBox($"Gathering data (*): {progress}%"));
             }
+
+            AddNativeBulkIndexingActions(actions, bulkAssets);
 
             AddNativeBulkChoice(actions, "package.bulk.actions.extract", "Keep Cached", "Keep selected packages extracted in the cache.",
                 () => bulkAssets.ForEach(info => AI.SetAssetExtraction(info, true)),
@@ -2066,13 +2237,6 @@ namespace AssetInventory
                     () => { bulkAssets.ForEach(info => AI.SetAssetCodeIndexUse(info, true, false)); AI.TriggerPackageRefresh(); },
                     () => { bulkAssets.ForEach(info => AI.SetAssetCodeIndexUse(info, false, false)); AI.TriggerPackageRefresh(); });
             }
-            AddNativeBulkChoice(actions, "package.bulk.actions.noindex", "No Index", null,
-                () => { bulkAssets.ForEach(info => AI.SetAssetNoIndex(info, true, false)); AI.TriggerPackageRefresh(); _requireAssetTreeRebuild = true; },
-                () => { bulkAssets.ForEach(info => AI.SetAssetNoIndex(info, false, false)); AI.TriggerPackageRefresh(); _requireAssetTreeRebuild = true; });
-            AddNativeBulkChoice(actions, "package.bulk.actions.exclude", "Exclude", null,
-                () => SetNativeBulkPackageExclusion(bulkAssets, true),
-                () => SetNativeBulkPackageExclusion(bulkAssets, false));
-
             AddNativeBulkDownloadActions(actions, bulkAssets, observer);
             AddNativeBulkCommandActions(actions, bulkAssets);
             root.Add(actions);
@@ -2080,6 +2244,77 @@ namespace AssetInventory
             VisualElement tags = CreateNativePackageTagsSection(bulkAssets, null, bulkTags);
             if (tags != null) root.Add(CreateNativePackageKeyedBlock("package.bulk.actions.tag", () => tags));
             return root;
+        }
+
+        private void AddNativeBulkIndexingActions(VisualElement parent, List<AssetInfo> assets)
+        {
+            List<AssetInfo> roots = assets
+                .Where(info => info != null && info.ParentId <= 0 && info.AssetSource != Asset.Source.CurrentProject && info.SafeName != Asset.NONE)
+                .GroupBy(info => info.AssetId)
+                .Select(group => group.First())
+                .ToList();
+            if (roots.Count == 0) return;
+
+            VisualElement controls = new VisualElement();
+            controls.AddToClassList(PackagesDetailActionsClass);
+            controls.AddToClassList(PackagesDetailActionGridClass);
+
+            List<AssetInfo> indexTargets = roots.Where(CanIndexPackageNow).ToList();
+            if (indexTargets.Count > 0)
+            {
+                bool hasExcluded = indexTargets.Any(info => info.Exclude);
+                bool hasNoIndex = indexTargets.Any(PackageIndexingPolicy.HasNoIndex);
+                string indexCaption = hasExcluded
+                    ? "Include Again & Index Selected Now"
+                    : hasNoIndex
+                        ? "Include & Index Selected Now"
+                        : "Index Selected Now";
+                AddNativePackageAction(controls, "package.bulk.actions.includeandindex", indexCaption, () => IncludeAndIndexPackagesNow(indexTargets, hasExcluded),
+                    enabled: !AI.Actions.ActionsInProgress,
+                    primary: true,
+                    alwaysShow: true,
+                    tooltip: "Index only the selected packages and include them in future indexing runs.");
+            }
+
+            List<AssetInfo> visibleRoots = roots.Where(info => !info.Exclude).ToList();
+            if (visibleRoots.Count > 0)
+            {
+                AddNativePackageAction(controls, "package.bulk.actions.disablefutureindexing", "Disable Future Indexing", () => SetFutureIndexing(visibleRoots, false),
+                    enabled: !AI.Actions.ActionsInProgress,
+                    alwaysShow: true,
+                    tooltip: "Skip these packages in future indexing runs while retaining their existing indexed content.");
+
+                AddNativePackageAction(controls, "package.bulk.actions.hidefromcatalog", "Exclude...", () =>
+                {
+                    if (!EditorUtility.DisplayDialog("Exclude Packages", $"Exclude {visibleRoots.Count} selected package{(visibleRoots.Count == 1 ? string.Empty : "s")} and their existing search results?\n\nYou can find them again with the Excluded maintenance filter.", "Exclude", "Cancel")) return;
+                    SetNativeBulkPackageExclusion(visibleRoots, true);
+                    ScheduleNativePackageDetailsRebuild();
+                }, enabled: !AI.Actions.ActionsInProgress, tooltip: "Exclude the selected packages from package and search views. This can be reversed.");
+            }
+
+            List<AssetInfo> excludedRoots = roots.Where(info => info.Exclude).ToList();
+            if (excludedRoots.Count > 0)
+            {
+                AddNativePackageAction(controls, "package.bulk.actions.restorecatalog", "Include Again", () =>
+                {
+                    SetNativeBulkPackageExclusion(excludedRoots, false);
+                    ScheduleNativePackageDetailsRebuild();
+                }, enabled: !AI.Actions.ActionsInProgress, alwaysShow: true, tooltip: "Include the selected packages and their existing indexed content in package and search views again.");
+            }
+
+            List<AssetInfo> cleanupTargets = roots
+                .Where(info => PackageIndexingPolicy.HasNoIndex(info) && PackageIndexingPolicy.HasIndexedContent(info))
+                .ToList();
+            if (cleanupTargets.Count > 0)
+            {
+                AddNativePackageAction(controls, "package.bulk.actions.removeindexedcontent", "Remove Indexed Content...", () => RemoveIndexedContent(cleanupTargets),
+                    enabled: !AI.Actions.ActionsInProgress,
+                    destructive: true,
+                    alwaysShow: true,
+                    tooltip: "Remove searchable content and generated data while keeping package records and source archives.");
+            }
+
+            parent.Add(controls);
         }
 
         private void AddNativeBulkChoice(VisualElement parent, string key, string label, string tooltip, Action all, Action none)
@@ -2100,7 +2335,7 @@ namespace AssetInventory
 
         private void SetNativeBulkPackageExclusion(List<AssetInfo> assets, bool excluded)
         {
-            assets.ForEach(info => AI.SetAssetExclusion(info, excluded));
+            assets.Where(info => info != null && info.ParentId <= 0).ToList().ForEach(info => AI.SetAssetExclusion(info, excluded));
             _requireLookupUpdate = ChangeImpact.Write;
             _requireSearchUpdate = true;
             _requireAssetTreeRebuild = true;
@@ -2227,12 +2462,64 @@ namespace AssetInventory
             {
                 case Asset.Source.AssetStorePackage:
                     return "Asset Store";
+                case Asset.Source.Synty:
+                    return "Synty Importer";
                 case Asset.Source.RegistryPackage:
                     if (root.ForeignId > 0) return "Asset Store";
                     if (info.IsFeaturePackage()) return "Unity Feature (Package Bundle)";
                     return $"{StringUtils.CamelCaseToWords(info.AssetSource.ToString())} ({info.PackageSource})";
                 default:
                     return StringUtils.CamelCaseToWords(info.AssetSource.ToString());
+            }
+        }
+
+        private static string FormatNativePackageIndexingStatus(PackageIndexingStatus status)
+        {
+            switch (status)
+            {
+                case PackageIndexingStatus.Excluded:
+                    return "Excluded";
+                case PackageIndexingStatus.Pausing:
+                    return "Pausing";
+                case PackageIndexingStatus.NotIncluded:
+                    return "Not Included";
+                case PackageIndexingStatus.IndexedWithoutFutureIndexing:
+                    return "Indexed, Future Indexing Off";
+                case PackageIndexingStatus.Indexing:
+                    return "Indexing";
+                case PackageIndexingStatus.Incomplete:
+                    return "Indexing Incomplete";
+                case PackageIndexingStatus.NeedsIndexing:
+                    return "Needs Indexing";
+                case PackageIndexingStatus.Indexed:
+                    return "Indexed";
+                default:
+                    return status.ToString();
+            }
+        }
+
+        private static string GetNativePackageIndexingStatusTooltip(PackageIndexingStatus status)
+        {
+            switch (status)
+            {
+                case PackageIndexingStatus.Excluded:
+                    return "The package and any existing indexed content are excluded from package and search views.";
+                case PackageIndexingStatus.Pausing:
+                    return "Future indexing was disabled while this package was in progress. The current operation is stopping at a safe boundary.";
+                case PackageIndexingStatus.NotIncluded:
+                    return "The package is not included in future indexing and has no indexed content.";
+                case PackageIndexingStatus.IndexedWithoutFutureIndexing:
+                    return "Existing indexed content is retained, but future indexing runs skip this package.";
+                case PackageIndexingStatus.Indexing:
+                    return "The package is currently being indexed.";
+                case PackageIndexingStatus.Incomplete:
+                    return "Indexing started previously but did not finish. You can resume it now.";
+                case PackageIndexingStatus.NeedsIndexing:
+                    return "The package participates in indexing but does not have indexed content yet.";
+                case PackageIndexingStatus.Indexed:
+                    return "The package participates in future indexing and has indexed content.";
+                default:
+                    return string.Empty;
             }
         }
     }

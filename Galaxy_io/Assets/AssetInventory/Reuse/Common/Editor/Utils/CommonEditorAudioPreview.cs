@@ -8,7 +8,10 @@ namespace ImpossibleRobert.Common
     /// <summary>
     /// Compatibility bridge for Unity's editor-only audio preview service, which has no public API.
     /// </summary>
-    public static class CommonEditorAudioPreview
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class CommonEditorAudioPreview
     {
         static MethodInfo _playMethod;
         static MethodInfo _stopAllMethod;

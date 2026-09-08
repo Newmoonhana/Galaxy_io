@@ -102,7 +102,7 @@ namespace ImpossibleRobert.Common
                 ScrollView.contentViewport.RegisterCallback<GeometryChangedEvent>(_ => ReflowItems());
             }
 
-            RegisterCallback<KeyDownEvent>(OnKeyDown);
+            RegisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
             SetDisplayMode(CommonGridViewDisplayMode.Standard);
         }
 
@@ -360,6 +360,9 @@ namespace ImpossibleRobert.Common
             // Alt+horizontal navigation is commonly owned by the host for paging/history.
             if (evt.altKey && (evt.keyCode == KeyCode.LeftArrow || evt.keyCode == KeyCode.RightArrow)) return;
 
+            // Modified page navigation is commonly owned by a host with logical pages or tabs.
+            if (evt.actionKey && (evt.keyCode == KeyCode.PageUp || evt.keyCode == KeyCode.PageDown)) return;
+
             if (evt.actionKey && evt.keyCode == KeyCode.A && AllowMultipleSelection)
             {
                 _selectedIndices.Clear();
@@ -368,14 +371,14 @@ namespace ImpossibleRobert.Common
                 _selectionAnchor = _activeIndex;
                 RefreshSelectionClasses();
                 NotifySelectionChanged();
-                evt.StopImmediatePropagation();
+                CommonUITK.ConsumeEvent(evt, true);
                 return;
             }
 
             if ((evt.keyCode == KeyCode.Return || evt.keyCode == KeyCode.KeypadEnter) && _activeIndex >= 0)
             {
                 ItemActivated?.Invoke(_items[_activeIndex], _activeIndex, evt.altKey);
-                evt.StopImmediatePropagation();
+                CommonUITK.ConsumeEvent(evt, true);
                 return;
             }
 
@@ -428,7 +431,7 @@ namespace ImpossibleRobert.Common
             }
 
             ScrollToItem(next);
-            evt.StopImmediatePropagation();
+            CommonUITK.ConsumeEvent(evt, true);
         }
 
         private void SetSingleSelection(int index, bool notify)

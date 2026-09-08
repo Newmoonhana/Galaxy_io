@@ -380,11 +380,12 @@ namespace AssetInventory
         private int? GetBackupCountForPackageList(AssetInfo info)
         {
             if (info == null) return null;
-            if (info.ForeignId <= 0 || info.ParentId > 0) return null;
+            int backupKey = AssetBackup.GetBackupKey(info);
+            if (backupKey == 0 || info.ParentId > 0) return null;
             if (info.AssetSource == Asset.Source.RegistryPackage || info.AssetSource == Asset.Source.CurrentProject) return null;
 
             _backupCountState ??= AssetBackup.GatherState();
-            return _backupCountState.TryGetValue(info.ForeignId, out List<BackupInfo> backups) && backups != null
+            return _backupCountState.TryGetValue(backupKey, out List<BackupInfo> backups) && backups != null
                 ? backups.Count
                 : 0;
         }
@@ -397,24 +398,127 @@ namespace AssetInventory
             importUI.Init(new List<AssetInfo> {info}, true);
         }
 
-        private void ReindexPackageNow(AssetInfo info)
+        private async void ReindexPackageNow(AssetInfo info)
         {
-            Assets.ForgetPackage(info, true);
-            AI.Actions.Reindex(info);
+            if (info == null) return;
+            if (PackageIndexingPolicy.IsInheritedNoIndex(info))
+            {
+                EditorUtility.DisplayDialog("Indexing Controlled by Parent", $"'{info.GetDisplayName()}' inherits its indexing setting from '{info.ParentInfo?.GetDisplayName()}'. Select the parent package to change participation.", "OK");
+                return;
+            }
+
+            if (info.Exclude) AI.SetAssetExclusion(info, false);
+            if (info.NoIndex) AI.SetAssetNoIndex(info, false);
+            await AI.Actions.ReindexAsync(info);
             _requireLookupUpdate = ChangeImpact.Write;
             _requireSearchUpdate = true;
             _requireAssetTreeRebuild = true;
+            ScheduleNativePackageDetailsRebuild();
         }
 
-        private void ReindexPackagesNow(IEnumerable<AssetInfo> packages)
+        private async void IncludeAndIndexPackagesNow(IEnumerable<AssetInfo> packages, bool includeExcluded = false)
         {
-            foreach (AssetInfo package in packages)
+            List<AssetInfo> selection = packages?
+                .Where(info => info != null && info.ParentId <= 0 && info.AssetSource != Asset.Source.CurrentProject)
+                .GroupBy(info => info.AssetId)
+                .Select(group => group.First())
+                .ToList() ?? new List<AssetInfo>();
+            if (selection.Count == 0)
             {
-                if (package != null && package.IsDownloaded)
-                {
-                    ReindexPackageNow(package);
-                }
+                EditorUtility.DisplayDialog("No Indexable Packages", "Select one or more top-level packages. Nested packages inherit indexing participation from their parent.", "OK");
+                return;
             }
+
+            selection = selection.Where(CanIndexPackageNow).ToList();
+            if (selection.Count == 0)
+            {
+                EditorUtility.DisplayDialog("Package Source Unavailable", "The selected package sources are not currently available for indexing.", "OK");
+                return;
+            }
+
+            List<AssetInfo> excluded = selection.Where(info => info.Exclude).ToList();
+            if (!includeExcluded) selection = selection.Where(info => !info.Exclude).ToList();
+            if (selection.Count == 0)
+            {
+                EditorUtility.DisplayDialog("Packages Excluded", "Include the selected packages again before adding them to indexing.", "OK");
+                return;
+            }
+
+            List<AssetInfo> downloads = selection
+                .Where(info => !info.IsDownloaded && IsOnDemandPackageSource(info) && HasAssetStoreDownloadMetadata(info))
+                .ToList();
+
+            foreach (AssetInfo info in selection)
+            {
+                if (includeExcluded && info.Exclude) AI.SetAssetExclusion(info, false);
+                if (info.NoIndex) AI.SetAssetNoIndex(info, false, false);
+            }
+            AI.TriggerPackageRefresh();
+
+            List<AssetInfo> locallyAvailable = selection.Except(downloads).Where(CanIndexPackageNow).ToList();
+            foreach (AssetInfo info in locallyAvailable)
+            {
+                if (AI.Actions.CancellationRequested) break;
+                await AI.Actions.ReindexAsync(info);
+            }
+            if (!AI.Actions.CancellationRequested && downloads.Count > 0)
+            {
+                await AI.Actions.DownloadAndIndexSelectedAsync(downloads);
+            }
+
+            if (excluded.Count > 0 && !includeExcluded)
+            {
+                Debug.Log($"Skipped {excluded.Count} excluded package{(excluded.Count == 1 ? string.Empty : "s")} while indexing the selection.");
+            }
+            _requireLookupUpdate = ChangeImpact.Write;
+            _requireSearchUpdate = true;
+            _requireAssetTreeRebuild = true;
+            ScheduleNativePackageDetailsRebuild();
+        }
+
+        private static bool CanIndexPackageNow(AssetInfo info)
+        {
+            if (info == null || info.IsAbandoned || info.AssetSource == Asset.Source.CurrentProject) return false;
+            if (info.AssetSource == Asset.Source.AssetStorePackage) return info.IsDownloaded || HasAssetStoreDownloadMetadata(info);
+            if (info.AssetSource == Asset.Source.Synty) return info.IsDownloaded;
+            if (info.AssetSource == Asset.Source.AssetManager) return AI.Actions.AssetManagerEnabled;
+            if (info.AssetSource == Asset.Source.Directory) return true;
+            return info.IsDownloaded;
+        }
+
+        private void SetFutureIndexing(IEnumerable<AssetInfo> packages, bool included)
+        {
+            List<AssetInfo> roots = packages?
+                .Where(info => info != null && info.ParentId <= 0 && !info.Exclude && info.AssetSource != Asset.Source.CurrentProject)
+                .GroupBy(info => info.AssetId)
+                .Select(group => group.First())
+                .ToList() ?? new List<AssetInfo>();
+            foreach (AssetInfo info in roots)
+            {
+                AI.SetAssetNoIndex(info, !included, false);
+            }
+            AI.TriggerPackageRefresh();
+            _requireAssetTreeRebuild = true;
+            ScheduleNativePackageDetailsRebuild();
+        }
+
+        private void RemoveIndexedContent(IEnumerable<AssetInfo> packages)
+        {
+            List<AssetInfo> roots = packages?
+                .Where(info => info != null && info.ParentId <= 0 && PackageIndexingPolicy.HasNoIndex(info) && PackageIndexingPolicy.HasIndexedContent(info))
+                .GroupBy(info => info.AssetId)
+                .Select(group => group.First())
+                .ToList() ?? new List<AssetInfo>();
+            if (roots.Count == 0) return;
+
+            string message = $"Remove indexed content for {roots.Count} package{(roots.Count == 1 ? string.Empty : "s")}?\n\nSearch records, generated previews, captions, and extracted caches will be removed. Package records and downloaded source archives will be kept.";
+            if (!EditorUtility.DisplayDialog("Remove Indexed Content", message, "Remove Indexed Content", "Cancel")) return;
+
+            roots.ForEach(Assets.RemoveIndexedContent);
+            _requireLookupUpdate = ChangeImpact.Write;
+            _requireSearchUpdate = true;
+            _requireAssetTreeRebuild = true;
+            ScheduleNativePackageDetailsRebuild();
         }
 
         private static async void ShowInExplorer(AssetInfo info)
@@ -1038,31 +1142,15 @@ namespace AssetInventory
             root.AddToClassList(PackagesInspectorFiltersClass);
             CommonFormBuilder form = AssetInventoryUITK.CreateFormBuilder();
 
-            VisualElement source = AssetInventoryUITK.CreateSection("Source and Compatibility");
-            source.Add(form.CreateRow("Packages", null, CreateNativePackageInspectorPopup(_packageListingOptions, AI.Config.packagesListing, value =>
+            VisualElement essentials = AssetInventoryUITK.CreateSection("Filters");
+            essentials.Add(form.CreateRow("Packages", "Filter packages by their catalog source.", CreateNativePackageInspectorPopup(_packageListingOptions, AI.Config.packagesListing, value =>
             {
                 AI.Config.packagesListing = value;
                 CommitNativePackageFilterChange();
             })));
-            source.Add(form.CreateRow("SRPs", null, CreateNativePackageInspectorPopup(_srpOptions, AI.Config.assetSRPs, value =>
-            {
-                AI.Config.assetSRPs = value;
-                CommitNativePackageFilterChange();
-            })));
-            source.Add(form.CreateRow(
-                "Deprecation",
-                "Filter by deprecation status or China Store migration.",
-                CreateNativePackageInspectorPopup(_deprecationOptions, AI.Config.assetDeprecation, value =>
-                {
-                    AI.Config.assetDeprecation = value;
-                    CommitNativePackageFilterChange();
-                })));
-            root.Add(source);
-
-            VisualElement metadata = AssetInventoryUITK.CreateSection("Metadata");
-            metadata.Add(form.CreateRow(
+            essentials.Add(form.CreateRow(
                 "Package Tag",
-                null,
+                "Show packages carrying a specific tag.",
                 AssetInventoryUITK.CreateSearchablePopupField(
                     this,
                     _tagPopupItems,
@@ -1074,40 +1162,9 @@ namespace AssetInventory
                     },
                     AI.Config.colorTagFilterClosedField,
                     treatSlashLiterally: true)));
-            metadata.Add(form.CreateRow(
-                "Publisher",
-                null,
-                AssetInventoryUITK.CreateSearchablePopupField(this, _publisherNames, _selectedPkgPublisher, value =>
-                {
-                    _selectedPkgPublisher = value;
-                    CommitNativePackageFilterChange();
-                })));
-            metadata.Add(form.CreateRow(
-                "Category",
-                null,
-                AssetInventoryUITK.CreateSearchablePopupField(this, _categoryNames, _selectedPkgCategory, value =>
-                {
-                    _selectedPkgCategory = value;
-                    CommitNativePackageFilterChange();
-                })));
-            root.Add(metadata);
-
-            VisualElement range = AssetInventoryUITK.CreateSection("Date and Size");
-            range.Add(CreateNativePackageDateFilterRow(form, "Updated", _updateDateOptions, _selectedPkgUpdateDateOption, true));
-            range.Add(CreateNativePackageDateFilterRow(form, "Purchased", _purchaseDateOptions, _selectedPkgPurchaseDateOption, false));
-            range.Add(CreateNativePackagePriceFilterRow(form));
-            range.Add(CreateNativePackageSizeFilterRow(form));
-            range.Add(form.CreateRow("Unity Version", null, CreateNativePackageInspectorPopup(_unityVersionOptions, _selectedPkgUnityVersionOption, value =>
-            {
-                _selectedPkgUnityVersionOption = value;
-                CommitNativePackageFilterChange();
-            })));
-            root.Add(range);
-
-            VisualElement maintenance = AssetInventoryUITK.CreateSection("Maintenance");
-            maintenance.Add(form.CreateRow(
+            essentials.Add(form.CreateRow(
                 "Condition",
-                "Special-purpose package maintenance filters.",
+                "Show packages matching an indexing, download, update, or catalog-maintenance condition.",
                 CreateNativePackageInspectorPopup(_maintenanceOptions, (int)_selectedMaintenance, value =>
                 {
                     _selectedMaintenance = (PackageSearch.MaintenanceOption)value;
@@ -1129,9 +1186,56 @@ namespace AssetInventory
                 Button custom = AssetInventoryUITK.CreateSecondaryButton("Custom", SelectCustomPackages);
                 custom.tooltip = "Select duplicates from custom package sources.";
                 actions.Add(custom);
-                maintenance.Add(actions);
+                essentials.Add(actions);
             }
-            root.Add(maintenance);
+            root.Add(essentials);
+
+            VisualElement compatibility = AssetInventoryUITK.CreateSection("Compatibility");
+            compatibility.Add(form.CreateRow("SRPs", "Filter by render-pipeline compatibility.", CreateNativePackageInspectorPopup(_srpOptions, AI.Config.assetSRPs, value =>
+            {
+                AI.Config.assetSRPs = value;
+                CommitNativePackageFilterChange();
+            })));
+            compatibility.Add(form.CreateRow(
+                "Deprecation",
+                "Filter by deprecation status or China Store migration.",
+                CreateNativePackageInspectorPopup(_deprecationOptions, AI.Config.assetDeprecation, value =>
+                {
+                    AI.Config.assetDeprecation = value;
+                    CommitNativePackageFilterChange();
+                })));
+            root.Add(compatibility);
+
+            VisualElement metadata = AssetInventoryUITK.CreateSection("Metadata");
+            metadata.Add(form.CreateRow(
+                "Publisher",
+                "Show packages from a specific publisher.",
+                AssetInventoryUITK.CreateSearchablePopupField(this, _publisherNames, _selectedPkgPublisher, value =>
+                {
+                    _selectedPkgPublisher = value;
+                    CommitNativePackageFilterChange();
+                })));
+            metadata.Add(form.CreateRow(
+                "Category",
+                "Show packages in a specific category.",
+                AssetInventoryUITK.CreateSearchablePopupField(this, _categoryNames, _selectedPkgCategory, value =>
+                {
+                    _selectedPkgCategory = value;
+                    CommitNativePackageFilterChange();
+                })));
+            root.Add(metadata);
+
+            VisualElement range = AssetInventoryUITK.CreateSection("Date and Size");
+            range.Add(CreateNativePackageDateFilterRow(form, "Updated", _updateDateOptions, _selectedPkgUpdateDateOption, true));
+            range.Add(CreateNativePackageDateFilterRow(form, "Purchased", _purchaseDateOptions, _selectedPkgPurchaseDateOption, false));
+            range.Add(CreateNativePackagePriceFilterRow(form));
+            range.Add(CreateNativePackageSizeFilterRow(form));
+            range.Add(form.CreateRow("Unity Version", "Filter by the newest Unity version supported by a package.", CreateNativePackageInspectorPopup(_unityVersionOptions, _selectedPkgUnityVersionOption, value =>
+            {
+                _selectedPkgUnityVersionOption = value;
+                CommitNativePackageFilterChange();
+            })));
+            root.Add(range);
 
             if (IsPackageFilterActive())
             {
@@ -1152,15 +1256,22 @@ namespace AssetInventory
                 return section;
             }
 
-            AddNativePackageStat(section, "Total Packages", _assets?.Count ?? 0);
-            AddNativePackageStat(section, "Indexed", $"{_stats.IndexedPackages:N0}/{_stats.IndexablePackages:N0}",
-                "Indexable packages depend on configuration and package availability.");
+            AddNativePackageStat(section, "Catalogued", _stats.TotalPackages);
+            AddNativePackageStat(section, "Indexing Enabled", _stats.IndexingEnabledPackages,
+                "Packages included in future indexing runs.");
+            AddNativePackageStat(section, "Indexed", $"{_stats.EnabledIndexedPackages:N0}/{_stats.IndexingEnabledPackages:N0}",
+                "Indexed packages among those currently included in indexing.");
+            AddNativePackageStat(section, "Needs Indexing", _stats.NeedsIndexingPackages);
             AddNativePackageStat(section, "Asset Store", _stats.PurchasedAssets);
             AddNativePackageStat(section, "Registries", _stats.RegistryPackages);
             AddNativePackageStat(section, "Other Sources", _stats.CustomPackages);
             AddNativePackageStat(section, "Deprecated", _stats.DeprecatedPackages);
             AddNativePackageStat(section, "Abandoned", _stats.AbandonedPackages);
-            AddNativePackageStat(section, "No Index", _stats.NoIndexPackages);
+            AddNativePackageStat(section, "Not Included", _stats.NoIndexPackages);
+            if (_stats.IndexedWithoutFutureIndexingPackages > 0)
+            {
+                AddNativePackageStat(section, "Indexed, Future Off", _stats.IndexedWithoutFutureIndexingPackages);
+            }
             AddNativePackageStat(section, "Sub-Packages", _stats.SubPackages);
             AddNativePackageStat(section, "Indexed Files", _stats.TotalFiles);
 
@@ -1168,14 +1279,11 @@ namespace AssetInventory
             {
                 VisualElement row = AssetInventoryUITK.CreateKeyValueRow("Excluded", $"{_stats.ExcludedPackages:N0}");
                 row.AddToClassList(PackagesInspectorStatActionsClass);
-                if (ShowAdvanced())
-                {
-                    Button show = AssetInventoryUITK.CreateIconButton(
-                        "Show excluded packages",
-                        "d_animationvisibilitytoggleon",
-                        () => ShowPackageMaintenance(PackageSearch.MaintenanceOption.Excluded));
-                    row.Add(show);
-                }
+                Button show = AssetInventoryUITK.CreateIconButton(
+                    "Show excluded packages",
+                    "d_animationvisibilitytoggleon",
+                    () => ShowPackageMaintenance(PackageSearch.MaintenanceOption.Excluded));
+                row.Add(show);
                 section.Add(row);
             }
             return section;
@@ -2206,7 +2314,7 @@ namespace AssetInventory
         private void ShowNativeSavedPackageSearchMenu(SavedPackageSearch search, VisualElement anchor)
         {
             GenericMenu menu = new GenericMenu();
-            menu.AddItem(new GUIContent("Edit..."), false, () =>
+            menu.AddItem(new GUIContent("Edit"), false, () =>
             {
                 SavedPackageSearchUI savedSearchUI = SavedPackageSearchUI.ShowWindow();
                 savedSearchUI.Init(search, OnNativeSavedPackageSearchEdited);
@@ -2600,7 +2708,7 @@ namespace AssetInventory
 
             // Find duplicate groups by ForeignId
             IEnumerable<IGrouping<int, AssetInfo>> duplicateGroupsByForeignId = assets
-                .Where(a => a.ForeignId > 0)
+                .Where(a => a.ForeignId > 0 && a.AssetSource != Asset.Source.Synty)
                 .GroupBy(a => a.ForeignId)
                 .Where(g => g.Count() > 1);
 
@@ -2683,6 +2791,20 @@ namespace AssetInventory
                 PGrid.SetVisualBulkSelection(selectedAssets);
                 HandleAssetGridSelectionChanged();
             }
+        }
+
+        private List<AssetInfo> GetSelectableRootPackages()
+        {
+            return GetSelectablePackages()
+                .Where(info => info != null && info.AssetId > 0 && info.ParentId <= 0)
+                .GroupBy(info => info.AssetId)
+                .Select(group => group.First())
+                .ToList();
+        }
+
+        private void SelectAllVisiblePackages()
+        {
+            ApplyPackageSelection(GetSelectableRootPackages());
         }
 
         private List<AssetInfo> GetSelectablePackages()
@@ -2807,7 +2929,7 @@ namespace AssetInventory
         private static bool IsBulkAssetStoreUpdateTarget(AssetInfo info, List<AssetInfo> allAssets, AssetDownloader.State? state, bool metadataUpdateAvailable)
         {
             if (info == null || info.ParentId != 0) return false;
-            if (info.AssetSource != Asset.Source.AssetStorePackage) return false;
+            if (!IsOnDemandPackageSource(info)) return false;
             if (info.IsAbandoned) return false;
             if (!HasAssetStoreDownloadMetadata(info)) return false;
             if (!info.IsDownloaded) return false;
@@ -2825,7 +2947,7 @@ namespace AssetInventory
         private static bool IsBulkAssetStoreDownloadTarget(AssetInfo info, AssetDownloader.State? state)
         {
             if (info == null || info.ParentId != 0) return false;
-            if (info.AssetSource != Asset.Source.AssetStorePackage) return false;
+            if (!IsOnDemandPackageSource(info)) return false;
             if (info.IsAbandoned) return false;
             if (!HasAssetStoreDownloadMetadata(info)) return false;
             if (info.IsDownloaded) return false;
@@ -2838,7 +2960,15 @@ namespace AssetInventory
 
         private static bool HasAssetStoreDownloadMetadata(AssetInfo info)
         {
-            return info != null && !string.IsNullOrEmpty(info.OriginalLocation) && info.UploadId > 0;
+            if (info == null) return false;
+            return info.AssetSource == Asset.Source.AssetStorePackage
+                   && !string.IsNullOrEmpty(info.OriginalLocation)
+                   && info.UploadId > 0;
+        }
+
+        private static bool IsOnDemandPackageSource(AssetInfo info)
+        {
+            return info != null && info.AssetSource == Asset.Source.AssetStorePackage;
         }
 
         private static void StartBulkPackageDownload(AssetInfo info, bool markWasOutdated)
@@ -3607,9 +3737,10 @@ namespace AssetInventory
                     LoadMediaOnDemand(_selectedTreeAsset);
 
                     // Gather backup state once per asset selection for performance
-                    if (_selectedTreeAsset.ForeignId > 0 &&
+                    if (AssetBackup.GetBackupKey(_selectedTreeAsset) != 0 &&
                         (_selectedTreeAsset.AssetSource == Asset.Source.AssetStorePackage ||
-                            _selectedTreeAsset.AssetSource == Asset.Source.CustomPackage))
+                            _selectedTreeAsset.AssetSource == Asset.Source.CustomPackage ||
+                            _selectedTreeAsset.AssetSource == Asset.Source.Synty))
                     {
                         _cachedBackupState = AssetBackup.GatherState();
                     }
@@ -3800,7 +3931,7 @@ namespace AssetInventory
 
             // Determine eligible items for reindex
             List<AssetInfo> reindexable = selection
-                .Where(info => info != null && !info.IsAbandoned && info.AssetSource != Asset.Source.CurrentProject && (info.IsDownloaded || info.AssetSource == Asset.Source.AssetStorePackage))
+                .Where(info => info != null && info.ParentId <= 0 && !info.IsAbandoned && info.AssetSource != Asset.Source.CurrentProject && CanIndexPackageNow(info))
                 .ToList();
 
             // Determine eligible items for import
@@ -3810,7 +3941,7 @@ namespace AssetInventory
                     && info.AssetSource != Asset.Source.CurrentProject
                     && info.SafeName != Asset.NONE
                     && !info.IsAbandoned
-                    && (info.IsDownloaded || info.AssetSource == Asset.Source.AssetStorePackage))
+                    && (info.IsDownloaded || (IsOnDemandPackageSource(info) && HasAssetStoreDownloadMetadata(info))))
                 .ToList();
 
             // If all selected are registry packages and already installed, skip import
@@ -3831,7 +3962,7 @@ namespace AssetInventory
             {
                 bool needsDl = importable.Any(info => !info.IsDownloaded);
                 string dlSuffix = needsDl ? " (will download)" : "";
-                string caption = importable.Count == 1 ? $"Import Package...{dlSuffix}" : $"Import {importable.Count} Packages...{dlSuffix}";
+                string caption = importable.Count == 1 ? $"Import Package{dlSuffix}" : $"Import {importable.Count} Packages{dlSuffix}";
                 menu.AddItem(new GUIContent(caption), false, () =>
                 {
                     ImportUI importUI = ImportUI.ShowWindow();
@@ -3844,10 +3975,13 @@ namespace AssetInventory
             {
                 bool needsDl = reindexable.Any(info => !info.IsDownloaded);
                 string dlSuffix = needsDl ? " (will download)" : "";
-                string reindexCaption = reindexable.Count == 1 ? $"Reindex Now{dlSuffix}" : $"Reindex {reindexable.Count} Packages Now{dlSuffix}";
+                bool includeExcluded = reindexable.Any(info => info.Exclude);
+                bool include = reindexable.Any(PackageIndexingPolicy.HasNoIndex);
+                string verb = includeExcluded ? "Include Again & Index" : include ? "Include & Index" : "Index";
+                string reindexCaption = reindexable.Count == 1 ? $"{verb} Now{dlSuffix}" : $"{verb} {reindexable.Count} Packages Now{dlSuffix}";
                 menu.AddItem(new GUIContent(reindexCaption), false, () =>
                 {
-                    ReindexPackagesNow(reindexable);
+                    IncludeAndIndexPackagesNow(reindexable, includeExcluded);
                 });
                 hasActions = true;
             }
@@ -3912,7 +4046,7 @@ namespace AssetInventory
             AI.Config.packagesListing = search.PackagesListing;
             AI.Config.assetSRPs = search.SRPs;
             AI.Config.assetDeprecation = search.Deprecation;
-            _selectedMaintenance = (PackageSearch.MaintenanceOption)search.Maintenance;
+            _selectedMaintenance = PackageSearch.NormalizeMaintenanceOption(search.Maintenance);
             _selectedPkgPriceOption = search.PriceOption;
             _pkgSearchPrice = search.Price;
             _selectedPkgSizeOption = search.PackageSizeOption;

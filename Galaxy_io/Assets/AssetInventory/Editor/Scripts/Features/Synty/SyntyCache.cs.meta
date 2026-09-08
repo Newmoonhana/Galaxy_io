@@ -1,0 +1,10 @@
+fileFormatVersion: 2
+guid: 0690a35e0d164ed1a8a7fe3929fed9eb
+timeCreated: 1787644801
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.0
+  assetPath: Assets/AssetInventory/Editor/Scripts/Features/Synty/SyntyCache.cs
+  uploadId: 983278

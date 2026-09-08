@@ -11,7 +11,10 @@ using Stopwatch = System.Diagnostics.Stopwatch;
 
 namespace AssetInventory
 {
-    internal static class SemanticAssetSearch
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    internal static partial class SemanticAssetSearch
     {
         private const float FullPhraseFileNameBoost = 0.08f;
         private const float FullPhrasePathBoost = 0.06f;

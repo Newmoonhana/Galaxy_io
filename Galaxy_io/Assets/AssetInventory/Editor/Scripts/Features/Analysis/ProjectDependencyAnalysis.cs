@@ -8,12 +8,20 @@ using UnityEditor;
 namespace AssetInventory
 {
     /// <summary>Scans serialized project assets for GUID references and resolves the files that depend on a selected project asset.</summary>
-    public static class ProjectDependencyAnalysis
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class ProjectDependencyAnalysis
     {
         private static int _virtualIdCounter;
 
         /// <summary>Returns GUIDs referenced by the supplied serialized project asset, optionally using a fresh file read instead of cached results.</summary>
         public static List<AssetFile> GetDependencies(string assetPath, bool recursive = true)
+        {
+            return GetDependencies(assetPath, 0, recursive);
+        }
+
+        internal static List<AssetFile> GetDependencies(string assetPath, int preferredAssetId, bool recursive = true)
         {
             _virtualIdCounter = -1;
 
@@ -74,6 +82,7 @@ namespace AssetInventory
                 file.FileName = fileName;
                 file.Type = type;
                 file.ProjectPath = dep;
+                file.Size = GetProjectFileSize(dep);
 
                 if (parentMap.TryGetValue(dep, out HashSet<string> parents))
                 {
@@ -83,7 +92,68 @@ namespace AssetInventory
                 result.Add(file);
             }
 
+            if (preferredAssetId <= 0 || result.Count == 0) return result;
+
+            List<AssetFile> indexedPackageFiles = DBAdapter.DB.Query<AssetFile>(
+                "SELECT * FROM AssetFile WHERE AssetId=?", preferredAssetId);
+            return ReconcileWithIndexedPackage(result, indexedPackageFiles)
+                .OrderBy(file => file.AssetId)
+                .ThenBy(file => file.Path, StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        internal static List<AssetFile> ReconcileWithIndexedPackage(
+            IReadOnlyList<AssetFile> projectDependencies,
+            IReadOnlyList<AssetFile> indexedPackageFiles)
+        {
+            if (projectDependencies == null || projectDependencies.Count == 0) return new List<AssetFile>();
+            if (indexedPackageFiles == null || indexedPackageFiles.Count == 0) return new List<AssetFile>(projectDependencies);
+
+            Dictionary<string, AssetFile> indexedByGuid = indexedPackageFiles
+                .Where(file => file != null && !string.IsNullOrEmpty(file.Guid))
+                .GroupBy(file => file.Guid, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(
+                    group => group.Key,
+                    group => group.OrderBy(file => file.Id).First(),
+                    StringComparer.OrdinalIgnoreCase);
+
+            List<AssetFile> result = new List<AssetFile>(projectDependencies.Count);
+            foreach (AssetFile projectDependency in projectDependencies)
+            {
+                if (projectDependency == null || string.IsNullOrEmpty(projectDependency.Guid) ||
+                    !indexedByGuid.TryGetValue(projectDependency.Guid, out AssetFile indexedFile))
+                {
+                    result.Add(projectDependency);
+                    continue;
+                }
+
+                indexedFile.ProjectPath = projectDependency.ProjectPath;
+                indexedFile.ParentGuids = projectDependency.ParentGuids == null
+                    ? null
+                    : new HashSet<string>(projectDependency.ParentGuids, StringComparer.OrdinalIgnoreCase);
+                result.Add(indexedFile);
+            }
+
             return result;
+        }
+
+        private static long GetProjectFileSize(string assetPath)
+        {
+            if (string.IsNullOrEmpty(assetPath)) return 0;
+
+            try
+            {
+                string fullPath = AssetUtils.AddProjectRoot(assetPath);
+                return File.Exists(fullPath) ? new FileInfo(fullPath).Length : 0;
+            }
+            catch (IOException)
+            {
+                return 0;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                return 0;
+            }
         }
 
         /// <summary>Scans serialized project assets and returns files containing any supplied target GUID, reporting progress while it runs.</summary>

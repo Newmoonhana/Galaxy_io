@@ -13,7 +13,10 @@ namespace AssetInventory
     /// race conditions, and excessive AssetDatabase.Refresh() calls.
     /// Uses smart caching with reference counting and path/GUID validation.
     /// </summary>
-    public static class CopyCoordinator
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class CopyCoordinator
     {
         /// <summary>
         /// Represents a cached copy operation entry.

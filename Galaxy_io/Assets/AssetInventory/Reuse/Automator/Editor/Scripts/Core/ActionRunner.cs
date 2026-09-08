@@ -30,7 +30,10 @@ namespace Automator
     /// <summary>
     /// Executes action sequences with variable resolution and interruption recovery.
     /// </summary>
-    public sealed class ActionRunner : ActionProgress
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public sealed partial class ActionRunner : ActionProgress
     {
         private static readonly string PREF_PREFIX = "Automator_";
         private static readonly string PREF_ACTION_ACTIVE = PREF_PREFIX + "ActionActive_";

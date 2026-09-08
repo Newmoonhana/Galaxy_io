@@ -5,7 +5,10 @@ using System.Linq;
 
 namespace AssetInventory
 {
-    public class TextureNameSuggester
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public partial class TextureNameSuggester
     {
         public static readonly Dictionary<string, string[]> suffixPatterns = new Dictionary<string, string[]>
         {

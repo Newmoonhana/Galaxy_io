@@ -303,7 +303,11 @@ namespace AssetInventory
         }
     }
 
-    internal sealed class SemanticContentInputs
+#if UNITY_6000_7_OR_NEWER
+    // Empty is immutable semantic-input metadata shared by every indexing request.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    internal sealed partial class SemanticContentInputs
     {
         public static readonly SemanticContentInputs Empty = new SemanticContentInputs(
             new Dictionary<int, string>(),
