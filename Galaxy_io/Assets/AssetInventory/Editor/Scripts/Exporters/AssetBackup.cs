@@ -10,7 +10,10 @@ using UnityEngine;
 
 namespace AssetInventory
 {
-    public sealed class AssetBackup : ActionProgress
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public sealed partial class AssetBackup : ActionProgress
     {
         private Dictionary<int, List<BackupInfo>> _assetVersions;
         private static Dictionary<int, List<BackupInfo>> _staticCache;
@@ -34,6 +37,18 @@ namespace AssetInventory
         public static void ClearCache()
         {
             _staticCache = null;
+        }
+
+        internal static int GetBackupKey(Asset asset)
+        {
+            if (asset == null) return 0;
+            return asset.AssetSource == Asset.Source.Synty && asset.Id > 0 ? -asset.Id : asset.ForeignId;
+        }
+
+        internal static int GetBackupKey(AssetInfo asset)
+        {
+            if (asset == null) return 0;
+            return asset.AssetSource == Asset.Source.Synty && asset.AssetId > 0 ? -asset.AssetId : asset.ForeignId;
         }
 
         public static Dictionary<int, List<BackupInfo>> GatherState(bool useCache = true)
@@ -89,7 +104,7 @@ namespace AssetInventory
 
             string backupFolder = Paths.GetBackupFolder();
             List<Asset> assets = DBAdapter.DB.Table<Asset>()
-                .Where(a => a.ForeignId > 0 && a.ParentId == 0 && a.AssetSource != Asset.Source.RegistryPackage && a.Backup && !string.IsNullOrEmpty(a.Version) && !string.IsNullOrEmpty(a.Location))
+                .Where(a => (a.ForeignId > 0 || (a.AssetSource == Asset.Source.Synty && a.Id > 0)) && a.ParentId == 0 && a.AssetSource != Asset.Source.RegistryPackage && a.Backup && !string.IsNullOrEmpty(a.Version) && !string.IsNullOrEmpty(a.Location))
                 .ToList();
             if (assetId > 0) assets = assets.Where(a => a.Id == assetId).ToList();
 
@@ -100,13 +115,15 @@ namespace AssetInventory
                 await AI.Cooldown.Do();
 
                 Asset asset = assets[i];
+                int backupKey = GetBackupKey(asset);
+                if (backupKey == 0) continue;
                 MetaProgress.Report(ProgressId, i + 1, assets.Count, asset.SafeName);
 
                 if (GetEffectiveBackupLimit(asset.Id) <= 0) continue;
                 if (!File.Exists(asset.GetLocation(true))) continue;
 
                 // Skip if a newer patch version already exists in backup and we only keep latest patches
-                if (AI.Config.onlyLatestPatchVersion && _assetVersions.TryGetValue(asset.ForeignId, out List<BackupInfo> existingBackups))
+                if (AI.Config.onlyLatestPatchVersion && _assetVersions.TryGetValue(backupKey, out List<BackupInfo> existingBackups))
                 {
                     SemVer assetVersion = new SemVer(asset.GetSafeVersion());
                     bool newerPatchExists = existingBackups.Any(b => b.semVersion > assetVersion && assetVersion.OnlyDiffersInPatch(b.semVersion));
@@ -114,12 +131,12 @@ namespace AssetInventory
                 }
 
                 string targetFile = null;
-                if (_assetVersions.TryGetValue(asset.ForeignId, out List<BackupInfo> backupInfos))
+                if (_assetVersions.TryGetValue(backupKey, out List<BackupInfo> backupInfos))
                 {
                     BackupInfo bi = backupInfos.FirstOrDefault(b => b.version == asset.GetSafeVersion());
                     if (bi != null) targetFile = bi.location;
                 }
-                if (targetFile == null) targetFile = Path.Combine(backupFolder, $"{asset.ForeignId}{AI.SEPARATOR}{asset.GetSafeVersion()}{AI.SEPARATOR}{asset.SafeName}.unitypackage");
+                if (targetFile == null) targetFile = Path.Combine(backupFolder, $"{backupKey}{AI.SEPARATOR}{asset.GetSafeVersion()}{AI.SEPARATOR}{asset.SafeName}.unitypackage");
                 if (!File.Exists(targetFile))
                 {
                     CurrentMain = $"{asset.SafeName} ({EditorUtility.FormatBytes(asset.PackageSize)})";
@@ -141,7 +158,7 @@ namespace AssetInventory
 
         private void ClearOut()
         {
-            Dictionary<int, int> packageBackupLimits = GetPackageBackupLimitsByForeignId();
+            Dictionary<int, int> packageBackupLimits = GetPackageBackupLimitsByKey();
             int globalBackupLimit = GetGlobalBackupLimit();
             foreach (KeyValuePair<int, List<BackupInfo>> pair in _assetVersions)
             {
@@ -193,19 +210,20 @@ namespace AssetInventory
             return Math.Max(0, AI.Config.backupsPerAsset);
         }
 
-        private static Dictionary<int, int> GetPackageBackupLimitsByForeignId()
+        private static Dictionary<int, int> GetPackageBackupLimitsByKey()
         {
             Dictionary<int, int> result = new Dictionary<int, int>();
             List<Asset> assets = DBAdapter.DB.Table<Asset>()
-                .Where(a => a.ForeignId > 0 && a.ParentId == 0)
+                .Where(a => (a.ForeignId > 0 || (a.AssetSource == Asset.Source.Synty && a.Id > 0)) && a.ParentId == 0)
                 .ToList();
 
             foreach (Asset asset in assets)
             {
-                if (result.ContainsKey(asset.ForeignId)) continue;
+                int backupKey = GetBackupKey(asset);
+                if (backupKey == 0 || result.ContainsKey(backupKey)) continue;
                 if (Metadata.TryGetPackageMaxBackups(asset.Id, out int maxBackups))
                 {
-                    result.Add(asset.ForeignId, maxBackups);
+                    result.Add(backupKey, maxBackups);
                 }
             }
             return result;

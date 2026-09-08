@@ -11,7 +11,10 @@ namespace AssetInventory
     /// Validation and error detection utilities for preview generation.
     /// Consolidates validation logic from PreviewManager and CustomPrefabPreviewGenerator.
     /// </summary>
-    public static class PreviewValidation
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class PreviewValidation
     {
         private const byte AlphaVisibleThreshold = 8;
         private const int BackgroundTolerance = 12;

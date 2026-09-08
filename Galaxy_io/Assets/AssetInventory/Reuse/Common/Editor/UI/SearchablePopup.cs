@@ -5,7 +5,10 @@ using UnityEngine;
 
 namespace ImpossibleRobert.Common
 {
-    public sealed class SearchablePopup
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public sealed partial class SearchablePopup
     {
         public struct PopupItem
         {

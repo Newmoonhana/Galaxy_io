@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: c14ff523828d4263a3c380d8bbe0b42d
+AssemblyDefinitionImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.0
+  assetPath: Assets/AssetInventory/Editor/Adapters/UnityAIAssistant/AssetInventory.Integration.UnityAIAssistant.Editor.asmdef
+  uploadId: 983278

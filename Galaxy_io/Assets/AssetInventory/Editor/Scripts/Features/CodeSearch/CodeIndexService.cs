@@ -13,7 +13,10 @@ using UnityEngine;
 
 namespace AssetInventory
 {
-    internal static class CodeIndexService
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    internal static partial class CodeIndexService
     {
         public const string DB_NAME = "AssetInventory.CodeIndex.db";
 

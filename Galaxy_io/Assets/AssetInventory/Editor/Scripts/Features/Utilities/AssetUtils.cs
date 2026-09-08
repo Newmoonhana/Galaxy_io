@@ -20,10 +20,22 @@ using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace AssetInventory
 {
-    public static class AssetUtils
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class AssetUtils
     {
         private static readonly Regex NoSpecialChars = new Regex("[^a-zA-Z0-9 -]"); // private static Regex AssetStoreContext.s_InvalidPathCharsRegExp = new Regex("[^a-zA-Z0-9() _-]");
         private static readonly Dictionary<string, Texture2D> PreviewCache = new Dictionary<string, Texture2D>();
+
+        [InitializeOnLoadMethod]
+        private static void RegisterEditorLifecycle()
+        {
+            AssemblyReloadEvents.beforeAssemblyReload -= ClearCache;
+            AssemblyReloadEvents.beforeAssemblyReload += ClearCache;
+            EditorApplication.quitting -= ClearCache;
+            EditorApplication.quitting += ClearCache;
+        }
 
         public static bool IsPrefab(string mainFile)
         {

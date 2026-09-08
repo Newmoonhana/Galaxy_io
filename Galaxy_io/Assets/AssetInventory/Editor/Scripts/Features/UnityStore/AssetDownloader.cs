@@ -29,6 +29,7 @@ namespace AssetInventory
 
         private AssetInfo _asset;
         private bool _expectFullDownload;
+        private bool _subscribedToUnityDownloads;
         private readonly AssetDownloadState _assetState = new AssetDownloadState();
 
         // caching
@@ -37,8 +38,7 @@ namespace AssetInventory
         public AssetDownloader(AssetInfo asset)
         {
             _asset = asset.GetRoot();
-            AssetDownloaderUtils.OnDownloadSuccessful += OnDownloadSuccessful;
-            AssetDownloaderUtils.OnDownloadFinished += OnDownloadFinished;
+            SyncUnityDownloadSubscription();
         }
 
         public AssetInfo GetAsset()
@@ -49,12 +49,35 @@ namespace AssetInventory
         public void SetAsset(AssetInfo asset)
         {
             _asset = asset.GetRoot();
+            SyncUnityDownloadSubscription();
         }
 
         internal void Dispose()
         {
-            AssetDownloaderUtils.OnDownloadSuccessful -= OnDownloadSuccessful;
-            AssetDownloaderUtils.OnDownloadFinished -= OnDownloadFinished;
+            if (_subscribedToUnityDownloads)
+            {
+                AssetDownloaderUtils.OnDownloadSuccessful -= OnDownloadSuccessful;
+                AssetDownloaderUtils.OnDownloadFinished -= OnDownloadFinished;
+                _subscribedToUnityDownloads = false;
+            }
+        }
+
+        private void SyncUnityDownloadSubscription()
+        {
+            bool shouldSubscribe = _asset != null && _asset.AssetSource != Asset.Source.Synty;
+            if (shouldSubscribe == _subscribedToUnityDownloads) return;
+
+            if (shouldSubscribe)
+            {
+                AssetDownloaderUtils.OnDownloadSuccessful += OnDownloadSuccessful;
+                AssetDownloaderUtils.OnDownloadFinished += OnDownloadFinished;
+            }
+            else
+            {
+                AssetDownloaderUtils.OnDownloadSuccessful -= OnDownloadSuccessful;
+                AssetDownloaderUtils.OnDownloadFinished -= OnDownloadFinished;
+            }
+            _subscribedToUnityDownloads = shouldSubscribe;
         }
 
         private void OnDownloadSuccessful(int foreignId)
@@ -80,7 +103,7 @@ namespace AssetInventory
 
         public bool IsDownloadSupported()
         {
-            return true;
+            return _asset != null && _asset.AssetSource != Asset.Source.Synty;
         }
 
         public AssetDownloadState GetState()
@@ -138,6 +161,12 @@ namespace AssetInventory
 
         private void CheckState()
         {
+            if (_asset.AssetSource == Asset.Source.Synty)
+            {
+                CheckSyntyLocalState();
+                return;
+            }
+
             string targetFile = _asset.GetCalculatedLocation();
             if (targetFile == null)
             {
@@ -348,6 +377,8 @@ namespace AssetInventory
 
         public async void PauseDownload(bool fullAbort)
         {
+            if (!IsDownloadSupported()) return;
+
             Assembly assembly = Assembly.Load("UnityEditor.CoreModule");
             Type asc = assembly.GetType("UnityEditor.AssetStoreUtils");
             MethodInfo abortDownloadMethod = asc.GetMethod("AbortDownload", BindingFlags.Public | BindingFlags.Static);
@@ -382,6 +413,26 @@ namespace AssetInventory
             DownloadState state = JsonConvert.DeserializeObject<DownloadState>(result);
 
             return state.inProgress;
+        }
+
+        private void CheckSyntyLocalState()
+        {
+            string targetFile = _asset.GetLocation(true);
+            if (!SyntyCache.IsValidPackage(targetFile)) targetFile = _asset.GetCalculatedLocation();
+            bool exists = SyntyCache.IsValidPackage(targetFile);
+            if (exists)
+            {
+                _assetState.bytesDownloaded = new FileInfo(targetFile).Length;
+                _assetState.bytesTotal = _assetState.bytesDownloaded;
+                _assetState.progress = 1f;
+                _assetState.SetState(_asset.IsUpdateAvailable() ? State.UpdateAvailable : State.Downloaded);
+                return;
+            }
+
+            _assetState.bytesDownloaded = 0;
+            _assetState.bytesTotal = _asset.PackageSize;
+            _assetState.progress = 0f;
+            _assetState.SetState(State.Unavailable);
         }
     }
 
@@ -427,7 +478,10 @@ namespace AssetInventory
         }
     }
 
-    public static class AssetDownloaderUtils
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class AssetDownloaderUtils
     {
         public static event Action<int> OnDownloadSuccessful;
         public static event Action<int> OnDownloadFinished;

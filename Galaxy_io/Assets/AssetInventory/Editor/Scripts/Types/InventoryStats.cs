@@ -6,6 +6,10 @@ namespace AssetInventory
         public int TotalPackages;
         public int IndexedPackages;
         public int IndexablePackages;
+        public int IndexingEnabledPackages;
+        public int EnabledIndexedPackages;
+        public int NeedsIndexingPackages;
+        public int IndexedWithoutFutureIndexingPackages;
         public int SubPackages;
         public int TotalFiles;
         public long DatabaseSize;

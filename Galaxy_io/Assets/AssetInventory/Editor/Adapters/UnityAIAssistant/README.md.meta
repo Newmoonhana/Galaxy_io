@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 3e78e08274a8499183f721f2d42cc96d
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.0
+  assetPath: Assets/AssetInventory/Editor/Adapters/UnityAIAssistant/README.md
+  uploadId: 983278

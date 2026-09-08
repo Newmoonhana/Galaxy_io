@@ -2,6 +2,10 @@ using UnityEngine;
 
 namespace ImpossibleRobert.Common
 {
+#if UNITY_6000_7_OR_NEWER
+    // Backend registration and immutable image metadata are editor code-load scoped and must persist through Play Mode.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public static partial class ImageUtils
     {
         private static IImageUtilsBackend _registeredBackend;

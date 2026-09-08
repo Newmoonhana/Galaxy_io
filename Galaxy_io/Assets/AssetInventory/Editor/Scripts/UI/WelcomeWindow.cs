@@ -6,7 +6,11 @@ using UnityEngine.UIElements;
 
 namespace AssetInventory
 {
-    public sealed class WelcomeWindow : BasicEditorUI
+#if UNITY_6000_7_OR_NEWER
+    // The controller owns editor callbacks and intentionally persists for the loaded-code lifetime.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public sealed partial class WelcomeWindow : BasicEditorUI
     {
         private const string PackageId = "com.wetzold.asset-inventory";
         private const int WelcomeRevision = 1;

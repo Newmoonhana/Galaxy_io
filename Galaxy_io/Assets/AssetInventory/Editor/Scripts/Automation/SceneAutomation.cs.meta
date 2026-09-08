@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 5394ea4509b250945981eb28495bb1ca
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.0
+  assetPath: Assets/AssetInventory/Editor/Scripts/Automation/SceneAutomation.cs
+  uploadId: 983278

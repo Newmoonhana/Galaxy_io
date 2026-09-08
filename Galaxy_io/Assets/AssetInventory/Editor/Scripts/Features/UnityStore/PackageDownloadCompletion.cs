@@ -52,7 +52,7 @@ namespace AssetInventory
             foreach (AssetInfo info in assets)
             {
                 AssetInfo root = info?.GetRoot();
-                if (root == null || root.ForeignId != foreignId) continue;
+                if (root == null || root.AssetSource == Asset.Source.Synty || root.ForeignId != foreignId) continue;
 
                 if (root.AssetId > 0)
                 {

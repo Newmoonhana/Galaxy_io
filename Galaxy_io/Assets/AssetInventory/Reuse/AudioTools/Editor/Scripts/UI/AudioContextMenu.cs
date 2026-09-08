@@ -11,7 +11,7 @@ namespace AudioTool
     {
         private static readonly string[] SupportedExtensions = {".wav", ".mp3", ".ogg", ".aiff", ".aif", ".flac"};
 
-        [MenuItem("Assets/Edit Audio...", false, 200)]
+        [MenuItem("Assets/Edit Audio", false, 200)]
         private static void EditAudio()
         {
             Object[] selectedObjects = Selection.objects;
@@ -32,7 +32,7 @@ namespace AudioTool
             }
         }
 
-        [MenuItem("Assets/Edit Audio...", true)]
+        [MenuItem("Assets/Edit Audio", true)]
         private static bool ValidateEditAudio()
         {
             Object[] selectedObjects = Selection.objects;

@@ -351,7 +351,7 @@ namespace AssetInventory
             }
 
             foldout.Add(AssetInventoryUITK.CreateCopyLabel(
-                "Checked actions run when you choose Run Actions. Use a row's play button to run it once. Optional actions appear after enabling their feature in Backup or Artificial Intelligence."));
+                "Checked actions run when you choose Run Actions. Use a row's play button to run it once. Optional actions appear after enabling their feature in Backup, Unity Asset Manager, Synty Importer, or Artificial Intelligence."));
             foldout.Add(BuildNativeUpdateActionsHeader());
 
             _nativeUpdateActionsList = new CommonReorderableListView<UpdateAction>(
@@ -572,6 +572,8 @@ namespace AssetInventory
                 hash = AddHash(hash, ShowAdvanced());
                 hash = AddHash(hash, AI.Actions.AnyActionsInProgress);
                 hash = AddHash(hash, AI.Actions.LastActionUpdate.Ticks);
+                hash = AddHash(hash, AI.Config.assetManagerFeatureEnabled);
+                hash = AddHash(hash, AI.Config.syntyFeatureEnabled);
                 hash = AddHash(hash, AI.Config.packageBackupFeatureEnabled);
                 hash = AddHash(hash, AI.Config.aiCaptionsFeatureEnabled);
                 hash = AddHash(hash, AI.Config.semanticSearchFeatureEnabled);
@@ -622,6 +624,8 @@ namespace AssetInventory
             RefreshNativeUpdateActionsSection();
             RefreshNativeIndexingSettingsSection();
             RefreshNativeFoldersSettingsSection();
+            RefreshNativeAssetManagerSettingsSection();
+            RefreshNativeSyntySettingsSection();
             RefreshNativeImportSettingsSection();
             RefreshNativePreviewsSettingsSection();
             RefreshNativeBackupSettingsSection();
@@ -674,6 +678,7 @@ namespace AssetInventory
             _nativeSettingsLeftColumn.Add(BuildNativeIndexingSettingsSection());
             _nativeSettingsLeftColumn.Add(BuildNativeFoldersSettingsSection());
             _nativeSettingsLeftColumn.Add(BuildNativeAssetManagerSettingsSection());
+            _nativeSettingsLeftColumn.Add(BuildNativeSyntySettingsSection());
             _nativeSettingsLeftColumn.Add(BuildNativeImportSettingsSection());
             _nativeSettingsLeftColumn.Add(BuildNativePreviewsSettingsSection());
             _nativeSettingsLeftColumn.Add(BuildNativeBackupSettingsSection());
@@ -730,7 +735,7 @@ namespace AssetInventory
 
             _nativeSettingsPackagesValue.text = _stats == null
                 ? "-"
-                : $"{_stats.IndexedPackages:N0}/{_stats.IndexablePackages:N0}";
+                : $"{_stats.EnabledIndexedPackages:N0}/{_stats.IndexingEnabledPackages:N0}";
 
             _nativeSettingsDatabaseValue.text = _dbSize > 0
                 ? EditorUtility.FormatBytes(_dbSize)
@@ -808,6 +813,10 @@ namespace AssetInventory
                 hash = AddHash(hash, _stats?.TotalPackages ?? 0);
                 hash = AddHash(hash, _stats?.IndexedPackages ?? 0);
                 hash = AddHash(hash, _stats?.IndexablePackages ?? 0);
+                hash = AddHash(hash, _stats?.IndexingEnabledPackages ?? 0);
+                hash = AddHash(hash, _stats?.EnabledIndexedPackages ?? 0);
+                hash = AddHash(hash, _stats?.NeedsIndexingPackages ?? 0);
+                hash = AddHash(hash, _stats?.IndexedWithoutFutureIndexingPackages ?? 0);
                 hash = AddHash(hash, _stats?.TotalFiles ?? 0);
                 hash = AddHash(hash, _stats?.PurchasedAssets ?? 0);
                 hash = AddHash(hash, _stats?.RegistryPackages ?? 0);
@@ -990,6 +999,7 @@ namespace AssetInventory
                 case "Indexing": tooltip = "Configure where packages are discovered and how source caches are indexed."; break;
                 case "Additional Folders": tooltip = "Add and organize external package, archive, media, and development-package locations."; break;
                 case "Unity Asset Manager": tooltip = "Configure packages synchronized from Unity Asset Manager projects."; break;
+                case "Synty Importer": tooltip = "Configure experimental local cache indexing and optional Asset Store metadata enrichment for downloaded Synty packages."; break;
                 case "Import": tooltip = "Control how selected assets are materialized and adapted to the current project."; break;
                 case "Previews": tooltip = "Control preview discovery, validation, recreation, and Project-window integration."; break;
                 case "Backup": tooltip = "Configure automatic version backups for selected packages."; break;
@@ -1038,6 +1048,7 @@ namespace AssetInventory
             changed |= CollapseExtraNativeSettingsSection(ref config.showIndexingSettings, ref hasExpandedSection);
             changed |= CollapseExtraNativeSettingsSection(ref config.showFolderSettings, ref hasExpandedSection);
             changed |= CollapseExtraNativeSettingsSection(ref config.showAMSettings, ref hasExpandedSection);
+            changed |= CollapseExtraNativeSettingsSection(ref config.showSyntySettings, ref hasExpandedSection);
             changed |= CollapseExtraNativeSettingsSection(ref config.showImportSettings, ref hasExpandedSection);
             changed |= CollapseExtraNativeSettingsSection(ref config.showPreviewSettings, ref hasExpandedSection);
             changed |= CollapseExtraNativeSettingsSection(ref config.showBackupSettings, ref hasExpandedSection);
@@ -1081,10 +1092,10 @@ namespace AssetInventory
 
             foldout.Add(CreateNativeSettingsVisibilityBlock("settings.statistics", BuildNativeSettingsStatisticsContent));
 
-            if (_stats != null && _stats.IndexedPackages < _stats.IndexablePackages && AI.Actions != null && !AI.Actions.AnyActionsInProgress)
+            if (_stats != null && _stats.NeedsIndexingPackages > 0 && AI.Actions != null && !AI.Actions.AnyActionsInProgress)
             {
                 foldout.Add(CreateNativeSettingsVisibilityBlock("settings.hints.indexremaining", () =>
-                    AssetInventoryUITK.CreateHelpBox("To index the remaining assets, download them first. You can multi-select packages in the Packages view to start a bulk download.")));
+                    AssetInventoryUITK.CreateHelpBox("Included packages still need indexing. Review them in Packages to index cached or uncached packages explicitly.")));
             }
 
             return section;
@@ -1099,14 +1110,17 @@ namespace AssetInventory
             content.Add(AssetInventoryUITK.CreateKeyValueRow("Total Packages", $"{totalPackages:N0}"));
             if (_stats != null)
             {
-                content.Add(AssetInventoryUITK.CreateKeyValueRow("Indexed", $"{_stats.IndexedPackages:N0}/{_stats.IndexablePackages:N0}"));
+                content.Add(AssetInventoryUITK.CreateKeyValueRow("Indexing Enabled", $"{_stats.IndexingEnabledPackages:N0}"));
+                content.Add(AssetInventoryUITK.CreateKeyValueRow("Indexed", $"{_stats.EnabledIndexedPackages:N0}/{_stats.IndexingEnabledPackages:N0}"));
+                if (_stats.NeedsIndexingPackages > 0) content.Add(AssetInventoryUITK.CreateKeyValueRow("Needs Indexing", $"{_stats.NeedsIndexingPackages:N0}"));
                 if (_stats.PurchasedAssets > 0) content.Add(AssetInventoryUITK.CreateKeyValueRow("Asset Store", $"{_stats.PurchasedAssets:N0}"));
                 if (_stats.RegistryPackages > 0) content.Add(AssetInventoryUITK.CreateKeyValueRow("Registries", $"{_stats.RegistryPackages:N0}"));
                 if (_stats.CustomPackages > 0) content.Add(AssetInventoryUITK.CreateKeyValueRow("Other Sources", $"{_stats.CustomPackages:N0}"));
                 if (_stats.DeprecatedPackages > 0) content.Add(AssetInventoryUITK.CreateKeyValueRow("Deprecated", $"{_stats.DeprecatedPackages:N0}"));
                 if (_stats.AbandonedPackages > 0) content.Add(AssetInventoryUITK.CreateKeyValueRow("Abandoned", $"{_stats.AbandonedPackages:N0}"));
                 if (_stats.ExcludedPackages > 0) content.Add(BuildNativeSettingsExcludedPackagesRow());
-                if (_stats.NoIndexPackages > 0) content.Add(AssetInventoryUITK.CreateKeyValueRow("No Index", $"{_stats.NoIndexPackages:N0}"));
+                if (_stats.NoIndexPackages > 0) content.Add(BuildNativeSettingsNotIncludedPackagesRow());
+                if (_stats.IndexedWithoutFutureIndexingPackages > 0) content.Add(AssetInventoryUITK.CreateKeyValueRow("Indexed, Future Off", $"{_stats.IndexedWithoutFutureIndexingPackages:N0}"));
                 if (_stats.SubPackages > 0) content.Add(AssetInventoryUITK.CreateKeyValueRow("Sub-Packages", $"{_stats.SubPackages:N0}"));
                 if (_stats.TotalFiles > 0) content.Add(AssetInventoryUITK.CreateKeyValueRow("Indexed Files", $"{_stats.TotalFiles:N0}"));
             }
@@ -1118,14 +1132,22 @@ namespace AssetInventory
         private VisualElement BuildNativeSettingsExcludedPackagesRow()
         {
             VisualElement row = AssetInventoryUITK.CreateKeyValueRow("Excluded", $"{_stats.ExcludedPackages:N0}");
-            if (ShowAdvanced())
+            Button showButton = AssetInventoryUITK.CreateIconButton("Show excluded packages", "d_animationvisibilitytoggleon", () =>
             {
-                Button showButton = AssetInventoryUITK.CreateIconButton("Show excluded packages", "d_animationvisibilitytoggleon", () =>
-                {
-                    ShowPackageMaintenance(PackageSearch.MaintenanceOption.Excluded);
-                });
-                row.Add(showButton);
-            }
+                ShowPackageMaintenance(PackageSearch.MaintenanceOption.Excluded);
+            });
+            row.Add(showButton);
+            return row;
+        }
+
+        private VisualElement BuildNativeSettingsNotIncludedPackagesRow()
+        {
+            VisualElement row = AssetInventoryUITK.CreateKeyValueRow("Not Included", $"{_stats.NoIndexPackages:N0}");
+            Button showButton = AssetInventoryUITK.CreateIconButton("Review packages not included in indexing", "d_FilterByLabel", () =>
+            {
+                ShowPackageMaintenance(PackageSearch.MaintenanceOption.NoIndex);
+            });
+            row.Add(showButton);
             return row;
         }
 
@@ -1352,6 +1374,45 @@ namespace AssetInventory
 
             if (!AI.Config.showIndexingSettings) return;
 
+            VisualElement participation = AddNativeSettingsGroup(
+                foldout,
+                "Indexing Participation",
+                "Choose the default for newly discovered packages. Existing package choices are never changed automatically.");
+            participation.Add(CreateNativeSettingsPopupRow(
+                "New Packages",
+                "Choose whether newly discovered packages are indexed automatically or wait for an explicit selection.",
+                new[] {"Index Automatically", "Wait for My Selection"},
+                AI.Config.noIndexByDefault ? 1 : 0,
+                value =>
+                {
+                    AI.Config.noIndexByDefault = value == 1;
+                    ApplyNativeIndexingSettingsChange();
+                    RefreshNativeIndexingSettingsSection(true);
+                }));
+            participation.Add(CreateNativeSettingsValueRow(
+                "Current Catalog",
+                "Current package participation is controlled independently per package.",
+                CreateNativeSettingsValueText(_stats == null
+                    ? "Statistics not loaded"
+                    : $"{_stats.IndexingEnabledPackages:N0} enabled, {_stats.NoIndexPackages:N0} not included, {_stats.ExcludedPackages:N0} excluded")));
+
+            VisualElement participationActions = new VisualElement();
+            participationActions.AddToClassList(SettingsButtonRowClass);
+            Button reviewNotIncluded = AssetInventoryUITK.CreateSecondaryButton("Review Not Included", () => ShowPackageMaintenance(PackageSearch.MaintenanceOption.NoIndex));
+            reviewNotIncluded.tooltip = "Open packages that will be skipped by future indexing runs.";
+            participationActions.Add(reviewNotIncluded);
+            Button reviewNeedsIndexing = AssetInventoryUITK.CreateSecondaryButton("Review Needs Indexing", () => ShowPackageMaintenance(PackageSearch.MaintenanceOption.NeedsIndexing));
+            reviewNeedsIndexing.tooltip = "Open included packages that do not have indexed content yet.";
+            participationActions.Add(reviewNeedsIndexing);
+            participation.Add(CreateNativeSettingsValueRow("Review", "Review and change current packages explicitly.", participationActions));
+
+            if (AI.Config.excludeByDefault)
+            {
+                participation.Add(AssetInventoryUITK.CreateHelpBox(
+                    "The advanced Exclude default is also enabled. New packages remain excluded and cannot be processed until included again.",
+                    MessageType.Warning));
+            }
+
             VisualElement sources = AddNativeSettingsGroup(
                 foldout,
                 "Sources and Caches",
@@ -1506,8 +1567,7 @@ namespace AssetInventory
                     defaults.Add(CreateNativeSettingsToggleRow("Semantic Index", "Include newly discovered packages in the semantic asset index.", AI.Config.semanticIndexByDefault, value => { AI.Config.semanticIndexByDefault = value; ApplyNativeIndexingSettingsChange(); }));
                 if (AI.Config.codeSearchFeatureEnabled)
                     defaults.Add(CreateNativeSettingsToggleRow("Code Index", "Include newly discovered packages in the code search index.", AI.Config.codeIndexByDefault, value => { AI.Config.codeIndexByDefault = value; ApplyNativeIndexingSettingsChange(); }));
-                defaults.Add(CreateNativeSettingsToggleRow("No Index", "Mark newly discovered packages so future indexing skips their contents until this flag is disabled.", AI.Config.noIndexByDefault, value => { AI.Config.noIndexByDefault = value; ApplyNativeIndexingSettingsChange(); }));
-                defaults.Add(CreateNativeSettingsToggleRow("Exclude", "Mark new assets as excluded so they are not shown in the normal packages list and are not processed further.", AI.Config.excludeByDefault, value => { AI.Config.excludeByDefault = value; ApplyNativeIndexingSettingsChange(); }));
+                defaults.Add(CreateNativeSettingsToggleRow("Exclude", "Mark newly discovered packages as excluded so they are not shown in the normal package list and are not processed further.", AI.Config.excludeByDefault, value => { AI.Config.excludeByDefault = value; ApplyNativeIndexingSettingsChange(); }));
             }
         }
 
@@ -1549,6 +1609,9 @@ namespace AssetInventory
                 hash = AddHash(hash, AI.Config.codeSearchFeatureEnabled);
                 hash = AddHash(hash, AI.Config.noIndexByDefault);
                 hash = AddHash(hash, AI.Config.excludeByDefault);
+                hash = AddHash(hash, _stats?.IndexingEnabledPackages ?? 0);
+                hash = AddHash(hash, _stats?.NoIndexPackages ?? 0);
+                hash = AddHash(hash, _stats?.ExcludedPackages ?? 0);
                 hash = AddHash(hash, AI.Config.tagSlashHandling);
                 hash = AddHash(hash, AI.Config.useCooldown);
                 hash = AddHash(hash, AI.Config.cooldownInterval);
@@ -4174,7 +4237,7 @@ namespace AssetInventory
             return CreateNativeSettingsValueRow(label, tooltip, controls.ToArray());
         }
 
-        private VisualElement CreateNativeSettingsFolderRow(string label, string currentFolder, string configuredFolder, Action<string> onChange, string prompt, Func<string, bool> validator = null)
+        private VisualElement CreateNativeSettingsFolderRow(string label, string currentFolder, string configuredFolder, Action<string> onChange, string prompt, Func<string, bool> validator = null, Action afterChange = null)
         {
             bool hasCustomFolder = !string.IsNullOrWhiteSpace(configuredFolder);
             string activeFolder = hasCustomFolder ? configuredFolder : currentFolder;
@@ -4205,6 +4268,7 @@ namespace AssetInventory
                     RefreshNativeLocationsSettingsSection(true);
                     RefreshNativeIndexingSettingsSection(true);
                     RefreshNativeImportSettingsSection(true);
+                    afterChange?.Invoke();
                 });
                 defaultButton.tooltip = "Clear the custom location and use the default. Existing data is not moved.";
             }
@@ -4222,8 +4286,9 @@ namespace AssetInventory
                 RefreshNativeBackupSettingsSection(true);
                 RefreshNativeLocationsSettingsSection(true);
                 RefreshNativeIndexingSettingsSection(true);
-               RefreshNativeImportSettingsSection(true);
-           });
+                RefreshNativeImportSettingsSection(true);
+                afterChange?.Invoke();
+            });
 
             return CreateNativeSettingsValueRow(label, null, folder, openButton, defaultButton, browseButton);
         }
@@ -4509,7 +4574,7 @@ namespace AssetInventory
             {
                 if (Intelligence.LoadingModels)
                 {
-                    menu.AddDisabledItem(new GUIContent("Loading models..."));
+                    menu.AddDisabledItem(new GUIContent("Loading models"));
                 }
                 else
                 {
@@ -4538,7 +4603,7 @@ namespace AssetInventory
             }
             else
             {
-                menu.AddDisabledItem(new GUIContent(Intelligence.LoadingModels ? "Loading models..." : "Models could not be loaded"));
+                menu.AddDisabledItem(new GUIContent(Intelligence.LoadingModels ? "Loading models" : "Models could not be loaded"));
             }
             menu.ShowAsContext();
         }
@@ -4636,7 +4701,7 @@ namespace AssetInventory
             {
                 if (Intelligence.LoadingLMStudioModels)
                 {
-                    menu.AddDisabledItem(new GUIContent("Loading models..."));
+                    menu.AddDisabledItem(new GUIContent("Loading models"));
                 }
                 else
                 {
@@ -4684,7 +4749,7 @@ namespace AssetInventory
             {
                 if (Intelligence.LoadingLMStudioModels)
                 {
-                    menu.AddDisabledItem(new GUIContent("Loading models..."));
+                    menu.AddDisabledItem(new GUIContent("Loading models"));
                 }
                 else
                 {

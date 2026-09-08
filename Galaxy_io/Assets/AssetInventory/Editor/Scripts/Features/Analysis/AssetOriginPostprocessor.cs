@@ -3,7 +3,10 @@ using UnityEditor;
 
 namespace AssetInventory
 {
-    public sealed class AssetOriginPostprocessor : AssetPostprocessor
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public sealed partial class AssetOriginPostprocessor : AssetPostprocessor
     {
         private static HashSet<string> _changedGuids;
 

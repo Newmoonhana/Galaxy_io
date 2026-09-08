@@ -237,7 +237,11 @@ namespace ImpossibleRobert.Common
         void SetBool(string key, bool value);
     }
 
-    internal sealed class UnityCommonWelcomeEnvironment : ICommonWelcomeEnvironment
+#if UNITY_6000_7_OR_NEWER
+    // The environment adapter is a stateless code-lifetime singleton.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    internal sealed partial class UnityCommonWelcomeEnvironment : ICommonWelcomeEnvironment
     {
         internal static readonly UnityCommonWelcomeEnvironment Instance = new UnityCommonWelcomeEnvironment();
 
@@ -286,7 +290,11 @@ namespace ImpossibleRobert.Common
         }
     }
 
-    internal sealed class EditorPrefsCommonWelcomePreferenceStore : ICommonWelcomePreferenceStore
+#if UNITY_6000_7_OR_NEWER
+    // The preference adapter is a stateless code-lifetime singleton.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    internal sealed partial class EditorPrefsCommonWelcomePreferenceStore : ICommonWelcomePreferenceStore
     {
         internal static readonly EditorPrefsCommonWelcomePreferenceStore Instance =
             new EditorPrefsCommonWelcomePreferenceStore();

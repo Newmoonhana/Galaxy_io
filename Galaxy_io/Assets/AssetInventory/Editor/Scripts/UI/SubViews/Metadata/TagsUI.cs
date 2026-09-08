@@ -334,10 +334,7 @@ namespace AssetInventory
             colorField.RegisterValueChangedCallback(evt =>
             {
                 Tag tag = colorField.userData as Tag;
-                if (!TagTreeViewControl.CanAssignColor(tag)) return;
-
-                tag.Color = "#" + ColorUtility.ToHtmlStringRGB(evt.newValue);
-                Tagging.SaveTag(tag);
+                SetTagColor(tag, evt.newValue);
             });
             row.Add(colorField);
 
@@ -372,6 +369,23 @@ namespace AssetInventory
             }));
 
             return row;
+        }
+
+        internal void SetTagColor(Tag tag, Color color)
+        {
+            if (!TagTreeViewControl.CanAssignColor(tag)) return;
+
+            tag.Color = "#" + ColorUtility.ToHtmlStringRGB(color);
+            bool previousSuppressTagChangedRebuild = _suppressTagChangedRebuild;
+            _suppressTagChangedRebuild = true;
+            try
+            {
+                Tagging.SaveTag(tag);
+            }
+            finally
+            {
+                _suppressTagChangedRebuild = previousSuppressTagChangedRebuild;
+            }
         }
 
         private void BindTagRow(VisualElement row, int index)
@@ -563,7 +577,7 @@ namespace AssetInventory
             bool hasSingleConversion = clickedTag != null && clickedTag.Name.Contains("/");
             if (hasSingleConversion)
             {
-                menu.AppendAction("Split into hierarchy...", _ => ConvertSingleTagToHierarchy(clickedTag));
+                menu.AppendAction("Split into hierarchy", _ => ConvertSingleTagToHierarchy(clickedTag));
             }
 
             List<Tag> slashTags = Tagging.GetTagsWithSlash();
@@ -573,7 +587,7 @@ namespace AssetInventory
                 {
                     menu.AppendSeparator();
                 }
-                menu.AppendAction($"Convert all {slashTags.Count} slash tags to hierarchy...", _ => ConvertAllTagsToHierarchy());
+                menu.AppendAction($"Convert all {slashTags.Count} slash tags to hierarchy", _ => ConvertAllTagsToHierarchy());
             }
         }
 
@@ -637,7 +651,7 @@ namespace AssetInventory
                     "Conversion Complete",
                     $"Converted {result.convertedCount} tags to hierarchies.\n\n" +
                     $"Skipped {result.skipped.Count} tags due to reparenting conflicts:\n{skippedList}\n\n" +
-                    "Use right-click → 'Split into hierarchy...' on individual tags to review and force conversion.",
+                    "Use right-click → 'Split into hierarchy' on individual tags to review and force conversion.",
                     "OK");
             }
         }

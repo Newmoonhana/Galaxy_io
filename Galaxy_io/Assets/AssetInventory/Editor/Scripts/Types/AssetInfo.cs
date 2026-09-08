@@ -256,6 +256,7 @@ namespace AssetInventory
                 if (!IsDownloaded) return null;
                 if (AssetSource != Asset.Source.AssetStorePackage
                     && AssetSource != Asset.Source.CustomPackage
+                    && AssetSource != Asset.Source.Synty
                     && AssetSource != Asset.Source.Archive) return null;
 
                 FileInfo fi = new FileInfo(GetLocation(true));
@@ -275,6 +276,7 @@ namespace AssetInventory
                 if (!IsDownloaded) return null;
                 if (AssetSource != Asset.Source.AssetStorePackage
                     && AssetSource != Asset.Source.CustomPackage
+                    && AssetSource != Asset.Source.Synty
                     && AssetSource != Asset.Source.Archive) return null;
 
                 FileInfo fi = new FileInfo(GetLocation(true));
@@ -324,13 +326,19 @@ namespace AssetInventory
                     return _downloaded.Value;
                 }
 
+                if (AssetSource == Asset.Source.Synty && !SyntyCache.IsValidPackage(location))
+                {
+                    _downloaded = false;
+                    return _downloaded.Value;
+                }
+
                 // due to Unity bug verify downloaded asset is indeed asset in question, could be multi-versioned asset
-                if (AssetSource == Asset.Source.AssetStorePackage || AI.Config.showCustomPackageUpdates)
+                if (AssetSource == Asset.Source.AssetStorePackage || AssetSource == Asset.Source.Synty || AI.Config.showCustomPackageUpdates)
                 {
                     AssetHeader header = UnityPackageImporter.ReadHeader(location, true);
                     if (header != null)
                     {
-                        if (int.TryParse(header.id, out int id))
+                        if ((AssetSource != Asset.Source.Synty || AI.Config.syntyLinkAssetStoreMetadata) && int.TryParse(header.id, out int id))
                         {
                             if (id != ForeignId)
                             {
@@ -707,6 +715,7 @@ namespace AssetInventory
             // quick checks can remain uncached
             if (ParentId > 0) return false;
             if (WasOutdated) return false;
+            if (AssetSource == Asset.Source.Synty) return false;
 
             if (force && _updateAvailableForced != null) return _updateAvailableForced.Value;
             if (!force && _updateAvailable != null) return _updateAvailable.Value;
@@ -775,7 +784,7 @@ namespace AssetInventory
             if (!force && _updateAvailableList != null) return _updateAvailableList.Value;
 
             bool isOlderVersion = IsUpdateAvailable(force);
-            if (isOlderVersion && assets != null && AssetSource != Asset.Source.RegistryPackage)
+            if (isOlderVersion && assets != null && AssetSource == Asset.Source.AssetStorePackage)
             {
                 // if asset in that version is already loaded don't flag as update available
                 if (assets.Any(a => a.AssetSource == Asset.Source.AssetStorePackage && a.ForeignId == ForeignId && a.Version == LatestVersion && !string.IsNullOrEmpty(a.GetLocation(true))))
@@ -812,6 +821,7 @@ namespace AssetInventory
         // duplicated from Asset to avoid thousands of unnecessary casts
         internal string GetCalculatedLocation()
         {
+            if (AssetSource == Asset.Source.Synty) return SyntyCache.GetPackagePath(OriginalLocationKey);
             if (string.IsNullOrEmpty(SafePublisher) || string.IsNullOrEmpty(SafeCategory) || string.IsNullOrEmpty(SafeName)) return null;
 
             try
@@ -895,7 +905,7 @@ namespace AssetInventory
             {
                 result = CommonUIStyles.IconContent("Folder Icon", "d_Folder Icon").image;
             }
-            else if (AssetSource == Asset.Source.CustomPackage)
+            else if (AssetSource == Asset.Source.CustomPackage || AssetSource == Asset.Source.Synty)
             {
                 result = CommonUIStyles.IconContent("ModelImporter Icon", "d_ModelImporter Icon").image;
             }
@@ -979,8 +989,14 @@ namespace AssetInventory
         /// <summary>Returns the best available product, package, or local-source URL for this result.</summary>
         public string GetItemLink()
         {
-            if (ForeignId == 0) return null;
+            if (AssetSource == Asset.Source.Synty) return OriginalLocation;
+            return GetAssetStoreLink();
+        }
 
+        /// <summary>Returns the linked Unity Asset Store URL independently of the package's primary catalog source.</summary>
+        public string GetAssetStoreLink()
+        {
+            if (ForeignId <= 0) return null;
             return $"https://assetstore.unity.com/packages/slug/{ForeignId}";
         }
 
@@ -1142,7 +1158,8 @@ namespace AssetInventory
         {
             if (string.IsNullOrWhiteSpace(version)) return GetLocation(true);
 
-            if (ForeignId <= 0) return GetLocation(true);
+            int backupKey = AssetBackup.GetBackupKey(this);
+            if (backupKey == 0) return GetLocation(true);
 
             Dictionary<int, List<BackupInfo>> state = backupState;
             if (state == null)
@@ -1150,7 +1167,7 @@ namespace AssetInventory
                 state = AssetBackup.GatherState();
             }
 
-            if (state != null && state.TryGetValue(ForeignId, out List<BackupInfo> backupVersions))
+            if (state != null && state.TryGetValue(backupKey, out List<BackupInfo> backupVersions))
             {
                 BackupInfo backupInfo = backupVersions.FirstOrDefault(b => b.version == version);
                 if (backupInfo != null && !string.IsNullOrWhiteSpace(backupInfo.location))

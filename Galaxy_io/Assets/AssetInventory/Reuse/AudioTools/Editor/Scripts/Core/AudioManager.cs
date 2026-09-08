@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using ImpossibleRobert.Common;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
 #if !AUDIO_TOOL_NOAUDIO
@@ -14,12 +15,24 @@ namespace AudioTool
     /// <summary>
     /// Audio playback and loading for the Audio Tool.
     /// </summary>
-    public static class AudioManager
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class AudioManager
     {
         private static AudioClip _currentClip;
         private static int _rangeStartSample;
         private static int _rangeEndSample;
         private static bool _isRangePlaying;
+
+        [InitializeOnLoadMethod]
+        private static void RegisterEditorLifecycle()
+        {
+            AssemblyReloadEvents.beforeAssemblyReload -= StopAudio;
+            AssemblyReloadEvents.beforeAssemblyReload += StopAudio;
+            EditorApplication.quitting -= StopAudio;
+            EditorApplication.quitting += StopAudio;
+        }
 
         /// <summary>
         /// Gets the clip most recently started through this manager, or <c>null</c> before playback.

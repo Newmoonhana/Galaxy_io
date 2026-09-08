@@ -290,7 +290,7 @@ namespace AssetInventory
             }
 
             Button change = AssetInventoryUITK.CreateSecondaryButton("Change...", OnChangeLocation);
-            change.tooltip = "Point to a different folder location.";
+            change.tooltip = "Select this source folder at its new location. Asset Inventory updates its indexed paths automatically.";
             actions.Add(change);
             section.Add(AssetInventoryUITK.CreateFieldRow("Actions", actions));
             return section;
@@ -409,30 +409,56 @@ namespace AssetInventory
 
                 string newPath = Path.Combine(parentDir, newName);
 
-                // Check if target already exists
-                if (Directory.Exists(newPath))
+                if (Directory.Exists(newPath) || File.Exists(newPath))
                 {
                     EditorUtility.DisplayDialog("Folder Exists", $"A folder named '{newName}' already exists in that location.", "OK");
                     return;
                 }
 
+                if (!FolderLocationRelocator.TryGetRelocationGroup(_spec, true, out List<FolderSpec> movingSpecs, out string groupError))
+                {
+                    EditorUtility.DisplayDialog("Rename Failed", groupError, "OK");
+                    return;
+                }
+
+                if (!FolderLocationRelocator.TryCreatePlan(_spec, newPath, movingSpecs, FolderLocationRelocator.Operation.RenameOnDisk, out FolderLocationRelocator.Plan plan, out string planError))
+                {
+                    EditorUtility.DisplayDialog("Rename Failed", planError, "OK");
+                    return;
+                }
+
+                bool folderMoved = false;
+                bool relocationApplied = false;
                 try
                 {
-                    // Rename the folder on disk
                     Directory.Move(currentPath, newPath);
+                    folderMoved = true;
 
-                    // Update database entries (packages and files) - must be done before updating folder spec
-                    UpdateDatabasePaths(currentPath, newPath);
+                    if (!FolderLocationRelocator.TryApply(plan, AI.TrySaveConfig, out string applyError))
+                    {
+                        string rollbackError = TryRollbackFolderMove(newPath, currentPath);
+                        string message = $"Failed to update the indexed paths: {applyError}";
+                        if (!string.IsNullOrWhiteSpace(rollbackError)) message += $" The folder could not be moved back: {rollbackError}";
+                        EditorUtility.DisplayDialog("Rename Failed", message, "OK");
+                        return;
+                    }
 
-                    // Update the path in the folder spec
-                    UpdateFolderLocation(newPath, false); // false = don't close popup yet
-
-                    // Close popup after successful rename
+                    relocationApplied = true;
+                    TriggerPackageRefreshSafely();
                     Close();
                 }
                 catch (Exception e)
                 {
-                    EditorUtility.DisplayDialog("Rename Failed", $"Failed to rename folder: {e.Message}", "OK");
+                    if (relocationApplied)
+                    {
+                        Debug.LogWarning($"The folder was renamed and its indexed paths were updated, but the settings popup could not finish closing: {e.Message}");
+                        return;
+                    }
+
+                    string rollbackError = folderMoved ? TryRollbackFolderMove(newPath, currentPath) : null;
+                    string message = $"Failed to rename folder: {e.Message}";
+                    if (!string.IsNullOrWhiteSpace(rollbackError)) message += $" The folder could not be moved back: {rollbackError}";
+                    EditorUtility.DisplayDialog("Rename Failed", message, "OK");
                 }
             }, false, "Rename Folder");
         }
@@ -440,260 +466,140 @@ namespace AssetInventory
         private void OnChangeLocation()
         {
             string currentPath = _spec.GetLocation(true);
-            string defaultPath = "";
-
-            if (!string.IsNullOrEmpty(currentPath) && Directory.Exists(currentPath))
-            {
-                defaultPath = currentPath;
-            }
+            string defaultPath = FindNearestExistingFolder(currentPath);
 
             string folder = EditorUtility.OpenFolderPanel("Select New Folder Location", defaultPath, "");
             if (string.IsNullOrEmpty(folder)) return;
 
-            // Normalize paths for comparison
-            string normalizedNewPath = IOUtils.NormalizePath(folder);
-            string normalizedCurrentPath = IOUtils.NormalizePath(currentPath);
-
-            // Check if the path actually changed
-            if (normalizedNewPath == normalizedCurrentPath)
+            string normalizedNewPath;
+            try
             {
-                // Path hasn't changed, nothing to do
+                normalizedNewPath = Paths.NormalizePathForComparison(Path.GetFullPath(folder));
+            }
+            catch (Exception exception)
+            {
+                EditorUtility.DisplayDialog("Invalid Path", $"The selected folder path is invalid: {exception.Message}", "OK");
                 return;
             }
 
-            // Update database entries (packages and files) - must be done before updating folder spec
-            // Update even if current path doesn't exist (e.g., folder was moved/renamed externally)
-            if (!string.IsNullOrEmpty(currentPath))
-            {
-                UpdateDatabasePaths(currentPath, normalizedNewPath);
-            }
-
-            // Update the path in the folder spec
-            UpdateFolderLocation(folder);
-        }
-
-        private void UpdateFolderLocation(string newAbsolutePath, bool closePopup = true)
-        {
-            if (string.IsNullOrEmpty(newAbsolutePath))
-            {
-                EditorUtility.DisplayDialog("Invalid Path", "Please select a valid folder.", "OK");
-                return;
-            }
-
-            // Make absolute and conform to OS separators
-            string normalizedPath = Path.GetFullPath(newAbsolutePath);
-
-            // Validate path exists
-            if (!Directory.Exists(normalizedPath))
+            if (!Directory.Exists(normalizedNewPath))
             {
                 EditorUtility.DisplayDialog("Invalid Path", "The selected folder does not exist.", "OK");
                 return;
             }
 
-            // Update RelativeLocation entry FIRST so MakeRelative detects it as relative below
-            string oldRelativeKey = _spec.relativeKey;
-            bool wasUsingRelative = !string.IsNullOrEmpty(oldRelativeKey) && oldRelativeKey != "ac" && oldRelativeKey != "pc";
-
-            if (wasUsingRelative)
+            if (normalizedNewPath.IndexOf(AI.ASSET_STORE_FOLDER_NAME, StringComparison.OrdinalIgnoreCase) >= 0)
             {
-                string systemId = AI.GetSystemId();
-                RelativeLocation relLocation = DBAdapter.DB.Find<RelativeLocation>(rl => rl.Key == oldRelativeKey && rl.System == systemId);
-                if (relLocation != null)
-                {
-                    // Update the relative location to point to the new folder location
-                    relLocation.SetLocation(normalizedPath);
-                    DBAdapter.DB.Update(relLocation);
-                    // Reload relative locations so MakeRelative can use the updated entry
-                    Paths.LoadRelativeLocations();
-                }
-            }
-
-            // Convert to relative path if possible (special case: a relative key is already defined for the folder, replace it immediately)
-            // Now that we've updated the RelativeLocation entry, MakeRelative will detect it as relative
-            string relativePath = Paths.MakeRelative(normalizedPath);
-
-            // Prevent Unity asset cache folder selection (check after MakeRelative in case it was converted)
-            if (relativePath.Contains(AI.ASSET_STORE_FOLDER_NAME))
-            {
-                EditorUtility.DisplayDialog("Attention", "You selected a custom Unity asset cache location. This should be done by setting the asset cache location above to custom.", "OK");
+                EditorUtility.DisplayDialog("Attention", "You selected a custom Unity asset cache location. Configure the asset cache location under Indexing instead.", "OK");
                 return;
             }
 
-            // Ensure no trailing slash if root folder on Windows
-            if (relativePath.Length > 1 && relativePath.EndsWith("/"))
+            if (Paths.AreEquivalentPaths(currentPath, normalizedNewPath)) return;
+
+            if (!FolderLocationRelocator.TryGetRelocationGroup(_spec, true, out List<FolderSpec> completeGroup, out string groupError))
             {
-                relativePath = relativePath.Substring(0, relativePath.Length - 1);
+                EditorUtility.DisplayDialog("Location Change Failed", groupError, "OK");
+                return;
             }
 
-            // Update location
-            _spec.location = relativePath;
-
-            // Update relative path tracking
-            if (Paths.IsRel(relativePath))
+            bool oldRootExists = !string.IsNullOrWhiteSpace(currentPath) && Directory.Exists(currentPath);
+            List<FolderSpec> movingSpecs = new List<FolderSpec> {_spec};
+            if (!oldRootExists)
             {
-                _spec.storeRelative = true;
-                _spec.relativeKey = Paths.GetRelKey(relativePath);
+                movingSpecs = completeGroup;
             }
-            else
+            else if (completeGroup.Count > 1)
             {
-                _spec.storeRelative = false;
-                _spec.relativeKey = null;
+                List<FolderSpec> requiredGroup = completeGroup.Where(spec => spec.folderType == _spec.folderType).ToList();
+                bool hasIndependentSources = requiredGroup.Count < completeGroup.Count;
+                if (!hasIndependentSources)
+                {
+                    bool moveAll = EditorUtility.DisplayDialog(
+                        "Shared Source Location",
+                        $"{completeGroup.Count} Additional Folder entries use this source tree, including entries whose indexed data cannot be separated safely. Move all of them to the selected location?",
+                        "Move All",
+                        "Cancel");
+                    if (!moveAll) return;
+                    movingSpecs = completeGroup;
+                }
+                else
+                {
+                    int choice = EditorUtility.DisplayDialogComplex(
+                        "Shared Source Location",
+                        $"{completeGroup.Count} Additional Folder entries use this source tree. Sources with the same content type must move together, while other content types can remain at the old location.",
+                        "Move All",
+                        requiredGroup.Count == 1 ? "Only This" : "Same Type Only",
+                        "Cancel");
+                    if (choice == 2) return;
+                    movingSpecs = choice == 0 ? completeGroup : requiredGroup;
+                }
             }
 
-            // Save configuration
-            AI.SaveConfig();
-
-            // Reload relative locations to pick up any changes
-            Paths.LoadRelativeLocations();
-
-            // Close popup to provide feedback that operation completed
-            if (closePopup)
+            FolderLocationRelocator.Operation operation = oldRootExists
+                ? FolderLocationRelocator.Operation.ChangeExistingLocation
+                : FolderLocationRelocator.Operation.MoveMissingLocation;
+            if (!FolderLocationRelocator.TryCreatePlan(_spec, normalizedNewPath, movingSpecs, operation, out FolderLocationRelocator.Plan plan, out string planError))
             {
-                Close();
+                EditorUtility.DisplayDialog("Location Change Failed", planError, "OK");
+                return;
+            }
+
+            if (!FolderLocationRelocator.TryApply(plan, AI.TrySaveConfig, out string applyError))
+            {
+                EditorUtility.DisplayDialog("Location Change Failed", $"No changes were saved. {applyError}", "OK");
+                return;
+            }
+
+            TriggerPackageRefreshSafely();
+            Close();
+        }
+
+        private static void TriggerPackageRefreshSafely()
+        {
+            try
+            {
+                AI.TriggerPackageRefresh();
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"The source location was updated, but refreshing the package view failed: {exception.Message}");
             }
         }
 
-        private void UpdateDatabasePaths(string oldPath, string newPath)
+        private static string FindNearestExistingFolder(string path)
         {
-            // Normalize paths for comparison (use forward slashes)
-            string oldPathNormalized = oldPath.Replace("\\", "/").TrimEnd('/');
-            string newPathNormalized = newPath.Replace("\\", "/").TrimEnd('/');
-
-            // Get stored path versions (may include relative tags)
-            string oldStoredPath = _spec.location;
-
-            // Update packages/assets
-            // For Root Folder mode: update packages where Location or SafeName matches the folder
-            // For First/Second Level Directories mode: update all packages in subdirectories
-            if (_spec.attachToPackage && (_spec.packageMode == 1 || _spec.packageMode == 2))
+            if (string.IsNullOrWhiteSpace(path)) return string.Empty;
+            try
             {
-                // First/Second Level Directories mode: update all packages in subdirectories
-                // Find all packages where Location starts with oldPath
-                List<Asset> affectedAssets = DBAdapter.DB.Query<Asset>(
-                    "SELECT Id, Location, SafeName FROM Asset WHERE Location LIKE ? OR SafeName LIKE ?",
-                    oldPathNormalized + "%", oldPathNormalized + "%");
-
-                foreach (Asset asset in affectedAssets)
+                string candidate = Path.GetFullPath(path);
+                while (!string.IsNullOrWhiteSpace(candidate))
                 {
-                    // Only update if the path actually starts with the old path (to avoid false matches)
-                    string newLocation = asset.Location;
-                    string newSafeName = asset.SafeName;
-
-                    if (!string.IsNullOrEmpty(asset.Location) && (asset.Location == oldPathNormalized || asset.Location.StartsWith(oldPathNormalized + "/")))
-                    {
-                        newLocation = asset.Location.Replace(oldPathNormalized, newPathNormalized);
-                    }
-
-                    if (!string.IsNullOrEmpty(asset.SafeName) && (asset.SafeName == oldPathNormalized || asset.SafeName.StartsWith(oldPathNormalized + "/")))
-                    {
-                        newSafeName = asset.SafeName.Replace(oldPathNormalized, newPathNormalized);
-                    }
-
-                    // Also handle stored path with relative tags if applicable
-                    if (Paths.IsRel(oldStoredPath) && !string.IsNullOrEmpty(oldStoredPath))
-                    {
-                        string oldStoredPathNormalized = Paths.DeRel(oldStoredPath)?.Replace("\\", "/").TrimEnd('/');
-                        if (!string.IsNullOrEmpty(oldStoredPathNormalized))
-                        {
-                            if (!string.IsNullOrEmpty(asset.Location) && (asset.Location == oldStoredPathNormalized || asset.Location.StartsWith(oldStoredPathNormalized + "/")))
-                            {
-                                newLocation = asset.Location.Replace(oldStoredPathNormalized, newPathNormalized);
-                            }
-                            if (!string.IsNullOrEmpty(asset.SafeName) && (asset.SafeName == oldStoredPathNormalized || asset.SafeName.StartsWith(oldStoredPathNormalized + "/")))
-                            {
-                                newSafeName = asset.SafeName.Replace(oldStoredPathNormalized, newPathNormalized);
-                            }
-                        }
-                    }
-
-                    DBAdapter.DB.Execute("UPDATE Asset SET Location = ?, SafeName = ? WHERE Id = ?", newLocation, newSafeName, asset.Id);
+                    if (Directory.Exists(candidate)) return candidate;
+                    string parent = Path.GetDirectoryName(candidate);
+                    if (string.IsNullOrWhiteSpace(parent) || string.Equals(parent, candidate, StringComparison.OrdinalIgnoreCase)) break;
+                    candidate = parent;
                 }
             }
-            else
+            catch (Exception)
             {
-                // Root Folder mode: update packages where Location or SafeName matches the folder
-                // Use LIKE to catch both exact matches and any edge cases
-                List<Asset> affectedAssets = DBAdapter.DB.Query<Asset>(
-                    "SELECT Id, Location, SafeName FROM Asset WHERE Location LIKE ? OR SafeName LIKE ?",
-                    oldPathNormalized + "%", oldPathNormalized + "%");
-
-                foreach (Asset asset in affectedAssets)
-                {
-                    // Only update if the path actually starts with the old path (to avoid false matches)
-                    string newLocation = asset.Location;
-                    string newSafeName = asset.SafeName;
-
-                    if (!string.IsNullOrEmpty(asset.Location) && (asset.Location == oldPathNormalized || asset.Location.StartsWith(oldPathNormalized + "/")))
-                    {
-                        newLocation = asset.Location.Replace(oldPathNormalized, newPathNormalized);
-                    }
-
-                    if (!string.IsNullOrEmpty(asset.SafeName) && (asset.SafeName == oldPathNormalized || asset.SafeName.StartsWith(oldPathNormalized + "/")))
-                    {
-                        newSafeName = asset.SafeName.Replace(oldPathNormalized, newPathNormalized);
-                    }
-
-                    // Also handle stored path with relative tags if applicable
-                    if (Paths.IsRel(oldStoredPath) && !string.IsNullOrEmpty(oldStoredPath))
-                    {
-                        string oldStoredPathNormalized = Paths.DeRel(oldStoredPath)?.Replace("\\", "/").TrimEnd('/');
-                        if (!string.IsNullOrEmpty(oldStoredPathNormalized))
-                        {
-                            if (!string.IsNullOrEmpty(asset.Location) && (asset.Location == oldStoredPathNormalized || asset.Location.StartsWith(oldStoredPathNormalized + "/")))
-                            {
-                                newLocation = asset.Location.Replace(oldStoredPathNormalized, newPathNormalized);
-                            }
-                            if (!string.IsNullOrEmpty(asset.SafeName) && (asset.SafeName == oldStoredPathNormalized || asset.SafeName.StartsWith(oldStoredPathNormalized + "/")))
-                            {
-                                newSafeName = asset.SafeName.Replace(oldStoredPathNormalized, newPathNormalized);
-                            }
-                        }
-                    }
-
-                    DBAdapter.DB.Execute("UPDATE Asset SET Location = ?, SafeName = ? WHERE Id = ?", newLocation, newSafeName, asset.Id);
-                }
+                return string.Empty;
             }
 
-            // Update asset files (Path and SourcePath)
-            // Find all files where Path or SourcePath starts with oldPath
-            List<AssetFile> affectedFiles = DBAdapter.DB.Query<AssetFile>(
-                "SELECT Id, Path, SourcePath FROM AssetFile WHERE Path LIKE ? OR SourcePath LIKE ?",
-                oldPathNormalized + "%", oldPathNormalized + "%");
+            return string.Empty;
+        }
 
-            foreach (AssetFile file in affectedFiles)
+        private static string TryRollbackFolderMove(string currentPath, string previousPath)
+        {
+            try
             {
-                // Only update if the path actually starts with the old path (to avoid false matches)
-                string newFilePath = file.Path;
-                string newFileSourcePath = file.SourcePath;
-
-                if (!string.IsNullOrEmpty(file.Path) && (file.Path == oldPathNormalized || file.Path.StartsWith(oldPathNormalized + "/")))
-                {
-                    newFilePath = file.Path.Replace(oldPathNormalized, newPathNormalized);
-                }
-
-                if (!string.IsNullOrEmpty(file.SourcePath) && (file.SourcePath == oldPathNormalized || file.SourcePath.StartsWith(oldPathNormalized + "/")))
-                {
-                    newFileSourcePath = file.SourcePath.Replace(oldPathNormalized, newPathNormalized);
-                }
-
-                // Also handle stored path with relative tags if applicable
-                if (Paths.IsRel(oldStoredPath) && !string.IsNullOrEmpty(oldStoredPath))
-                {
-                    string oldStoredPathNormalized = Paths.DeRel(oldStoredPath)?.Replace("\\", "/").TrimEnd('/');
-                    if (!string.IsNullOrEmpty(oldStoredPathNormalized))
-                    {
-                        if (!string.IsNullOrEmpty(file.Path) && (file.Path == oldStoredPathNormalized || file.Path.StartsWith(oldStoredPathNormalized + "/")))
-                        {
-                            newFilePath = file.Path.Replace(oldStoredPathNormalized, newPathNormalized);
-                        }
-                        if (!string.IsNullOrEmpty(file.SourcePath) && (file.SourcePath == oldStoredPathNormalized || file.SourcePath.StartsWith(oldStoredPathNormalized + "/")))
-                        {
-                            newFileSourcePath = file.SourcePath.Replace(oldStoredPathNormalized, newPathNormalized);
-                        }
-                    }
-                }
-
-                DBAdapter.DB.Execute("UPDATE AssetFile SET Path = ?, SourcePath = ? WHERE Id = ?", newFilePath, newFileSourcePath, file.Id);
+                if (!Directory.Exists(currentPath)) return "The renamed folder could no longer be found.";
+                if (Directory.Exists(previousPath) || File.Exists(previousPath)) return "The original folder path is already occupied.";
+                Directory.Move(currentPath, previousPath);
+                return null;
+            }
+            catch (Exception exception)
+            {
+                return exception.Message;
             }
         }
     }

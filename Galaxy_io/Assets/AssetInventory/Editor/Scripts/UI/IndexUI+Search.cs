@@ -272,7 +272,7 @@ namespace AssetInventory
                     && info.SafeName != Asset.NONE
                     && !info.IsAbandoned
                     && !info.InProject
-                    && (info.IsDownloaded || info.AssetSource == Asset.Source.AssetStorePackage))
+                    && (info.IsDownloaded || IsDownloadable(info)))
                 .Where(info => !AssetStore.IsInstalled(info))
                 .ToList();
 
@@ -340,7 +340,7 @@ namespace AssetInventory
                 .ToList();
             if (removable.Count > 0)
             {
-                string removeLabel = removable.Count == 1 ? "Remove from Project..." : $"Remove {removable.Count} from Project...";
+                string removeLabel = removable.Count == 1 ? "Remove from Project" : $"Remove {removable.Count} from Project";
                 menu.AddItem(new GUIContent(removeLabel), false, () =>
                 {
                     UninstallPackageUI.ShowWindow().Init(removable);
@@ -1471,7 +1471,7 @@ namespace AssetInventory
                 Button examples = null;
                 examples = AssetInventoryUITK.CreateIconButton("Open search examples and query help", "_Help", () =>
                 {
-                    AdvancedSearchUI.ShowDropdown(CommonUITK.ToScreenDropdownAnchor(this, examples), (searchPhrase, searchType) =>
+                    AdvancedSearchUI.ShowDropdown(this, examples, (searchPhrase, searchType) =>
                     {
                         _searchPhrase = searchPhrase ?? string.Empty;
                         _previousSearchPhrase = _searchPhrase;
@@ -1843,7 +1843,7 @@ namespace AssetInventory
         private void ShowNativeSavedSearchMenu(SavedSearch search, VisualElement anchor)
         {
             GenericMenu menu = new GenericMenu();
-            menu.AddItem(new GUIContent("Edit..."), false, () =>
+            menu.AddItem(new GUIContent("Edit"), false, () =>
             {
                 SavedSearchUI savedSearchUI = SavedSearchUI.ShowWindow();
                 savedSearchUI.Init(search, OnNativeSavedSearchEdited);
@@ -1898,7 +1898,7 @@ namespace AssetInventory
                 }
             }
             menu.AddSeparator("");
-            menu.AddItem(new GUIContent("New..."), false, () =>
+            menu.AddItem(new GUIContent("New"), false, () =>
             {
                 NameWindow.ShowAsDropDown(CommonUITK.ToScreenDropdownAnchor(this, anchor), "My Workspace", value =>
                 {
@@ -1908,7 +1908,7 @@ namespace AssetInventory
             });
             if (_selectedWorkspace != null)
             {
-                menu.AddItem(new GUIContent("Edit..."), false, () =>
+                menu.AddItem(new GUIContent("Edit"), false, () =>
                 {
                     WorkspaceUI workspaceUI = WorkspaceUI.ShowWindow();
                     workspaceUI.Init(_selectedWorkspace);
@@ -2037,7 +2037,7 @@ namespace AssetInventory
                 });
             }
 
-            menu.AddItem(new GUIContent("Edit Options..."), false, () =>
+            menu.AddItem(new GUIContent("Edit Options"), false, () =>
             {
                 string currentOptions = variable.options != null && variable.options.Count > 0
                     ? string.Join(", ", variable.options)
@@ -2566,7 +2566,7 @@ namespace AssetInventory
             {
                 if (entry.DependencyState == AssetInfo.DependencyStateOptions.Unknown && !string.IsNullOrEmpty(entry.ProjectPath))
                 {
-                    List<AssetFile> deps = ProjectDependencyAnalysis.GetDependencies(entry.ProjectPath);
+                    List<AssetFile> deps = ProjectDependencyAnalysis.GetDependencies(entry.ProjectPath, entry.AssetId);
                     entry.Dependencies = deps;
                     entry.MediaDependencies = deps;
                     entry.ScriptDependencies = new List<AssetFile>();
@@ -2716,13 +2716,15 @@ namespace AssetInventory
 
         private async void ImportBulkFiles(List<AssetInfo> items)
         {
+            // UI selection lists can change while downloads and imports yield back to the editor.
+            List<AssetInfo> importItems = new List<AssetInfo>(items);
             _blockingInProgress = true;
             List<AssetImportCollision> collisions = new List<AssetImportCollision>();
             HashSet<string> displacedGuids = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             List<AssetInfo> importedItems = new List<AssetInfo>();
             try
             {
-                foreach (AssetInfo info in items)
+                foreach (AssetInfo info in importItems)
                 {
                     info.CheckIfInProject();
                     if (info.InProject) continue;
@@ -3226,7 +3228,7 @@ namespace AssetInventory
             }
             if (string.IsNullOrEmpty(path)) return;
 
-            List<AssetFile> deps = ProjectDependencyAnalysis.GetDependencies(path);
+            List<AssetFile> deps = ProjectDependencyAnalysis.GetDependencies(path, info.AssetId);
             info.Dependencies = deps;
             info.MediaDependencies = deps;
             info.ScriptDependencies = new List<AssetFile>();

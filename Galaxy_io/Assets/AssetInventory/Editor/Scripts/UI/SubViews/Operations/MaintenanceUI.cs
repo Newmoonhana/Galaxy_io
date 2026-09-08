@@ -9,7 +9,10 @@ using UnityEngine.UIElements;
 
 namespace AssetInventory
 {
-    public sealed class MaintenanceUI : EditorWindow
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public sealed partial class MaintenanceUI : EditorWindow
     {
         public static event Action OnMaintenanceDone;
 

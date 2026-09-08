@@ -78,7 +78,7 @@ namespace AssetInventory
             Write
         }
 
-        internal static string[] assetFields =
+        internal static string[] assetFields = new[]
         {
             "Asset/AssetRating", "Asset/AssetSource", "Asset/Backup", "Asset/BIRPCompatible", "Asset/CompatibilityInfo", "Asset/CurrentState", "Asset/CurrentSubState", "Asset/Description", "Asset/DisplayCategory", "Asset/DisplayName", "Asset/DisplayPublisher", "Asset/ETag", "Asset/Exclude",
             "Asset/FirstRelease", "Asset/ForeignId", "Asset/HDRPCompatible", "Asset/Hotness", "Asset/Hue", "Asset/Id", "Asset/IsHidden", "Asset/IsLatestVersion", "Asset/KeepExtracted", "Asset/KeyFeatures", "Asset/Keywords", "Asset/LastOnlineRefresh", "Asset/LastRelease", "Asset/LatestVersion",
@@ -556,11 +556,11 @@ namespace AssetInventory
             PackageDownloadCompletion.SyncVisiblePackages(_assets, foreignId);
             PackageDownloadCompletion.SyncVisiblePackages(_selectedTreeAssets, foreignId);
 
-            if (_selectedEntry != null && _selectedEntry.GetRoot().ForeignId == foreignId)
+            if (_selectedEntry != null && _selectedEntry.GetRoot().AssetSource != Asset.Source.Synty && _selectedEntry.GetRoot().ForeignId == foreignId)
             {
                 PackageDownloadCompletion.SyncPackage(_selectedEntry);
             }
-            if (_selectedTreeAsset != null && _selectedTreeAsset.GetRoot().ForeignId == foreignId)
+            if (_selectedTreeAsset != null && _selectedTreeAsset.GetRoot().AssetSource != Asset.Source.Synty && _selectedTreeAsset.GetRoot().ForeignId == foreignId)
             {
                 PackageDownloadCompletion.SyncPackage(_selectedTreeAsset);
             }
@@ -680,7 +680,7 @@ namespace AssetInventory
             _scriptImportOptions = new[] {"-Never Import-", string.Empty, "Direct Only", "Extended Analysis", "All Scripts"};
             _previewOptions = new[] {"-all-", string.Empty, "Only With Preview", "Only Without Preview"};
             _doubleClickOptions = new[] {"-none-", string.Empty, "Import + Add to Scene", "Import", "Open"};
-            _packageListingOptions = new[] {"-all-", "-all except registry packages-", "Only Asset Store Packages", "Only Registry Packages", "Only Custom Packages", "Only Media Folders", "Only Archives", "Only Asset Manager"};
+            _packageListingOptions = new[] {"-all-", "-all except registry packages-", "Only Asset Store Packages", "Only Registry Packages", "Only Custom Packages", "Only Media Folders", "Only Archives", "Only Asset Manager", "Only Synty Packages"};
             _packageListingOptionsShort = new[]
             {
                 new GUIContent("All", "Show packages from every source."),
@@ -690,14 +690,15 @@ namespace AssetInventory
                 new GUIContent("Cust", "Show only custom packages."),
                 new GUIContent("Media", "Show only media folders."),
                 new GUIContent("Arch", "Show only archives."),
-                new GUIContent("AM", "Show only Unity Asset Manager packages.")
+                new GUIContent("AM", "Show only Unity Asset Manager packages."),
+                new GUIContent("Synty", "Show only packages discovered through Synty Importer compatibility.")
             };
             GetPackageViewOptions();
             RefreshSearchScopeOptions();
             _deprecationOptions = new[] {"-all-", string.Empty, "Exclude Deprecated", "Show Only Deprecated", string.Empty, "Exclude Affected (China Store)", "Show Only Affected (China Store)"};
             _srpOptions = new[] {"-all-", "-current-", string.Empty, "BIRP", "URP", "HDRP"};
             _priceOptions = new[] {"-all-", "-free-", "-paid-", string.Empty, "<=", ">="};
-            _maintenanceOptions = new[] {"-all-", string.Empty, "Update Available", "Outdated in Unity Cache", "Disabled by Unity", "Custom Asset Store Link", "Indexed", "Not Indexed", "Custom Registry", "Downloaded", "Downloading", "Not Downloaded", "Duplicate", "Marked for Backup", "Not Marked for Backup", "Marked for AI", "Not Marked for AI", "Deleted", "Excluded", "With Sub-Packages", "Incompatible Packages", "Fixable Incompatibilities", "Unfixable Incompatibilities", "Marked for Semantic Index", "Not Marked for Semantic Index", "Marked for Code Index", "Not Marked for Code Index"};
+            _maintenanceOptions = new[] {"-all-", string.Empty, "Update Available", "Outdated in Unity Cache", "Disabled by Unity", "Custom Asset Store Link", "Indexed", "Not Indexed", "Custom Registry", "Downloaded", "Downloading", "Not Downloaded", "Duplicate", "Marked for Backup", "Not Marked for Backup", "Marked for AI", "Not Marked for AI", "Deleted", "Excluded", "With Sub-Packages", "Incompatible Packages", "Fixable Incompatibilities", "Unfixable Incompatibilities", "Marked for Semantic Index", "Not Marked for Semantic Index", "Marked for Code Index", "Not Marked for Code Index", "Not Included in Indexing", "Indexing Enabled", "Needs Indexing", string.Empty, string.Empty, string.Empty, "Synty Cached"};
             _updateDateOptions = new[] {"-all-", string.Empty, "Last Week", "Last Month", "Last Year", string.Empty, "Before...", "After..."};
             _purchaseDateOptions = new[] {"-all-", string.Empty, "Last Week", "Last Month", "Last Year", string.Empty, "Before...", "After..."};
             _packageSizeOptions = new[] {"-all-", string.Empty, "<=", ">="};

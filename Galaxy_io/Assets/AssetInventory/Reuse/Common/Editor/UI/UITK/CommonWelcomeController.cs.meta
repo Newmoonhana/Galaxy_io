@@ -3,7 +3,7 @@ guid: 1fd1230902fe4376be529562ffe8f40b
 AssetOrigin:
   serializedVersion: 1
   productId: 349582
-  packageName: Asset Inventory 4
-  packageVersion: 4.7.1
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.0
   assetPath: Assets/AssetInventory/Reuse/Common/Editor/UI/UITK/CommonWelcomeController.cs
-  uploadId: 969138
+  uploadId: 983278

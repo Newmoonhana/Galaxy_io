@@ -13,7 +13,10 @@ using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 
 namespace AssetInventory
 {
-    public sealed class RemovalUI : EditorWindow
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public sealed partial class RemovalUI : EditorWindow
     {
         public static event Action OnUninstallDone;
 

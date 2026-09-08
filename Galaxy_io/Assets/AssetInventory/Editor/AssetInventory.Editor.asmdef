@@ -28,8 +28,7 @@
         "GUID:93ab9aa3a69545148fe927e0a62a8a46",
         "GUID:a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2",
         "GUID:7e16b9a2c4d84658a27c36a958c1392f",
-        "Database.Editor",
-        "Unity.AI.MCP.Editor"
+        "Database.Editor"
     ],
     "includePlatforms": [
         "Editor"
@@ -100,11 +99,6 @@
             "name": "com.unity.textmeshpro",
             "expression": "",
             "define": "USE_TEXTMESHPRO"
-        },
-        {
-            "name": "com.unity.ai.assistant",
-            "expression": "2.0.0",
-            "define": "ASSET_INVENTORY_MCP"
         }
     ],
     "noEngineReferences": false

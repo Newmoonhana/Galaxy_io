@@ -74,8 +74,10 @@ namespace AssetInventory
         CodeIndex = 1 << 10,
         Backup = 1 << 11,
         KeepCached = 1 << 12,
+        SyntySource = 1 << 13,
         All = StoreStatus | UpdateAvailable | Outdated | NoIndex | Excluded | InProject |
-            Downloaded | Indexed | AICaptions | SemanticIndex | CodeIndex | Backup | KeepCached
+            Downloaded | Indexed | AICaptions | SemanticIndex | CodeIndex | Backup | KeepCached |
+            SyntySource
     }
 
     internal enum SearchScope
@@ -230,7 +232,7 @@ namespace AssetInventory
         public bool showOriginalPrice;
         public int currency; // 0 - EUR, 1 - USD, 2 - CYN
         public int packageTileSize = 150;
-        public PackageTileStatus packageTileStatuses = PackageTileStatus.StoreStatus;
+        public PackageTileStatus packageTileStatuses = PackageTileStatus.StoreStatus | PackageTileStatus.SyntySource;
         public int noPackageTileTextBelow = 110;
         public int tagListHeight = 320;
         public int tileMargin = 2;
@@ -256,6 +258,7 @@ namespace AssetInventory
         public bool showIndexingSettings;
         public bool showFolderSettings;
         public bool showAMSettings;
+        public bool showSyntySettings;
         public bool showImportSettings;
         public bool showBackupSettings;
         public bool showAISettings;
@@ -277,6 +280,10 @@ namespace AssetInventory
 
         public bool excludeHidden = true;
         public int assetStoreRefreshCycle = 3; // days
+        public bool assetManagerFeatureEnabled;
+        public bool syntyFeatureEnabled;
+        public bool syntyLinkAssetStoreMetadata;
+        public string syntyCacheFolder;
         public int assetCacheLocationType; // 0 = auto, 1 = custom
         public string assetCacheLocation;
         public int packageCacheLocationType; // 0 = auto, 1 = custom
@@ -607,6 +614,7 @@ namespace AssetInventory
                 "package.srps",
                 "package.unityversions",
                 "package.actions.layout",
+                "package.actions.typeselector",
                 "package.actions.sidebar",
                 "package.actions.openinpackagemanager",
                 "package.actions.reindexnextrun",

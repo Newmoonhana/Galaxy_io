@@ -496,9 +496,13 @@ namespace AssetInventory
 
             VisualElement actions = CreateNativeReportingDetailActions();
             actions.Add(CreateNativeReportingDetailButton("Open in Search", () => OpenReportSelectionInSearch(info)));
-            if (info.ForeignId > 0 && info.AssetSource == Asset.Source.AssetStorePackage)
+            if (info.AssetSource == Asset.Source.Synty && !string.IsNullOrWhiteSpace(info.OriginalLocation))
             {
-                actions.Add(CreateNativeReportingDetailButton("Asset Store", () => AI.OpenStoreURL(info.GetItemLink())));
+                actions.Add(CreateNativeReportingDetailButton("Product Page", () => AI.OpenURL(info.OriginalLocation)));
+            }
+            if (info.ForeignId > 0 && (info.AssetSource == Asset.Source.AssetStorePackage || info.AssetSource == Asset.Source.Synty))
+            {
+                actions.Add(CreateNativeReportingDetailButton("Asset Store", () => AI.OpenStoreURL(info.GetAssetStoreLink())));
             }
             actions.Add(CreateNativeReportingDetailButton("Export...", OpenReportExportWindow));
             section.Add(actions);
@@ -619,6 +623,7 @@ namespace AssetInventory
         private static string FormatNativeReportingAssetSource(AssetInfo info)
         {
             if (info == null) return string.Empty;
+            if (info.AssetSource == Asset.Source.Synty) return "Synty Importer";
             return info.AssetSource == Asset.Source.AssetStorePackage ? "Asset Store" : StringUtils.CamelCaseToWords(info.AssetSource.ToString());
         }
 

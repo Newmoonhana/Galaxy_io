@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace AssetInventory
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public partial class DependenciesUI
     {
         // Graph visualization fields
@@ -12,7 +15,6 @@ namespace AssetInventory
         private enum GraphLayoutMode { Flow, Radial, Organic }
         private ViewMode _viewMode = ViewMode.Graph;
         private GraphLayoutMode _graphLayoutMode = GraphLayoutMode.Flow;
-        private bool _showAllDependencies;
         private int _serializedAssetInfoId = -1;
 
         private DependencyGraphData _graphData;
@@ -81,8 +83,7 @@ namespace AssetInventory
                     package.IsExpanded = true;
                 }
 
-                // Set initial view mode
-                _graphData.SetSimplifiedMode(!_showAllDependencies);
+                _graphData.SetSimplifiedMode(false);
 
                 if (_useHierarchicalLayout)
                 {
@@ -551,32 +552,6 @@ namespace AssetInventory
                     break;
             }
             _graphRenderer?.SetGraph(_graphData, mode == GraphLayoutMode.Organic ? _forceLayout : null);
-            _graphRenderer?.RequestFrameAll();
-            RefreshGraphView();
-        }
-
-        private void SetGraphShowAll(bool showAllDependencies)
-        {
-            if (_showAllDependencies == showAllDependencies) return;
-
-            _showAllDependencies = showAllDependencies;
-            InitializeGraph();
-            if (_graphData == null) return;
-
-            _graphData.SetSimplifiedMode(!_showAllDependencies);
-
-            if (_useHierarchicalLayout)
-            {
-                _hierarchicalLayout.InitializeHierarchicalPositions(_graphData);
-                _hierarchicalLayout.UpdatePackagePositions(_graphData);
-            }
-            else
-            {
-                _forceLayout.RunIterations(_graphData, 30);
-            }
-
-            _needsInitialFrame = true;
-            _graphRenderer?.SetGraph(_graphData, _graphLayoutMode == GraphLayoutMode.Organic ? _forceLayout : null);
             _graphRenderer?.RequestFrameAll();
             RefreshGraphView();
         }

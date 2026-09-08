@@ -16,7 +16,10 @@ using UnityEngine;
 namespace AssetInventory
 {
     /// <summary>Exports catalog data through a named text template and an explicit variable environment.</summary>
-    public sealed class TemplateExport : ActionProgress
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public sealed partial class TemplateExport : ActionProgress
     {
         private static List<AssetInfo> _assets;
 
@@ -268,7 +271,7 @@ namespace AssetInventory
                         model.packageFiles = DBAdapter.DB.Query<AssetFile>("select * from AssetFile where AssetId=?", asset.AssetId).ToList();
 
                         string targetFileName = $"package_{asset.AssetId}.html";
-                        if (!env.internalIdsOnly && asset.ForeignId > 0)
+                        if (!env.internalIdsOnly && asset.AssetSource != Asset.Source.Synty && asset.ForeignId > 0)
                         {
                             targetFileName = $"package_f{asset.ForeignId}.html";
                         }

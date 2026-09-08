@@ -16,9 +16,13 @@ using PackageInfo = UnityEditor.PackageManager.PackageInfo;
 namespace AssetInventory
 {
     /// <summary>Process-wide Asset Inventory facade for initialization, configuration persistence, dependency calculation, refresh notifications, and supported editor automation.</summary>
-    public static class AI
+#if UNITY_6000_7_OR_NEWER
+    // Asset Inventory is an editor-session service; owned callbacks are disposed explicitly before reload or shutdown.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class AI
     {
-        public const string VERSION = "4.7.1";
+        public const string VERSION = "4.8.0";
         public const string DEFINE_SYMBOL = "ASSET_INVENTORY";
 
         public const string DEFINE_SYMBOL_HIDE_AI = DEFINE_SYMBOL + "_HIDE_AI";
@@ -82,6 +86,21 @@ namespace AssetInventory
         public static InitializationState InitState { get; private set; } = InitializationState.NotInitialized;
         public static bool IsInitialized => InitState == InitializationState.Initialized;
         private static UpdateObserver _observer;
+
+        [InitializeOnLoadMethod]
+        private static void RegisterEditorLifecycle()
+        {
+            AssemblyReloadEvents.beforeAssemblyReload -= ShutdownEditorLifecycle;
+            AssemblyReloadEvents.beforeAssemblyReload += ShutdownEditorLifecycle;
+            EditorApplication.quitting -= ShutdownEditorLifecycle;
+            EditorApplication.quitting += ShutdownEditorLifecycle;
+        }
+
+        private static void ShutdownEditorLifecycle()
+        {
+            _observer?.Dispose();
+            _observer = null;
+        }
 
         internal static List<RelativeLocation> RelativeLocations => Paths.RelativeLocations;
 
@@ -643,10 +662,11 @@ namespace AssetInventory
             if (Config.forceInitOnDomainReload)
             {
                 Init();
-                return;
             }
-
-            InitForProjectSetupIfNeeded();
+            else
+            {
+                InitForProjectSetupIfNeeded();
+            }
         }
 
         /// <summary>Persists the current Asset Inventory configuration to its package-independent settings file.</summary>

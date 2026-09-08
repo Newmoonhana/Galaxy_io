@@ -23,6 +23,16 @@ namespace AssetInventory
             return window;
         }
 
+        public static AdvancedSearchUI ShowDropdown(EditorWindow owner, VisualElement anchor, Action<string, string> onSearchSelection)
+        {
+            AdvancedSearchUI window = CreateInstance<AdvancedSearchUI>();
+            window.titleContent = new GUIContent("Example Searches");
+            window.minSize = WindowSize;
+            window.Init(onSearchSelection);
+            AssetInventoryUITK.ShowAsDropDown(window, owner, anchor, WindowSize);
+            return window;
+        }
+
         public static AdvancedSearchUI ShowWindow(Action<string, string> onSearchSelection = null)
         {
             AdvancedSearchUI window = GetWindow<AdvancedSearchUI>("Example Searches");

@@ -14,7 +14,10 @@ using Debug = UnityEngine.Debug;
 
 namespace ImpossibleRobert.Common
 {
-    public static class IOUtils
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class IOUtils
     {
         private const string LONG_PATH_PREFIX = @"\\?\";
         private const string LONG_PATH_UNC_PREFIX = @"\\?\UNC\";

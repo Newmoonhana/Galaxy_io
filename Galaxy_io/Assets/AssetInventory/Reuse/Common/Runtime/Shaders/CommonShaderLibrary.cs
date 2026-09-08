@@ -2,7 +2,10 @@ using UnityEngine;
 
 namespace ImpossibleRobert.Common
 {
-    public static class CommonShaderLibrary
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.AutoStaticsCleanup]
+#endif
+    public static partial class CommonShaderLibrary
     {
         public const string SampleLitShaderName = "Impossible Robert/Common/Sample Lit";
 
@@ -13,14 +16,29 @@ namespace ImpossibleRobert.Common
         const string UnlitColorShaderName = "Unlit/Color";
         const string SpritesDefaultShaderName = "Sprites/Default";
 
+#if UNITY_6000_7_OR_NEWER
+        [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
         static readonly int s_BaseColor = Shader.PropertyToID("_BaseColor");
+#if UNITY_6000_7_OR_NEWER
+        [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
         static readonly int s_Color = Shader.PropertyToID("_Color");
+#if UNITY_6000_7_OR_NEWER
+        [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
         static readonly int s_Metallic = Shader.PropertyToID("_Metallic");
+#if UNITY_6000_7_OR_NEWER
+        [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
         static readonly int s_Smoothness = Shader.PropertyToID("_Smoothness");
+#if UNITY_6000_7_OR_NEWER
+        [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
         static readonly int s_Glossiness = Shader.PropertyToID("_Glossiness");
 
-        static Shader s_SampleLitShader;
-        static Shader s_FallbackLitShader;
+        static Shader s_SampleLitShader = null;
+        static Shader s_FallbackLitShader = null;
 
         public static Shader SampleLitShader => ResolveSampleLitShader();
 

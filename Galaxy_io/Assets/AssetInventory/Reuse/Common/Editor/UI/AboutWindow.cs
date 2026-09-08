@@ -6,7 +6,10 @@ using UnityEngine.UIElements;
 
 namespace ImpossibleRobert.Common
 {
-    public sealed class AboutWindow : EditorWindow
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public sealed partial class AboutWindow : EditorWindow
     {
         private const int WINDOW_WIDTH = 690;
         private const int WINDOW_HEIGHT = 340;

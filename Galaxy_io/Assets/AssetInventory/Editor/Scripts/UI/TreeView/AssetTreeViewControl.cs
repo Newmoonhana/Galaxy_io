@@ -67,7 +67,7 @@ namespace AssetInventory
         }
 
         internal const string NoIndexColumnGlyph = "\u2014";
-        internal const string NoIndexColumnTooltip = "No Index: future indexing is disabled.";
+        internal const string NoIndexColumnTooltip = "Not included in future indexing. Existing indexed content is retained.";
 
         private readonly TreeModel<AssetInfo> _treeModel;
         private readonly Func<AssetInfo, int?> _backupCountProvider;
@@ -136,7 +136,7 @@ namespace AssetInventory
             columns[(int)Columns.CodeIndex] = GetCheckmarkColumn("Code Index");
             columns[(int)Columns.Rules] = GetTextColumn("Rules", 80, minWidth: 60f);
             columns[(int)Columns.BackupCount] = GetTextColumn("#Backups", 70, minWidth: 60f);
-            columns[(int)Columns.NoIndex] = GetCheckmarkColumn("No Index");
+            columns[(int)Columns.NoIndex] = GetCheckmarkColumn("Future Indexing Off");
 
             List<MetadataDefinition> metadataDefs = Metadata.LoadDefinitions();
             if (metadataDefs.Any())
@@ -176,7 +176,7 @@ namespace AssetInventory
         internal static PackageIndexColumnState GetPackageIndexColumnState(AssetInfo info)
         {
             if (info == null) return PackageIndexColumnState.NotIndexed;
-            if (info.NoIndex || info.ParentInfo?.NoIndex == true) return PackageIndexColumnState.NoIndex;
+            if (PackageIndexingPolicy.HasNoIndex(info)) return PackageIndexColumnState.NoIndex;
             return info.IsIndexed ? PackageIndexColumnState.Indexed : PackageIndexColumnState.NotIndexed;
         }
 

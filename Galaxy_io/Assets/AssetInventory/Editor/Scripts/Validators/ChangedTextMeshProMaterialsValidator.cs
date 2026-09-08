@@ -12,7 +12,10 @@ using Object = UnityEngine.Object;
 namespace AssetInventory
 {
     /// <summary>Finds TextMeshPro SDF materials that were changed to an SRP Lit shader and can safely restore the standard distance-field shader.</summary>
-    public sealed class ChangedTextMeshProMaterialsValidator : Validator
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public sealed partial class ChangedTextMeshProMaterialsValidator : Validator
     {
         private const string BaseTmpShaderName = "TextMeshPro/Distance Field";
         private const string UrpAssetVersionTypeName = "UnityEditor.Rendering.Universal.AssetVersion";

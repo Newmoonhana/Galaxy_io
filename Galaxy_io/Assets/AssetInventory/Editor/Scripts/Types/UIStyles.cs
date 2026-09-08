@@ -6,7 +6,10 @@ using UnityEngine;
 namespace AssetInventory
 {
     [Obsolete("Asset Inventory editor windows use UI Toolkit. This IMGUI compatibility surface will be removed in the next major version.")]
-    public static class UIStyles
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class UIStyles
     {
         public enum TagStyle
         {

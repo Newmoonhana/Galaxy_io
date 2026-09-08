@@ -31,7 +31,11 @@ namespace AssetInventory
     /// Provides package-level catalog operations, including loading package records, extracting
     /// archives into the managed cache, and importing selected content into the Unity project.
     /// </summary>
-    public static class Assets
+#if UNITY_6000_7_OR_NEWER
+    // Extraction tasks are editor-session operations and are cleared only by their owning database workflow.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class Assets
     {
         private const string PARTIAL_INDICATOR = "ai-partial.info";
         private const int MAX_DROPDOWN_ITEMS = 25;
@@ -1618,6 +1622,23 @@ namespace AssetInventory
             return existing;
         }
 
+        /// <summary>Removes searchable package content and generated caches while preserving the package row and source archive.</summary>
+        internal static void RemoveIndexedContent(AssetInfo info)
+        {
+            if (info == null || info.AssetId <= 0) return;
+
+            ForgetPackage(info, false, true);
+            info.FileCount = 0;
+
+            string previewFolder = Path.Combine(Paths.GetPreviewFolder(), info.AssetId.ToString());
+            if (Directory.Exists(previewFolder)) Task.Run(() => IOUtils.DeleteFileOrDirectory(previewFolder));
+
+            string materializedFolder = Paths.GetMaterializedAssetPath(info.ToAsset());
+            if (Directory.Exists(materializedFolder)) Task.Run(() => IOUtils.DeleteFileOrDirectory(materializedFolder));
+
+            AI.TriggerPackageRefresh();
+        }
+
         /// <summary>
         /// Completely removes a package and all its data from the database.
         /// </summary>
@@ -2746,6 +2767,10 @@ namespace AssetInventory
             int archive = 0;
             int assetManager = 0;
             int indexed = 0;
+            int indexingEnabled = 0;
+            int enabledIndexed = 0;
+            int needsIndexing = 0;
+            int indexedWithoutFutureIndexing = 0;
             int sub = 0;
             int deprecated = 0;
             int abandoned = 0;
@@ -2766,10 +2791,20 @@ namespace AssetInventory
                 }
 
                 if (a.IsIndexed) indexed++;
+                if (PackageIndexingPolicy.IsIndexingEnabled(a))
+                {
+                    indexingEnabled++;
+                    if (a.IsIndexed) enabledIndexed++;
+                    if (PackageIndexingPolicy.NeedsIndexing(a)) needsIndexing++;
+                }
+                else if (!a.Exclude && PackageIndexingPolicy.HasNoIndex(a) && PackageIndexingPolicy.HasIndexedContent(a))
+                {
+                    indexedWithoutFutureIndexing++;
+                }
                 if (a.IsDeprecated) deprecated++;
                 if (a.IsAbandoned) abandoned++;
                 if (a.Exclude) excluded++;
-                if (a.NoIndex) noIndex++;
+                if (!a.Exclude && PackageIndexingPolicy.HasNoIndex(a)) noIndex++;
                 if (a.Backup) backup++;
                 if (a.UseAI) ai++;
                 if (includeSemanticIndexStats && a.IsSemanticIndexEnabled) semanticIndex++;
@@ -2796,6 +2831,10 @@ namespace AssetInventory
                 TotalPackages = totalPackages,
                 IndexedPackages = indexed,
                 IndexablePackages = indexable,
+                IndexingEnabledPackages = indexingEnabled,
+                EnabledIndexedPackages = enabledIndexed,
+                NeedsIndexingPackages = needsIndexing,
+                IndexedWithoutFutureIndexingPackages = indexedWithoutFutureIndexing,
                 SubPackages = sub,
                 TotalFiles = totalFiles,
                 PurchasedAssets = CountPurchasedAssets(allAssets),

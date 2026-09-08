@@ -10,7 +10,11 @@ using UnityEngine.UIElements;
 namespace AssetInventory
 {
     [InitializeOnLoad]
-    public static class ProjectWindowToolbar
+#if UNITY_6000_7_OR_NEWER
+    // Static-constructor state is code-load scoped; cleanup is handled explicitly where the type crosses Play Mode.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class ProjectWindowToolbar
     {
         private static readonly Dictionary<int, VisualElement> _injectedToolbars = new Dictionary<int, VisualElement>();
         private static Type _projectBrowserType;

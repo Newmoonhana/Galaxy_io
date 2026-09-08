@@ -14,7 +14,10 @@ namespace AssetInventory
     /// Asset materialization and dependency management for preview generation.
     /// Extracted from PreviewManager to separate concerns.
     /// </summary>
-    public static class PreviewAssetManager
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class PreviewAssetManager
     {
         private static readonly HashSet<string> SerializedGuidDependencyTypes = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {

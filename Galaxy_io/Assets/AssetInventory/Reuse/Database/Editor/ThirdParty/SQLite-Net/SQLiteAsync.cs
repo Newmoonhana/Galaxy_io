@@ -1837,7 +1837,10 @@ namespace SQLite
 		}
 	}
 
-	class SQLiteConnectionPool
+#if UNITY_6000_7_OR_NEWER
+	[Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+	partial class SQLiteConnectionPool
 	{
 		class Entry
 		{

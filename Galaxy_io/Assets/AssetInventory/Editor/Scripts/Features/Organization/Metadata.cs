@@ -5,7 +5,10 @@ using System.Linq;
 namespace AssetInventory
 {
     /// <summary>Stateless API for metadata definitions, assignments, typed values, and package metadata lookup.</summary>
-    public static class Metadata
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class Metadata
     {
         /// <summary>Raised after definitions changed so open views and integrations can refresh their cached catalog state.</summary>
         public static event Action OnDefinitionsChanged;

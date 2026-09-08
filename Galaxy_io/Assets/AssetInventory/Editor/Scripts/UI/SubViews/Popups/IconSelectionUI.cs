@@ -9,7 +9,10 @@ using UnityEngine.UIElements;
 
 namespace AssetInventory
 {
-    public sealed class IconSelectionUI : EditorWindow
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public sealed partial class IconSelectionUI : EditorWindow
     {
         private static readonly Vector2 WindowSize = new Vector2(320f, 400f);
         private static List<IconEntry> _cachedIcons;

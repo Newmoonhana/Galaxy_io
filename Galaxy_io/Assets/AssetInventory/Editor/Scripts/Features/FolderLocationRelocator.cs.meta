@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: 3452b5adb21c4e32ac4507ffa2bc3650
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.0
+  assetPath: Assets/AssetInventory/Editor/Scripts/Features/FolderLocationRelocator.cs
+  uploadId: 983278

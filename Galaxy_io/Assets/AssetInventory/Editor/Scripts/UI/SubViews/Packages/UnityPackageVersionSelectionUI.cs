@@ -50,9 +50,10 @@ namespace AssetInventory
             _callback = callback;
             _backupState = backupState;
 
-            if (_backupState != null && _info != null && _info.ForeignId > 0)
+            int backupKey = AssetBackup.GetBackupKey(_info);
+            if (_backupState != null && backupKey != 0)
             {
-                if (_backupState.TryGetValue(_info.ForeignId, out List<BackupInfo> versions))
+                if (_backupState.TryGetValue(backupKey, out List<BackupInfo> versions))
                 {
                     _availableVersions = versions.ToList();
                 }

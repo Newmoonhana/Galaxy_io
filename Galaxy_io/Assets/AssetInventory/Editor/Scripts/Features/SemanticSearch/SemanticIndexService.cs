@@ -13,7 +13,10 @@ using UnityEngine;
 
 namespace AssetInventory
 {
-    internal static class SemanticIndexService
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    internal static partial class SemanticIndexService
     {
         public const string DB_NAME = "AssetInventory.SemanticIndex.db";
 

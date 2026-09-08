@@ -10,6 +10,9 @@ using UnityEngine.UIElements;
 
 namespace AssetInventory
 {
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
     public sealed partial class ExportUI
     {
         private const string ExportOptionsRootClass = "ai-export-options-root";
@@ -30,9 +33,17 @@ namespace AssetInventory
         private const string ExportOptionProgressClass = "ai-export-option-progress";
         private const string ExportOptionSuffixClass = "ai-list-hint";
 
+#if UNITY_6000_7_OR_NEWER
+        // Form builders are immutable configuration shared by every export view.
+        [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
         private static readonly CommonFormBuilder NativeExportFormBuilder = AssetInventoryUITK.CreateFormBuilder(
             inlineClass: ExportOptionInlineRowClass,
             suffixClass: ExportOptionSuffixClass);
+#if UNITY_6000_7_OR_NEWER
+        // Form builders are immutable configuration shared by every export view.
+        [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
         private static readonly CommonFormBuilder NativeExportLeadingToggleFormBuilder = AssetInventoryUITK.CreateFormBuilder(
             rowClass: ExportOptionCheckItemClass,
             labelClass: ExportOptionCheckLabelClass,

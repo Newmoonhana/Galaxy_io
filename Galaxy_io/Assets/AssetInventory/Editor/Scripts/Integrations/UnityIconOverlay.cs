@@ -9,7 +9,11 @@ using Object = UnityEngine.Object;
 namespace AssetInventory
 {
     [InitializeOnLoad]
-    public static class UnityIconOverlay
+#if UNITY_6000_7_OR_NEWER
+    // Static-constructor state is code-load scoped; cleanup is handled explicitly where the type crosses Play Mode.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class UnityIconOverlay
     {
         // Icon caches
         private static readonly Dictionary<string, Texture2D> _iconCache = new Dictionary<string, Texture2D>();

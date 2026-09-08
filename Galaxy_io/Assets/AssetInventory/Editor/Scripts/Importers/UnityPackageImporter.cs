@@ -16,6 +16,7 @@ namespace AssetInventory
     {
         private const string QUICK_INDEX_PREFERENCE = "synty";
         private const int QUICK_INDEX_COUNT = 3;
+        private const int PARENT_LOOKUP_BATCH_SIZE = 500;
 
         private static readonly Regex CamelCaseRegex = new Regex("([a-z])([A-Z])", RegexOptions.Compiled | RegexOptions.CultureInvariant);
         private static readonly Regex SyntyNameRegex = new Regex(
@@ -31,8 +32,13 @@ namespace AssetInventory
 
         internal async Task<HashSet<int>> IndexRoughLocalAndCollectDetailCandidates(FolderSpec spec, bool fromAssetStore, bool force = false)
         {
+            return await IndexRoughLocalAndCollectDetailCandidates(spec, fromAssetStore, force, null, SearchOption.AllDirectories);
+        }
+
+        internal async Task<HashSet<int>> IndexRoughLocalAndCollectDetailCandidates(FolderSpec spec, bool fromAssetStore, bool force, Asset.Source? sourceOverride, SearchOption searchOption)
+        {
             string scanRoot = spec.GetLocation(true);
-            string[] packages = await Task.Run(() => IOUtils.GetFilesSafe(scanRoot, "*.unitypackage", SearchOption.AllDirectories).ToArray());
+            string[] packages = await Task.Run(() => IOUtils.GetFilesSafe(scanRoot, "*.unitypackage", searchOption).ToArray());
             string[] excludedDirectories = StringUtils.Split(spec.excludedDirectories, new[] {';', ','});
             HashSet<int> detailCandidateIds = new HashSet<int>();
 
@@ -49,7 +55,7 @@ namespace AssetInventory
                 MetaProgress.Report(ProgressId, i + 1, packages.Length, package);
                 if (i % 10 == 0) await Task.Yield(); // let editor breath
 
-                Asset asset = HandlePackage(fromAssetStore, package, i, force);
+                Asset asset = HandlePackage(fromAssetStore, package, i, force, sourceOverride: sourceOverride);
                 if (asset == null) continue;
 
                 if (ApplyPackageTags(spec, asset, fromAssetStore)) tagsChanged = true;
@@ -60,7 +66,7 @@ namespace AssetInventory
             return detailCandidateIds;
         }
 
-        internal Asset HandlePackage(bool fromAssetStore, string package, int currentIndex, bool force = false, Asset parent = null, AssetFile subPackage = null)
+        internal Asset HandlePackage(bool fromAssetStore, string package, int currentIndex, bool force = false, Asset parent = null, AssetFile subPackage = null, Asset.Source? sourceOverride = null)
         {
             package = package.Replace("\\", "/");
             string relPackage = Paths.MakeRelative(package);
@@ -91,6 +97,12 @@ namespace AssetInventory
                         asset.DisplayCategory = CamelCaseRegex.Replace(asset.SafeCategory, "$1/$2").Trim();
                     }
                 }
+                else if (sourceOverride.HasValue)
+                {
+                    asset.AssetSource = sourceOverride.Value;
+                    asset.CurrentSubState = Asset.SubState.None;
+                    if (asset.AssetSource == Asset.Source.Synty) ApplySyntyLocalIdentity(asset, package);
+                }
                 else
                 {
                     asset.AssetSource = Asset.Source.CustomPackage;
@@ -116,7 +128,7 @@ namespace AssetInventory
 
             // try to read contained upload details
             AssetHeader header = ReadHeader(package, true);
-            if (header != null && int.TryParse(header.id, out int id))
+            if ((asset.AssetSource != Asset.Source.Synty || AI.Config?.syntyLinkAssetStoreMetadata == true) && header != null && int.TryParse(header.id, out int id))
             {
                 asset.ForeignId = id;
             }
@@ -131,7 +143,12 @@ namespace AssetInventory
 
                 fInfo = new FileInfo(package);
                 size = fInfo.Length;
-                if (!force && existing.CurrentState == Asset.State.Done && existing.PackageSize == size && existing.Location == relPackage) return existing;
+                bool sourceIdentityChanged = sourceOverride.HasValue
+                                             && (existing.AssetSource != sourceOverride.Value
+                                                 || (sourceOverride.Value == Asset.Source.Synty
+                                                     && (!string.Equals(existing.OriginalLocationKey, Path.GetFileName(package), StringComparison.OrdinalIgnoreCase)
+                                                         || !string.Equals(SyntyCache.NormalizeVersion(existing.Version), SyntyCache.NormalizeVersion(asset.Version), StringComparison.OrdinalIgnoreCase))));
+                if (!force && !sourceIdentityChanged && existing.CurrentState == Asset.State.Done && existing.PackageSize == size && existing.Location == relPackage) return existing;
 
                 if (string.IsNullOrEmpty(existing.SafeCategory)) existing.SafeCategory = asset.SafeCategory;
                 if (string.IsNullOrEmpty(existing.DisplayCategory)) existing.DisplayCategory = asset.DisplayCategory;
@@ -139,6 +156,8 @@ namespace AssetInventory
                 if (string.IsNullOrEmpty(existing.SafeName)) existing.SafeName = asset.SafeName;
 
                 asset = existing;
+                if (sourceOverride.HasValue) asset.AssetSource = sourceOverride.Value;
+                if (asset.AssetSource == Asset.Source.Synty) ApplySyntyLocalIdentity(asset, package);
             }
             else
             {
@@ -169,6 +188,7 @@ namespace AssetInventory
             MainProgress = currentIndex + 1;
 
             ApplyHeader(header, asset);
+            if (asset.AssetSource == Asset.Source.Synty) ApplySyntyLocalIdentity(asset, package);
 
             Asset.State previousState = asset.CurrentState;
             if (!force || existing == null) asset.CurrentState = Asset.State.InProcess;
@@ -176,6 +196,7 @@ namespace AssetInventory
             asset.PackageSize = size;
             if (parent != null)
             {
+                asset.ParentAsset = parent;
                 asset.LastRelease = parent.LastRelease;
                 asset.LastUpdate = parent.LastUpdate;
             }
@@ -224,15 +245,49 @@ namespace AssetInventory
             return true;
         }
 
+        private static void ApplySyntyLocalIdentity(Asset asset, string package)
+        {
+            string filename = Path.GetFileName(package);
+            string filenameWithoutExtension = Path.GetFileNameWithoutExtension(package);
+            asset.AssetSource = Asset.Source.Synty;
+            asset.OriginalLocationKey = filename;
+            asset.OfficialState = Asset.OfficialStateType.None;
+            asset.CurrentSubState = Asset.SubState.None;
+            if (AI.Config?.syntyLinkAssetStoreMetadata != true) asset.ForeignId = 0;
+
+            if (!TryParseSyntyFilename(filename, out string group, out string name, out string minVersion, out string version))
+            {
+                if (string.IsNullOrWhiteSpace(asset.DisplayName)) asset.DisplayName = StringUtils.CamelCaseToWords(filenameWithoutExtension.Replace("_", " ")).Trim();
+                return;
+            }
+
+            string displayGroup = StringUtils.CamelCaseToWords(group.Replace("_", " ").ToLowerInvariant()).Trim();
+            if (!string.IsNullOrWhiteSpace(displayGroup)) displayGroup = char.ToUpperInvariant(displayGroup[0]) + displayGroup.Substring(1);
+            string displayName = StringUtils.CamelCaseToWords(name.Replace("_", " ")).Trim();
+            string provisionalHandle = Regex.Replace((group + "-" + name).ToLowerInvariant().Replace("_", "-"), "[^a-z0-9-]+", "-").Trim('-');
+            if (string.IsNullOrWhiteSpace(asset.SafeName) || string.Equals(asset.SafeName, filenameWithoutExtension, StringComparison.OrdinalIgnoreCase)) asset.SafeName = provisionalHandle;
+            if (string.IsNullOrWhiteSpace(asset.Slug)) asset.Slug = provisionalHandle;
+            if (string.IsNullOrWhiteSpace(asset.DisplayName) || string.Equals(asset.DisplayName, filenameWithoutExtension, StringComparison.OrdinalIgnoreCase)) asset.DisplayName = group.ToUpperInvariant() + " - " + displayName;
+            if (string.IsNullOrWhiteSpace(asset.SafePublisher)) asset.SafePublisher = "Synty Studios";
+            if (string.IsNullOrWhiteSpace(asset.DisplayPublisher)) asset.DisplayPublisher = "Synty Studios";
+            if (string.IsNullOrWhiteSpace(asset.SafeCategory)) asset.SafeCategory = displayGroup;
+            if (string.IsNullOrWhiteSpace(asset.DisplayCategory)) asset.DisplayCategory = displayGroup;
+            if (string.IsNullOrWhiteSpace(asset.SupportedUnityVersions)) asset.SupportedUnityVersions = minVersion.Replace("_", ".");
+
+            string localVersion = SyntyCache.NormalizeVersion(SyntyCache.ReadVersion(package));
+            asset.Version = string.IsNullOrWhiteSpace(localVersion) ? version.Replace("_", ".") : localVersion;
+            if (string.IsNullOrWhiteSpace(asset.LatestVersion)) asset.LatestVersion = asset.Version;
+        }
+
         /// <summary>Copies Asset Store identity, publisher, category, version, and compatibility metadata from a parsed package header.</summary>
         public static void ApplyHeader(AssetHeader header, Asset asset)
         {
             if (header == null) return;
 
             // only apply if foreign Id matches
-            if (int.TryParse(header.id, out int id))
+            if ((asset.AssetSource != Asset.Source.Synty || AI.Config?.syntyLinkAssetStoreMetadata == true) && int.TryParse(header.id, out int id))
             {
-                if (id > 0 && asset.ForeignId > 0 && id != asset.ForeignId) return;
+                if (id > 0 && asset.ForeignId > 0 && id != asset.ForeignId && asset.AssetSource != Asset.Source.Synty) return;
                 asset.ForeignId = id;
             }
 
@@ -344,19 +399,50 @@ namespace AssetInventory
             }
 
             List<Asset> assets = DBAdapter.DB.Table<Asset>()
-                .Where(asset => !asset.Exclude && (asset.CurrentState == Asset.State.InProcess || asset.CurrentState == Asset.State.SubInProcess) && (asset.AssetSource == Asset.Source.AssetStorePackage || asset.AssetSource == Asset.Source.CustomPackage))
+                .Where(asset => !asset.Exclude && (asset.CurrentState == Asset.State.InProcess || asset.CurrentState == Asset.State.SubInProcess) && (asset.AssetSource == Asset.Source.AssetStorePackage || asset.AssetSource == Asset.Source.CustomPackage || asset.AssetSource == Asset.Source.Synty))
                 .ToList();
 
             if (scopedIdSet != null) assets = assets.Where(asset => scopedIdSet.Contains(asset.Id)).ToList();
 
-            return ApplyQuickIndexLimit(assets);
+            assets = ApplyQuickIndexLimit(assets);
+            HydrateCandidateParents(assets);
+            return assets;
         }
 
         internal static List<Asset> LoadExactDetailIndexCandidate(int assetId)
         {
-            return DBAdapter.DB.Table<Asset>()
-                .Where(asset => asset.Id == assetId && (asset.AssetSource == Asset.Source.AssetStorePackage || asset.AssetSource == Asset.Source.CustomPackage))
+            List<Asset> assets = DBAdapter.DB.Table<Asset>()
+                .Where(asset => asset.Id == assetId && (asset.AssetSource == Asset.Source.AssetStorePackage || asset.AssetSource == Asset.Source.CustomPackage || asset.AssetSource == Asset.Source.Synty))
                 .ToList();
+            HydrateCandidateParents(assets);
+            return assets;
+        }
+
+        private static void HydrateCandidateParents(List<Asset> assets)
+        {
+            List<int> parentIds = assets
+                .Where(asset => asset != null && asset.ParentId > 0 && asset.ParentAsset == null)
+                .Select(asset => asset.ParentId)
+                .Distinct()
+                .ToList();
+            if (parentIds.Count == 0) return;
+
+            Dictionary<int, Asset> parents = new Dictionary<int, Asset>();
+            for (int offset = 0; offset < parentIds.Count; offset += PARENT_LOOKUP_BATCH_SIZE)
+            {
+                List<int> batch = parentIds.Skip(offset).Take(PARENT_LOOKUP_BATCH_SIZE).ToList();
+                string placeholders = string.Join(",", Enumerable.Repeat("?", batch.Count));
+                List<Asset> loadedParents = DBAdapter.DB.Query<Asset>($"select * from Asset where Id in ({placeholders})", batch.Cast<object>().ToArray());
+                foreach (Asset parent in loadedParents)
+                {
+                    parents[parent.Id] = parent;
+                }
+            }
+
+            foreach (Asset asset in assets)
+            {
+                if (asset != null && asset.ParentId > 0 && parents.TryGetValue(asset.ParentId, out Asset parent)) asset.ParentAsset = parent;
+            }
         }
 
         private static List<Asset> ApplyQuickIndexLimit(List<Asset> assets)
@@ -384,7 +470,7 @@ namespace AssetInventory
             return asset.Id > 0
                    && !asset.Exclude
                    && (asset.CurrentState == Asset.State.InProcess || asset.CurrentState == Asset.State.SubInProcess)
-                   && (asset.AssetSource == Asset.Source.AssetStorePackage || asset.AssetSource == Asset.Source.CustomPackage);
+                   && (asset.AssetSource == Asset.Source.AssetStorePackage || asset.AssetSource == Asset.Source.CustomPackage || asset.AssetSource == Asset.Source.Synty);
         }
 
         private static async Task RecreatePreviews(Asset asset)

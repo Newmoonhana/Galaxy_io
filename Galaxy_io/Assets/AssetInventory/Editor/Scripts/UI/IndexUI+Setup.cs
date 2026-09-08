@@ -34,6 +34,10 @@ namespace AssetInventory
         internal const string SetupSampleImageClass = "ai-setup-sample-image";
         internal const string SetupNextListClass = "ai-setup-next-list";
         internal const string SetupNextItemClass = "ai-setup-next-item";
+        internal const string SetupNextItemNumberClass = "ai-setup-next-item-number";
+        internal const string SetupNextItemCopyClass = "ai-setup-next-item-copy";
+        internal const string SetupNextItemTitleClass = "ai-setup-next-item-title";
+        internal const string SetupNextItemDescriptionClass = "ai-setup-next-item-description";
         internal const string SetupOptionGroupClass = "ai-setup-option-group";
         internal const string SetupToggleClass = "ai-setup-toggle";
         internal const string SetupToggleControlClass = "ai-setup-toggle-control";
@@ -42,11 +46,20 @@ namespace AssetInventory
         internal const string SetupInlineRowClass = "ai-setup-inline-row";
         internal const string SetupInlineFieldClass = "ai-setup-inline-field";
         internal const string SetupInlineUnitClass = "ai-setup-inline-unit";
+        internal const string SetupIndexingChoiceGridClass = "ai-setup-indexing-choice-grid";
+        internal const string SetupIndexingChoiceCardClass = "ai-setup-indexing-choice-card";
+        internal const string SetupSelectiveGuidanceClass = "ai-setup-selective-guidance";
         internal const string SetupBackendSelectorClass = "ai-setup-backend-selector";
         internal const string SetupBackendButtonClass = "ai-setup-backend-button";
         internal const string SetupBackendButtonActiveClass = "ai-setup-backend-button-active";
         internal const string SetupModelActionClass = "ai-setup-model-action";
-        internal const string SetupStorageEstimateClass = "ai-setup-storage-estimate";
+        internal const string SetupStorageTableScrollClass = "ai-setup-storage-table-scroll";
+        internal const string SetupStorageTableClass = "ai-setup-storage-table";
+        internal const string SetupStorageTableRowClass = "ai-setup-storage-table-row";
+        internal const string SetupStorageTableHeaderClass = "ai-setup-storage-table-header";
+        internal const string SetupStorageTableAlternateRowClass = "ai-setup-storage-table-row-alternate";
+        internal const string SetupStorageTableCellClass = "ai-setup-storage-table-cell";
+        internal const string SetupStorageTableRecommendedCellClass = "ai-setup-storage-table-cell-recommended";
         internal const string SetupDriveRowClass = "ai-setup-drive-row";
         internal const string SetupDriveHeaderClass = "ai-setup-drive-header";
         internal const string SetupDriveNameClass = "ai-setup-drive-name";
@@ -253,6 +266,13 @@ namespace AssetInventory
         private void CompleteWizard()
         {
             AI.Config.wizardCompleted = true;
+            if (AI.Config.noIndexByDefault)
+            {
+                AI.Config.tab = (int)AssetInventoryTab.Packages;
+                _selectedMaintenance = PackageSearch.MaintenanceOption.NoIndex;
+                _packageInspectorTab = 1;
+                _requireAssetTreeRebuild = true;
+            }
             AI.SaveConfig();
             _nativeSetupStateHash = int.MinValue;
             if (_uitkShellActive)
@@ -281,16 +301,56 @@ namespace AssetInventory
 
     public class SetupWizardDownloadPage : WizardPage, INativeWizardPage
     {
-        public override string Title => "Download Settings";
-        public override string Description => "Asset Inventory can automatically download your purchased assets from the Asset Store for indexing. This ensures all your assets are properly catalogued.";
+        public override string Title => "Choose What to Index";
+        public override string Description => "Choose the default for newly discovered packages. You can change individual packages or this default later.";
 
         public VisualElement CreateNativeContent()
         {
             VisualElement root = SetupWizardNativeUI.CreateBody();
             VisualElement options = SetupWizardNativeUI.CreateOptionGroup();
             VisualElement downloadOptions = SetupWizardNativeUI.CreateOptionGroup();
+            VisualElement downloadAssets = null;
+            VisualElement downloadWarning = null;
+            VisualElement selectiveGuidance = null;
 
-            VisualElement downloadAssets = SetupWizardNativeUI.CreateToggle(
+            StyleSheet commonStyles = CommonInspectorElements.LoadSharedStyleSheet();
+            if (commonStyles != null) root.styleSheets.Add(commonStyles);
+
+            VisualElement approach = new VisualElement();
+            approach.AddToClassList(IndexUI.SetupIndexingChoiceGridClass);
+            CommonSingleChoiceCard automaticCard = new CommonSingleChoiceCard(
+                "Index Everything Automatically",
+                "Discover every eligible package and index its contents automatically. Uncached Asset Store packages are downloaded when enabled below.",
+                null,
+                "Choose automatic indexing for newly discovered packages.");
+            automaticCard.AddToClassList(IndexUI.SetupIndexingChoiceCardClass);
+            CommonSingleChoiceCard selectiveCard = new CommonSingleChoiceCard(
+                "Let Me Choose What to Index",
+                "Discover the package catalog, but leave package contents unindexed until you explicitly include the packages you want.",
+                null,
+                "Choose which newly discovered packages to index.");
+            selectiveCard.AddToClassList(IndexUI.SetupIndexingChoiceCardClass);
+            approach.Add(automaticCard);
+            approach.Add(selectiveCard);
+
+            Action<int> selectApproach = selected =>
+            {
+                AI.Config.noIndexByDefault = selected == 1;
+                AI.SaveConfig();
+                automaticCard.SetSelected(selected == 0);
+                selectiveCard.SetSelected(selected == 1);
+                if (downloadAssets != null) downloadAssets.style.display = selected == 0 ? DisplayStyle.Flex : DisplayStyle.None;
+                if (downloadWarning != null) downloadWarning.style.display = selected == 0 ? DisplayStyle.Flex : DisplayStyle.None;
+                if (selectiveGuidance != null) selectiveGuidance.style.display = selected == 1 ? DisplayStyle.Flex : DisplayStyle.None;
+                downloadOptions.style.display = selected == 0 && AI.Actions.DownloadAssets ? DisplayStyle.Flex : DisplayStyle.None;
+            };
+            automaticCard.Chosen += _ => selectApproach(0);
+            selectiveCard.Chosen += _ => selectApproach(1);
+            automaticCard.SetSelected(!AI.Config.noIndexByDefault);
+            selectiveCard.SetSelected(AI.Config.noIndexByDefault);
+            options.Add(approach);
+
+            downloadAssets = SetupWizardNativeUI.CreateToggle(
                 "Download Assets for Indexing",
                 "Automatically download uncached items from the Asset Store for indexing. Downloading an item can affect whether it can be returned through the Asset Store.",
                 AI.Actions.DownloadAssets,
@@ -298,11 +358,12 @@ namespace AssetInventory
                 {
                     AI.Actions.DownloadAssets = value;
                     AI.SaveConfig();
-                    downloadOptions.style.display = value ? DisplayStyle.Flex : DisplayStyle.None;
+                    downloadOptions.style.display = value && !AI.Config.noIndexByDefault ? DisplayStyle.Flex : DisplayStyle.None;
                 });
+            downloadAssets.style.display = AI.Config.noIndexByDefault ? DisplayStyle.None : DisplayStyle.Flex;
             options.Add(downloadAssets);
 
-            downloadOptions.style.display = AI.Actions.DownloadAssets ? DisplayStyle.Flex : DisplayStyle.None;
+            downloadOptions.style.display = AI.Actions.DownloadAssets && !AI.Config.noIndexByDefault ? DisplayStyle.Flex : DisplayStyle.None;
             downloadOptions.Add(SetupWizardNativeUI.CreateToggle(
                 "Keep Downloaded Assets",
                 "Keep automatically downloaded assets in the cache after indexing instead of deleting them.",
@@ -341,29 +402,43 @@ namespace AssetInventory
             options.Add(downloadOptions);
             root.Add(options);
 
-            root.Add(AssetInventoryUITK.CreateHelpBox(
+            selectiveGuidance = AssetInventoryUITK.CreateHelpBox(
+                "After setup, open Packages, select the packages you want, and choose Include & Index Now. You can include more packages at any time.",
+                MessageType.Info);
+            selectiveGuidance.AddToClassList(IndexUI.SetupSelectiveGuidanceClass);
+            selectiveGuidance.style.display = AI.Config.noIndexByDefault ? DisplayStyle.Flex : DisplayStyle.None;
+            root.Add(selectiveGuidance);
+
+            downloadWarning = AssetInventoryUITK.CreateHelpBox(
                 "If you plan to return freshly purchased assets, leave automatic downloads off because downloading can disallow returns. Downloads also use bandwidth, so consider your connection before enabling this on limited plans.",
-                MessageType.Warning));
+                MessageType.Warning);
+            downloadWarning.style.display = AI.Config.noIndexByDefault ? DisplayStyle.None : DisplayStyle.Flex;
+            root.Add(downloadWarning);
             return root;
         }
     }
 
-    public class SetupWizardLocationsPage : WizardPage, INativeWizardPage
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public partial class SetupWizardLocationsPage : WizardPage, INativeWizardPage
     {
         public override string Title => "Storage Location";
         public override string Description => "Choose storage for the database, cache, and backups. The database stays relatively small, but previews, extracted files, and backups can require substantial space.";
 
         internal readonly struct StorageRequirementSample
         {
-            public readonly string InventorySize;
+            public readonly string Packages;
+            public readonly string Files;
             public readonly string Database;
             public readonly string Previews;
             public readonly string ExtractedCache;
             public readonly string SuggestedFree;
 
-            public StorageRequirementSample(string inventorySize, string database, string previews, string extractedCache, string suggestedFree)
+            public StorageRequirementSample(string packages, string files, string database, string previews, string extractedCache, string suggestedFree)
             {
-                InventorySize = inventorySize;
+                Packages = packages;
+                Files = files;
                 Database = database;
                 Previews = previews;
                 ExtractedCache = extractedCache;
@@ -371,11 +446,15 @@ namespace AssetInventory
             }
         }
 
+#if UNITY_6000_7_OR_NEWER
+        // Storage examples are immutable setup guidance metadata.
+        [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
         internal static readonly StorageRequirementSample[] StorageRequirementSamples =
         {
-            new StorageRequirementSample("100 packages / 25,000 files", "~100 MB", "~1-3 GB", "~5-15 GB", "20+ GB"),
-            new StorageRequirementSample("500 packages / 150,000 files", "~500 MB", "~5-15 GB", "~25-75 GB", "100+ GB"),
-            new StorageRequirementSample("2,000 packages / 750,000 files", "~2.5 GB", "~25-75 GB", "~100-300 GB", "350+ GB")
+            new StorageRequirementSample("100", "25,000", "~100 MB", "~1-3 GB", "~5-15 GB", "20+ GB"),
+            new StorageRequirementSample("500", "150,000", "~500 MB", "~5-15 GB", "~25-75 GB", "100+ GB"),
+            new StorageRequirementSample("2,000", "750,000", "~2.5 GB", "~25-75 GB", "~100-300 GB", "350+ GB")
         };
 
         private List<DriveInfo> _drives;
@@ -572,10 +651,7 @@ namespace AssetInventory
             root.Add(currentSection);
 
             VisualElement estimateSection = AssetInventoryUITK.CreateSection("Estimated Space Needed");
-            foreach (StorageRequirementSample sample in StorageRequirementSamples)
-            {
-                estimateSection.Add(SetupWizardNativeUI.CreateStorageEstimate(sample));
-            }
+            estimateSection.Add(SetupWizardNativeUI.CreateStorageEstimateTable(StorageRequirementSamples));
             estimateSection.Add(AssetInventoryUITK.CreateHelpBox(
                 "These are approximate planning numbers. The extracted cache varies most because it depends on package size, accessed packages, kept downloads and preview settings.",
                 MessageType.Info));
@@ -1129,7 +1205,14 @@ namespace AssetInventory
             if (!AI.Actions.AnyActionsInProgress)
             {
                 AI.Config.quickIndexingDone = false;
-                AI.Actions.RunActions();
+                if (AI.Config.noIndexByDefault)
+                {
+                    AI.Actions.RunDiscoveryActions();
+                }
+                else
+                {
+                    AI.Actions.RunActions();
+                }
             }
         }
 
@@ -1155,13 +1238,19 @@ namespace AssetInventory
         public VisualElement CreateNativeContent()
         {
             VisualElement root = SetupWizardNativeUI.CreateBody();
-            root.Add(AssetInventoryUITK.CreateHelpBox("Asset Inventory is configured and ready to use across your Unity projects.", MessageType.Info));
+            root.Add(AssetInventoryUITK.CreateHelpBox(
+                AI.Config.noIndexByDefault
+                    ? "Asset Inventory is discovering your package catalog. Package contents will remain untouched until you include them."
+                    : "Asset Inventory is configured and ready to use across your Unity projects.",
+                MessageType.Info));
 
             VisualElement next = AssetInventoryUITK.CreateSection("What's Next");
             next.AddToClassList(IndexUI.SetupNextListClass);
-            next.Add(SetupWizardNativeUI.CreateNextItem("Initial indexing has started in the background."));
-            next.Add(SetupWizardNativeUI.CreateNextItem("Use Run Actions in Settings to refresh the index regularly."));
-            next.Add(SetupWizardNativeUI.CreateNextItem("Open the tutorials when you are ready to explore advanced workflows."));
+            next.Add(AI.Config.noIndexByDefault
+                ? SetupWizardNativeUI.CreateNextItem(1, "Choose packages to index", "Open Packages, select the items you want, then choose Include & Index Now.")
+                : SetupWizardNativeUI.CreateNextItem(1, "Let initial indexing finish", "Eligible packages are being indexed in the background. You can keep working while it runs."));
+            next.Add(SetupWizardNativeUI.CreateNextItem(2, "Keep the index current", "Open Settings and use Run Actions whenever you want to discover changes and refresh the index."));
+            next.Add(SetupWizardNativeUI.CreateNextItem(3, "Explore advanced workflows", "Open the tutorials for guided help with search, organization, and other powerful features."));
             root.Add(next);
 
 #if !USE_TUTORIALS
@@ -1178,8 +1267,38 @@ namespace AssetInventory
         }
     }
 
-    internal static class SetupWizardNativeUI
+#if UNITY_6000_7_OR_NEWER
+    // Native setup labels and form configuration are immutable editor code-lifetime metadata.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    internal static partial class SetupWizardNativeUI
     {
+        private static readonly string[] StorageEstimateHeaders =
+        {
+            "Packages", "Files", "DB", "Previews", "Cache", "Required"
+        };
+        private static readonly string[] StorageEstimateTooltipLabels =
+        {
+            "Packages", "Files", "Database", "Previews", "Extracted Cache", "Required Free Space"
+        };
+        private static readonly string[] StorageEstimateHeaderTooltips =
+        {
+            "Approximate number of packages in the inventory.",
+            "Approximate number of indexed files across those packages.",
+            "Approximate database size.",
+            "Approximate disk space used by generated previews.",
+            "Approximate disk space used by extracted package contents.",
+            "Approximate free disk space required for this inventory size."
+        };
+        private static readonly string[] StorageEstimateColumnClasses =
+        {
+            "ai-setup-storage-table-cell-packages",
+            "ai-setup-storage-table-cell-files",
+            "ai-setup-storage-table-cell-database",
+            "ai-setup-storage-table-cell-previews",
+            "ai-setup-storage-table-cell-cache",
+            "ai-setup-storage-table-cell-free"
+        };
         private static readonly CommonFormBuilder ToggleFormBuilder = AssetInventoryUITK.CreateFormBuilder(
             rowClass: IndexUI.SetupToggleClass,
             labelClass: IndexUI.SetupToggleLabelClass,
@@ -1227,11 +1346,28 @@ namespace AssetInventory
             }
         }
 
-        public static Label CreateNextItem(string text)
+        public static VisualElement CreateNextItem(int stepNumber, string title, string description)
         {
-            Label label = new Label(text);
-            label.AddToClassList(IndexUI.SetupNextItemClass);
-            return label;
+            VisualElement item = new VisualElement();
+            item.AddToClassList(IndexUI.SetupNextItemClass);
+
+            Label number = new Label(stepNumber.ToString());
+            number.AddToClassList(IndexUI.SetupNextItemNumberClass);
+            item.Add(number);
+
+            VisualElement copy = new VisualElement();
+            copy.AddToClassList(IndexUI.SetupNextItemCopyClass);
+
+            Label titleLabel = new Label(title);
+            titleLabel.AddToClassList(IndexUI.SetupNextItemTitleClass);
+            copy.Add(titleLabel);
+
+            Label descriptionLabel = new Label(description);
+            descriptionLabel.AddToClassList(IndexUI.SetupNextItemDescriptionClass);
+            copy.Add(descriptionLabel);
+
+            item.Add(copy);
+            return item;
         }
 
         public static VisualElement CreateOptionGroup()
@@ -1318,12 +1454,65 @@ namespace AssetInventory
             return selector;
         }
 
-        public static VisualElement CreateStorageEstimate(SetupWizardLocationsPage.StorageRequirementSample sample)
+        public static VisualElement CreateStorageEstimateTable(IReadOnlyList<SetupWizardLocationsPage.StorageRequirementSample> samples)
         {
-            Label label = new Label(
-                $"{sample.InventorySize}: database {sample.Database}, previews {sample.Previews}, extracted cache {sample.ExtractedCache}, suggested free space {sample.SuggestedFree}.");
-            label.AddToClassList(IndexUI.SetupStorageEstimateClass);
-            return label;
+            ScrollView scroll = new ScrollView(ScrollViewMode.Horizontal)
+            {
+                horizontalScrollerVisibility = ScrollerVisibility.Auto,
+                verticalScrollerVisibility = ScrollerVisibility.Hidden
+            };
+            scroll.AddToClassList(IndexUI.SetupStorageTableScrollClass);
+
+            VisualElement table = new VisualElement
+            {
+                name = "storage-estimate-table"
+            };
+            table.AddToClassList(IndexUI.SetupStorageTableClass);
+            table.Add(CreateStorageEstimateRow(StorageEstimateHeaders, true, false));
+
+            if (samples != null)
+            {
+                for (int i = 0; i < samples.Count; i++)
+                {
+                    SetupWizardLocationsPage.StorageRequirementSample sample = samples[i];
+                    string[] values =
+                    {
+                        sample.Packages,
+                        sample.Files,
+                        sample.Database,
+                        sample.Previews,
+                        sample.ExtractedCache,
+                        sample.SuggestedFree
+                    };
+                    table.Add(CreateStorageEstimateRow(values, false, i % 2 == 1));
+                }
+            }
+
+            scroll.Add(table);
+            return scroll;
+        }
+
+        private static VisualElement CreateStorageEstimateRow(IReadOnlyList<string> values, bool isHeader, bool isAlternate)
+        {
+            VisualElement row = new VisualElement();
+            row.AddToClassList(IndexUI.SetupStorageTableRowClass);
+            row.EnableInClassList(IndexUI.SetupStorageTableHeaderClass, isHeader);
+            row.EnableInClassList(IndexUI.SetupStorageTableAlternateRowClass, isAlternate);
+
+            for (int i = 0; i < StorageEstimateHeaders.Length; i++)
+            {
+                string text = values != null && i < values.Count ? values[i] : string.Empty;
+                Label cell = new Label(text)
+                {
+                    tooltip = isHeader ? StorageEstimateHeaderTooltips[i] : $"{StorageEstimateTooltipLabels[i]}: {text}"
+                };
+                cell.AddToClassList(IndexUI.SetupStorageTableCellClass);
+                cell.AddToClassList(StorageEstimateColumnClasses[i]);
+                cell.EnableInClassList(IndexUI.SetupStorageTableRecommendedCellClass, !isHeader && i == StorageEstimateHeaders.Length - 1);
+                row.Add(cell);
+            }
+
+            return row;
         }
 
         public static VisualElement CreateDriveRow(DriveInfo drive, bool isCurrentDrive)

@@ -14,7 +14,10 @@ using static AssetInventory.AssetInfo;
 namespace AssetInventory
 {
     /// <summary>Calculates project, package, media, and script dependencies with optional reusable result caching.</summary>
-    public class DependencyAnalysis
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public partial class DependencyAnalysis
     {
         private static readonly Regex GuidReference = new Regex(@"(?:guid:\s*|\\*""guid\\*""\s*:\s*\\*"")([a-f0-9]{32})", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 

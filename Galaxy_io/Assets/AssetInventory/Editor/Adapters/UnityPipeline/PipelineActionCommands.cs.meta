@@ -1,0 +1,9 @@
+fileFormatVersion: 2
+guid: f03a432c01534092a0048c904583bb91
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.0
+  assetPath: Assets/AssetInventory/Editor/Adapters/UnityPipeline/PipelineActionCommands.cs
+  uploadId: 983278

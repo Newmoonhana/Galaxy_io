@@ -219,7 +219,7 @@ namespace AssetInventory
                 {
                     TagInfo tag = tags[i];
                     signature = signature * 31 + (tag?.Name?.GetHashCode() ?? 0);
-                    signature = signature * 31 + (tag?.GetColor().GetHashCode() ?? 0);
+                    signature = signature * 31 + (tag?.Color?.GetHashCode() ?? 0);
                 }
             }
 
@@ -233,11 +233,12 @@ namespace AssetInventory
                         TagInfo tag = tags[i];
                         if (tag == null) continue;
 
-                        Color color = tag.GetColor();
-                        Label pill = new Label(tag.Name) {tooltip = tag.Name};
+                        VisualElement pill = new VisualElement {tooltip = tag.Name};
                         pill.AddToClassList("ai-native-tree-tag");
-                        pill.style.backgroundColor = color;
-                        pill.style.color = CommonUITK.GetReadableTextColor(color);
+                        Label label = new Label(tag.Name) {tooltip = tag.Name};
+                        label.AddToClassList("ai-native-tree-tag__label");
+                        ApplyNativeTagColor(label, tag.Color);
+                        pill.Add(label);
                         cell.Accessory.Add(pill);
                     }
                 }
@@ -245,6 +246,15 @@ namespace AssetInventory
             }
 
             cell.Accessory.style.display = cell.Accessory.childCount > 0 ? DisplayStyle.Flex : DisplayStyle.None;
+        }
+
+        private static void ApplyNativeTagColor(VisualElement label, string htmlColor)
+        {
+            if (label == null || string.IsNullOrWhiteSpace(htmlColor)) return;
+            if (!ColorUtility.TryParseHtmlString(htmlColor, out Color color)) return;
+
+            label.style.backgroundColor = color;
+            label.style.color = CommonUITK.GetReadableTextColor(color);
         }
 
         private static void BindNativeMedia(NativeCell cell, AssetInfo info, List<AssetMedia> media)

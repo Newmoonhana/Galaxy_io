@@ -38,7 +38,17 @@ namespace AssetInventory
             MarkedForSemanticIndex = 23,
             NotMarkedForSemanticIndex = 24,
             MarkedForCodeIndex = 25,
-            NotMarkedForCodeIndex = 26
+            NotMarkedForCodeIndex = 26,
+            NoIndex = 27,
+            IndexingEnabled = 28,
+            NeedsIndexing = 29,
+            SyntyCached = 33
+        }
+
+        internal static MaintenanceOption NormalizeMaintenanceOption(int value)
+        {
+            if (value == 30 || value == 31 || value == 32 || value == 34) return MaintenanceOption.All;
+            return (MaintenanceOption)value;
         }
 
         /// <summary>Controls package search text, source and compatibility filters, lifecycle and project state, price and date ranges, tags, metadata, sorting, and paging.</summary>
@@ -62,11 +72,16 @@ namespace AssetInventory
             public int SelectedUpdateDateOption;
             public DateTime? UpdateBeforeDate;
             public DateTime? UpdateAfterDate;
+            public bool UseUpdateDateRange;
             public int SelectedPurchaseDateOption;
             public DateTime? PurchaseBeforeDate;
             public DateTime? PurchaseAfterDate;
+            public bool UsePurchaseDateRange;
             public int SelectedPackageSizeOption;
             public float PackageSizeMB;
+            public bool UsePackageSizeRange;
+            public float MinPackageSizeMB;
+            public float MaxPackageSizeMB;
             public int SelectedUnityVersionOption;
             public int CurrentPage = 1;
             public int MaxResults = 0;
@@ -117,7 +132,7 @@ namespace AssetInventory
                 options.SelectedPackageListing = savedSearch.PackagesListing;
                 options.SelectedSRPs = savedSearch.SRPs;
                 options.SelectedDeprecation = savedSearch.Deprecation;
-                options.SelectedMaintenance = (MaintenanceOption)savedSearch.Maintenance;
+                options.SelectedMaintenance = NormalizeMaintenanceOption(savedSearch.Maintenance);
                 options.SelectedPriceOption = savedSearch.PriceOption;
                 options.SearchPrice = savedSearch.Price;
                 options.SelectedPackageSizeOption = savedSearch.PackageSizeOption;
@@ -320,7 +335,7 @@ namespace AssetInventory
                 case MaintenanceOption.Duplicate:
                     // Find duplicates by ForeignId
                     HashSet<int> duplicates = filteredAssets
-                        .Where(a => a.ForeignId > 0)
+                        .Where(a => a.ForeignId > 0 && a.AssetSource != Asset.Source.Synty)
                         .GroupBy(a => a.ForeignId)
                         .Where(g => g.Count() > 1)
                         .Select(g => g.Key)
@@ -336,7 +351,7 @@ namespace AssetInventory
 
                     // Filter to include assets with duplicate ForeignId OR duplicate Location
                     filteredAssets = filteredAssets.Where(a =>
-                        duplicates.Contains(a.ForeignId) ||
+                        (a.AssetSource != Asset.Source.Synty && duplicates.Contains(a.ForeignId)) ||
                         locationDuplicates.Contains(a.Location));
                     break;
 
@@ -370,6 +385,22 @@ namespace AssetInventory
 
                 case MaintenanceOption.NotMarkedForCodeIndex:
                     filteredAssets = filteredAssets.Where(a => !a.IsCodeIndexEnabled);
+                    break;
+
+                case MaintenanceOption.NoIndex:
+                    filteredAssets = filteredAssets.Where(a => !a.Exclude && PackageIndexingPolicy.HasNoIndex(a));
+                    break;
+
+                case MaintenanceOption.IndexingEnabled:
+                    filteredAssets = filteredAssets.Where(PackageIndexingPolicy.IsIndexingEnabled);
+                    break;
+
+                case MaintenanceOption.NeedsIndexing:
+                    filteredAssets = filteredAssets.Where(PackageIndexingPolicy.NeedsIndexing);
+                    break;
+
+                case MaintenanceOption.SyntyCached:
+                    filteredAssets = filteredAssets.Where(HasSyntyCachedPackage);
                     break;
 
                 case MaintenanceOption.Deleted:
@@ -431,6 +462,10 @@ namespace AssetInventory
 
                 case 7:
                     filteredAssets = filteredAssets.Where(a => a.AssetSource == Asset.Source.AssetManager);
+                    break;
+
+                case 8:
+                    filteredAssets = filteredAssets.Where(a => a.AssetSource == Asset.Source.Synty);
                     break;
             }
 
@@ -598,6 +633,24 @@ namespace AssetInventory
                 }
             }
 
+            if (opt.UseUpdateDateRange)
+            {
+                if (opt.UpdateAfterDate.HasValue) filteredAssets = filteredAssets.Where(a => a.LastRelease >= opt.UpdateAfterDate.Value);
+                if (opt.UpdateBeforeDate.HasValue) filteredAssets = filteredAssets.Where(a => a.LastRelease <= opt.UpdateBeforeDate.Value);
+            }
+            if (opt.UsePurchaseDateRange)
+            {
+                if (opt.PurchaseAfterDate.HasValue) filteredAssets = filteredAssets.Where(a => a.GetPurchaseDate() >= opt.PurchaseAfterDate.Value);
+                if (opt.PurchaseBeforeDate.HasValue) filteredAssets = filteredAssets.Where(a => a.GetPurchaseDate() <= opt.PurchaseBeforeDate.Value);
+            }
+            if (opt.UsePackageSizeRange)
+            {
+                long minimumSize = (long)(opt.MinPackageSizeMB * 1024 * 1024);
+                long maximumSize = (long)(opt.MaxPackageSizeMB * 1024 * 1024);
+                if (minimumSize > 0) filteredAssets = filteredAssets.Where(a => a.PackageSize >= minimumSize);
+                if (maximumSize > 0) filteredAssets = filteredAssets.Where(a => a.PackageSize > 0 && a.PackageSize <= maximumSize);
+            }
+
             // 12. Unity version filtering (simple string comparison for major versions)
             if (opt.SelectedUnityVersionOption > 0)
             {
@@ -752,6 +805,13 @@ namespace AssetInventory
                 case 2: return asset.PriceCny;
                 default: return asset.PriceEur;
             }
+        }
+
+        private static bool HasSyntyCachedPackage(AssetInfo asset)
+        {
+            if (asset == null || asset.AssetSource != Asset.Source.Synty) return false;
+            string location = asset.GetLocation(true);
+            return SyntyCache.IsCanonicalCachePath(location) && SyntyCache.IsValidPackage(location);
         }
 
         private static bool SupportsUnityVersionOrOlder(string supportedVersions, int targetYear)

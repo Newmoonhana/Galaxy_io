@@ -6,7 +6,10 @@ namespace AssetInventory
 {
     /// <summary>Persistent hierarchical tag definition with its display name, parent relationship, and optional color.</summary>
     [Serializable]
-    public sealed class Tag : IEquatable<Tag>
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public sealed partial class Tag : IEquatable<Tag>
     {
         public static Color DefaultColor = UnityEngine.Color.white;
 

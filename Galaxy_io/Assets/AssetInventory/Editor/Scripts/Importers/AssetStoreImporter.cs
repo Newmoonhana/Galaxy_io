@@ -18,6 +18,63 @@ namespace AssetInventory
         private const int PAGE_SIZE = 100; // more is not supported by Asset Store
         private const string DIAG_PURCHASES = "Purchases.json";
 
+        private sealed class SyntyAuthoritySnapshot
+        {
+            private readonly string _location;
+            private readonly string _originalLocation;
+            private readonly string _originalLocationKey;
+            private readonly string _safeName;
+            private readonly string _safePublisher;
+            private readonly string _safeCategory;
+            private readonly string _slug;
+            private readonly string _version;
+            private readonly string _license;
+            private readonly string _licenseLocation;
+            private readonly long _packageSize;
+            private readonly Asset.OfficialStateType _officialState;
+            private readonly Asset.SubState _currentSubState;
+
+            internal SyntyAuthoritySnapshot(Asset asset)
+            {
+                _location = asset.Location;
+                _originalLocation = asset.OriginalLocation;
+                _originalLocationKey = asset.OriginalLocationKey;
+                _safeName = asset.SafeName;
+                _safePublisher = asset.SafePublisher;
+                _safeCategory = asset.SafeCategory;
+                _slug = asset.Slug;
+                _version = asset.Version;
+                _license = asset.License;
+                _licenseLocation = asset.LicenseLocation;
+                _packageSize = asset.PackageSize;
+                _officialState = asset.OfficialState;
+                _currentSubState = asset.CurrentSubState;
+            }
+
+            internal void Restore(Asset asset)
+            {
+                asset.AssetSource = Asset.Source.Synty;
+                asset.ParentId = 0;
+                asset.Location = _location;
+                asset.OriginalLocation = _originalLocation;
+                asset.OriginalLocationKey = _originalLocationKey;
+                asset.SafeName = _safeName;
+                asset.SafePublisher = _safePublisher;
+                asset.SafeCategory = _safeCategory;
+                asset.Slug = _slug;
+                asset.Version = _version;
+                asset.License = _license;
+                asset.LicenseLocation = _licenseLocation;
+                asset.PackageSize = _packageSize;
+                asset.OfficialState = _officialState;
+                asset.CurrentSubState = _currentSubState;
+                asset.UploadId = 0;
+                asset.Registry = null;
+                asset.Repository = null;
+                asset.PackageSource = 0;
+            }
+        }
+
         private static Asset.OfficialStateType ConvertStateStringToEnum(string state)
         {
             if (string.IsNullOrWhiteSpace(state))
@@ -73,9 +130,10 @@ namespace AssetInventory
                             AssetPurchase purchase = assets.results[i];
 
                             // update all known assets with that foreignId to support updating duplicate assets as well 
-                            List<Asset> existingAssets = DBAdapter.DB.Table<Asset>().Where(a => a.ForeignId == purchase.packageId).ToList();
+                            List<Asset> existingAssets = DBAdapter.DB.Table<Asset>().Where(a => a.ForeignId == purchase.packageId && a.AssetSource != Asset.Source.Synty).ToList();
                             PackageIdentityReconciler.PromoteReappearingPurchaseCacheRows(purchase.packageId, existingAssets);
-                            if (existingAssets.Count == 0 || existingAssets.Count(a => a.AssetSource == Asset.Source.AssetStorePackage || (a.AssetSource == Asset.Source.RegistryPackage && a.ForeignId > 0)) == 0)
+                            if (existingAssets.Count == 0 || existingAssets.Count(a => a.AssetSource == Asset.Source.AssetStorePackage
+                                    || (a.AssetSource == Asset.Source.RegistryPackage && a.ForeignId > 0)) == 0)
                             {
                                 // create new asset on-demand or if only available as a separate custom asset so far
                                 Asset asset = purchase.ToAsset();
@@ -179,13 +237,19 @@ namespace AssetInventory
                     .ToList();
             }
 
-            assets = assets.Where(a => !HasNoIndex(a)).ToList();
+            assets = assets
+                .Where(a => a.AssetSource != Asset.Source.Synty || AI.Config.syntyLinkAssetStoreMetadata)
+                .Where(a => a.AssetSource == Asset.Source.Synty || !HasNoIndex(a))
+                .ToList();
             return await FetchAssetsDetailsInternal(assets);
         }
 
         public async Task<bool> FetchAssetsDetails(List<Asset> assets, bool forceUpdate = false, bool resetEtag = false)
         {
-            assets = assets?.Where(a => !HasNoIndex(a)).ToList() ?? new List<Asset>();
+            assets = assets?
+                .Where(a => a.AssetSource != Asset.Source.Synty || AI.Config.syntyLinkAssetStoreMetadata)
+                .Where(a => a.AssetSource == Asset.Source.Synty || !HasNoIndex(a))
+                .ToList() ?? new List<Asset>();
 
             if (forceUpdate)
             {
@@ -219,7 +283,7 @@ namespace AssetInventory
             {
                 int assetIndex = i;
                 Asset asset = assets[assetIndex];
-                if (HasNoIndex(asset)) continue;
+                if (HasNoIndex(asset) && asset.AssetSource != Asset.Source.Synty) continue;
                 int id = asset.ForeignId;
                 if (id <= 0) continue;
 
@@ -233,10 +297,15 @@ namespace AssetInventory
                 {
                     try
                     {
+                        bool linkedSynty = currentAsset.AssetSource == Asset.Source.Synty;
+
                         AssetDetails details = await AssetStore.RetrieveAssetDetails(curAssetId, currentAsset.ETag);
                         DateTime oldLastUpdate = currentAsset.LastUpdate;
                         currentAsset = DBAdapter.DB.Find<Asset>(a => a.Id == currentAsset.Id); // reload in case it was changed in the meantime
                         if (currentAsset == null) return;
+                        linkedSynty = currentAsset.AssetSource == Asset.Source.Synty;
+                        if (linkedSynty && (AI.Config == null || !AI.Config.syntyLinkAssetStoreMetadata || currentAsset.ForeignId != curAssetId)) return;
+                        SyntyAuthoritySnapshot syntyAuthority = linkedSynty ? new SyntyAuthoritySnapshot(currentAsset) : null;
                         if (details == null) // happens if unchanged through etag
                         {
                             currentAsset.LastOnlineRefresh = DateTime.Now;
@@ -245,7 +314,7 @@ namespace AssetInventory
                         }
                         currentAsset.LastUpdate = oldLastUpdate;
 
-                        if (!string.IsNullOrEmpty(details.packageName) && currentAsset.AssetSource != Asset.Source.RegistryPackage)
+                        if (!string.IsNullOrEmpty(details.packageName) && currentAsset.AssetSource != Asset.Source.RegistryPackage && currentAsset.AssetSource != Asset.Source.Synty)
                         {
                             // special case of registry packages listed on asset store
                             // registry package could already exist so make sure to only have one entry
@@ -422,6 +491,11 @@ namespace AssetInventory
                             UnityPackageImporter.ApplyHeader(header, currentAsset);
                         }
 
+                        if (linkedSynty)
+                        {
+                            syntyAuthority.Restore(currentAsset);
+                        }
+
                         DBAdapter.DB.Update(currentAsset);
                         PersistMedia(currentAsset, details);
                         ApplyOverrides(currentAsset);
@@ -470,7 +544,10 @@ namespace AssetInventory
                 .Where(a => a.ForeignId > 0 && a.ParentId <= 0)
                 .OrderBy(a => a.LastOnlineRefresh)
                 .ToList();
-            assets = assets.Where(a => !HasNoIndex(a)).ToList();
+            assets = assets
+                .Where(a => a.AssetSource != Asset.Source.Synty || AI.Config.syntyLinkAssetStoreMetadata)
+                .Where(a => a.AssetSource == Asset.Source.Synty || !HasNoIndex(a))
+                .ToList();
 
             // check only those which are outside of refresh window
             if (!forceUpdate)

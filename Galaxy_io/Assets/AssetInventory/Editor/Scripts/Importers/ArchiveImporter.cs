@@ -105,6 +105,7 @@ namespace AssetInventory
             }
             asset.PackageSize = size;
             asset.LastRelease = fInfo.LastWriteTime;
+            if (parent != null) asset.ParentAsset = parent;
             Persist(asset);
 
             // optional preview image in a png file next to the package

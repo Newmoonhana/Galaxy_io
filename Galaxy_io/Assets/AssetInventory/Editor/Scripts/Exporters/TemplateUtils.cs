@@ -8,7 +8,10 @@ using UnityEditor;
 
 namespace AssetInventory
 {
-    public static class TemplateUtils
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class TemplateUtils
     {
         private static string _templateFolder;
 

@@ -17,7 +17,10 @@ using UnityEditor;
 
 namespace CodeStage.PackageToFolder
 {
-	public static class Package2Folder
+#if UNITY_6000_7_OR_NEWER
+	[Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+	public static partial class Package2Folder
 	{
 		///////////////////////////////////////////////////////////////
 		// Delegates and properties with caching for reflection stuff
@@ -124,14 +127,14 @@ namespace CodeStage.PackageToFolder
 		// Unity Editor menus integration
 		///////////////////////////////////////////////////////////////
 
-		[MenuItem("Assets/Import Package/Here...", true)]
+		[MenuItem("Assets/Import Package/Here", true)]
 		private static bool IsImportToFolderCheck()
 		{
 			var selectedFolderPath = GetSelectedFolderPath();
 			return !string.IsNullOrEmpty(selectedFolderPath);
 		}
 
-		[MenuItem("Assets/Import Package/Here...", false)]
+		[MenuItem("Assets/Import Package/Here", false)]
 		private static void Package2FolderCommand()
 		{
 			var packagePath = EditorUtility.OpenFilePanel("Import package ...", "",  "unitypackage");

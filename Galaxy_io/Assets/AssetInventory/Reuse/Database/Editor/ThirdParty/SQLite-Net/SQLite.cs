@@ -442,6 +442,9 @@ namespace SQLite
 	/// An open connection to a SQLite database.
 	/// </summary>
 	[Preserve (AllMembers = true)]
+#if UNITY_6000_7_OR_NEWER
+	[Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
 	public partial class SQLiteConnection : ISQLiteConnection
 	{
 		private bool _open;
@@ -3276,7 +3279,10 @@ namespace SQLite
 		public Dictionary<int, string> EnumValues { get; private set; }
 	}
 
-	static class EnumCache
+#if UNITY_6000_7_OR_NEWER
+	[Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+	static partial class EnumCache
 	{
 		static readonly Dictionary<Type, EnumCacheInfo> Cache = new Dictionary<Type, EnumCacheInfo> ();
 
@@ -3490,6 +3496,9 @@ namespace SQLite
 		}
 	}
 
+#if UNITY_6000_7_OR_NEWER
+	[Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
 	public partial class SQLiteCommand
 	{
 		SQLiteConnection _conn;

@@ -5,7 +5,11 @@ using UnityEditor;
 
 namespace ImpossibleRobert.Common.Editor.Timing
 {
-    public static class EditorTickBridge
+#if UNITY_6000_7_OR_NEWER
+    // EditorApplication owns the registered wrappers. Retaining this map is required so callers can unsubscribe them.
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    public static partial class EditorTickBridge
     {
         static readonly Dictionary<Action, EditorApplication.CallbackFunction> s_Callbacks =
             new Dictionary<Action, EditorApplication.CallbackFunction>();

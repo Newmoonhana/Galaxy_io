@@ -28,7 +28,10 @@ namespace Brain
     /// <summary>
     /// Engine for generating AI captions from images using various backends.
     /// </summary>
-    internal static class CaptionEngine
+#if UNITY_6000_7_OR_NEWER
+    [Unity.Scripting.LifecycleManagement.NoAutoStaticsCleanup]
+#endif
+    internal static partial class CaptionEngine
     {
         /// <summary>
         /// Processes an image file for captioning - handles resizing and format conversion.
