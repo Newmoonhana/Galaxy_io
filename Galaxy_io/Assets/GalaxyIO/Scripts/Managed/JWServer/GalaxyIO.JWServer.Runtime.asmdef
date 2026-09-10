@@ -1,0 +1,16 @@
+{
+    "name": "GalaxyIO.JWServer.Runtime",
+    "rootNamespace": "GalaxyIO.JWServer.Runtime",
+    "references": [
+        "GUID:bf0c03e17bee145429ec5bb6f20b91c4"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
