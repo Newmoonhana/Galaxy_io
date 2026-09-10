@@ -37,6 +37,7 @@ namespace GalaxyIO.DOTS.Client.Systems
             state.RequireForUpdate<GhostCollection>();
             state.RequireForUpdate<GhostSpawnQueue>();
             state.RequireForUpdate<PredictedGhostSpawnList>();
+            state.RequireForUpdate<SpawnedGhostEntityMap>();
         }
 
         [BurstCompile]

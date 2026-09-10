@@ -18,7 +18,7 @@ namespace GalaxyIO.DOTS.Systems
     /// </summary>
     [UpdateInGroup(typeof(PredictedSimulationSystemGroup))]
     [UpdateAfter(typeof(MovementSystemGroup))]
-    public partial class GalaxyIOSystemGroup : ComponentSystemGroup
+    public partial class GalaxyIOSpawnGroup : ComponentSystemGroup
     {
     }
 
@@ -33,10 +33,10 @@ namespace GalaxyIO.DOTS.Systems
 
     /// <summary>
     /// 오브젝트를 파괴하는 시스템 그룹. (e.g. 투사체 지속시간 만료)
-    /// 예측 루프 안에서 파괴한 Entity는 롤백으로 되살릴 수 없어 루프 밖에 둠.
-    /// <see cref="PredictedSimulationSystemGroup"/>이 OrderFirst 그룹이라
-    /// 별도 [UpdateAfter] 없이도 항상 그 뒤에 실행됨.
+    /// 투사체 소멸은 예측 대상이라 틱 단위로 돌아야 함.
     /// </summary>
+    [UpdateInGroup(typeof(PredictedSimulationSystemGroup))]
+    [UpdateAfter(typeof(CollisionDetectionSystemGroup))]
     public partial class DespawnSystemGroup : ComponentSystemGroup
     {
     }
