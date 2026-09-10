@@ -18,6 +18,13 @@ namespace GalaxyIO.Scripts.Editor
 
         private const string LogRoot = OutputRoot + "/Logs";
 
+        // 실행되는 플레이어 창의 크기. 플레이어는 마지막 창 크기를 레지스트리에
+        // 저장하고 Player Settings 의 기본값보다 우선해서 사용하므로,
+        // -screen-width / -screen-height 로 매번 명시해서 덮어씀.
+        private const int ScreenWidth = 1280;
+
+        private const int ScreenHeight = 720;
+
         [MenuItem("Tools/Run Multiplayer/Win64/1 Players")]
         private static void PerformWin64Build1()
         {
@@ -84,7 +91,10 @@ namespace GalaxyIO.Scripts.Editor
             var startInfo = new ProcessStartInfo
             {
                 FileName         = executable,
-                Arguments        = "-logFile \"" + log + "\"",
+                Arguments        = "-logFile \"" + log + "\"" +
+                                   " -screen-width " + ScreenWidth +
+                                   " -screen-height " + ScreenHeight +
+                                   " -screen-fullscreen 0",
                 WorkingDirectory = Path.GetDirectoryName(executable),
                 UseShellExecute  = true,
             };

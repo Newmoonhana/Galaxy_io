@@ -6,7 +6,10 @@ namespace GalaxyIO.DOTS.Components.Projectiles
 {
     /// <summary>
     /// 예측 스폰한 투사체와 서버가 보낸 Ghost를 짝짓는 식별자.
-    /// <see cref="ProjectileSpawnClassificationSystem"/>만 읽음.
+    /// <see cref="SharedProjectileComponent"/>와 분리됨 — 발사체의 ID는
+    /// <see cref="ProjectileSpawnClassificationSystem"/>에서 참조되는데,
+    /// 해당 System은 <see cref="SharedProjectileComponent"/> 의 다른 필드를
+    /// 필요로 하지 않기 때문.
     /// </summary>
     public struct ProjectileSpawnIdComponent : IComponentData
     {

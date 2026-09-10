@@ -16,7 +16,7 @@ namespace GalaxyIO.DOTS.Systems
     /// 클라이언트와 서버가 같은 틱에 각자 투사체를 만들고
     /// <see cref="ProjectileSpawnClassificationSystem"/>이 둘을 짝지음.
     /// </summary>
-    [UpdateInGroup(typeof(GalaxyIOSystemGroup))]
+    [UpdateInGroup(typeof(GalaxyIOSpawnGroup))]
     public partial struct PlayerTurretFireSystem : ISystem
     {
         public void OnCreate(ref SystemState state)
@@ -50,14 +50,15 @@ namespace GalaxyIO.DOTS.Systems
             uint spawnTick = networkTime.ServerTick.SerializedData;
 
             foreach (
-                var (transform, inputRequest, movement, owner, turrets) in
+                var (transform, inputRequest, movement, owner, delay, turrets, spaceship) in
                     SystemAPI.Query<
                         RefRO<LocalTransform>,
                         RefRO<PlayerInputComponent>,
                         RefRO<SpaceshipMovementComponent>,
                         RefRO<GhostOwner>,
+                        RefRO<CommandDataInterpolationDelay>,
                         DynamicBuffer<TurretElement>
-                    >().WithAll<Simulate>()
+                    >().WithAll<Simulate>().WithEntityAccess()
             ) {
                 // 발사할 때만 commandBuffer 생성.
                 var commandBuffer = inputRequest.ValueRO.TurretTriggered
@@ -102,7 +103,8 @@ namespace GalaxyIO.DOTS.Systems
                     uint spawnId = math.hash(new uint3((uint)owner.ValueRO.NetworkId, spawnTick, (uint)i));
 
                     // 터렛의 로컬 좌표를 월드 좌표로 합성. 원본 Transform은 수정하지 않음.
-                    LocalTransform muzzleTransform = transform.ValueRO.TransformTransform(turret.MuzzleLocation);
+                    LocalTransform spaceshipTransform = transform.ValueRO;
+                    LocalTransform muzzleTransform = spaceshipTransform.TransformTransform(turret.MuzzleLocation);
 
                     // 탄퍼짐
                     if (turret.Spread > 0.0F)
@@ -118,6 +120,13 @@ namespace GalaxyIO.DOTS.Systems
                     // 투사체가 쏜 우주선과 같은 타임라인에 머물게 함. (OwnerPredicted)
                     commandBuffer.SetComponent(projectile, new GhostOwner { NetworkId = owner.ValueRO.NetworkId });
                     commandBuffer.SetComponent(projectile, new ProjectileSpawnIdComponent { Value = spawnId });
+
+                    // 발사한 우주선과 그 시점의 보간 지연을 기록.
+                    // 나머지 값은 프리팹 베이킹 결과를 그대로 씀.
+                    var shared = SystemAPI.GetComponent<SharedProjectileComponent>(turret.ProjectilePrefab);
+                    shared.Owner = spaceship;
+                    shared.InterpolationDelay = delay.ValueRO.Delay;
+                    commandBuffer.SetComponent(projectile, shared);
 
                     // 기수 방향으로 나가는 직진 투사체는 우주선의 속력을 물려받음.
                     if (SystemAPI.HasComponent<StraightforwardProjectileComponent>(turret.ProjectilePrefab))

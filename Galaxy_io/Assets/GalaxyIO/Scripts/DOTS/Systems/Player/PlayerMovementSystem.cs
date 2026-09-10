@@ -1,8 +1,7 @@
-﻿using GalaxyIO.DOTS.Components;
-using GalaxyIO.DOTS.Client.Components;
+﻿using GalaxyIO.DOTS.Client.Components;
+using GalaxyIO.DOTS.Components;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.NetCode;
 using Unity.Transforms;
 using UnityEngine;
 
