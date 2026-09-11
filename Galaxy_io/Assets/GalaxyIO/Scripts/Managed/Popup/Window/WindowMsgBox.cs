@@ -1,11 +1,11 @@
+using Newmoonhana.Runtime.Tools.PopupUI.Window;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 namespace GalaxyIO.Tools.PopupUI.Window
 {
-    public class WindowMsgBox : UIBehaviour
+    public class WindowMsgBox : WindowBase
     {
         [SerializeField] private TMP_Text label_txt;
         [SerializeField] private TMP_Text msg_txt;

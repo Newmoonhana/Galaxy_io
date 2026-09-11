@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 
 namespace GalaxyIO.Tools.PopupUI.Popup
 {
-    public class PopupMessageBox : UIBehaviour, IPopup
+    public class PopupMessageBox : PopupBase
     {
         private WindowMsgBox msgBox_win;
         
@@ -14,6 +14,13 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             base.Awake();
 
             msgBox_win = transform.GetComponentInChildren<WindowMsgBox>();
+        }
+        
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            msgBox_win?.Dispose();
+            msgBox_win = null;
         }
     }
 }

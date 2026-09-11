@@ -16,7 +16,7 @@ MonoBehaviour:
   m_GUID: 01f568d22c688ac4f929e001526db059
   m_SerializeEntries:
   - m_GUID: 5b74ebed8b381a94193d59bbf01d3caf
-    m_Address: PopupMsgBox
+    m_Address: Popup_MsgBox
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
