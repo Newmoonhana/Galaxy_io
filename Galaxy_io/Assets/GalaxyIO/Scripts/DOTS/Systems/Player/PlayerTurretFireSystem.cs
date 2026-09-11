@@ -2,6 +2,7 @@
 using GalaxyIO.DOTS.Client.Systems;
 using GalaxyIO.DOTS.Components;
 using GalaxyIO.DOTS.Components.Projectiles;
+using GalaxyIO.DOTS.Spaceship;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -60,6 +61,13 @@ namespace GalaxyIO.DOTS.Systems
                         DynamicBuffer<TurretElement>
                     >().WithAll<Simulate>().WithEntityAccess()
             ) {
+                // 기수 방향으로 나아가는 성분만 투사체에 물려줌.
+                // 호버링으로 옆으로 흐르는 성분까지 더하면 총구 방향과 어긋난 가속이 붙음.
+                float forwardSpeed = math.dot(
+                    movement.ValueRO.DeltaMovement,
+                    math.normalizesafe(SpaceshipHeading.FromRotation(transform.ValueRO.Rotation), float2.zero)
+                );
+
                 // 발사할 때만 commandBuffer 생성.
                 var commandBuffer = inputRequest.ValueRO.TurretTriggered
                     ? SystemAPI
@@ -136,7 +144,7 @@ namespace GalaxyIO.DOTS.Systems
 
                         if (straightforward.ReflectOwnerVelocity)
                         {
-                            straightforward.Speed += movement.ValueRO.Speed;
+                            straightforward.Speed += forwardSpeed;
                             commandBuffer.SetComponent(projectile, straightforward);
                         }
                     }

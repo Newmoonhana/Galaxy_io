@@ -18,6 +18,18 @@ namespace GalaxyIO.DOTS.Authoring
         // 월드 좌표 상 이동속도
         public float Speed;
 
+        // 호버링(WASD) 최대 이동속도
+        [Min(0.0F)]
+        public float HoveringSpeed = 10.0F;
+
+        // 호버링 가속도. 작을수록 옆으로 미끄러지듯 붙음.
+        [Min(0.0F)]
+        public float HoveringAcceleration = 40.0F;
+
+        // 호버링 감속도. WASD를 뗐을 때 초당 줄어드는 속도.
+        [Min(0.0F)]
+        public float HoveringDeceleration = 60.0F;
+
         // 가속도
         public float Acceleration;
 
@@ -64,13 +76,7 @@ namespace GalaxyIO.DOTS.Authoring
 
             AddComponent(entity, new SpaceshipMovementComponent
             {
-                MaxSpeed        = authoring.Speed,
-                Speed           = 0.0F,
-                Acceleration    = authoring.Acceleration,
-                Deceleration    = authoring.Deceleration,
-                Maneuver        = authoring.Maneuver,
-                ManeuverPenalty = authoring.ManeuverPenalty,
-                Forward         = new float2(1.0F, 0.0F)
+                DeltaMovement = float2.zero
             });
 
             var buffer = AddBuffer<TurretElement>(entity);

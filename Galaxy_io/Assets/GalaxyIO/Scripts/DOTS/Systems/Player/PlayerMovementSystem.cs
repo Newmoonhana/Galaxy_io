@@ -1,17 +1,18 @@
 ﻿using GalaxyIO.DOTS.Client.Components;
 using GalaxyIO.DOTS.Components;
+using GalaxyIO.DOTS.Spaceship;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using UnityEngine;
 
 namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
-    /// <see cref="PlayerInputComponent"/>를 읽어들여 플레이어 Spaceship의 기수 방향과 속력을
-    /// Update하는 시스템. 클라이언트에서 먼저 업데이트되고 서버가 나중에 검증함.
+    /// <see cref="PlayerInputComponent"/>를 읽어들여 플레이어 Spaceship의 기수 회전과
+    /// 이동 벡터를 만드는 시스템. 클라이언트에서 먼저 업데이트되고 서버가 나중에 검증함.
     /// <p/>
-    /// WASD와 마우스 커서는 방향 제어만 담당하고, 속력은 가속 키가 담당함.
+    /// 기수 방향은 마우스 커서, 전진 속력은 가속 키(비행 모드),
+    /// 기수와 무관한 평행 이동은 WASD(호버링 모드)가 담당함.
     /// </summary>
     [UpdateInGroup(typeof(MovementSystemGroup))]
     public partial struct PlayerMovementSystem : ISystem
@@ -24,51 +25,50 @@ namespace GalaxyIO.DOTS.Systems
             state.RequireForUpdate<PlayerInputComponent>();
         }
 
-        // 플레이어 입력 > 우주선의 Forward, Velocity 수정
+        // 플레이어 입력 > 우주선의 기수 회전, DeltaMovement 수정
         public void OnUpdate(ref SystemState state)
         {
             foreach (
-                var (transform, inputRequest, movementComponent) in
+                var (transform, inputRequest, movement, playerMovement) in
                 SystemAPI
-                    .Query<RefRO<LocalTransform>, RefRO<PlayerInputComponent>, RefRW<SpaceshipMovementComponent>>()
+                    .Query<
+                        RefRW<LocalTransform>,
+                        RefRO<PlayerInputComponent>,
+                        RefRW<SpaceshipMovementComponent>,
+                        RefRW<PlayerSpaceshipMovementComponent>
+                    >()
                     .WithAll<Simulate>()
             )
             {
                 float deltaTime = SystemAPI.Time.DeltaTime;
-                Vector2 wasdMove = inputRequest.ValueRO.MoveArrows;
-                float2 desiredDirection;
+                bool accelerating = inputRequest.ValueRO.AccelerationTriggered;
 
-                // WASD 방향 제어
-                if (wasdMove != Vector2.zero)
-                {
-                    desiredDirection = new float2(wasdMove.x, wasdMove.y);
-                }
-                else // 마우스 커서 방향 제어
-                {
-                    float2 cursorPos = inputRequest.ValueRO.MouseCursor;
-                    desiredDirection = cursorPos - transform.ValueRO.Position.xy;
+                // 기수 방향은 항상 마우스 커서가 잡음.
+                float2 desiredDirection = inputRequest.ValueRO.MouseCursor - transform.ValueRO.Position.xy;
 
-                    // 커서가 기체에 겹치면 방향이 튀므로 방향 제어 입력 없음으로 취급.
-                    if (math.lengthsq(desiredDirection) < CursorDeadzone * CursorDeadzone)
-                    {
-                        desiredDirection = float2.zero;
-                    }
+                // 커서가 기체에 겹치면 방향이 튀므로 방향 제어 입력 없음으로 취급.
+                if (math.lengthsq(desiredDirection) < CursorDeadzone * CursorDeadzone)
+                {
+                    desiredDirection = float2.zero;
                 }
 
-                float currentSpeed = movementComponent.ValueRO.Speed;
-                float maxSpeed = movementComponent.ValueRO.MaxSpeed;
+                float currentSpeed = playerMovement.ValueRO.Speed;
+                float maxSpeed = playerMovement.ValueRO.MaxSpeed;
 
                 // 가속 키를 누르면 MaxSpeed로, 떼면 0으로 접근.
-                bool accelerating = inputRequest.ValueRO.AccelerationTriggered;
                 float desiredSpeed = accelerating ? maxSpeed : 0.0F;
                 float maxSpeedDelta = deltaTime * (accelerating
-                    ? movementComponent.ValueRO.Acceleration
-                    : movementComponent.ValueRO.Deceleration);
+                    ? playerMovement.ValueRO.Acceleration
+                    : playerMovement.ValueRO.Deceleration);
 
                 float nextSpeed = currentSpeed + math.clamp(desiredSpeed - currentSpeed, -maxSpeedDelta, maxSpeedDelta);
 
                 // 회전: 목표 방향까지 Maneuver 한계 내에서 접근.
-                float2 currentForward = math.normalizesafe(movementComponent.ValueRO.Forward, new float2(1.0F, 0.0F));
+                float2 currentForward = math.normalizesafe(
+                    SpaceshipHeading.FromRotation(transform.ValueRO.Rotation),
+                    new float2(1.0F, 0.0F)
+                );
+
                 float2 desiredForward = math.normalizesafe(desiredDirection, currentForward);
 
                 float deltaAngle = math.atan2(
@@ -80,24 +80,48 @@ namespace GalaxyIO.DOTS.Systems
                 float speedRatio = maxSpeed > math.EPSILON ? math.saturate(currentSpeed / maxSpeed) : 0.0F;
                 float maneuverScale = math.lerp(
                     1.0F,
-                    1.0F - math.saturate(movementComponent.ValueRO.ManeuverPenalty),
+                    1.0F - math.saturate(playerMovement.ValueRO.ManeuverPenalty),
                     speedRatio
                 );
 
-                float maxAngleDelta = math.radians(movementComponent.ValueRO.Maneuver) * maneuverScale * deltaTime;
+                float maxAngleDelta = math.radians(playerMovement.ValueRO.Maneuver) * maneuverScale * deltaTime;
 
                 // 실제 회전 각도
                 float appliedAngle = math.clamp(deltaAngle, -maxAngleDelta, maxAngleDelta);
                 math.sincos(appliedAngle, out float sin, out float cos);
 
-                movementComponent.ValueRW.Forward = new float2(
+                float2 nextForward = new float2(
                     currentForward.x * cos - currentForward.y * sin,
                     currentForward.x * sin + currentForward.y * cos
                 );
 
-                // 선회로 인한 속력 제동 TODO: 선회 제동 유지? 있으면 도그파이팅보다 강강술래게임 되버림
-                // float turnBrake = math.saturate(math.abs(appliedAngle) * movementComponent.ValueRO.TurnBrake);
-                movementComponent.ValueRW.Speed = nextSpeed;// * (1.0F - turnBrake);
+                // 호버링: 기수와 무관하게 WASD 합산 방향으로 평행 이동함.
+                // 비행 모드가 우선이라, 가속 중이거나 비행 속력이 아직 호버링 속력보다
+                // 빠른 동안에는 WASD를 (0, 0)으로 봄.
+                float hoveringSpeed = playerMovement.ValueRO.HoveringSpeed;
+
+                float2 desiredHovering = accelerating || nextSpeed > hoveringSpeed
+                    ? float2.zero
+                    : math.normalizesafe(inputRequest.ValueRO.MoveArrows, float2.zero) * hoveringSpeed;
+
+                // 목표 호버링 속도까지 가감속 한계 내에서 접근. 방향 전환도 같은 한계를 지나므로
+                // 반대 키를 눌러도 한 프레임에 뒤집히지 않음.
+                float2 currentHovering = playerMovement.ValueRO.HoveringVelocity;
+                float2 hoveringDelta = desiredHovering - currentHovering;
+                float hoveringDeltaLength = math.length(hoveringDelta);
+
+                float maxHoveringDelta = deltaTime * (math.lengthsq(desiredHovering) > math.EPSILON
+                    ? playerMovement.ValueRO.HoveringAcceleration
+                    : playerMovement.ValueRO.HoveringDeceleration);
+
+                float2 nextHovering = hoveringDeltaLength > maxHoveringDelta
+                    ? currentHovering + hoveringDelta * (maxHoveringDelta / hoveringDeltaLength)
+                    : desiredHovering;
+
+                playerMovement.ValueRW.Speed = nextSpeed;
+                playerMovement.ValueRW.HoveringVelocity = nextHovering;
+                transform.ValueRW.Rotation = SpaceshipHeading.ToRotation(nextForward);
+                movement.ValueRW.DeltaMovement = nextForward * nextSpeed + nextHovering;
             }
         }
     }

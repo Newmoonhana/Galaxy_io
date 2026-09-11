@@ -125,8 +125,8 @@ namespace GalaxyIO.DOTS.Systems
                 Entity         = entity,
                 Collider       = ColliderOverlap.ToWorld(collider, transform),
                 OwnerNetworkId = owner.NetworkId,
-                Direction      = math.normalizesafe(movement.Forward, float2.zero),
-                Speed          = movement.Speed,
+                Direction      = math.normalizesafe(movement.DeltaMovement, float2.zero),
+                Speed          = math.length(movement.DeltaMovement),
             });
         }
     }
@@ -270,7 +270,8 @@ namespace GalaxyIO.DOTS.Systems
             in SpaceshipMovementComponent movement)
         {
             ColliderWorld world = ColliderOverlap.ToWorld(collider, transform);
-            float2 direction = math.normalizesafe(movement.Forward, float2.zero);
+            float2 direction = math.normalizesafe(movement.DeltaMovement, float2.zero);
+            float speed = math.length(movement.DeltaMovement);
             float2 push = float2.zero;
 
             for (int i = 0; i < Spaceships.Length; i++)
@@ -291,7 +292,7 @@ namespace GalaxyIO.DOTS.Systems
                 Damages.Enqueue(new SpaceshipDamage
                 {
                     Spaceship = entity,
-                    Amount    = movement.Speed * Spaceships[i].Speed * closing,
+                    Amount    = speed * Spaceships[i].Speed * closing,
                 });
 
                 // 깊이의 절반씩 서로 물러나면 딱 맞닿음.
