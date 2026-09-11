@@ -1,5 +1,7 @@
 ﻿using GalaxyIO.DOTS.Client.Components;
+using GalaxyIO.DOTS.Components;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 
 namespace GalaxyIO.DOTS.Authoring
@@ -17,6 +19,28 @@ namespace GalaxyIO.DOTS.Authoring
         {
             Entity entity = GetEntity(TransformUsageFlags.Dynamic);
             AddComponent<PlayerInputComponent>(entity);
+
+            SpaceshipAuthoring spaceship = GetComponent<SpaceshipAuthoring>();
+
+            // 우주선이 아닌 오브젝트에도 붙을 수 있으므로 스펙이 없으면 비행 모델은 생략함.
+            if (spaceship == null)
+            {
+                return;
+            }
+
+            AddComponent(entity, new PlayerSpaceshipMovementComponent
+            {
+                MaxSpeed             = spaceship.Speed,
+                HoveringSpeed        = spaceship.HoveringSpeed,
+                HoveringAcceleration = spaceship.HoveringAcceleration,
+                HoveringDeceleration = spaceship.HoveringDeceleration,
+                Speed                = 0.0F,
+                HoveringVelocity     = float2.zero,
+                Acceleration         = spaceship.Acceleration,
+                Deceleration         = spaceship.Deceleration,
+                Maneuver             = spaceship.Maneuver,
+                ManeuverPenalty      = spaceship.ManeuverPenalty,
+            });
         }
     }
 }
