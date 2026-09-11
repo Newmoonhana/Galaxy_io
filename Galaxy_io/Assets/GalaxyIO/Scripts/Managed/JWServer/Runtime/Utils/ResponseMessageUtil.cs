@@ -1,7 +1,6 @@
-using GalaxyIO.JWServer.Runtime.Message;
-using UnityEngine;
 
-namespace GalaxyIO.JWServer.Runtime.Message
+
+namespace JWServer.Runtime.Utils
 {
     public static class ResponseMsgUtil
     {

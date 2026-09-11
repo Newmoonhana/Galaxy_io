@@ -1636,7 +1636,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Enter
+  m_text: Cancel
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e81b5d9a8b1957447bc77c40597b80a2, type: 2}
   m_sharedMaterial: {fileID: -1909263686767613974, guid: e81b5d9a8b1957447bc77c40597b80a2, type: 2}
@@ -2062,8 +2062,9 @@ MonoBehaviour:
   lineHeight: 36
   signIn_btn: {fileID: 2003672949}
   signUp_btn: {fileID: 474911726}
-  idInputField: {fileID: 1372087756}
-  pwInputField: {fileID: 831077079}
+  id_if: {fileID: 1372087756}
+  pw_if: {fileID: 831077079}
+  errorMsg_txt: {fileID: 917215972}
 --- !u!1 &704170272
 GameObject:
   m_ObjectHideFlags: 0
@@ -2559,7 +2560,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 125, y: 150}
+  m_AnchoredPosition: {x: -125, y: 150}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &836193034
@@ -3860,6 +3861,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Tools.PopupUI.Window.WindowSignUp
   padding: 18
   lineHeight: 36
+  enter_btn: {fileID: 1558647469}
+  cancel_btn: {fileID: 836193034}
+  id_if: {fileID: 1885853642}
+  pw_if: {fileID: 1990387051}
+  pwValidate_if: {fileID: 1476128769}
+  errorMsg_txt: {fileID: 1798476141}
 --- !u!1 &1344565606
 GameObject:
   m_ObjectHideFlags: 0
@@ -4836,7 +4843,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: -125, y: 150}
+  m_AnchoredPosition: {x: 125, y: 150}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1558647469

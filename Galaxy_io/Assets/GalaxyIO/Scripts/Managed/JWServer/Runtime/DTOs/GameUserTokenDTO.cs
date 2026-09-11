@@ -1,8 +1,7 @@
 using System;
 using Newmoonhana.Runtime.Utils.DEBUG;
-using UnityEngine;
 
-namespace GalaxyIO.JWServer.Runtime.DTO
+namespace JWServer.Runtime.DTO
 {
     /// <summary>
     /// 인증 정보(액세스 토큰, 리프레시 토큰 보유)<p/>

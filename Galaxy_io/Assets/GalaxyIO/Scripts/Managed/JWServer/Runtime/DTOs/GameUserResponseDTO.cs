@@ -1,8 +1,7 @@
 using System;
 using Newmoonhana.Runtime.Utils.DEBUG;
-using UnityEngine;
 
-namespace GalaxyIO.JWServer.Runtime.DTO
+namespace JWServer.Runtime.DTO
 {
     /// <summary>
     /// JW 게임 서버에서 응답을 받을 때의 DTO (한번에 받아오기 때문에 멤버 변수가 많음)<p/>

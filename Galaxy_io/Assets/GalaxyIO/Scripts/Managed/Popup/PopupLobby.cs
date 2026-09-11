@@ -1,4 +1,5 @@
 using GalaxyIO.Tools.PopupUI.Window;
+using Newmoonhana.Runtime.Tools.Scene;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -21,7 +22,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             signInWindow = transform.GetComponentInChildren<WindowSignIn>();
             signUpWindow = transform.GetComponentInChildren<WindowSignUp>();
             
-            
+            SceneStateManager.LoadSceneInst("S_Game", 1000);
         }
     }
 }

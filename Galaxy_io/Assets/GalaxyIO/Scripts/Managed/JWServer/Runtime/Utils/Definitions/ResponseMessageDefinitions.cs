@@ -1,7 +1,8 @@
-using UnityEngine;
 
-namespace GalaxyIO.JWServer.Runtime.Message
+
+namespace JWServer.Runtime.Utils
 {
+    // 서버 계열 메세지고, string 값으로 오류 타입을 받아오기 때문에 string끼리 비교 방식을 택함 
     public static class RefreshTokenMsg
     {
         public const string OK = "OK";

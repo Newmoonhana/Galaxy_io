@@ -1,10 +1,10 @@
 using System.IO;
-using GalaxyIO.JWServer.Runtime.DTO;
-using GalaxyIO.JWServer.Runtime.Message;
+using JWServer.Runtime.DTO;
+using JWServer.Runtime.Utils;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace GalaxyIO.JWServer.Runtime.Login
+namespace JWServer.Runtime.Login
 {
     public static class LoginManager
     {
@@ -156,7 +156,7 @@ namespace GalaxyIO.JWServer.Runtime.Login
 
                 if (ResponseMsgUtil.IsOk(response.responseMessage))
                 {
-                    sUserTokenData = new(response);
+                    sUserTokenData = new GameUserTokenDTO(response);
                     sIsOnline = true;
                     SaveAuth();
                 }
