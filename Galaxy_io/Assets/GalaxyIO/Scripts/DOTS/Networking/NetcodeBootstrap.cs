@@ -13,11 +13,8 @@ namespace GalaxyIO.DOTS.Bootstrap
         // Unity Netcode 포트
         public const ushort Port = 7979;
 
-        /// <summary>
-        /// 클라이언트가 접속할 서버 주소.
-        /// TODO: Dedicated server가 원격 디바이스에서 작동할 시 IP변경
-        /// </summary>
-        public static NetworkEndpoint ServerEndpoint => NetworkEndpoint.LoopbackIpv4.WithPort(Port);
+        // 루프백 버튼이 입력창에 채워 넣을 주소.
+        public const string LoopbackAddress = "127.0.0.1";
 
         public override bool Initialize(string defaultWorldName)
         {

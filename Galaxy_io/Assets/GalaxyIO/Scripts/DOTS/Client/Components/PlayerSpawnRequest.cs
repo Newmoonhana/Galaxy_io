@@ -1,4 +1,5 @@
 ﻿using Unity.Entities;
+using Unity.Networking.Transport;
 
 namespace GalaxyIO.DOTS.Client.Components
 {
@@ -8,5 +9,7 @@ namespace GalaxyIO.DOTS.Client.Components
     /// </summary>
     public struct PlayerSpawnRequest : IComponentData
     {
+        // 접속할 서버 주소. 이미 접속된 뒤의 리스폰 요청은 비워 둠.
+        public NetworkEndpoint Endpoint;
     }
 }
