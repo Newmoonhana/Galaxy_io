@@ -1,5 +1,4 @@
-﻿using GalaxyIO.DOTS.Bootstrap;
-using GalaxyIO.DOTS.Client.Components;
+﻿using GalaxyIO.DOTS.Client.Components;
 using GalaxyIO.DOTS.Components;
 using Unity.Collections;
 using Unity.Entities;
@@ -35,10 +34,19 @@ namespace GalaxyIO.DOTS.Client.Systems
 
         public void OnUpdate(ref SystemState state)
         {
+            PlayerSpawnRequest request = requestQuery.GetSingleton<PlayerSpawnRequest>();
+
             // 접속이 없는 경우: 최초 시도이거나 접속에 실패한 경우.
             // 두 경우 모두 간격을 두고 재시도함.
             if (connectionQuery.IsEmpty)
             {
+                // 리스폰 요청에는 주소가 없음. 접속이 끊긴 상태라면 처리할 수 없으니 버림.
+                if (!request.Endpoint.IsValid)
+                {
+                    state.EntityManager.DestroyEntity(requestQuery);
+                    return;
+                }
+
                 double now = SystemAPI.Time.ElapsedTime;
 
                 if (now < nextAttemptTime)
@@ -50,7 +58,7 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                 SystemAPI.GetSingletonRW<NetworkStreamDriver>()
                     .ValueRW
-                    .Connect(state.EntityManager, NetcodeBootstrap.ServerEndpoint);
+                    .Connect(state.EntityManager, request.Endpoint);
 
                 return;
             }
