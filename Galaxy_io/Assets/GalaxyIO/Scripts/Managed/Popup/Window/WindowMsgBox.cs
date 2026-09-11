@@ -10,7 +10,6 @@ namespace GalaxyIO.Tools.PopupUI.Window
         [SerializeField] private TMP_Text label_txt;
         [SerializeField] private TMP_Text msg_txt;
         [SerializeField] private Button exit_btn;
-        [SerializeField] private GameObject selfScreen;
 
         protected override void OnEnable()
         {
@@ -41,7 +40,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
         public void OnExitPressed()
         {
-            selfScreen.SetActive(false);
+            // TODO -> 팝업 상태 변경
         }
     }
 

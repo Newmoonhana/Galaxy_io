@@ -935,7 +935,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 252008784}
-  - component: {fileID: 252008785}
   - component: {fileID: 252008783}
   - component: {fileID: 252008782}
   - component: {fileID: 252008781}
@@ -1021,10 +1020,8 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1112873849053136883}
-  - {fileID: 792678350}
-  - {fileID: 697516543}
-  - {fileID: 1284812329}
+  - {fileID: 1692228407}
+  - {fileID: 545601048}
   m_Father: {fileID: 1181504924}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -1032,18 +1029,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
---- !u!114 &252008785
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 252008780}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4dcc8081349abb14d8480bfdca5a2bf4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Tools.PopupUI.Popup.PopupLobbyController
 --- !u!1 &273653849
 GameObject:
   m_ObjectHideFlags: 0
@@ -1716,6 +1701,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 507678589}
   m_CullTransparentMesh: 1
+--- !u!224 &545601048 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+  m_PrefabInstance: {fileID: 3229883407591467255}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &615963314
 GameObject:
   m_ObjectHideFlags: 0
@@ -2001,7 +1991,7 @@ RectTransform:
   - {fileID: 1717087529}
   - {fileID: 692956149}
   - {fileID: 1198606941}
-  m_Father: {fileID: 252008784}
+  m_Father: {fileID: 1692228407}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
@@ -2271,7 +2261,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 615963315}
-  m_Father: {fileID: 252008784}
+  m_Father: {fileID: 1692228407}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
@@ -3802,7 +3792,7 @@ RectTransform:
   - {fileID: 1721765504}
   - {fileID: 1542789870}
   - {fileID: 91629034}
-  m_Father: {fileID: 252008784}
+  m_Father: {fileID: 1692228407}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
@@ -5086,6 +5076,58 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1573964276}
   m_CullTransparentMesh: 1
+--- !u!1 &1692228406
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1692228407}
+  - component: {fileID: 1692228408}
+  m_Layer: 5
+  m_Name: Popup Login
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1692228407
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1692228406}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1112873849053136883}
+  - {fileID: 792678350}
+  - {fileID: 697516543}
+  - {fileID: 1284812329}
+  m_Father: {fileID: 252008784}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1692228408
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1692228406}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4dcc8081349abb14d8480bfdca5a2bf4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Tools.PopupUI.Popup.PopupLobbyController
 --- !u!1 &1717087528
 GameObject:
   m_ObjectHideFlags: 0
@@ -6637,13 +6679,110 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 252008784}
+  m_Father: {fileID: 1692228407}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1001 &3229883407591467255
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 252008784}
+    m_Modifications:
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_Pivot.x
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_Pivot.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_AnchorMax.x
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_AnchorMax.y
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_AnchorMin.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_AnchorMin.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_SizeDelta.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_AnchoredPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1904972668195748966, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3501242071640560468, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
+      propertyPath: m_Name
+      value: Popup Msg Box
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 5b74ebed8b381a94193d59bbf01d3caf, type: 3}
 --- !u!114 &3921440651785963679
 MonoBehaviour:
   m_ObjectHideFlags: 0
