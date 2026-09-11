@@ -2062,8 +2062,8 @@ MonoBehaviour:
   lineHeight: 36
   signIn_btn: {fileID: 2003672949}
   signUp_btn: {fileID: 474911726}
-  enterId: {fileID: 0}
-  enterPw: {fileID: 0}
+  idInputField: {fileID: 1372087756}
+  pwInputField: {fileID: 831077079}
 --- !u!1 &704170272
 GameObject:
   m_ObjectHideFlags: 0
@@ -2235,7 +2235,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 200}
+  m_AnchoredPosition: {x: 0, y: 100}
   m_SizeDelta: {x: 550, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &792678349
@@ -3785,7 +3785,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1284812329
 RectTransform:
   m_ObjectHideFlags: 0
