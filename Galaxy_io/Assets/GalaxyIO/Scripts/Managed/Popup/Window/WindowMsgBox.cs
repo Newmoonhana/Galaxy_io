@@ -1,6 +1,7 @@
 using Newmoonhana.Runtime.Tools.PopupUI.Window;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace GalaxyIO.Tools.PopupUI.Window
@@ -10,19 +11,39 @@ namespace GalaxyIO.Tools.PopupUI.Window
         [SerializeField] private TMP_Text label_txt;
         [SerializeField] private TMP_Text msg_txt;
         [SerializeField] private Button exit_btn;
+        
+        private UnityEvent closePopup;
+        
+        protected override void Awake()
+        {
+            base.Awake();
+            closePopup = new UnityEvent();
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            closePopup?.RemoveAllListeners();
+            closePopup = null;
+        }
 
         protected override void OnEnable()
         {
             base.OnEnable();
             
-            exit_btn.onClick.AddListener(OnExitPressed);
+            exit_btn.onClick.AddListener(OnExitBtnPress);
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
             
-            exit_btn.onClick.RemoveListener(OnExitPressed);
+            exit_btn.onClick.RemoveListener(OnExitBtnPress);
+        }
+        
+        public void AddListener(UnityAction _action)
+        {
+            closePopup.AddListener(_action);
         }
 
         public void SetTitleText(string title)
@@ -38,9 +59,9 @@ namespace GalaxyIO.Tools.PopupUI.Window
             textMeshPro.ForceMeshUpdate();
         }
 
-        public void OnExitPressed()
+        public void OnExitBtnPress()
         {
-            // TODO -> 팝업 상태 변경
+            closePopup?.Invoke();
         }
     }
 

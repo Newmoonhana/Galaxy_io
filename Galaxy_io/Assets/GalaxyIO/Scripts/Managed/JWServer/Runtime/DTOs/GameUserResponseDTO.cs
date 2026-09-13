@@ -82,7 +82,9 @@ namespace JWServer.Runtime.DTO
         public static bool operator !=(GameUserResponseDTO a, GameUserResponseDTO b) => !(a.Equals(b));
         public bool IsVaild()
         {
-            DebugLog.LogError("사용 금지 함수 호출!");
+            if (!string.IsNullOrEmpty(responseMessage)) return true;
+            if (!string.IsNullOrEmpty(accessToken)) return true;
+            if (!string.IsNullOrEmpty(refreshToken)) return true;
             return false;
         }
     }

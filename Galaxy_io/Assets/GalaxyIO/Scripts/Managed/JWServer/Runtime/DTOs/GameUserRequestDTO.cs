@@ -136,12 +136,13 @@ namespace JWServer.Runtime.DTO
             if (memberType is < 0 or > 1) return false;
             if (string.IsNullOrEmpty(actionType) || (actionType != "JOIN" && actionType != "LOGIN")) return false;
             if (string.IsNullOrEmpty(memberId)) return false;
+            // TODO -> 비번 6자리 미만 조건 밖으로?
             if (string.IsNullOrEmpty(memberPw) || memberPw.Length < 6) return false;
             if (string.IsNullOrEmpty(memberName)) return false;
             // TODO -> ci가 개발단계에선 Optional이라 해서 일단 이렇게 구현해놓음. 추후 작동 방식에 따라 조건식 구조 변경 필요.
-            if (NmhnConfigData.HasInstance && NmhnConfigData.Instance.ModeType == MODETYPE.BUILD && string.IsNullOrEmpty(ci))
+            if (NmhnConfigData.Instance.ModeType == MODETYPE.BUILD && string.IsNullOrEmpty(ci))
                 return false;
-            
+            DebugLog.Log($"data = {gameCode} / {memberType} / {actionType} / {memberId} / {memberPw} / {memberName} / {ci}");
             return true;
         }
     }

@@ -1,6 +1,7 @@
 using System.IO;
 using JWServer.Runtime.DTO;
 using JWServer.Runtime.Utils;
+using Newmoonhana.Runtime.Utils.DEBUG;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -113,23 +114,25 @@ namespace JWServer.Runtime.Login
         {
             const string gameUserRequestEndpoint = "/api/account/gameuser";
             string postData = JsonUtility.ToJson(request);
-
+            
             // 웹 요청 전송 — using-IDisposable 실패시 자동으로 Close
             using (UnityWebRequest req = UnityWebRequest.Post(AUTH_SERVER + gameUserRequestEndpoint, postData, CONTENT_TYPE_JSON))
             {
                 await req.SendWebRequest(); // 응답 대기 — 비동기 처리
                 GameUserResponseDTO response = DeserializeJsonResponse(req);
-
+                DebugLog.Log(req.result);   //ProtocolError
+                DebugLog.Log(response.responseMessage);
                 // 성공 — Access/Refresh 토큰 저장. 앞으로의 서버 통신은 Access토큰을 통해 이루어짐.
                 if (ResponseMsgUtil.IsOk(response.responseMessage))
                 {
                     sUserTokenData = new GameUserTokenDTO(response);
+                    DebugLog.Log($"access = {response.accessToken} refresh = {response.refreshToken}");
+                    DebugLog.Log($"access = {sUserTokenData.accessToken} refresh = {sUserTokenData.refreshToken}");
                     sIsOnline = true;
                     SaveAuth();
                 }
                 return response;
             }
-            
         }
         
         /// <summary>

@@ -3,6 +3,7 @@ using JWServer.Runtime.DTO;
 using JWServer.Runtime.Login;
 using JWServer.Runtime.Utils;
 using Newmoonhana.Runtime.Tools.PopupUI.Window;
+using Newmoonhana.Runtime.Tools.Scene;
 using Newmoonhana.Runtime.Utils;
 using Newmoonhana.Runtime.Utils.DEBUG;
 using TMPro;
@@ -26,6 +27,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             base.Awake();
             changeWindow = new UnityEvent<string>();
+        }
+
+        protected override void Start()
+        {
+            base.Start();
+            errorMsg_txt.text = string.Empty;
         }
 
         public override void Dispose()
@@ -120,6 +127,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             // TODO -> 씬 이동 이전 처리 작업?
             
             // TODO -> 싱글씬 이동
+            await SceneStateManager.LoadSceneInst("S_Game", 10);
 
             #endregion
         }

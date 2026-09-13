@@ -1,3 +1,4 @@
+using GalaxyIO.Tools.PopupUI.Popup;
 using JWServer.Runtime.DTO;
 using JWServer.Runtime.Login;
 using JWServer.Runtime.Utils;
@@ -26,6 +27,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             base.Awake();
             changeWindow = new UnityEvent<string>();
+        }
+
+        protected override void Start()
+        {
+            base.Start();
+            errorMsg_txt.text = string.Empty;
         }
 
         public override void Dispose()
@@ -89,16 +96,15 @@ namespace GalaxyIO.Tools.PopupUI.Window
             }
             
             // TODO -> 기다리는 동안의 UI 처리(취소 등 다른 입력 금지, 비주얼 표기 등) 필요
-            GameUserResponseDTO result = await LoginManager.SignUp(
-                new GameUserRequestDTO(
-                    _gameCode: LoginManager.GAME_CODE,
-                    _actionType: "JOIN",
-                    _memberType: 0,
-                    _memberId: id,
-                    _memberPw: pw,
-                    _memberName: "[TEMP] 테스트 유저"
-                )
+            GameUserRequestDTO signUpUserData = new GameUserRequestDTO(
+                _gameCode: LoginManager.GAME_CODE,
+                _actionType: "JOIN",
+                _memberType: 0,
+                _memberId: id,
+                _memberPw: pw,
+                _memberName: "[TEMP] 테스트 유저"
             );
+            GameUserResponseDTO result = await LoginManager.SignUp(signUpUserData);
 
             #region 회원가입 실패
             if (!ResponseMsgUtil.IsOk(result.responseMessage))
@@ -110,9 +116,10 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 // 서버 자체 오류 시 경고창 팝업 호출
                 const string key = "Popup_MsgBox";
                 await AddressableAssetsManager.gameObject_lst.LoadData(key);
-                WindowMsgBox msgBox_win = AddressableAssetsManager.gameObject_lst.GetData(key).Data?
-                    .GetComponent<WindowMsgBox>();
-                if (!msgBox_win)
+                GameObject winObj = Instantiate(AddressableAssetsManager.gameObject_lst.GetData(key).Data, transform.parent);
+                AddressableAssetsManager.gameObject_lst.GetData(key).UnLoad();
+                PopupMessageBox msgBox_popup = winObj?.GetComponent<PopupMessageBox>();
+                if (msgBox_popup == null)
                 {
                     errorMsg_txt.text = "something error...";
                     DebugLog.LogError($"프리팹 {key} 등록 안됨!");
@@ -120,8 +127,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 }
                 
                 // TODO -> 아이디가 이미 서버에 존재할 시 체크하는 지 확인 필요
-                msgBox_win.SetTitleText("Sign Up Failed");
-                msgBox_win.SetMessageText(result.responseMessage);
+                msgBox_popup.Refresh("Sign Up Failed", result.responseMessage);
                 
                 return;
             }
@@ -129,7 +135,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             #region 로그인 성공
             // TODO -> 씬 변경 작업 필요
-            errorMsg_txt.text = "[TEST] 성공!";
+            DebugLog.Log("[TEST] 회원가입 성공!");
+            changeWindow?.Invoke("signIn");
             #endregion
         }
         

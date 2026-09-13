@@ -15,12 +15,29 @@ namespace GalaxyIO.Tools.PopupUI.Popup
 
             msgBox_win = transform.GetComponentInChildren<WindowMsgBox>();
         }
-        
+
+        protected override void Start()
+        {
+            base.Start();
+            msgBox_win.AddListener(Close);
+        }
+
         protected override void OnDestroy()
         {
             base.OnDestroy();
             msgBox_win?.Dispose();
             msgBox_win = null;
+        }
+
+        public void Refresh(string _label, string _responseMessage)
+        {
+            msgBox_win.SetTitleText(_label);
+            msgBox_win.SetMessageText(_responseMessage);
+        }
+
+        public void Close()
+        {
+            Destroy(gameObject);    //자주 호출되는 윈도우가 아니라서 단순 삭제로 처리
         }
     }
 }
