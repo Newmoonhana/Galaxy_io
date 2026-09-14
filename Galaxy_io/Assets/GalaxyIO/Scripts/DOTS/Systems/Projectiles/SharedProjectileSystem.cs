@@ -1,4 +1,4 @@
-﻿using GalaxyIO.DOTS.Components;
+﻿using GalaxyIO.DOTS.Components.Actor;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.NetCode;

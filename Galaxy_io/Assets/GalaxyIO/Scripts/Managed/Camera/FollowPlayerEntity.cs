@@ -1,4 +1,4 @@
-﻿using GalaxyIO.DOTS.Components;
+﻿using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Spaceship;
 using Unity.Collections;
 using Unity.Entities;

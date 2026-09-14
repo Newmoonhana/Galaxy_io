@@ -1,4 +1,4 @@
-﻿using GalaxyIO.DOTS.Components;
+﻿using GalaxyIO.DOTS.Components.Actor;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -10,7 +10,7 @@ namespace GalaxyIO.DOTS.Systems
     /// </summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
-    [UpdateInGroup(typeof(GalaxyIOSpawnGroup))]
+    [UpdateInGroup(typeof(SpawnSystemGroup))]
     public partial struct SpaceshipSpecHandleSystem : ISystem
     {
         [BurstCompile]
@@ -40,7 +40,7 @@ namespace GalaxyIO.DOTS.Systems
 
         private void Execute(ref SpaceshipSpecComponent spec)
         {
-            // 피격 직후에는 수리하지 않음.
+            // 피격 후 일정 시간 동안은 수리하지 않음
             if (spec.RepairCooldown > 0.0F)
             {
                 spec.RepairCooldown -= DeltaTime;

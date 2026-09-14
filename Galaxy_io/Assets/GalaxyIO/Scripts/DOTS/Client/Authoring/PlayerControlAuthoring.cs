@@ -1,4 +1,4 @@
-﻿using GalaxyIO.DOTS.Components;
+﻿using GalaxyIO.DOTS.Client.Components.Singleton;
 using Unity.Entities;
 using UnityEngine;
 using UnityEngine.InputSystem;

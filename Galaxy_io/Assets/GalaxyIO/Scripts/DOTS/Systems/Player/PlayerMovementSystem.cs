@@ -1,5 +1,4 @@
-﻿using GalaxyIO.DOTS.Client.Components;
-using GalaxyIO.DOTS.Components;
+﻿using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Spaceship;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -71,11 +70,6 @@ namespace GalaxyIO.DOTS.Systems
 
                 float2 desiredForward = math.normalizesafe(desiredDirection, currentForward);
 
-                float deltaAngle = math.atan2(
-                    currentForward.x * desiredForward.y - currentForward.y * desiredForward.x,
-                    math.dot(currentForward, desiredForward)
-                );
-
                 // 급선회 방지. 속도가 빠를수록 Maneuver를 감쇄시킴.
                 float speedRatio = maxSpeed > math.EPSILON ? math.saturate(currentSpeed / maxSpeed) : 0.0F;
                 float maneuverScale = math.lerp(
@@ -85,15 +79,7 @@ namespace GalaxyIO.DOTS.Systems
                 );
 
                 float maxAngleDelta = math.radians(playerMovement.ValueRO.Maneuver) * maneuverScale * deltaTime;
-
-                // 실제 회전 각도
-                float appliedAngle = math.clamp(deltaAngle, -maxAngleDelta, maxAngleDelta);
-                math.sincos(appliedAngle, out float sin, out float cos);
-
-                float2 nextForward = new float2(
-                    currentForward.x * cos - currentForward.y * sin,
-                    currentForward.x * sin + currentForward.y * cos
-                );
+                float2 nextForward = SpaceshipHeading.RotateTowards(currentForward, desiredForward, maxAngleDelta);
 
                 // 호버링: 기수와 무관하게 WASD 합산 방향으로 평행 이동함.
                 // 비행 모드가 우선이라, 가속 중이거나 비행 속력이 아직 호버링 속력보다
@@ -104,19 +90,13 @@ namespace GalaxyIO.DOTS.Systems
                     ? float2.zero
                     : math.normalizesafe(inputRequest.ValueRO.MoveArrows, float2.zero) * hoveringSpeed;
 
-                // 목표 호버링 속도까지 가감속 한계 내에서 접근. 방향 전환도 같은 한계를 지나므로
-                // 반대 키를 눌러도 한 프레임에 뒤집히지 않음.
-                float2 currentHovering = playerMovement.ValueRO.HoveringVelocity;
-                float2 hoveringDelta = desiredHovering - currentHovering;
-                float hoveringDeltaLength = math.length(hoveringDelta);
-
-                float maxHoveringDelta = deltaTime * (math.lengthsq(desiredHovering) > math.EPSILON
-                    ? playerMovement.ValueRO.HoveringAcceleration
-                    : playerMovement.ValueRO.HoveringDeceleration);
-
-                float2 nextHovering = hoveringDeltaLength > maxHoveringDelta
-                    ? currentHovering + hoveringDelta * (maxHoveringDelta / hoveringDeltaLength)
-                    : desiredHovering;
+                float2 nextHovering = SpaceshipHovering.Approach(
+                    playerMovement.ValueRO.HoveringVelocity,
+                    desiredHovering,
+                    playerMovement.ValueRO.HoveringAcceleration,
+                    playerMovement.ValueRO.HoveringDeceleration,
+                    deltaTime
+                );
 
                 playerMovement.ValueRW.Speed = nextSpeed;
                 playerMovement.ValueRW.HoveringVelocity = nextHovering;

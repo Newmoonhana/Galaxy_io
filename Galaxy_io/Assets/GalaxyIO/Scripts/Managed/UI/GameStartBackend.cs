@@ -47,7 +47,8 @@ namespace GalaxyIO.Scripts.Managed.UI
                     addressField.Address,
                     NetcodeBootstrap.Port,
                     out NetworkEndpoint endpoint,
-                    NetworkFamily.Ipv4))
+                    NetworkFamily.Ipv4
+                ))
             {
                 warning.gameObject.SetActive(true);
                 return;

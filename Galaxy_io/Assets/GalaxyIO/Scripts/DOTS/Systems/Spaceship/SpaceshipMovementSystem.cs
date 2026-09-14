@@ -1,8 +1,7 @@
-﻿using GalaxyIO.DOTS.Components;
+﻿using GalaxyIO.DOTS.Components.Actor;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.NetCode;
 using Unity.Transforms;
 
 namespace GalaxyIO.DOTS.Systems
@@ -10,6 +9,8 @@ namespace GalaxyIO.DOTS.Systems
     /// <summary>
     /// <see cref="SpaceshipMovementComponent"/>의 이동 벡터(DeltaMovement)를
     /// 우주선의 Transform 위치에 적분하는 시스템.
+    ///
+    /// 이 코드는 DOTS 학습을 돕기 위하여 최대한 많은 주석을 원리와 함께 적어놓음.
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(MovementSystemGroup))]

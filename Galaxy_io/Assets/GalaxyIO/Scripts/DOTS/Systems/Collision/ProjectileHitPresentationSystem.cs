@@ -1,6 +1,5 @@
 ﻿using GalaxyIO.DOTS.Collision;
-using GalaxyIO.DOTS.Components;
-using GalaxyIO.DOTS.Components.Collision;
+using GalaxyIO.DOTS.Components.Actor;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;

@@ -24,5 +24,25 @@ namespace GalaxyIO.DOTS.Spaceship
         {
             return quaternion.RotateZ(-math.atan2(forward.x, forward.y));
         }
+
+        /// <summary>
+        /// 기수 방향을 목표 방향으로 최대 <paramref name="maxAngle"/>(라디안)만큼 돌림.
+        /// 두 방향 모두 단위 벡터여야 함.
+        /// </summary>
+        public static float2 RotateTowards(float2 current, float2 desired, float maxAngle)
+        {
+            float deltaAngle = math.atan2(
+                current.x * desired.y - current.y * desired.x,
+                math.dot(current, desired)
+            );
+
+            float appliedAngle = math.clamp(deltaAngle, -maxAngle, maxAngle);
+            math.sincos(appliedAngle, out float sin, out float cos);
+
+            return new float2(
+                current.x * cos - current.y * sin,
+                current.x * sin + current.y * cos
+            );
+        }
     }
 }

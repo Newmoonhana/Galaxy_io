@@ -4,6 +4,16 @@ using Unity.NetCode;
 namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
+    /// AI 의 인지와 조종을 담당하는 그룹. 조종 결과는 <see cref="MovementSystemGroup"/>이 위치에 반영함.
+    /// </summary>
+    [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
+    [UpdateInGroup(typeof(PredictedSimulationSystemGroup))]
+    [UpdateBefore(typeof(MovementSystemGroup))]
+    public partial class AISystemGroup : ComponentSystemGroup
+    {
+    }
+
+    /// <summary>
     /// 월드 내 이동 가능한 오브젝트들을 옮기는 그룹.
     /// </summary>
     [UpdateInGroup(typeof(PredictedSimulationSystemGroup))]
@@ -18,7 +28,7 @@ namespace GalaxyIO.DOTS.Systems
     /// </summary>
     [UpdateInGroup(typeof(PredictedSimulationSystemGroup))]
     [UpdateAfter(typeof(MovementSystemGroup))]
-    public partial class GalaxyIOSpawnGroup : ComponentSystemGroup
+    public partial class SpawnSystemGroup : ComponentSystemGroup
     {
     }
 

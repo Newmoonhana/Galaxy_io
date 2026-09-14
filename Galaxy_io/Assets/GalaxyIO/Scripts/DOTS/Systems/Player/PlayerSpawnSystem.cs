@@ -1,5 +1,6 @@
-﻿using GalaxyIO.DOTS.Components;
-using GalaxyIO.DOTS.Components.Config;
+﻿using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Message;
+using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -17,18 +18,27 @@ namespace GalaxyIO.DOTS.Systems
     public partial struct PlayerSpawnSystem : ISystem
     {
         // 스폰 좌표 범위(월드 유닛). [-SpawnRange, SpawnRange] 사각형 안에서 균등 추출함.
-        private const float SpawnRange = 500.0F;
+        private const float SpawnRange = 5.0F;
 
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<NetworkTime>();
-            state.RequireForUpdate<SpaceshipPresetComponent>();
+            state.RequireForUpdate<PrefabRegistryElement>();
             state.RequireForUpdate<SpawnRequestRPC>();
         }
 
         public void OnUpdate(ref SystemState state)
         {
-            SpaceshipPresetComponent shipPresets = SystemAPI.GetSingleton<SpaceshipPresetComponent>();
+            Entity shipPrefab = SystemAPI
+                .GetSingletonBuffer<PrefabRegistryElement>(true)
+                .Find(PrefabId.PlayerDefaultShip);
+
+            // 레지스트리에 기체가 없으면 베이킹 설정 문제. 스폰할 것이 없음.
+            if (shipPrefab == Entity.Null)
+            {
+                return;
+            }
+
             uint tick = SystemAPI.GetSingleton<NetworkTime>().ServerTick.SerializedData;
 
             // 이미 우주선을 가진 소유자 목록. 중복 요청으로 기체가 늘어나는 것 방지.
@@ -63,7 +73,7 @@ namespace GalaxyIO.DOTS.Systems
                     continue;
                 }
 
-                Entity playerShip = ecb.Instantiate(shipPresets.PlayerDefaultShip);
+                Entity playerShip = ecb.Instantiate(shipPrefab);
 
                 ecb.SetComponent(
                     playerShip,
