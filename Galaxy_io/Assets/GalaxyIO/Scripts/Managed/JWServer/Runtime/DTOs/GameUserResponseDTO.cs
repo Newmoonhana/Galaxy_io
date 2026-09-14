@@ -8,48 +8,48 @@ namespace JWServer.Runtime.DTO
     /// JsonUtility로 역직렬화되므로 필드명이 곧 JSON 키가 됨 -> 반드시 서버 스펙과 동일하게 유지할 것
     /// </summary>
     [Serializable]
-    public readonly struct GameUserResponseDTO
+    public struct GameUserResponseDTO
     {
         /// <summary>
         /// 응답 메세지
         /// </summary>
-        public readonly string responseMessage;
+        public string responseMessage;
 
         /// <summary>
         /// 엑세스 토큰
         /// </summary>
-        public readonly string accessToken;
+        public string accessToken;
         /// <summary>
         /// 리프레쉬 토큰
         /// </summary>
-        public readonly string refreshToken;
+        public string refreshToken;
         /// <summary>
         /// 토큰 타입 — BEARER
         /// </summary>
-        public readonly string tokenType;
+        public string tokenType;
         /// <summary>
         /// Access Token 만료 시간 — 1시간부터 카운트
         /// </summary>
-        public readonly long expiresIn;
+        public long expiresIn;
         /// <summary>
         /// Refresh Token 만료 시간 — 1달부터 카운트
         /// </summary>
-        public readonly long refreshExpiresIn;
+        public long refreshExpiresIn;
 
         /// <summary>
         /// 신규 계정 여부
         /// </summary>
-        public readonly bool isNewAccount;
+        public bool isNewAccount;
 
         /// <summary>
         /// 유저 고유 ID
         /// </summary>
-        public readonly string userId;
+        public string userId;
 
         /// <summary>
         /// 게임 계정 해시코드
         /// </summary>
-        public readonly string gameAccountHashcode;
+        public string gameAccountHashcode;
 
         public GameUserResponseDTO(string _responseMessage = "", string _accessToken = "",
             string _refreshToken = "", string _tokenType = "", long _expiresIn = -1,

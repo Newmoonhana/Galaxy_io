@@ -12,77 +12,77 @@ namespace JWServer.Runtime.DTO
     /// JsonUtility로 직렬화되므로 필드명이 곧 JSON 키가 됨 —> 반드시 서버 스펙과 동일하게 유지할 것
     /// </summary>
     [Serializable]
-    public readonly struct GameUserRequestDTO
+    public struct GameUserRequestDTO
     {
         /// <summary>
         /// JW 서버에서 발급한 게임 코드 (Mandatory)
         /// </summary>
-        public readonly string gameCode;
+        public string gameCode;
 
         /// <summary>
         /// 멤버 유형: 0(게임을 통한 순수가입자) / 1(SNS 로그인) (Mandatory)
         /// </summary>
-        public readonly int memberType;
+        public int memberType;
 
         /// <summary>
         /// 액션 유형: JOIN(회원가입) / LOGIN(로그인) (Mandatory)
         /// </summary>
-        public readonly string actionType;
+        public string actionType;
 
         /// <summary>
         /// OAuth 인증 제공자 ID (Optional)
         /// </summary>
-        public readonly string snsProviderId;
+        public string snsProviderId;
 
         /// <summary>
         /// OAuth 인증 제공자 이름 (Optional)
         /// </summary>
-        public readonly string snsProvider;
+        public string snsProvider;
 
         /// <summary>
         /// 멤버 ID (Mandatory)
         /// </summary>
-        public readonly string memberId;
+        public string memberId;
 
         /// <summary>
         /// 멤버 비밀번호 (Mandatory, 6글자 이상)
         /// </summary>
-        public readonly string memberPw;
+        public string memberPw;
 
         /// <summary>
         /// 멤버 이름 (실명) (Mandatory)
         /// </summary>
-        public readonly string memberName;
+        public string memberName;
 
         /// <summary>
         /// 멤버 닉네임 (Optional)
         /// </summary>
-        public readonly string nickName;
+        public string nickName;
 
         /// <summary>
         /// 이메일 주소 (Optional)
         /// </summary>
-        public readonly string email;
+        public string email;
 
         /// <summary>
         /// 연락처1 (Optional)
         /// </summary>
-        public readonly string mobilePhone1;
+        public string mobilePhone1;
 
         /// <summary>
         /// 연락처2 (Optional)
         /// </summary>
-        public readonly string mobilePhone2;
+        public string mobilePhone2;
 
         /// <summary>
         /// 연락처3 (Optional)
         /// </summary>
-        public readonly string mobilePhone3;
+        public string mobilePhone3;
 
         /// <summary>
         /// 본인인증 CI (개발 단계에선 Optional)
         /// </summary>
-        public readonly string ci;
+        public string ci;
 
         // [TEMP] _ci는 개발 단계 이후 어떻게 될지 모름. ' = "" ' 부분을 지울수도 있으니 참고
         public GameUserRequestDTO(string _gameCode, int _memberType, string _actionType,
