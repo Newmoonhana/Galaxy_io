@@ -29,10 +29,15 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             msgBox_win = null;
         }
 
-        public void Refresh(string _label, string _responseMessage)
+        public void SetWinText(string _label, string _responseMessage)
         {
             msgBox_win.SetTitleText(_label);
             msgBox_win.SetMessageText(_responseMessage);
+        }
+        
+        public void Refresh()
+        {
+            msgBox_win.Refresh();
         }
 
         public void Close()

@@ -49,14 +49,19 @@ namespace GalaxyIO.Tools.PopupUI.Window
         public void SetTitleText(string title)
         {
             label_txt.SetText(title);
-            label_txt.ForceMeshUpdate();
+            
         }
 
         public void SetMessageText(string message)
         {
-            TMP_Text textMeshPro = msg_txt.GetComponent<TMP_Text>();
-            textMeshPro.SetText(message);
-            textMeshPro.ForceMeshUpdate();
+            msg_txt.SetText(message);
+            
+        }
+
+        public void Refresh()
+        {
+            label_txt.ForceMeshUpdate();
+            msg_txt.ForceMeshUpdate();
         }
 
         public void OnExitBtnPress()
