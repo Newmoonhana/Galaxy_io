@@ -133,10 +133,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
             #endregion
             
             #region 회원가입 실패
+            // 규칙 예외 처리
             // (아이디 중복 오류 등) 회원가입 실패 시
             if (ResponseMsgUtil.IsInvalidCredential(result.responseMessage))
             {
-                errorMsg_txt.text = "중복되는 아이디가 이미 있습니다";
+                errorMsg_txt.text = "중복되는 아이디입니다.";
+                return;
             }
 
             // TODO -> 경고창 구현 후 연결 필요

@@ -1,7 +1,7 @@
 using System;
 using Newmoonhana.Runtime.Utils;
+using Newmoonhana.Runtime.Utils.Config;
 using Newmoonhana.Runtime.Utils.DEBUG;
-using UnityEngine;
 
 namespace JWServer.Runtime.DTO
 {
@@ -139,7 +139,7 @@ namespace JWServer.Runtime.DTO
             if (string.IsNullOrEmpty(memberPw)) return false;
             if (string.IsNullOrEmpty(memberName)) return false;
             // TODO -> ci가 개발단계에선 Optional이라 해서 일단 이렇게 구현해놓음. 추후 작동 방식에 따라 조건식 구조 변경 필요.
-            if (NmhnConfigData.Instance.ModeType == MODETYPE.BUILD && string.IsNullOrEmpty(ci))
+            if (SO_NmhnConfigData.Instance.ModeType == MODETYPE.BUILD && string.IsNullOrEmpty(ci))
                 return false;
             DebugLog.Log($"data = {gameCode} / {memberType} / {actionType} / {memberId} / {memberPw} / {memberName} / {ci}");
             return true;

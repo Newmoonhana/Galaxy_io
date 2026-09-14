@@ -1,7 +1,8 @@
 using System.IO;
 using JWServer.Runtime.DTO;
 using JWServer.Runtime.Utils;
-using Newmoonhana.Runtime.Utils.DEBUG;
+using Newmoonhana.Runtime.Utils;
+using Newmoonhana.Runtime.Utils.Config;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -14,21 +15,13 @@ namespace JWServer.Runtime.Login
         /// </summary>
         public const string GAME_CODE = "DBB834D5B129E3C71EEAE6B61F503291";
         
-        // TODO -> 전처리기 작업해야함
-#if LOCAL
+#if UNITY_EDITOR
         private const string AUTH_SERVER = "http://localhost:5050";
-#elif DEV
-        /// <summary>
-        /// [PLACEHOLDER] 개발 서버 주소
-        /// </summary>
-        private const string AUTH_SERVER = "https://192.168.0.1";
-#elif PROD
-        /// <summary>
-        /// [PLACEHOLDER] 운영 서버 주소
-        /// </summary>
-        private const string AUTH_SERVER = "https://jwgameserver.com";
 #else
-        private const string AUTH_SERVER = "http://localhost:5050";
+        /// <summary>
+        /// [PLACEHOLDER] 개발 서버 주소 / 운영 서버 주소
+        /// </summary>
+        private string AUTH_SERVER => SO_NmhnConfigData.Instance.ModeType != MODETYPE.BUILD ? "https://192.168.0.1" : "https://jwgameserver.com";
 #endif
         
         /// <summary>
@@ -53,10 +46,16 @@ namespace JWServer.Runtime.Login
         /// </summary>
         private static bool sIsOnline;
         
-        public static void ResetOnline() {
-#if LOCAL || DEV
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        public static void ResetOnline()
+        {
+            #if UNITY_EDITOR
             sIsOnline = false;
-#endif
+            #else
+            // TODO -> Build환경에서 어떻게 진행되어야할지 로직 구성 및 반영 필요.
+            if (SO_NmhnConfigData.Instance.ModeType != MODETYPE.BUILD)
+                sIsOnline = false;
+            #endif
         }
         
         /// <summary>
@@ -120,14 +119,10 @@ namespace JWServer.Runtime.Login
             {
                 await req.SendWebRequest(); // 응답 대기 — 비동기 처리
                 GameUserResponseDTO response = DeserializeJsonResponse(req);
-                DebugLog.Log(req.result);   //ProtocolError
-                DebugLog.Log(response.responseMessage);
                 // 성공 — Access/Refresh 토큰 저장. 앞으로의 서버 통신은 Access토큰을 통해 이루어짐.
                 if (ResponseMsgUtil.IsOk(response.responseMessage))
                 {
                     sUserTokenData = new GameUserTokenDTO(response);
-                    DebugLog.Log($"access = {response.accessToken} refresh = {response.refreshToken}");
-                    DebugLog.Log($"access = {sUserTokenData.accessToken} refresh = {sUserTokenData.refreshToken}");
                     sIsOnline = true;
                     SaveAuth();
                 }

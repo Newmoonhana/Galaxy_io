@@ -109,7 +109,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             if (ResponseMsgUtil.IsInvalidCredential(result.responseMessage))
                 WriteErrorMsgText("Invalid ID or Password!");
             else if (result.responseMessage is RefreshTokenMsg.ACCOUNT_ALREADY_EXISTS)
-                WriteErrorMsgText("로그인 진행 중...");
+                WriteErrorMsgText("중복 로그인 시도!");
             else
             {
                 // 서버 자체 오류 시 경고창 팝업 호출
