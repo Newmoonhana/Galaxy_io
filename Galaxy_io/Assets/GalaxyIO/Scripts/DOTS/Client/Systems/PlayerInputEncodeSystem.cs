@@ -1,6 +1,6 @@
 ﻿using GalaxyIO.DOTS.Client.Authoring;
-using GalaxyIO.DOTS.Client.Components;
-using GalaxyIO.DOTS.Components;
+using GalaxyIO.DOTS.Client.Components.Singleton;
+using GalaxyIO.DOTS.Components.Actor;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.NetCode;

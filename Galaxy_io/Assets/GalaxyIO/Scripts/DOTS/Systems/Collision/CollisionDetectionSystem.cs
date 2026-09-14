@@ -1,6 +1,5 @@
 ﻿using GalaxyIO.DOTS.Collision;
-using GalaxyIO.DOTS.Components;
-using GalaxyIO.DOTS.Components.Collision;
+using GalaxyIO.DOTS.Components.Actor;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -35,6 +34,12 @@ namespace GalaxyIO.DOTS.Systems
     {
         public Entity Spaceship;
         public float Amount;
+
+        // 투사체를 쏜 우주선. 충돌 데미지거나 이미 파괴됐으면 Entity.Null.
+        public Entity Instigator;
+
+        // 판정 시점의 Instigator 위치
+        public float2 InstigatorPosition;
     }
 
     /// <summary>
@@ -96,6 +101,7 @@ namespace GalaxyIO.DOTS.Systems
             {
                 Damages = damages,
                 Specs = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(),
+                Events = SystemAPI.GetBufferLookup<EnemyEventElement>(),
             }.Schedule(spaceshipHit);
 
             state.Dependency = spaceships.Dispose(state.Dependency);
@@ -162,7 +168,7 @@ namespace GalaxyIO.DOTS.Systems
 
     /// <summary>
     /// 투사체 &lt;&gt; 우주선. 우주선에 데미지를 주고 투사체를 만료시킴.
-    /// 투사체끼리는 쌍을 만들지 않으므로 서로 통과함.
+    /// 투사체끼리는 쌍을 만들지 않으므로 서로 통과함. 같은 소유자(NetworkId)의 우주선도 통과함.
     /// </summary>
     [BurstCompile]
     [WithAll(typeof(Simulate))]
@@ -181,6 +187,7 @@ namespace GalaxyIO.DOTS.Systems
         private void Execute(
             in LocalTransform transform,
             in ColliderComponent collider,
+            in GhostOwner owner,
             ref SharedProjectileComponent projectile)
         {
             // 한 틱 이동량만큼 늘린 충돌체로 판정. 탄속이 표적보다 커도 통과하지 않음.
@@ -191,8 +198,8 @@ namespace GalaxyIO.DOTS.Systems
 
             for (int i = 0; i < Spaceships.Length; i++)
             {
-                // 자기가 쏜 탄은 통과. 총구가 선체 안에 있어도 자폭하지 않음.
-                if (Spaceships[i].Entity == projectile.Owner)
+                // 같은 소유자의 탄은 통과. 총구가 선체 안에 있어도 자폭하지 않고, 적(NetworkId -1)끼리도 맞지 않음.
+                if (Spaceships[i].OwnerNetworkId == owner.NetworkId)
                 {
                     continue;
                 }
@@ -206,16 +213,39 @@ namespace GalaxyIO.DOTS.Systems
                     continue;
                 }
 
+                FindInstigator(projectile.Owner, out Entity instigator, out float2 instigatorPosition);
+
                 Damages.Enqueue(new SpaceshipDamage
                 {
-                    Spaceship = Spaceships[i].Entity,
-                    Amount    = projectile.Damage,
+                    Spaceship          = Spaceships[i].Entity,
+                    Amount             = projectile.Damage,
+                    Instigator         = instigator,
+                    InstigatorPosition = instigatorPosition,
                 });
 
                 // 제거는 SharedProjectileSystem이 함. 여기선 만료만 시킴.
                 projectile.Lifetime = 0.0F;
                 return;
             }
+        }
+
+        /// <summary>
+        /// 투사체를 쏜 우주선의 현재 위치를 찾음. 이미 파괴됐으면 Entity.Null.
+        /// </summary>
+        private void FindInstigator(Entity owner, out Entity instigator, out float2 position)
+        {
+            for (int i = 0; i < Spaceships.Length; i++)
+            {
+                if (Spaceships[i].Entity == owner)
+                {
+                    instigator = owner;
+                    position = Spaceships[i].Collider.Center;
+                    return;
+                }
+            }
+
+            instigator = Entity.Null;
+            position = float2.zero;
         }
 
         /// <summary>
@@ -252,7 +282,7 @@ namespace GalaxyIO.DOTS.Systems
 
     /// <summary>
     /// 우주선 &lt;&gt; 우주선. 데미지 식이 대칭이라 각 우주선이 자기 몫만 계산함.
-    /// 겹친 깊이만큼 서로 밀어냄.
+    /// 겹친 깊이만큼 서로 밀어냄. 같은 소유자(NetworkId)끼리는 부딪히지 않음.
     /// </summary>
     [BurstCompile]
     [WithAll(typeof(SpaceshipSpecComponent))]
@@ -267,7 +297,8 @@ namespace GalaxyIO.DOTS.Systems
             Entity entity,
             ref LocalTransform transform,
             in ColliderComponent collider,
-            in SpaceshipMovementComponent movement)
+            in SpaceshipMovementComponent movement,
+            in GhostOwner owner)
         {
             ColliderWorld world = ColliderOverlap.ToWorld(collider, transform);
             float2 direction = math.normalizesafe(movement.DeltaMovement, float2.zero);
@@ -277,6 +308,12 @@ namespace GalaxyIO.DOTS.Systems
             for (int i = 0; i < Spaceships.Length; i++)
             {
                 if (Spaceships[i].Entity == entity)
+                {
+                    continue;
+                }
+
+                // 적(NetworkId -1)끼리는 데미지도 밀어내기도 없음.
+                if (Spaceships[i].OwnerNetworkId == owner.NetworkId)
                 {
                     continue;
                 }
@@ -306,13 +343,14 @@ namespace GalaxyIO.DOTS.Systems
     }
 
     /// <summary>
-    /// 쌓인 데미지를 실제 체력에 반영함. 다른 Entity에 쓰므로 단일 스레드로 돎.
+    /// 쌓인 데미지를 실제 체력에 반영하고 AI 에게 피격 이벤트를 남김. 다른 Entity에 쓰므로 단일 스레드로 돎.
     /// </summary>
     [BurstCompile]
     public struct ApplySpaceshipDamageJob : IJob
     {
         public NativeQueue<SpaceshipDamage> Damages;
         public ComponentLookup<SpaceshipSpecComponent> Specs;
+        public BufferLookup<EnemyEventElement> Events;
 
         public void Execute()
         {
@@ -328,6 +366,18 @@ namespace GalaxyIO.DOTS.Systems
                 spec.Health = math.max(spec.Health - damage.Amount, 0.0F);
                 spec.RepairCooldown = spec.RepairDelay;
                 Specs[damage.Spaceship] = spec;
+
+                // 이벤트 버퍼를 가진 AI 에게만 알림.
+                if (damage.Instigator != Entity.Null
+                    && Events.TryGetBuffer(damage.Spaceship, out DynamicBuffer<EnemyEventElement> events))
+                {
+                    events.Add(new EnemyEventElement
+                    {
+                        ID                 = EnemyEventID.ProjectileHit,
+                        Instigator         = damage.Instigator,
+                        InstigatorPosition = damage.InstigatorPosition,
+                    });
+                }
             }
         }
     }

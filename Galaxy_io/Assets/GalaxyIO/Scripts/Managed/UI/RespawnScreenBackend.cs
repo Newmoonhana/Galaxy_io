@@ -1,4 +1,4 @@
-﻿using GalaxyIO.DOTS.Client.Components;
+﻿using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Networking;
 using Unity.Entities;
 using Unity.NetCode;

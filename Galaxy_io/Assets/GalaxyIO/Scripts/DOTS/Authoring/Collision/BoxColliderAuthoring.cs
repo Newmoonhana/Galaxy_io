@@ -1,4 +1,4 @@
-﻿using GalaxyIO.DOTS.Components.Collision;
+﻿using GalaxyIO.DOTS.Components.Actor;
 using Unity.Mathematics;
 using UnityEngine;
 

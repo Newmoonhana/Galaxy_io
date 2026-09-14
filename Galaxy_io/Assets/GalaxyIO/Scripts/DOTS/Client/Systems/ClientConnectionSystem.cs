@@ -1,5 +1,5 @@
-﻿using GalaxyIO.DOTS.Client.Components;
-using GalaxyIO.DOTS.Components;
+﻿using GalaxyIO.DOTS.Client.Components.Message;
+using GalaxyIO.DOTS.Components.Message;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;

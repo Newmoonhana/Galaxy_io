@@ -1,4 +1,4 @@
-﻿using GalaxyIO.DOTS.Client.Components;
+﻿using GalaxyIO.DOTS.Client.Components.Message;
 using Unity.Entities;
 using Unity.NetCode;
 using Unity.Networking.Transport;
@@ -14,6 +14,7 @@ namespace GalaxyIO.DOTS.Client.Networking
         /// <summary>
         /// 지정한 주소의 서버에 접속해 플레이어 스폰을 요청함. 의사 표시만 남기고,
         /// 실제 접속과 RPC 전송은 <see cref="Systems.ClientConnectionSystem"/>이 처리함.
+        /// (DOTS Entities가 제공하는 Networking 기능을 이용하기 위해)
         /// </summary>
         /// <returns>
         /// 요청 접수 여부. Client World가 없으면 false. 접수됐다는 뜻이지

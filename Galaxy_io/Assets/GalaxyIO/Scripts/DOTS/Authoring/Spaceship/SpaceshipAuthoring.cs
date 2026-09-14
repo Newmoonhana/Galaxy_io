@@ -1,6 +1,5 @@
-﻿using System.Collections.Generic;
-using GalaxyIO.DOTS.Components;
-using GalaxyIO.DOTS.Components.Collision;
+﻿using GalaxyIO.DOTS.Components.Actor;
+using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;

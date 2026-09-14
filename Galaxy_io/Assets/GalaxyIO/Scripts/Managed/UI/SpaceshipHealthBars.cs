@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using GalaxyIO.DOTS.Components;
+﻿using GalaxyIO.DOTS.Components.Actor;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;

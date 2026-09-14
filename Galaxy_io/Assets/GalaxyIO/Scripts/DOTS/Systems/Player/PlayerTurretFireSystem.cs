@@ -1,7 +1,5 @@
-﻿using GalaxyIO.DOTS.Client.Components;
-using GalaxyIO.DOTS.Client.Systems;
-using GalaxyIO.DOTS.Components;
-using GalaxyIO.DOTS.Components.Projectiles;
+﻿using GalaxyIO.DOTS.Client.Systems;
+using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Spaceship;
 using Unity.Collections;
 using Unity.Entities;
@@ -17,7 +15,7 @@ namespace GalaxyIO.DOTS.Systems
     /// 클라이언트와 서버가 같은 틱에 각자 투사체를 만들고
     /// <see cref="ProjectileSpawnClassificationSystem"/>이 둘을 짝지음.
     /// </summary>
-    [UpdateInGroup(typeof(GalaxyIOSpawnGroup))]
+    [UpdateInGroup(typeof(SpawnSystemGroup))]
     public partial struct PlayerTurretFireSystem : ISystem
     {
         public void OnCreate(ref SystemState state)

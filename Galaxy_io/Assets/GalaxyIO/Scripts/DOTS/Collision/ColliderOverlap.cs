@@ -1,4 +1,4 @@
-﻿using GalaxyIO.DOTS.Components.Collision;
+﻿using GalaxyIO.DOTS.Components.Actor;
 using Unity.Burst;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -19,7 +19,7 @@ namespace GalaxyIO.DOTS.Collision
         public float2 AxisX;
         public float2 AxisY;
 
-        // Obb: (반너비, 반높이). Circle: x가 반지름.
+        // Obb: (반너비, 반높이). Circle: x가 반지름. Sector: (반지름, 반각 라디안).
         public float2 Extents;
     }
 
@@ -72,9 +72,9 @@ namespace GalaxyIO.DOTS.Collision
             // 중심을 이동 경로의 중점으로 옮기고 반경을 절반씩 키움.
             swept.Center = collider.Center - displacement * 0.5F;
 
-            swept.Extents = collider.Shape == ColliderShape.Circle
-                // 원: 반지름 + 이동거리 절반이면 스윕한 캡슐을 정확히 포함함.
-                ? collider.Extents + math.length(displacement) * 0.5F
+            swept.Extents = collider.Shape != ColliderShape.Obb
+                // 원: 반지름 + 이동거리 절반이면 스윕한 캡슐을 정확히 포함함. 부채꼴은 반각(y)을 유지함.
+                ? new float2(collider.Extents.x + math.length(displacement) * 0.5F, collider.Extents.y)
                 // Obb: 변위를 로컬 축에 투영한 만큼만 키움.
                 : collider.Extents + math.abs(new float2(
                       math.dot(displacement, collider.AxisX),
@@ -105,6 +105,7 @@ namespace GalaxyIO.DOTS.Collision
                     {
                         case ColliderShape.Obb:    overlapped = ObbObb(lhs, rhs, out hit);    break;
                         case ColliderShape.Circle: overlapped = ObbCircle(lhs, rhs, out hit); break;
+                        case ColliderShape.Sector: overlapped = ObbSector(lhs, rhs, out hit); break;
                     }
                     break;
 
@@ -112,7 +113,12 @@ namespace GalaxyIO.DOTS.Collision
                     switch (rhs.Shape)
                     {
                         case ColliderShape.Circle: overlapped = CircleCircle(lhs, rhs, out hit); break;
+                        case ColliderShape.Sector: overlapped = CircleSector(lhs, rhs, out hit); break;
                     }
+                    break;
+
+                // 부채꼴끼리는 판정하지 않음.
+                case ColliderShape.Sector:
                     break;
             }
 
@@ -245,6 +251,72 @@ namespace GalaxyIO.DOTS.Collision
             hit.Normal = distance > 0.0F ? -delta / distance : new float2(1.0F, 0.0F);
 
             return true;
+        }
+
+        /// <summary>
+        /// 원의 중심이 부채꼴 각도 안이면 원끼리처럼, 밖이면 가까운 쪽 모서리 선분과의 거리로 판정함.
+        /// </summary>
+        private static bool CircleSector(in ColliderWorld circle, in ColliderWorld sector, out ColliderHit hit)
+        {
+            float radius = circle.Extents.x;
+            float sectorRadius = sector.Extents.x;
+            float halfAngle = sector.Extents.y;
+
+            float2 delta = circle.Center - sector.Center;
+            float distance = math.length(delta);
+
+            hit = default;
+
+            if (distance > sectorRadius + radius)
+            {
+                return false;
+            }
+
+            // 꼭짓점과 겹치면 방향을 정할 수 없어 기수 반대쪽으로 봄.
+            float2 away = distance > math.EPSILON ? delta / distance : -sector.AxisY;
+
+            // 부채꼴은 로컬 +Y(AxisY)를 향함.
+            if (math.dot(away, sector.AxisY) >= math.cos(halfAngle))
+            {
+                hit.Depth = sectorRadius + radius - distance;
+                hit.Normal = away;
+
+                return true;
+            }
+
+            // 원이 놓인 쪽 모서리. 기수에서 반각만큼 돌린 방향.
+            float side = sector.AxisY.x * delta.y - sector.AxisY.y * delta.x >= 0.0F ? 1.0F : -1.0F;
+            math.sincos(halfAngle * side, out float sin, out float cos);
+
+            float2 edge = new float2(
+                sector.AxisY.x * cos - sector.AxisY.y * sin,
+                sector.AxisY.x * sin + sector.AxisY.y * cos
+            );
+
+            float2 offset = delta - edge * math.clamp(math.dot(delta, edge), 0.0F, sectorRadius);
+            float offsetLength = math.length(offset);
+
+            if (offsetLength > radius)
+            {
+                return false;
+            }
+
+            hit.Depth = radius - offsetLength;
+            hit.Normal = offsetLength > math.EPSILON ? offset / offsetLength : away;
+
+            return true;
+        }
+
+        /// <summary>
+        /// 사각형을 감싸는 원으로 근사해 부채꼴과 판정함. 시야 판정용이라 모서리 부근 오차는 허용함.
+        /// </summary>
+        private static bool ObbSector(in ColliderWorld obb, in ColliderWorld sector, out ColliderHit hit)
+        {
+            ColliderWorld bounds = obb;
+            bounds.Shape = ColliderShape.Circle;
+            bounds.Extents = new float2(math.length(obb.Extents), 0.0F);
+
+            return CircleSector(bounds, sector, out hit);
         }
     }
 }
