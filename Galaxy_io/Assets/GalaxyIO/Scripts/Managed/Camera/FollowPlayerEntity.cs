@@ -1,4 +1,5 @@
-﻿using GalaxyIO.DOTS.Components;
+﻿using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Spaceship;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -53,7 +54,7 @@ namespace GalaxyIO.Camera
             playerQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<GhostOwnerIsLocal>(),
                 ComponentType.ReadOnly<LocalTransform>(),
-                ComponentType.ReadOnly<SpaceshipMovementComponent>()
+                ComponentType.ReadOnly<PlayerSpaceshipMovementComponent>()
             );
         }
 
@@ -67,12 +68,13 @@ namespace GalaxyIO.Camera
             using var players = playerQuery.ToEntityArray(Allocator.Temp);
             Entity player = players[0];
             LocalTransform playerTransform = entityManager.GetComponentData<LocalTransform>(player);
-            SpaceshipMovementComponent movement = entityManager.GetComponentData<SpaceshipMovementComponent>(player);
+            PlayerSpaceshipMovementComponent movement =
+                entityManager.GetComponentData<PlayerSpaceshipMovementComponent>(player);
 
             // 오프셋만 보간함. 프레임률과 무관한 지수 감쇠.
             currentLookAhead = Vector2.Lerp(
                 currentLookAhead,
-                GetLookAhead(movement),
+                GetLookAhead(playerTransform, movement),
                 1F - Mathf.Exp(-smoothSpeed * Time.deltaTime)
             );
 
@@ -89,7 +91,9 @@ namespace GalaxyIO.Camera
         /// 카메라를 우주선의 기수 방향으로 밀어낼 오프셋(월드 단위)을 계산함.
         /// 정지 상태면 0, 최대 속력이면 <see cref="lookAheadDistance"/>가 됨.
         /// </summary>
-        private Vector2 GetLookAhead(in SpaceshipMovementComponent movement)
+        private Vector2 GetLookAhead(
+            in LocalTransform transform,
+            in PlayerSpaceshipMovementComponent movement)
         {
             if (movement.MaxSpeed <= math.EPSILON)
             {
@@ -97,7 +101,7 @@ namespace GalaxyIO.Camera
             }
 
             // 기수 방향 * (현재 속력 / 최대 속력). 가속/감속을 따라 오프셋도 늘고 줆.
-            float2 forward = math.normalizesafe(movement.Forward, float2.zero);
+            float2 forward = math.normalizesafe(SpaceshipHeading.FromRotation(transform.Rotation), float2.zero);
             float speedRatio = math.saturate(movement.Speed / movement.MaxSpeed);
 
             return new Vector2(forward.x, forward.y) * (speedRatio * lookAheadDistance);

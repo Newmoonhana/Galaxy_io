@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using GalaxyIO.DOTS.Components;
+﻿using GalaxyIO.DOTS.Components.Actor;
+using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -16,6 +16,18 @@ namespace GalaxyIO.DOTS.Authoring
 
         // 월드 좌표 상 이동속도
         public float Speed;
+
+        // 호버링(WASD) 최대 이동속도
+        [Min(0.0F)]
+        public float HoveringSpeed = 10.0F;
+
+        // 호버링 가속도. 작을수록 옆으로 미끄러지듯 붙음.
+        [Min(0.0F)]
+        public float HoveringAcceleration = 40.0F;
+
+        // 호버링 감속도. WASD를 뗐을 때 초당 줄어드는 속도.
+        [Min(0.0F)]
+        public float HoveringDeceleration = 60.0F;
 
         // 가속도
         public float Acceleration;
@@ -37,15 +49,14 @@ namespace GalaxyIO.DOTS.Authoring
         // 자가 수리 속도
         public float Repair;
 
+        // 피격 후 자가 수리가 다시 시작되기까지의 시간(초)
+        [Min(0.0F)]
+        public float RepairDelay = 3.0F;
+
         [Header("Turrets")]
 
         // 터렛 List
         public List<Transform> Turrets;
-
-        [Header("Colliders")]
-
-        // 충돌체 크기
-        public float Size;
     }
 
     public sealed class SpaceshipBaker : Baker<SpaceshipAuthoring>
@@ -56,23 +67,21 @@ namespace GalaxyIO.DOTS.Authoring
 
             AddComponent(entity, new SpaceshipSpecComponent
             {
-                MaxHealth = authoring.MaxHealth,
-                Repair    = authoring.Repair,
-                Health    = authoring.MaxHealth,
+                MaxHealth   = authoring.MaxHealth,
+                Repair      = authoring.Repair,
+                RepairDelay = authoring.RepairDelay,
+                Health      = authoring.MaxHealth,
             });
 
             AddComponent(entity, new SpaceshipMovementComponent
             {
-                MaxSpeed        = authoring.Speed,
-                Speed           = 0.0F,
-                Acceleration    = authoring.Acceleration,
-                Deceleration    = authoring.Deceleration,
-                Maneuver        = authoring.Maneuver,
-                ManeuverPenalty = authoring.ManeuverPenalty,
-                Forward         = new float2(1.0F, 0.0F)
+                DeltaMovement = float2.zero
             });
 
             var buffer = AddBuffer<TurretElement>(entity);
+
+            // 서버 되감기용 충돌체 기록. 클라이언트에서는 비어 있음.
+            AddBuffer<SpaceshipColliderHistory>(entity);
 
             // 투사체는 GameObject가 아닌 Entity 참조로 저장됨.
             foreach (Transform t in authoring.Turrets)

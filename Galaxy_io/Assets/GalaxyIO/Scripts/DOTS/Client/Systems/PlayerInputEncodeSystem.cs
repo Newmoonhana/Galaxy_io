@@ -1,6 +1,6 @@
 ﻿using GalaxyIO.DOTS.Client.Authoring;
-using GalaxyIO.DOTS.Client.Components;
-using GalaxyIO.DOTS.Components;
+using GalaxyIO.DOTS.Client.Components.Singleton;
+using GalaxyIO.DOTS.Components.Actor;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.NetCode;
@@ -77,29 +77,26 @@ namespace GalaxyIO.DOTS.Client.Systems
 
         protected override void OnUpdate()
         {
-            foreach (var (playerInput, transform) in SystemAPI.Query<RefRW<PlayerInputComponent>, RefRW<LocalTransform>>().WithAll<GhostOwnerIsLocal>())
+            foreach (var (playerInput, transform) in SystemAPI.Query<RefRW<PlayerInputComponent>, RefRO<LocalTransform>>().WithAll<GhostOwnerIsLocal>())
             {
-                Vector2 arrowMovement = wasdAction.ReadValue<Vector2>();
-
                 // Unfocused 상태에선 움직이지 않음.
                 if (!Application.isFocused)
                 {
-                    playerInput.ValueRW.MouseCursor = new float2(transform.ValueRW.Position.x, transform.ValueRW.Position.y);
-                    playerInput.ValueRW.MoveArrows = new float2(0, 0);
+                    playerInput.ValueRW.MouseCursor = transform.ValueRO.Position.xy;
+                    playerInput.ValueRW.MoveArrows = float2.zero;
                 }
-                else if (arrowMovement != Vector2.zero) // WASD 움직임이 감지되면, 마우스 포인터 움직임보다 제어 우선순위를 가짐
+                else
                 {
-                    playerInput.ValueRW.MoveArrows = new float2(arrowMovement.x, arrowMovement.y);
-                }
-                else // WASD 입력이 없을 경우 마우스 포인터 움직임으로 대체
-                {
+                    // 기수 방향(마우스)과 호버링 이동(WASD)은 서로 다른 축이라 항상 둘 다 실어 보냄.
                     Vector2 cursorPos = mouseCursor.ReadValue<Vector2>();
                     Vector3 cursorWorldPos = mainCamera.ScreenToWorldPoint(
                         new Vector3(cursorPos.x, cursorPos.y, -mainCamera.transform.position.z)
                     );
 
+                    Vector2 arrowMovement = wasdAction.ReadValue<Vector2>();
+
                     playerInput.ValueRW.MouseCursor = new float2(cursorWorldPos.x, cursorWorldPos.y);
-                    playerInput.ValueRW.MoveArrows = new float2(0, 0); // WASD값 초기화
+                    playerInput.ValueRW.MoveArrows = new float2(arrowMovement.x, arrowMovement.y);
                 }
 
                 bool firePressed = turretAction.ReadValue<float>() > 0.0F;

@@ -1,15 +1,16 @@
-﻿using GalaxyIO.DOTS.Components;
+﻿using GalaxyIO.DOTS.Components.Actor;
 using Unity.Burst;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.NetCode;
 using Unity.Transforms;
 
 namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
-    /// <see cref="SpaceshipMovementComponent"/>의 전방 벡터(Forward)와 속력(Speed)을 바탕으로
-    /// 우주선의 Transform에 반영하는 시스템.
+    /// <see cref="SpaceshipMovementComponent"/>의 이동 벡터(DeltaMovement)를
+    /// 우주선의 Transform 위치에 적분하는 시스템.
+    ///
+    /// 이 코드는 DOTS 학습을 돕기 위하여 최대한 많은 주석을 원리와 함께 적어놓음.
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(MovementSystemGroup))]
@@ -64,7 +65,7 @@ namespace GalaxyIO.DOTS.Systems
     }
 
     /// <summary>
-    /// 우주선의 위치 이동과 기수 방향 회전.
+    /// 우주선의 위치 이동.
     /// </summary>
     [BurstCompile]
     [WithAll(typeof(SpaceshipMovementComponent), typeof(Simulate))]
@@ -76,19 +77,11 @@ namespace GalaxyIO.DOTS.Systems
         //
         // NOTE: 시스템이 안전하게 해당 파라미터들을 찾을 수 있는 이유는 `OnCreate`에서 해당
         // 컴포넌트를 가지는 Entity만 순회하도록 `RequireForUpdate` 통해 강제해줬기 때문.
-        private void Execute(ref LocalTransform transform, ref SpaceshipMovementComponent spaceshipSpaceshipMovement)
+        private void Execute(ref LocalTransform transform, in SpaceshipMovementComponent movement)
         {
-            // Forward를 단위 벡터로 만들면서 Speed를 곱하는 스케일
-            float len = math.length(spaceshipSpaceshipMovement.Forward);
-            float2 Velocity = spaceshipSpaceshipMovement.Forward * (spaceshipSpaceshipMovement.Speed / len);
-
-            transform.Position = new float3(transform.Position.xy + Velocity * DeltaTime, transform.Position.z);
-
-            // 방향 벡터의 길이가 0인건 예외 케이스. 아무것도 하지 않음.
-            if (len <= math.EPSILON) return;
-
-            transform.Rotation = quaternion.RotateZ(
-                -math.atan2(spaceshipSpaceshipMovement.Forward.x, spaceshipSpaceshipMovement.Forward.y)
+            transform.Position = new float3(
+                transform.Position.xy + movement.DeltaMovement * DeltaTime,
+                transform.Position.z
             );
         }
     }

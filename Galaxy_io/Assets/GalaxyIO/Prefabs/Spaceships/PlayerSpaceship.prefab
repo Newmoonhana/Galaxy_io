@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 8909345426696020667}
   - component: {fileID: 5889587866788096847}
   - component: {fileID: 3345718978926545676}
+  - component: {fileID: 6412773190475893041}
   m_Layer: 0
   m_Name: PlayerSpaceship
   m_TagString: Untagged
@@ -111,17 +112,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.SpaceshipAuthoring
   Speed: 30
+  HoveringSpeed: 8
+  HoveringAcceleration: 18
+  HoveringDeceleration: 10
   Acceleration: 10
   Deceleration: 20
   Maneuver: 360
   ManeuverPenalty: 0.9
   MaxHealth: 100
   Repair: 5
+  RepairDelay: 3
   Turrets:
   - {fileID: 1279712499970898616}
   - {fileID: 3305843298488137801}
   - {fileID: 8240234519857750097}
-  Size: 40
 --- !u!114 &8909345426696020667
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -160,7 +164,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.NetCode.Authoring.Hybrid::Unity.NetCode.GhostAuthoringComponent
   HasOwner: 1
   SupportAutoCommandTarget: 1
-  TrackInterpolationDelay: 0
+  TrackInterpolationDelay: 1
   GhostGroup: 0
   UsePreSerialization: 0
   UseSingleBaseline: 0
@@ -172,6 +176,20 @@ MonoBehaviour:
   Importance: 250
   MaxSendRate: 0
   prefabId: 4fdcc2bb1229f2343b7824bc57363aae
+--- !u!114 &6412773190475893041
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1177794197835979121}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b81e4e8540b4e94dbc07f7b0499c275, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.BoxColliderAuthoring
+  Center: {x: 0, y: 0}
+  Size: {x: 0.9912537, y: 1}
 --- !u!1 &2225960894660375326
 GameObject:
   m_ObjectHideFlags: 0

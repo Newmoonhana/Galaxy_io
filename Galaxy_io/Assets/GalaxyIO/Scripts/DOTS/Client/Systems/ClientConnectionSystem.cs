@@ -1,6 +1,5 @@
-﻿using GalaxyIO.DOTS.Bootstrap;
-using GalaxyIO.DOTS.Client.Components;
-using GalaxyIO.DOTS.Components;
+﻿using GalaxyIO.DOTS.Client.Components.Message;
+using GalaxyIO.DOTS.Components.Message;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
@@ -14,12 +13,6 @@ namespace GalaxyIO.DOTS.Client.Systems
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
     public partial struct ClientConnectionSystem : ISystem
     {
-        // 접속 재시도 간격(초).
-        private const double RetryInterval = 2.0;
-
-        // 다음 접속 시도가 허용되는 시각.
-        private double nextAttemptTime;
-
         private EntityQuery connectionQuery;
         private EntityQuery requestQuery;
 
@@ -35,27 +28,48 @@ namespace GalaxyIO.DOTS.Client.Systems
 
         public void OnUpdate(ref SystemState state)
         {
-            // 접속이 없는 경우: 최초 시도이거나 접속에 실패한 경우.
-            // 두 경우 모두 간격을 두고 재시도함.
+            PlayerSpawnRequest request = requestQuery.GetSingleton<PlayerSpawnRequest>();
+
+            // Handshake 전에 끊긴 접속은 접속 실패. 요청을 버리고 실패 태그를 남김.
+            foreach (NetCodeConnectionEvent connectionEvent in SystemAPI.GetSingleton<NetworkStreamDriver>().ConnectionEventsForTick)
+            {
+                if (connectionEvent.State != ConnectionState.State.Disconnected || connectionEvent.Id.Value != 0)
+                {
+                    continue;
+                }
+
+                state.EntityManager.DestroyEntity(requestQuery);
+
+                Entity failed = state.EntityManager.CreateEntity();
+                state.EntityManager.AddComponent<PlayerConnectionFailedTag>(failed);
+
+                return;
+            }
+
+            // 접속이 없는 경우: 요청 주소로 접속 시도.
             if (connectionQuery.IsEmpty)
             {
-                double now = SystemAPI.Time.ElapsedTime;
-
-                if (now < nextAttemptTime)
+                // 리스폰 요청에는 주소가 없음. 접속이 끊긴 상태라면 처리할 수 없으니 버림.
+                if (!request.Endpoint.IsValid)
                 {
+                    state.EntityManager.DestroyEntity(requestQuery);
                     return;
                 }
 
-                nextAttemptTime = now + RetryInterval;
-
-                SystemAPI.GetSingletonRW<NetworkStreamDriver>()
-                    .ValueRW
-                    .Connect(state.EntityManager, NetcodeBootstrap.ServerEndpoint);
+                SystemAPI.GetSingletonRW<NetworkStreamDriver>().ValueRW.Connect(state.EntityManager, request.Endpoint);
 
                 return;
             }
 
             Entity connectionEntity = connectionQuery.GetSingletonEntity();
+
+            // 다른 서버에 접속된 상태에서 새 주소 요청이 오면 기존 접속을 끊음.
+            // 끊긴 뒤에는 위의 접속 로직이 새 주소로 재접속함. 서버 나가기 기능 대비.
+            if (request.Endpoint.IsValid && request.Endpoint != SystemAPI.GetSingleton<NetworkStreamDriver>().LastEndPoint)
+            {
+                state.EntityManager.AddComponent<NetworkStreamRequestDisconnect>(connectionEntity);
+                return;
+            }
 
             // Handshake 가 끝나야 NetworkId 가 붙음. 그 전에는 대기.
             if (!SystemAPI.HasComponent<NetworkId>(connectionEntity))

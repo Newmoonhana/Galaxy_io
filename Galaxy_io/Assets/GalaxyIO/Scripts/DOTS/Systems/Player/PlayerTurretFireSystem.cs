@@ -1,7 +1,6 @@
-﻿using GalaxyIO.DOTS.Client.Components;
-using GalaxyIO.DOTS.Client.Systems;
-using GalaxyIO.DOTS.Components;
-using GalaxyIO.DOTS.Components.Projectiles;
+﻿using GalaxyIO.DOTS.Client.Systems;
+using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Spaceship;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -16,7 +15,7 @@ namespace GalaxyIO.DOTS.Systems
     /// 클라이언트와 서버가 같은 틱에 각자 투사체를 만들고
     /// <see cref="ProjectileSpawnClassificationSystem"/>이 둘을 짝지음.
     /// </summary>
-    [UpdateInGroup(typeof(GalaxyIOSystemGroup))]
+    [UpdateInGroup(typeof(SpawnSystemGroup))]
     public partial struct PlayerTurretFireSystem : ISystem
     {
         public void OnCreate(ref SystemState state)
@@ -50,15 +49,23 @@ namespace GalaxyIO.DOTS.Systems
             uint spawnTick = networkTime.ServerTick.SerializedData;
 
             foreach (
-                var (transform, inputRequest, movement, owner, turrets) in
+                var (transform, inputRequest, movement, owner, delay, turrets, spaceship) in
                     SystemAPI.Query<
                         RefRO<LocalTransform>,
                         RefRO<PlayerInputComponent>,
                         RefRO<SpaceshipMovementComponent>,
                         RefRO<GhostOwner>,
+                        RefRO<CommandDataInterpolationDelay>,
                         DynamicBuffer<TurretElement>
-                    >().WithAll<Simulate>()
+                    >().WithAll<Simulate>().WithEntityAccess()
             ) {
+                // 기수 방향으로 나아가는 성분만 투사체에 물려줌.
+                // 호버링으로 옆으로 흐르는 성분까지 더하면 총구 방향과 어긋난 가속이 붙음.
+                float forwardSpeed = math.dot(
+                    movement.ValueRO.DeltaMovement,
+                    math.normalizesafe(SpaceshipHeading.FromRotation(transform.ValueRO.Rotation), float2.zero)
+                );
+
                 // 발사할 때만 commandBuffer 생성.
                 var commandBuffer = inputRequest.ValueRO.TurretTriggered
                     ? SystemAPI
@@ -102,7 +109,8 @@ namespace GalaxyIO.DOTS.Systems
                     uint spawnId = math.hash(new uint3((uint)owner.ValueRO.NetworkId, spawnTick, (uint)i));
 
                     // 터렛의 로컬 좌표를 월드 좌표로 합성. 원본 Transform은 수정하지 않음.
-                    LocalTransform muzzleTransform = transform.ValueRO.TransformTransform(turret.MuzzleLocation);
+                    LocalTransform spaceshipTransform = transform.ValueRO;
+                    LocalTransform muzzleTransform = spaceshipTransform.TransformTransform(turret.MuzzleLocation);
 
                     // 탄퍼짐
                     if (turret.Spread > 0.0F)
@@ -119,6 +127,13 @@ namespace GalaxyIO.DOTS.Systems
                     commandBuffer.SetComponent(projectile, new GhostOwner { NetworkId = owner.ValueRO.NetworkId });
                     commandBuffer.SetComponent(projectile, new ProjectileSpawnIdComponent { Value = spawnId });
 
+                    // 발사한 우주선과 그 시점의 보간 지연을 기록.
+                    // 나머지 값은 프리팹 베이킹 결과를 그대로 씀.
+                    var shared = SystemAPI.GetComponent<SharedProjectileComponent>(turret.ProjectilePrefab);
+                    shared.Owner = spaceship;
+                    shared.InterpolationDelay = delay.ValueRO.Delay;
+                    commandBuffer.SetComponent(projectile, shared);
+
                     // 기수 방향으로 나가는 직진 투사체는 우주선의 속력을 물려받음.
                     if (SystemAPI.HasComponent<StraightforwardProjectileComponent>(turret.ProjectilePrefab))
                     {
@@ -127,7 +142,7 @@ namespace GalaxyIO.DOTS.Systems
 
                         if (straightforward.ReflectOwnerVelocity)
                         {
-                            straightforward.Speed += movement.ValueRO.Speed;
+                            straightforward.Speed += forwardSpeed;
                             commandBuffer.SetComponent(projectile, straightforward);
                         }
                     }

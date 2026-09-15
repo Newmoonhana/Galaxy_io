@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 8579004218275610720}
   - component: {fileID: 8856312466830478681}
   - component: {fileID: 3206834579711104181}
+  - component: {fileID: 4783118654903221507}
   m_Layer: 0
   m_Name: BoreProjectile
   m_TagString: Untagged
@@ -104,7 +105,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9868991a90114dd0a355fd93f54ffdd2, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.StraightforwardProjectileAuthoring
   Lifetime: 0.8
   Damage: 6
@@ -121,7 +122,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.Entities.Hybrid::Unity.Entities.Hybrid.Baking.LinkedEntityGroupAuthoring
 --- !u!114 &3206834579711104181
 MonoBehaviour:
@@ -133,7 +134,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7c79d771cedb4794bf100ce60df5f764, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.NetCode.Authoring.Hybrid::Unity.NetCode.GhostAuthoringComponent
   HasOwner: 1
   SupportAutoCommandTarget: 1
@@ -149,3 +150,17 @@ MonoBehaviour:
   Importance: 1
   MaxSendRate: 0
   prefabId: c36f47c0d656b6b4a8bd8213db63a2e2
+--- !u!114 &4783118654903221507
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3898896724990523705}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3b81e4e8540b4e94dbc07f7b0499c275, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.BoxColliderAuthoring
+  Center: {x: 0, y: 0}
+  Size: {x: 0.041666668, y: 0.25}
