@@ -6,10 +6,10 @@
 # This template is maintained from the gitattributes/gitattributes repository
 # and distributed under MIT License.
 
-# Define macros (only works in top-level gitattributes files)
-[attr]lfs               filter=lfs diff=lfs merge=lfs -text
-[attr]unity-json        eol=lf linguist-language=json
-[attr]unity-yaml        merge=unityyamlmerge eol=lf linguist-language=yaml
+# Macros (lfs/unity-json/unity-yaml) are defined in ../.gitattributes
+# (this repo's actual top level is Galaxy_io_parent/, not this folder).
+# Macro definitions only take effect at the top-level gitattributes file,
+# so they must NOT be duplicated here.
 
 # Optionally collapse Unity YAML files on GitHub diffs
 # [attr]unity-yaml        merge=unityyamlmerge text linguist-language=yaml linguist-generated
