@@ -15,8 +15,23 @@ MonoBehaviour:
   m_GroupName: Default Local Group
   m_GUID: 01f568d22c688ac4f929e001526db059
   m_SerializeEntries:
+  - m_GUID: 5b74ebed8b381a94193d59bbf01d3caf
+    m_Address: Popup_MsgBox
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6fab1e817a176be4b9a54a1638637138
+    m_Address: SO_NmhnConfigData
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 8c9cfa26abfee488c85f1582747f6a02
     m_Address: S_Login
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: a5b13f46df9e88a4db83245fa7098647
+    m_Address: S_Game
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
