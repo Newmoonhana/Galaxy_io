@@ -26,7 +26,11 @@ namespace GalaxyIO.DOTS.Bootstrap
             DefaultConnectAddress = NetworkEndpoint.AnyIpv4;
 
             // 서버가 Listen 할 포트. 0 이면 Listen 하지 않음.
-            AutoConnectPort = Port;
+            // 클라이언트 전용 프로세스는 0. 에디터에서는 이 값이 있으면 PlayMode Tools 주소로 자동 접속함.
+            AutoConnectPort = RequestedPlayType == PlayType.Client ? (ushort)0 : Port;
+
+            // 접속 실패를 빠르게 알리도록 타임아웃을 줄인 드라이버 사용.
+            NetworkStreamReceiveSystem.DriverConstructor = new NetcodeDriverConstructor();
 
             return base.Initialize(defaultWorldName);
         }
