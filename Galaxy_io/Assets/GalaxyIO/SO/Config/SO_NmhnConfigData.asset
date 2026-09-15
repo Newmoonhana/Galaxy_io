@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03917ab99468e2b4a97fabb9923c3b74, type: 3}
   m_Name: SO_NmhnConfigData
   m_EditorClassIdentifier: Newmoonhana.Runtime::Newmoonhana.Runtime.Utils.NmhnConfigData
-  mode_type: 0
+  mode_type: 1
   os_type: 0
