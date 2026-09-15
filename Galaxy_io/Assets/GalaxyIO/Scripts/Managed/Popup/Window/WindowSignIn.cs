@@ -97,9 +97,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 _memberName: "[TEST]")); //인풋 값 X
 
             #region 로그인 성공
-            if (ResponseMsgUtil.IsOk(result.responseMessage))
+            if (ResponseMsgUtil.IsOk(result.responseMessage) || result.responseMessage is CommonMsg.ALREADY_ONLINE)
             {
-                // TODO -> 씬 이동 이전 처리 작업?
                 // TODO -> 싱글씬 이동
                 SceneManager.LoadScene("GalaxyIO_Main", LoadSceneMode.Single);
                 return;

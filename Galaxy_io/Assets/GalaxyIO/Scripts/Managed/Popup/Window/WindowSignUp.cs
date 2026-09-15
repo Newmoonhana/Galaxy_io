@@ -137,7 +137,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             // (아이디 중복 오류 등) 회원가입 실패 시
             if (ResponseMsgUtil.IsInvalidCredential(result.responseMessage))
             {
-                errorMsg_txt.text = "중복되는 아이디입니다.";
+                errorMsg_txt.text = "이미 존재하는 회원 아이디입니다.";
                 return;
             }
 
@@ -155,11 +155,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 return;
             }
 
-            //회원 정보 중복
-            if (ResponseMsgUtil.IsInvalidCredential(result.responseMessage))
-                msgBox_popup.SetWinText("Sign Up Failed", "이미 존재하는 회원 정보입니다");
-            else
-                msgBox_popup.SetWinText("Sign Up Failed", result.responseMessage);
+            msgBox_popup.SetWinText("Sign Up Failed", result.responseMessage);
             msgBox_popup.Refresh();
                 
             return;

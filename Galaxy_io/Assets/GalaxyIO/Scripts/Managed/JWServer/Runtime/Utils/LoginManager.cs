@@ -3,6 +3,7 @@ using JWServer.Runtime.DTO;
 using JWServer.Runtime.Utils;
 using Newmoonhana.Runtime.Utils;
 using Newmoonhana.Runtime.Utils.Config;
+using Newmoonhana.Runtime.Utils.DEBUG;
 using UnityEngine;
 using UnityEngine.Networking;
 
@@ -45,16 +46,19 @@ namespace JWServer.Runtime.Login
         ///         통신 시도 -> Refresh 토큰으로 통신 재시도"하는 프로세스가 존재해야 함.
         /// </summary>
         private static bool sIsOnline;
-        
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+
         public static void ResetOnline()
         {
             #if UNITY_EDITOR
+            sUserTokenData = default;
             sIsOnline = false;
             #else
-            // TODO -> Build환경에서 어떻게 진행되어야할지 로직 구성 및 반영 필요.
-            if (SO_NmhnConfigData.Instance.ModeType != MODETYPE.BUILD)
+            // TODO -> 각 환경에서 어떻게 진행되어야할지 로직 구성 및 반영 필요.
+            if (SO_NmhnConfigData.Instance.ModeType == MODETYPE.BUILD)
+            {
+                sUserTokenData = default;
                 sIsOnline = false;
+            }
             #endif
         }
         
@@ -162,5 +166,98 @@ namespace JWServer.Runtime.Login
                 return response;
             }
         }
+        
+        /// <summary>
+        /// 저장되어 있는 Access토큰과 Refresh토큰으로 로그인 시도
+        /// <p/>
+        /// 로그인 성공 시 별도로 ID/PW입력받을 필요 없음
+        /// </summary>
+        public static async Awaitable<GameUserResponseDTO> AutoLogIn()
+        {
+            // 이미 로그인한 경우
+            if (sIsOnline)
+                return new GameUserResponseDTO(_responseMessage: CommonMsg.ALREADY_ONLINE);
+
+            LoadAuth();
+
+            // 저장된 토큰 없으면 로그인 실패
+            if (!sUserTokenData.IsVaild())
+                return new GameUserResponseDTO(_responseMessage: CommonMsg.NO_AUTH_INFO_IN_LOCAL);
+
+            GameUserResponseDTO dto = await GameStart();
+
+            // 성공 — Access토큰과 Refresh토큰 모두 유효함
+            if (ResponseMsgUtil.IsOk(dto.responseMessage))
+            {
+                sIsOnline = true;
+                DebugLog.Log("자동 로그인");
+                return dto;
+            }
+            
+            if (!ResponseMsgUtil.IsAccessTokenExpired(dto.responseMessage)) return dto;
+            // Access 토큰 만료 — Refresh 토큰으로 재발급 시도
+            GameUserResponseDTO response = await RefreshAccessToken();
+
+            if (ResponseMsgUtil.IsOk(response.responseMessage))
+            {
+                sUserTokenData = new GameUserTokenDTO(response);
+
+                // 재발급된 토큰으로 재시도
+                GameUserResponseDTO retryDto = await GameStart();
+
+                if (ResponseMsgUtil.IsOk(retryDto.responseMessage))
+                {
+                    sIsOnline = true;
+                }
+
+                return retryDto;
+            }
+
+            return response;
+
+            // 모든 나머지 케이스 — 실패
+        }
+        // Hidden API — `GameStart` 호출은 `AutoLogIn`에서 자동으로 처리해줌
+        private static async Awaitable<GameUserResponseDTO> GameStart()
+        {
+            // 이미 AutoLogin에서 sIsOnline 조건식을 거치기에 주석 처리함. 혹시 사용하는 게 맞는거면 주석 해제 필요.
+            /*// 이미 로그인한 경우
+            if (sIsOnline)
+                return new GameUserResponseDTO { responseMessage = CommonMsg.ALREADY_ONLINE };*/
+
+            const string gameUserRequestEndpoint = "/api/game/gamestart";
+
+            using (UnityWebRequest req = UnityWebRequest.Post(AUTH_SERVER + gameUserRequestEndpoint, "", CONTENT_TYPE_JSON))
+            {
+                req.SetRequestHeader("Authorization", "Bearer " + sUserTokenData.accessToken);
+                await req.SendWebRequest();
+                GameUserResponseDTO response = DeserializeJsonResponse(req);
+                return response;
+            }
+        }
+        
+        /// <summary>
+        /// Access토큰 만료 후 다시 받기 (세션에 저장되어 있는 Refresh토큰으로 Access토큰 재발급)
+        /// </summary>
+        public static async Awaitable<GameUserResponseDTO> RefreshAccessToken()
+        {
+            const string accessTokenRefreshEndpoint = "/api/account/gameusertokenrefresh";
+
+            if (string.IsNullOrEmpty(sUserTokenData.refreshToken))
+            {
+                // Refresh토큰이 없는 경우, `LogIn`으로 ID, PW 입력하여 로그인하여야 함
+                return new GameUserResponseDTO(_responseMessage: "NO_REFRESH_TOKEN");
+            }
+
+            string postData = JsonUtility.ToJson(new GameUserTokenDTO(_accessToken: string.Empty, _refreshToken:  sUserTokenData.refreshToken));
+
+            using (UnityWebRequest req = UnityWebRequest.Post(AUTH_SERVER + accessTokenRefreshEndpoint, postData, CONTENT_TYPE_JSON))
+            {
+                await req.SendWebRequest();
+                GameUserResponseDTO response = DeserializeJsonResponse(req);
+                return response;
+            }
+        }
+        
     }
 }

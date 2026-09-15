@@ -34,6 +34,6 @@ namespace JWServer.Runtime.DTO
         public bool Equals(GameUserTokenDTO other) => accessToken == other.accessToken && refreshToken == other.refreshToken;
         public static bool operator ==(GameUserTokenDTO a, GameUserTokenDTO b) => a.Equals(b);
         public static bool operator !=(GameUserTokenDTO a, GameUserTokenDTO b) => !(a.Equals(b));
-        public bool IsVaild() => !string.IsNullOrEmpty(accessToken) || !string.IsNullOrEmpty(refreshToken);
+        public bool IsVaild() => !string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshToken);
     }
 }
