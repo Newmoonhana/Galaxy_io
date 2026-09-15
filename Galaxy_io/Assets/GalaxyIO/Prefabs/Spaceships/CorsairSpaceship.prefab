@@ -120,6 +120,7 @@ MonoBehaviour:
   MaxHealth: 100
   Repair: 5
   RepairDelay: 3
+  Faction: 2
   Turrets:
   - {fileID: 5673647741542274187}
 --- !u!114 &8720260215851392172
@@ -151,6 +152,7 @@ MonoBehaviour:
   SightRadius: 12
   SightAngle: 120
   ChaseDistance: 20
+  HostileFactions: 0100000002000000
   FireDuration: 2
   RestDurationRange: {x: 1, y: 2}
   AimTolerance: 15

@@ -4,7 +4,6 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using Unity.NetCode;
 using Unity.Transforms;
 
 namespace GalaxyIO.DOTS.Systems
@@ -67,7 +66,7 @@ namespace GalaxyIO.DOTS.Systems
             in LocalTransform transform,
             ref SharedProjectileComponent shared,
             in ColliderComponent collider,
-            in GhostOwner owner)
+            in FactionComponent faction)
         {
             if (shared.Hidden)
             {
@@ -95,8 +94,8 @@ namespace GalaxyIO.DOTS.Systems
 
             for (int i = 0; i < Spaceships.Length; i++)
             {
-                // 자기가 쏜 탄은 통과. 총구가 선체에 가까워도 발사 즉시 사라지지 않음.
-                if (Spaceships[i].OwnerNetworkId == owner.NetworkId)
+                // 서버 판정과 같은 규칙. 자기가 쏜 탄은 발사 즉시 사라지지 않음.
+                if (Spaceships[i].Entity == shared.Owner || Faction.IsAllied(Spaceships[i].Faction, faction.Value))
                 {
                     continue;
                 }

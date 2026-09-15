@@ -57,7 +57,6 @@ namespace GalaxyIO.DOTS.Systems
             Entity enemy = state.EntityManager.Instantiate(enemyPrefab);
 
             // 적 소유자는 -1. 플레이어 NetworkId 는 1부터라 겹치지 않음.
-            // 적 투사체도 같은 -1 을 써서 적끼리는 서로 맞지 않음. (EnemyTurretFireSystem)
             SystemAPI.SetComponent(enemy, new GhostOwner { NetworkId = -1 });
 
             // 같은 자리에 스폰되므로 기수 방향을 흩어 서로 갈라지게 함.

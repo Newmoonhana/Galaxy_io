@@ -18,8 +18,8 @@ namespace GalaxyIO.DOTS.Systems
         public Entity Entity;
         public ColliderWorld Collider;
 
-        // 이 우주선을 조종하는 클라이언트. 투사체와 같으면 자기가 쏜 탄임.
-        public int OwnerNetworkId;
+        // 소속 진영. 동맹이면 서로 통과함.
+        public FactionID Faction;
 
         // 정규화된 진행 방향
         public float2 Direction;
@@ -124,13 +124,13 @@ namespace GalaxyIO.DOTS.Systems
             in LocalTransform transform,
             in ColliderComponent collider,
             in SpaceshipMovementComponent movement,
-            in GhostOwner owner)
+            in FactionComponent faction)
         {
             Spaceships.Add(new SpaceshipCollider
             {
                 Entity         = entity,
                 Collider       = ColliderOverlap.ToWorld(collider, transform),
-                OwnerNetworkId = owner.NetworkId,
+                Faction        = faction.Value,
                 Direction      = math.normalizesafe(movement.DeltaMovement, float2.zero),
                 Speed          = math.length(movement.DeltaMovement),
             });
@@ -168,7 +168,7 @@ namespace GalaxyIO.DOTS.Systems
 
     /// <summary>
     /// 투사체 &lt;&gt; 우주선. 우주선에 데미지를 주고 투사체를 만료시킴.
-    /// 투사체끼리는 쌍을 만들지 않으므로 서로 통과함. 같은 소유자(NetworkId)의 우주선도 통과함.
+    /// 투사체끼리는 쌍을 만들지 않으므로 서로 통과함. 쏜 우주선, 동맹 진영 우주선도 통과함.
     /// </summary>
     [BurstCompile]
     [WithAll(typeof(Simulate))]
@@ -187,7 +187,7 @@ namespace GalaxyIO.DOTS.Systems
         private void Execute(
             in LocalTransform transform,
             in ColliderComponent collider,
-            in GhostOwner owner,
+            in FactionComponent faction,
             ref SharedProjectileComponent projectile)
         {
             // 한 틱 이동량만큼 늘린 충돌체로 판정. 탄속이 표적보다 커도 통과하지 않음.
@@ -198,8 +198,8 @@ namespace GalaxyIO.DOTS.Systems
 
             for (int i = 0; i < Spaceships.Length; i++)
             {
-                // 같은 소유자의 탄은 통과. 총구가 선체 안에 있어도 자폭하지 않고, 적(NetworkId -1)끼리도 맞지 않음.
-                if (Spaceships[i].OwnerNetworkId == owner.NetworkId)
+                // 자기 탄, 동맹 진영의 탄은 통과. 총구가 선체 안에 있어도 자폭하지 않음.
+                if (Spaceships[i].Entity == projectile.Owner || Faction.IsAllied(Spaceships[i].Faction, faction.Value))
                 {
                     continue;
                 }
@@ -282,7 +282,7 @@ namespace GalaxyIO.DOTS.Systems
 
     /// <summary>
     /// 우주선 &lt;&gt; 우주선. 데미지 식이 대칭이라 각 우주선이 자기 몫만 계산함.
-    /// 겹친 깊이만큼 서로 밀어냄. 같은 소유자(NetworkId)끼리는 부딪히지 않음.
+    /// 겹친 깊이만큼 서로 밀어냄. 동맹 진영끼리는 부딪히지 않음.
     /// </summary>
     [BurstCompile]
     [WithAll(typeof(SpaceshipSpecComponent))]
@@ -298,7 +298,7 @@ namespace GalaxyIO.DOTS.Systems
             ref LocalTransform transform,
             in ColliderComponent collider,
             in SpaceshipMovementComponent movement,
-            in GhostOwner owner)
+            in FactionComponent faction)
         {
             ColliderWorld world = ColliderOverlap.ToWorld(collider, transform);
             float2 direction = math.normalizesafe(movement.DeltaMovement, float2.zero);
@@ -312,8 +312,8 @@ namespace GalaxyIO.DOTS.Systems
                     continue;
                 }
 
-                // 적(NetworkId -1)끼리는 데미지도 밀어내기도 없음.
-                if (Spaceships[i].OwnerNetworkId == owner.NetworkId)
+                // 동맹 진영끼리는 데미지도 밀어내기도 없음.
+                if (Faction.IsAllied(Spaceships[i].Faction, faction.Value))
                 {
                     continue;
                 }

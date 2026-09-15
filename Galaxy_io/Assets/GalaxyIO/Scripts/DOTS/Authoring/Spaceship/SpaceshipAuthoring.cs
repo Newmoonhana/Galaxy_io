@@ -53,6 +53,11 @@ namespace GalaxyIO.DOTS.Authoring
         [Min(0.0F)]
         public float RepairDelay = 3.0F;
 
+        [Header("Faction")]
+
+        // 소속 진영
+        public FactionID Faction = FactionID.None;
+
         [Header("Turrets")]
 
         // 터렛 List
@@ -76,6 +81,11 @@ namespace GalaxyIO.DOTS.Authoring
             AddComponent(entity, new SpaceshipMovementComponent
             {
                 DeltaMovement = float2.zero
+            });
+
+            AddComponent(entity, new FactionComponent
+            {
+                Value = authoring.Faction,
             });
 
             var buffer = AddBuffer<TurretElement>(entity);
