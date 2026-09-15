@@ -1,4 +1,5 @@
 ﻿using GalaxyIO.DOTS.Components.Actor;
+using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -47,6 +48,10 @@ namespace GalaxyIO.DOTS.Authoring
         [Tooltip("대상을 놓치는 거리. 시야 반지름보다 작으면 시야 반지름을 씀.")]
         [Min(0.0F)]
         public float ChaseDistance = 20.0F;
+
+        [SerializeField]
+        [Tooltip("시야에서 새 대상으로 삼을 진영. 피격 시에는 진영과 무관하게 공격자를 대상으로 삼음.")]
+        public List<FactionID> HostileFactions = new List<FactionID> { FactionID.Player };
 
         [Header("Turret")]
 
@@ -100,6 +105,7 @@ namespace GalaxyIO.DOTS.Authoring
                 },
                 // 시야보다 짧으면 찾자마자 놓침.
                 ChaseDistance  = math.max(authoring.ChaseDistance, authoring.SightRadius),
+                HostileFactions = ToMask(authoring.HostileFactions),
             });
 
             AddComponent(entity, new EnemySpaceshipMovementComponent
@@ -148,6 +154,19 @@ namespace GalaxyIO.DOTS.Authoring
         private static float2 SortRange(Vector2 range)
         {
             return new float2(math.min(range.x, range.y), math.max(range.x, range.y));
+        }
+
+        // 진영 목록을 비트 마스크로 합침. 중복은 무시됨.
+        private static uint ToMask(List<FactionID> factions)
+        {
+            uint mask = 0;
+
+            foreach (FactionID faction in factions)
+            {
+                mask |= (uint)faction;
+            }
+
+            return mask;
         }
     }
 }

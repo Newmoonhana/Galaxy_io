@@ -1,6 +1,7 @@
 ﻿using GalaxyIO.DOTS.Authoring;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.NetCode;
 
 namespace GalaxyIO.DOTS.Components.Actor
 {
@@ -16,6 +17,8 @@ namespace GalaxyIO.DOTS.Components.Actor
         public float Damage;
 
         // 이 투사체를 발사한 우주선. 자기가 쏜 탄에 맞지 않도록 판정에서 건너뜀.
+        // 클라이언트 명중 연출에서도 건너뛰도록 복제함.
+        [GhostField]
         public Entity Owner;
 
         // 직전 틱 이동 변위. 고속 투사체가 표적을 통과하지 않도록 충돌체를 늘리는 데 씀.

@@ -43,6 +43,12 @@ namespace GalaxyIO.DOTS.Authoring
 
             // 예측 스폰 짝짓기용 식별자. 값은 발사 시점에 채움.
             AddComponent<ProjectileSpawnIdComponent>(entity);
+
+            // 쏜 우주선의 진영. 값은 발사 시점에 채움.
+            AddComponent(entity, new FactionComponent
+            {
+                Value = FactionID.None,
+            });
         }
     }
 }

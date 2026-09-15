@@ -15,6 +15,7 @@ namespace GalaxyIO.DOTS.Systems
     {
         public Entity Entity;
         public ColliderWorld Collider;
+        public FactionID Faction;
     }
 
     /// <summary>
@@ -36,8 +37,8 @@ namespace GalaxyIO.DOTS.Systems
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            // 플레이어 수가 적어 매 틱 전수 비교함.
-            // TODO: Spatial Hash, Faction 시스템 적용해 적 찾기
+            // 우주선 수가 적어 매 틱 전수 비교함.
+            // TODO: Spatial Hash 적용해 적 찾기
             var targets = new NativeList<PerceptionTarget>(Allocator.TempJob);
 
             state.Dependency = new GatherPerceptionTargetJob
@@ -55,26 +56,31 @@ namespace GalaxyIO.DOTS.Systems
     }
 
     /// <summary>
-    /// 플레이어 우주선의 충돌체를 월드 좌표로 모음.
+    /// 모든 우주선의 충돌체를 월드 좌표로 모음. 진영 필터는 새 대상을 찾을 때만 적용함.
     /// </summary>
     [BurstCompile]
-    [WithAll(typeof(PlayerSpaceshipMovementComponent))]
+    [WithAll(typeof(SpaceshipSpecComponent))]
     public partial struct GatherPerceptionTargetJob : IJobEntity
     {
         public NativeList<PerceptionTarget> Targets;
 
-        private void Execute(Entity entity, in LocalTransform transform, in ColliderComponent collider)
+        private void Execute(
+            Entity entity,
+            in LocalTransform transform,
+            in ColliderComponent collider,
+            in FactionComponent faction)
         {
             Targets.Add(new PerceptionTarget
             {
                 Entity   = entity,
                 Collider = ColliderOverlap.ToWorld(collider, transform),
+                Faction  = faction.Value,
             });
         }
     }
 
     /// <summary>
-    /// 대상 유효성 검사 후, 대상이 없으면 시야에 겹친 가장 가까운 플레이어를 고름.
+    /// 대상 유효성 검사 후, 대상이 없으면 시야에 겹친 가장 가까운 적대 진영 우주선을 고름.
     /// 대상의 위치도 함께 기록함.
     /// </summary>
     [BurstCompile]
@@ -84,11 +90,11 @@ namespace GalaxyIO.DOTS.Systems
         [ReadOnly]
         public NativeList<PerceptionTarget> Targets;
 
-        private void Execute(in LocalTransform transform, ref EnemyPerceptionComponent perception)
+        private void Execute(Entity entity, in LocalTransform transform, ref EnemyPerceptionComponent perception)
         {
             float2 position = transform.Position.xy;
 
-            // 목록에 없으면 파괴됨. 추격 거리 밖이면 놓침.
+            // 목록에 없으면 파괴됨. 추격 거리 밖이면 놓침. 피격으로 정한 대상도 있으므로 진영은 보지 않음.
             if (perception.CurrentTarget != Entity.Null)
             {
                 for (int i = 0; i < Targets.Length; i++)
@@ -118,6 +124,12 @@ namespace GalaxyIO.DOTS.Systems
 
             for (int i = 0; i < Targets.Length; i++)
             {
+                // 자기 자신, 적대 진영이 아닌 우주선은 제외.
+                if (Targets[i].Entity == entity || ((uint)Targets[i].Faction & perception.HostileFactions) == 0)
+                {
+                    continue;
+                }
+
                 if (!ColliderOverlap.Test(sight, Targets[i].Collider, out _))
                 {
                     continue;

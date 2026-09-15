@@ -97,9 +97,12 @@ namespace GalaxyIO.DOTS.Systems
                     Entity projectile = commandBuffer.Instantiate(turret.ProjectilePrefab);
                     commandBuffer.SetComponent(projectile, muzzleTransform);
 
-                    // 적 우주선과 같은 소유자 -1. 플레이어 NetworkId(1부터)와 겹치지 않아 적끼리만 서로 통과함.
+                    // 적 우주선과 같은 소유자 -1. 플레이어 NetworkId(1부터)와 겹치지 않음.
                     // 0 은 "소유자 미지정"으로 취급돼 OwnerPredicted 투사체에 쓸 수 없음.
                     commandBuffer.SetComponent(projectile, new GhostOwner { NetworkId = -1 });
+
+                    // 쏜 우주선의 진영을 물려받음.
+                    commandBuffer.SetComponent(projectile, SystemAPI.GetComponent<FactionComponent>(spaceship));
 
                     // 서버가 직접 쏘므로 되감을 보간 지연이 없음.
                     var shared = SystemAPI.GetComponent<SharedProjectileComponent>(turret.ProjectilePrefab);

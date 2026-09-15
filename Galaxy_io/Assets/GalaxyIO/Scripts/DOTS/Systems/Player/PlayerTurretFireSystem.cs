@@ -127,6 +127,9 @@ namespace GalaxyIO.DOTS.Systems
                     commandBuffer.SetComponent(projectile, new GhostOwner { NetworkId = owner.ValueRO.NetworkId });
                     commandBuffer.SetComponent(projectile, new ProjectileSpawnIdComponent { Value = spawnId });
 
+                    // 쏜 우주선의 진영을 물려받음.
+                    commandBuffer.SetComponent(projectile, SystemAPI.GetComponent<FactionComponent>(spaceship));
+
                     // 발사한 우주선과 그 시점의 보간 지연을 기록.
                     // 나머지 값은 프리팹 베이킹 결과를 그대로 씀.
                     var shared = SystemAPI.GetComponent<SharedProjectileComponent>(turret.ProjectilePrefab);
