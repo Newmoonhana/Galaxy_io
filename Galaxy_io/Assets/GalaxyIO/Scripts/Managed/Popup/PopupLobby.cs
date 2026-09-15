@@ -1,4 +1,5 @@
 using GalaxyIO.Tools.PopupUI.Window;
+using JWServer.Runtime.Login;
 using Newmoonhana.Runtime;
 using Newmoonhana.Runtime.Tools.PopupUI.Popup;
 using Newmoonhana.Runtime.Utils.DEBUG;
@@ -106,6 +107,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         {
             base.Awake();
             
+            LoginManager.ResetOnline();
             stateM.Add("progress", new ProgressState(transform.GetComponentInChildren<WindowProgressLobby>(), ChangeState));
             stateM.Add("signIn", new SignInState(transform.GetComponentInChildren<WindowSignIn>(), ChangeState));
             stateM.Add("signUp", new SignUpState(transform.GetComponentInChildren<WindowSignUp>(), ChangeState));

@@ -81,11 +81,8 @@ namespace JWServer.Runtime.Login
         public static void ResetOnline()
         {
             #if UNITY_EDITOR
-            sUserTokenData = default;
-            sIsOnline = false;
-            #else
-            // TODO -> 각 환경에서 어떻게 진행되어야할지 로직 구성 및 반영 필요.
-            if (SO_NmhnConfigData.Instance.ModeType == MODETYPE.BUILD)
+            //에디터 내에서 로컬 환경 한정으로 자동 로그인 관련 변수 초기화(자동 로그인 해제)
+            if (SO_NmhnConfigData.Instance.ModeType == MODETYPE.LOCAL)
             {
                 sUserTokenData = default;
                 sIsOnline = false;
@@ -204,7 +201,10 @@ namespace JWServer.Runtime.Login
         public static async Awaitable<GameUserResponseDTO> AutoLogIn()
         {
             if (sIsOnline)
+            {
+                DebugLog.Log($"자동 로그인 정보:\n{sUserTokenData}");
                 return new GameUserResponseDTO(_responseMessage: CommonMsg.ALREADY_ONLINE);
+            }
 
             LoadAuth();
 
@@ -218,7 +218,7 @@ namespace JWServer.Runtime.Login
             if (ResponseMsgUtil.IsOk(dto.responseMessage))
             {
                 sIsOnline = true;
-                DebugLog.Log("자동 로그인");
+                DebugLog.Log($"자동 로그인 정보:\n{sUserTokenData}");
             }
 
             return dto;

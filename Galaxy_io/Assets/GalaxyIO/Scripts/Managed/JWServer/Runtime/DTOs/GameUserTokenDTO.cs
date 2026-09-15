@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using Newmoonhana.Runtime.Utils.DEBUG;
 
 namespace JWServer.Runtime.DTO
@@ -35,5 +36,12 @@ namespace JWServer.Runtime.DTO
         public static bool operator ==(GameUserTokenDTO a, GameUserTokenDTO b) => a.Equals(b);
         public static bool operator !=(GameUserTokenDTO a, GameUserTokenDTO b) => !(a.Equals(b));
         public bool IsVaild() => !string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshToken);
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder(capacity: 2048);
+            sb.Append("accessToken: [").Append(accessToken).Append("]\nrefreshToken: [").Append(refreshToken).Append("]");
+            return sb.ToString();
+        }
     }
 }
