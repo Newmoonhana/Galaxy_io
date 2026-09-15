@@ -34,6 +34,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
         protected override void Start()
         {
             base.Start();
+            id_if.text = string.Empty;
+            pw_if.text = string.Empty;
             errorMsg_txt.text = string.Empty;
         }
 
@@ -65,22 +67,22 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
         private void OnSignInBtnPress()
         {
+            if (!IsActive()) return;
             _ = RunSignIn();
         }
         private async Awaitable RunSignIn()
         {
             #region 서버 체크 전 조건 확인
-            // TODO -> errorMsg_txt 부분 전체적으로 번역 적용 시 텍스트 넘겨주기 대신 키 값 넘겨주기 필요
             string id = id_if.text;
             if (string.IsNullOrEmpty(id))
             {
-                errorMsg_txt.text = "Invalid ID!";
+                WriteErrorMsgText("Invalid ID!");
                 return;
             }
             string pw = pw_if.text;
             if (string.IsNullOrEmpty(pw))
             {
-                errorMsg_txt.text = "Invalid Password!";
+                WriteErrorMsgText("Invalid Password!");
                 return;
             }
             #endregion
@@ -88,6 +90,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             // 서버 체크
             errorMsg_txt.text = string.Empty;
             // TODO -> 기다리는 동안의 UI 처리(취소 등 다른 입력 금지, 비주얼 표기 등) 필요
+            Deactivate();
             GameUserResponseDTO result = await LoginManager.LogIn(new GameUserRequestDTO(
                 _gameCode: LoginManager.GAME_CODE,
                 _actionType: "LOGIN",
@@ -95,11 +98,11 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 _memberId: id,
                 _memberPw: pw,
                 _memberName: "[TEST]")); //인풋 값 X
-
+            Activate();
+            
             #region 로그인 성공
             if (ResponseMsgUtil.IsOk(result.responseMessage) || result.responseMessage is CommonMsg.ALREADY_ONLINE)
             {
-                // TODO -> 싱글씬 이동
                 SceneManager.LoadScene("GalaxyIO_Main", LoadSceneMode.Single);
                 return;
             }
@@ -108,8 +111,6 @@ namespace GalaxyIO.Tools.PopupUI.Window
             #region 로그인 실패
             if (ResponseMsgUtil.IsInvalidCredential(result.responseMessage))
                 WriteErrorMsgText("Invalid ID or Password!");
-            else if (result.responseMessage is RefreshTokenMsg.ACCOUNT_ALREADY_EXISTS)
-                WriteErrorMsgText("중복 로그인 시도!");
             else
             {
                 // 서버 자체 오류 시 경고창 팝업 호출
@@ -122,10 +123,9 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 {
                     errorMsg_txt.text = "something error...";
                     DebugLog.LogError($"프리팹 {key} 등록 안됨!");
-                    return;
                 }
-                else
-                    msgBox_popup.SetWinText("Login Failed", result.responseMessage);
+                
+                msgBox_popup.SetWinText("Login Failed", result.responseMessage);
                 msgBox_popup.Refresh();
             }
             return;
@@ -141,6 +141,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
         private void OnSignUpBtnPress()
         {
+            if (!IsActive()) return;
             _changeWindow?.Invoke("signUp");
         }
     }

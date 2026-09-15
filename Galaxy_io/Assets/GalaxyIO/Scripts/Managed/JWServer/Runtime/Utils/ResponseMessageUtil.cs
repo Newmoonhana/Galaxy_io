@@ -35,5 +35,13 @@ namespace JWServer.Runtime.Utils
         {
             return msg is GameStartMsg.INVALID_ACCESS_TOKEN or GameStartMsg.ACCESS_TOKEN_EXPIRED;
         }
+
+        /// <summary>
+        ///
+        /// </summary>
+        public static bool IsLogin(string msg)
+        {
+            return IsOk(msg) || msg is CommonMsg.ALREADY_ONLINE;
+        }
     }
 }

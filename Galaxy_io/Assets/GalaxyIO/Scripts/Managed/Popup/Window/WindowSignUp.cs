@@ -33,6 +33,9 @@ namespace GalaxyIO.Tools.PopupUI.Window
         protected override void Start()
         {
             base.Start();
+            id_if.text = string.Empty;
+            pw_if.text = string.Empty;
+            pwValidate_if.text = string.Empty;
             errorMsg_txt.text = string.Empty;
         }
 
@@ -66,6 +69,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
         private void OnSignUpBtnPress()
         {
+            if (!IsActive()) return;
             _ = RunSignUp();
         }
         private async Awaitable RunSignUp()
@@ -113,6 +117,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             //서버 체크
             errorMsg_txt.text = string.Empty;
             // TODO -> 기다리는 동안의 UI 처리(취소 등 다른 입력 금지, 비주얼 표기 등) 필요
+            Deactivate();
             GameUserRequestDTO signUpUserData = new GameUserRequestDTO(
                 _gameCode: LoginManager.GAME_CODE,
                 _actionType: "JOIN",
@@ -122,26 +127,32 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 _memberName: "[TEMP] 테스트 유저"
             );
             GameUserResponseDTO result = await LoginManager.SignUp(signUpUserData);
+            Activate();
 
             #region 로그인 성공
             if (ResponseMsgUtil.IsOk(result.responseMessage))
             {
-                DebugLog.Log("[TEST] 회원가입 성공!");
+                DebugLog.Log("회원가입 성공!");
                 changeWindow?.Invoke("signIn");
                 return;
             }
             #endregion
             
             #region 회원가입 실패
-            // 규칙 예외 처리
-            // (아이디 중복 오류 등) 회원가입 실패 시
+            // 규칙 예외 처리 (아이디 중복 오류 등)
+            // 이미 존재하는 아이디로 회원가입 시도 시
             if (ResponseMsgUtil.IsInvalidCredential(result.responseMessage))
             {
-                errorMsg_txt.text = "이미 존재하는 회원 아이디입니다.";
+                WriteErrorMsgText("이미 존재하는 회원 아이디입니다.");
                 return;
             }
-
-            // TODO -> 경고창 구현 후 연결 필요
+            // 이미 존재하는 회원 정보(아이디 비번 전부 동일)로 회원가입 시도 시
+            if (result.responseMessage is RefreshTokenMsg.ACCOUNT_ALREADY_EXISTS)
+            {
+                WriteErrorMsgText("이미 존재하는 회원입니다.");
+                return;
+            }
+            
             // 서버 자체 오류 시 경고창 팝업 호출
             const string key = "Popup_MsgBox";
             await AddressableAssetsManager.gameObject_lst.LoadData(key);
@@ -152,18 +163,25 @@ namespace GalaxyIO.Tools.PopupUI.Window
             {
                 errorMsg_txt.text = "something error...";
                 DebugLog.LogError($"프리팹 {key} 등록 안됨!");
-                return;
             }
 
             msgBox_popup.SetWinText("Sign Up Failed", result.responseMessage);
             msgBox_popup.Refresh();
                 
             return;
+            
+            // [TEMP] 번역 적용 시 I2방식으로 변경 필요
+            // 실패 메세지 출력(비밀번호 틀릴 시 같은 굳이 창이 뜰 필요 없는 경우)
+            void WriteErrorMsgText(string text)
+            {
+                errorMsg_txt.text = text;
+            }
             #endregion
         }
         
         private void OnCancelBtnPress()
         {
+            if (!IsActive()) return;
             changeWindow?.Invoke("signIn");
         }
     }
