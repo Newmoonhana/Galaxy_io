@@ -10,6 +10,7 @@ using Newmoonhana.Runtime.Utils.DEBUG;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace GalaxyIO.Tools.PopupUI.Window
@@ -100,7 +101,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             {
                 // TODO -> 씬 이동 이전 처리 작업?
                 // TODO -> 싱글씬 이동
-                await SceneStateManager.LoadSceneInst("S_Game", 10);
+                SceneManager.LoadScene("GalaxyIO_Main", LoadSceneMode.Single);
                 return;
             }
             #endregion

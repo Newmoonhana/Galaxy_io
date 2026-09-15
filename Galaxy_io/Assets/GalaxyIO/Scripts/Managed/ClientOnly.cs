@@ -1,4 +1,4 @@
-﻿using Unity.NetCode;
+﻿using JWServer.Runtime.Utils;
 using UnityEngine;
 
 namespace GalaxyIO.Scripts.Managed
@@ -10,12 +10,9 @@ namespace GalaxyIO.Scripts.Managed
     [DisallowMultipleComponent]
     public sealed class ClientOnly : MonoBehaviour
     {
-        private static bool IsServerProcess =>
-            ClientServerBootstrap.RequestedPlayType == ClientServerBootstrap.PlayType.Server;
-
         private void Awake()
         {
-            if (IsServerProcess)
+            if (Definitions.IsServerProcess)
             {
                 gameObject.SetActive(false);
             }

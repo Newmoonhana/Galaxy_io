@@ -2,7 +2,8 @@
     "name": "JWServer.Runtime",
     "rootNamespace": "JWServer.Runtime",
     "references": [
-        "GUID:bf0c03e17bee145429ec5bb6f20b91c4"
+        "GUID:bf0c03e17bee145429ec5bb6f20b91c4",
+        "GUID:953adc2a6b8b4e3c8df5b728bcd546e9"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
