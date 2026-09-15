@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using JWServer.Runtime.DTO;
 using JWServer.Runtime.Utils;
@@ -46,6 +47,36 @@ namespace JWServer.Runtime.Login
         ///         통신 시도 -> Refresh 토큰으로 통신 재시도"하는 프로세스가 존재해야 함.
         /// </summary>
         private static bool sIsOnline;
+        
+        /// <summary>
+        /// 인증이 필요한 API 호출을 감싸서, Access 토큰 만료 시 자동으로
+        /// Refresh 토큰으로 재발급받고 원래 호출을 재시도
+        /// </summary>
+        /// <param name="apiCall">Awaitable&lt;뭐시기DTO&gt;로 받아오면 매개변수 받자마자 실행되서 &amp; 2번째 await로 재사용이 불가능해서 함수 델리게이트로 받음)</param>
+        private static async Awaitable<GameUserResponseDTO> WithTokenRefresh(
+            Func<Awaitable<GameUserResponseDTO>> apiCall)
+        {
+            GameUserResponseDTO response = await apiCall();
+
+            if (ResponseMsgUtil.IsOk(response.responseMessage))
+                return response;
+
+            // 토큰 만료가 아닌 다른 실패 — 그대로 반환
+            if (!ResponseMsgUtil.IsAccessTokenExpired(response.responseMessage))
+                return response;
+
+            // Access 토큰 만료 — Refresh 토큰으로 재발급 시도
+            GameUserResponseDTO refreshResponse = await RefreshAccessToken();
+
+            // Refresh도 실패 시 — 이대로 반환 (재로그인 필요)
+            if (!ResponseMsgUtil.IsOk(refreshResponse.responseMessage))
+                return refreshResponse;
+
+            sUserTokenData = new GameUserTokenDTO(refreshResponse);
+
+            // 재발급된 토큰으로 재시도
+            return await apiCall();
+        }
 
         public static void ResetOnline()
         {
@@ -143,9 +174,7 @@ namespace JWServer.Runtime.Login
         {
             // 이미 로그인한 경우
             if (sIsOnline)
-            {
                 return new GameUserResponseDTO(_responseMessage: CommonMsg.ALREADY_ONLINE);
-            }
 
             const string gameUserRequestEndpoint = "/api/account/gameuser";
             
@@ -174,7 +203,6 @@ namespace JWServer.Runtime.Login
         /// </summary>
         public static async Awaitable<GameUserResponseDTO> AutoLogIn()
         {
-            // 이미 로그인한 경우
             if (sIsOnline)
                 return new GameUserResponseDTO(_responseMessage: CommonMsg.ALREADY_ONLINE);
 
@@ -184,39 +212,18 @@ namespace JWServer.Runtime.Login
             if (!sUserTokenData.IsVaild())
                 return new GameUserResponseDTO(_responseMessage: CommonMsg.NO_AUTH_INFO_IN_LOCAL);
 
-            GameUserResponseDTO dto = await GameStart();
+            GameUserResponseDTO dto = await WithTokenRefresh(GameStart);
 
             // 성공 — Access토큰과 Refresh토큰 모두 유효함
             if (ResponseMsgUtil.IsOk(dto.responseMessage))
             {
                 sIsOnline = true;
                 DebugLog.Log("자동 로그인");
-                return dto;
-            }
-            
-            if (!ResponseMsgUtil.IsAccessTokenExpired(dto.responseMessage)) return dto;
-            // Access 토큰 만료 — Refresh 토큰으로 재발급 시도
-            GameUserResponseDTO response = await RefreshAccessToken();
-
-            if (ResponseMsgUtil.IsOk(response.responseMessage))
-            {
-                sUserTokenData = new GameUserTokenDTO(response);
-
-                // 재발급된 토큰으로 재시도
-                GameUserResponseDTO retryDto = await GameStart();
-
-                if (ResponseMsgUtil.IsOk(retryDto.responseMessage))
-                {
-                    sIsOnline = true;
-                }
-
-                return retryDto;
             }
 
-            return response;
-
-            // 모든 나머지 케이스 — 실패
+            return dto;
         }
+        
         // Hidden API — `GameStart` 호출은 `AutoLogIn`에서 자동으로 처리해줌
         private static async Awaitable<GameUserResponseDTO> GameStart()
         {
