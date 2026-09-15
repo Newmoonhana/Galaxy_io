@@ -9,10 +9,10 @@ namespace JWServer.Runtime.DTO
     /// (큰 DTO가 아니라서 구조체로 만듬. 자주 사용하지는 않겠지만 가벼우면 좋으니까)
     /// </summary>
     [Serializable]
-    public readonly struct GameUserTokenDTO
+    public struct GameUserTokenDTO
     {
-        public readonly string accessToken;
-        public readonly string refreshToken;
+        public string accessToken;
+        public string refreshToken;
 
         public GameUserTokenDTO(string _accessToken, string _refreshToken)
         {

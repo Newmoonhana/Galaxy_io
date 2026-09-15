@@ -78,16 +78,11 @@ namespace JWServer.Runtime.Login
             return await apiCall();
         }
 
-        public static void ResetOnline()
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticData()
         {
-            #if UNITY_EDITOR
-            //에디터 내에서 로컬 환경 한정으로 자동 로그인 관련 변수 초기화(자동 로그인 해제)
-            if (SO_NmhnConfigData.Instance.ModeType == MODETYPE.LOCAL)
-            {
-                sUserTokenData = default;
-                sIsOnline = false;
-            }
-            #endif
+            sUserTokenData = default;
+            sIsOnline = false;
         }
         
         /// <summary>
@@ -106,6 +101,7 @@ namespace JWServer.Runtime.Login
                 true
             );
             File.WriteAllText(sPersistentDataPath, json);
+            DebugLog.Log($"{sPersistentDataPath} 경로로 토큰 저장!\njson = {json}");
         }
         /// <summary>
         /// 인증 정보 json 불러오기
@@ -119,6 +115,7 @@ namespace JWServer.Runtime.Login
 
             string json = File.ReadAllText(sPersistentDataPath);
             sUserTokenData = JsonUtility.FromJson<GameUserTokenDTO>(json);
+            DebugLog.Log($"{sPersistentDataPath} 경로의 저장된 토큰 참조\njson = {json}");
         }
         
         /// <summary>

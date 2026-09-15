@@ -107,7 +107,6 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         {
             base.Awake();
             
-            LoginManager.ResetOnline();
             stateM.Add("progress", new ProgressState(transform.GetComponentInChildren<WindowProgressLobby>(), ChangeState));
             stateM.Add("signIn", new SignInState(transform.GetComponentInChildren<WindowSignIn>(), ChangeState));
             stateM.Add("signUp", new SignUpState(transform.GetComponentInChildren<WindowSignUp>(), ChangeState));
