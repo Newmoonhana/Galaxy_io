@@ -93,6 +93,8 @@ namespace GalaxyIO.DOTS.Authoring
             // 서버 되감기용 충돌체 기록. 클라이언트에서는 비어 있음.
             AddBuffer<SpaceshipColliderHistory>(entity);
 
+            AddBuffer<SpaceshipCollisionElement>(entity);
+
             // 투사체는 GameObject가 아닌 Entity 참조로 저장됨.
             foreach (Transform t in authoring.Turrets)
             {
