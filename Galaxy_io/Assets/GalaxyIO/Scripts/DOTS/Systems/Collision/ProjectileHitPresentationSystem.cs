@@ -1,8 +1,10 @@
 ﻿using GalaxyIO.DOTS.Collision;
 using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 
@@ -17,33 +19,63 @@ namespace GalaxyIO.DOTS.Systems
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     public partial struct ProjectileHitPresentationSystem : ISystem
     {
+        private EntityQuery spaceshipQuery;
+
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            spaceshipQuery = SystemAPI.QueryBuilder()
+                .WithAll<SpaceshipSpecComponent, ColliderComponent, FactionComponent, LocalTransform>()
+                .Build();
+
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            state.RequireForUpdate<CollisionConfigComponent>();
             state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<SharedProjectileComponent>().Build());
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            var spaceships = new NativeList<SpaceshipCollider>(Allocator.TempJob);
+            CollisionConfigComponent config = SystemAPI.GetSingleton<CollisionConfigComponent>();
+            int count = spaceshipQuery.CalculateEntityCount();
+
+            var proxies = new NativeList<ColliderProxy>(count, Allocator.TempJob);
+
+            // 칸 -> proxies 인덱스. 해시를 끄면 비워 둠.
+            var cells = new NativeParallelMultiHashMap<int2, int>(
+                config.UseSpatialHash ? math.max(count * 2, 1) : 1,
+                Allocator.TempJob
+            );
 
             // Spaceship Collider 수집
-            state.Dependency = new GatherSpaceshipColliderJob
+            state.Dependency = new GatherSpaceshipProxyJob
             {
-                Spaceships = spaceships,
+                Proxies = proxies,
             }.Schedule(state.Dependency);
+
+            if (config.UseSpatialHash)
+            {
+                state.Dependency = new BuildSpatialHashJob
+                {
+                    Proxies  = proxies,
+                    Cells    = cells,
+                    CellSize = config.CellSize,
+                }.Schedule(state.Dependency);
+            }
 
             state.Dependency = new ProjectileHidingJob
             {
-                Spaceships = spaceships,
+                Proxies        = proxies,
+                Cells          = cells,
+                CellSize       = config.CellSize,
+                UseSpatialHash = config.UseSpatialHash,
                 CommandBuffer = SystemAPI
                     .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                     .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
 
-            state.Dependency = spaceships.Dispose(state.Dependency);
+            state.Dependency = proxies.Dispose(state.Dependency);
+            state.Dependency = cells.Dispose(state.Dependency);
         }
     }
 
@@ -56,7 +88,13 @@ namespace GalaxyIO.DOTS.Systems
     public partial struct ProjectileHidingJob : IJobEntity
     {
         [ReadOnly]
-        public NativeList<SpaceshipCollider> Spaceships;
+        public NativeList<ColliderProxy> Proxies;
+
+        [ReadOnly]
+        public NativeParallelMultiHashMap<int2, int> Cells;
+
+        public float CellSize;
+        public bool UseSpatialHash;
 
         public EntityCommandBuffer.ParallelWriter CommandBuffer;
 
@@ -92,15 +130,27 @@ namespace GalaxyIO.DOTS.Systems
                 travelled
             );
 
-            for (int i = 0; i < Spaceships.Length; i++)
+            var receiver = new ColliderProxy
+            {
+                Entity   = entity,
+                Layer    = CollisionLayer.Projectile,
+                Collider = world,
+                Bounds   = ColliderBounds.ToAabb(world),
+                Faction  = faction.Value,
+                Ignore   = shared.Owner,
+            };
+
+            var candidates = new SpatialHashCandidates(Cells, Proxies, CellSize, UseSpatialHash, receiver.Bounds);
+
+            while (candidates.Next(out int i))
             {
                 // 서버 판정과 같은 규칙. 자기가 쏜 탄은 발사 즉시 사라지지 않음.
-                if (Spaceships[i].Entity == shared.Owner || Faction.IsAllied(Spaceships[i].Faction, faction.Value))
+                if (!CollisionFilter.Accepts(receiver, Proxies[i], CollisionLayer.Spaceship))
                 {
                     continue;
                 }
 
-                if (!ColliderOverlap.Test(world, Spaceships[i].Collider, out _))
+                if (!ColliderOverlap.Test(world, Proxies[i].Collider, out _))
                 {
                     continue;
                 }

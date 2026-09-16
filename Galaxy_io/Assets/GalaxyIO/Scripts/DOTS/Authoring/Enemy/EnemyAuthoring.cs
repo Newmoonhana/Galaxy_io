@@ -108,6 +108,8 @@ namespace GalaxyIO.DOTS.Authoring
                 HostileFactions = ToMask(authoring.HostileFactions),
             });
 
+            AddBuffer<SightOverlapElement>(entity);
+
             AddComponent(entity, new EnemySpaceshipMovementComponent
             {
                 HoveringSpeed        = spaceship.HoveringSpeed,

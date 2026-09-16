@@ -111,4 +111,5 @@ InitTestScene*.unity*
 
 # Local temp files & caches
 _Recovery
+_Recovery.meta
 SceneDependencyCache

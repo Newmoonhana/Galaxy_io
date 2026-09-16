@@ -130,6 +130,8 @@ GameObject:
   - component: {fileID: 163557124}
   - component: {fileID: 163557123}
   - component: {fileID: 163557125}
+  - component: {fileID: 163557127}
+  - component: {fileID: 163557126}
   m_Layer: 0
   m_Name: Config
   m_TagString: Untagged
@@ -185,6 +187,36 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.NetCode.Authoring.Hybrid::Unity.NetCode.NetCodeDebugConfigAuthoring
   LogLevel: 1
   DumpPackets: 0
+--- !u!114 &163557126
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 163557122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53a1b66e5321c314abb500438b194c68, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.EnemySpawnConfigAuthoring
+  StressTest: 1
+  Cap: 2000
+--- !u!114 &163557127
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 163557122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad21c427d0e33034a985e27501447916, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.CollisionConfigAuthoring
+  UseSpatialHash: 1
+  CellSize: 8
+  RewindSpeed: 16
+  Restitution: 1
 --- !u!1 &1598268223
 GameObject:
   m_ObjectHideFlags: 0

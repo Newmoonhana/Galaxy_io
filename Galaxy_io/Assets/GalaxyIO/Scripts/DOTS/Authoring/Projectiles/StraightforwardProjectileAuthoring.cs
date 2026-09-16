@@ -49,6 +49,8 @@ namespace GalaxyIO.DOTS.Authoring
             {
                 Value = FactionID.None,
             });
+
+            AddBuffer<ProjectileHitElement>(entity);
         }
     }
 }
