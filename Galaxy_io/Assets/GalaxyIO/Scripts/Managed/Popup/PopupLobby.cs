@@ -106,16 +106,15 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         protected override void Awake()
         {
             base.Awake();
-            
-            stateM.Add("progress", new ProgressState(transform.GetComponentInChildren<WindowProgressLobby>(), ChangeState));
-            stateM.Add("signIn", new SignInState(transform.GetComponentInChildren<WindowSignIn>(), ChangeState));
-            stateM.Add("signUp", new SignUpState(transform.GetComponentInChildren<WindowSignUp>(), ChangeState));
         }
 
         protected override void Start()
         {
             base.Start();
             
+            stateM.Add("progress", new ProgressState(transform.GetComponentInChildren<WindowProgressLobby>(), ChangeState));
+            stateM.Add("signIn", new SignInState(transform.GetComponentInChildren<WindowSignIn>(), ChangeState));
+            stateM.Add("signUp", new SignUpState(transform.GetComponentInChildren<WindowSignUp>(), ChangeState));
             stateM.Change("progress");
         }
 

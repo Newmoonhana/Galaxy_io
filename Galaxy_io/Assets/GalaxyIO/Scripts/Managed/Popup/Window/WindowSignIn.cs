@@ -103,7 +103,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
             #region 로그인 성공
             if (ResponseMsgUtil.IsOk(result.responseMessage) || result.responseMessage is CommonMsg.ALREADY_ONLINE)
             {
-                SceneManager.LoadScene("GalaxyIO_Main", LoadSceneMode.Single);
+                // TODO -> 씬 이동 말고 ChangeWindow로
+                //SceneManager.LoadScene("GalaxyIO_Main", LoadSceneMode.Single);
                 return;
             }
             #endregion

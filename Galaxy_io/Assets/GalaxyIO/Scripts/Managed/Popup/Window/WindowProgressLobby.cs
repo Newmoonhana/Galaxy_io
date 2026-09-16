@@ -56,7 +56,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
             
             if (ResponseMsgUtil.IsOk(result.responseMessage) || result.responseMessage is CommonMsg.ALREADY_ONLINE)
             {
-                SceneManager.LoadScene("GalaxyIO_Main", LoadSceneMode.Single);
+                // TODO -> 씬 이동 말고 ChangeWindow로
+                //SceneManager.LoadScene("GalaxyIO_Main", LoadSceneMode.Single);
                 return;
             }
             

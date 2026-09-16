@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 143489512938200004, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: m_Name
-      value: Core Variant
+      value: PF_Core
       objectReference: {fileID: 0}
     - target: {fileID: 6979012843466458887, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: m_LocalPosition.x
@@ -52,8 +52,13 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8576237685870290170, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 8576237685870290170, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
