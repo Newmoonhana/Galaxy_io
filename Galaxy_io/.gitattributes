@@ -128,7 +128,12 @@ Packages/packages-lock.json linguist-generated
 *.jpeg                  lfs
 *.jpg                   lfs
 *.pict                  lfs
-*.png                   lfs
+# *.png was already committed as a plain binary before this LFS template
+# was added, which made Git compare "would-be LFS pointer" vs "committed
+# raw binary" on every status check and show it as permanently modified.
+# Reverted to plain git tracking until these files are properly migrated
+# with `git lfs migrate import`.
+# *.png                 lfs
 *.psd                   lfs
 *.tga                   lfs
 *.tif                   lfs
@@ -144,20 +149,26 @@ Packages/packages-lock.json linguist-generated
 *.zip                   lfs
 
 # Compiled Dynamic Library
-*.dll                   lfs
+# *.dll was already committed as a plain binary before LFS tracking was
+# added (see note under Images above) - reverted for the same reason.
+# *.dll                 lfs
 *.pdb                   lfs
 *.so                    lfs
 
 # Fonts
 *.otf                   lfs
-*.ttf                   lfs
+# *.ttf was already committed as a plain binary before LFS tracking was
+# added (see note under Images above) - reverted for the same reason.
+# *.ttf                 lfs
 
 # Executable/Installer
 *.apk                   lfs
 *.exe                   lfs
 
 # Documents
-*.pdf                   lfs
+# *.pdf was already committed as a plain binary before LFS tracking was
+# added (see note under Images above) - reverted for the same reason.
+# *.pdf                 lfs
 
 # ETC
 *.a                     lfs
