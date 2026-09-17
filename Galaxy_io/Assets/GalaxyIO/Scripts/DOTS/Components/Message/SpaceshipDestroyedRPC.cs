@@ -4,7 +4,7 @@ using Unity.NetCode;
 namespace GalaxyIO.DOTS.Components.Message
 {
     /// <summary>
-    /// 우주선이 파괴됐음을 서버가 모든 클라이언트에 알리는 RPC.
+    /// 우주선이 파괴됐음을 서버가 근처 클라이언트와 소유자에게 알리는 RPC.
     /// </summary>
     public struct SpaceshipDestroyedRPC : IRpcCommand
     {

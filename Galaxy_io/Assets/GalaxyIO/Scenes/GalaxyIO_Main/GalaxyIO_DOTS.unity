@@ -132,6 +132,7 @@ GameObject:
   - component: {fileID: 163557125}
   - component: {fileID: 163557127}
   - component: {fileID: 163557126}
+  - component: {fileID: 163557128}
   m_Layer: 0
   m_Name: Config
   m_TagString: Untagged
@@ -185,7 +186,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2abf6eb54a2904264a2d35b357ad751c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.NetCode.Authoring.Hybrid::Unity.NetCode.NetCodeDebugConfigAuthoring
-  LogLevel: 1
+  LogLevel: 2
   DumpPackets: 0
 --- !u!114 &163557126
 MonoBehaviour:
@@ -217,6 +218,21 @@ MonoBehaviour:
   CellSize: 8
   RewindSpeed: 16
   Restitution: 1
+--- !u!114 &163557128
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 163557122}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 860e5571e9f86ab4fb57fc0530ae1107, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.RelevancyConfigAuthoring
+  UseRelevancy: 1
+  Radius: 64
+  Hysteresis: 8
 --- !u!1 &1598268223
 GameObject:
   m_ObjectHideFlags: 0

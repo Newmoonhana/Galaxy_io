@@ -28,6 +28,9 @@ namespace GalaxyIO.DOTS.Systems
             float deltaTime = SystemAPI.Time.DeltaTime;
             uint tick = SystemAPI.GetSingleton<NetworkTime>().ServerTick.SerializedData;
 
+            // 첫 투사체를 만들 때 한 번만 생성. 모든 우주선이 같은 버퍼를 씀.
+            var commandBuffer = new EntityCommandBuffer();
+
             foreach (
                 var (transform, movement, perception, enemyTurret, turrets, spaceship) in
                     SystemAPI.Query<
@@ -52,13 +55,6 @@ namespace GalaxyIO.DOTS.Systems
                 // 기수 방향으로 나아가는 성분만 투사체에 물려줌.
                 float forwardSpeed = math.dot(movement.ValueRO.DeltaMovement, forward);
 
-                // 발사할 때만 commandBuffer 생성.
-                var commandBuffer = firing
-                    ? SystemAPI
-                        .GetSingleton<EndPredictedSimulationEntityCommandBufferSystem.Singleton>()
-                        .CreateCommandBuffer(state.WorldUnmanaged)
-                    : new EntityCommandBuffer();
-
                 // ref 참조를 위해 foreach가 아닌 for로 접근
                 for (int i = 0; i < turrets.Length; i++)
                 {
@@ -80,6 +76,13 @@ namespace GalaxyIO.DOTS.Systems
                     if (!firing)
                     {
                         continue;
+                    }
+
+                    if (!commandBuffer.IsCreated)
+                    {
+                        commandBuffer = SystemAPI
+                            .GetSingleton<EndPredictedSimulationEntityCommandBufferSystem.Singleton>()
+                            .CreateCommandBuffer(state.WorldUnmanaged);
                     }
 
                     LocalTransform muzzleTransform = transform.ValueRO.TransformTransform(turret.MuzzleLocation);
