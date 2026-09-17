@@ -12,6 +12,16 @@ using Unity.Transforms;
 namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
+    /// 한 접속의 복제 범위 중심.
+    /// </summary>
+    public struct RelevancyFocus
+    {
+        public Entity Connection;
+        public int NetworkId;
+        public float2 Position;
+    }
+
+    /// <summary>
     /// 접속마다 근처 Ghost 만 복제 대상으로 등록하는 시스템.
     /// </summary>
     [BurstCompile]
@@ -48,7 +58,26 @@ namespace GalaxyIO.DOTS.Systems
 
             relevancy.ValueRW.GhostRelevancyMode = GhostRelevancyMode.SetIsRelevant;
 
-            UpdateConnectionPositions(ref state);
+            // 접속 초점을 소유한 우주선 위치로 옮김. 우주선이 없으면 마지막 위치를 유지함.
+            var ships = new NativeHashMap<int, float3>(8, Allocator.Temp);
+
+            foreach (
+                var (owner, transform) in SystemAPI.Query<RefRO<GhostOwner>, RefRO<LocalTransform>>()
+                    .WithAll<PlayerSpaceshipMovementComponent>()
+            ) {
+                ships[owner.ValueRO.NetworkId] = transform.ValueRO.Position;
+            }
+
+            foreach (
+                var (position, networkId) in SystemAPI.Query<RefRW<GhostConnectionPosition>, RefRO<NetworkId>>()
+            ) {
+                if (ships.TryGetValue(networkId.ValueRO.Value, out float3 shipPosition))
+                {
+                    position.ValueRW.Position = shipPosition;
+                }
+            }
+
+            ships.Dispose();
 
             // 칸 한 변 = 바깥 반경. 3x3 칸만 보면 반경 안의 접속을 모두 찾음.
             float outerRadius = config.Radius + config.Hysteresis;
@@ -95,44 +124,6 @@ namespace GalaxyIO.DOTS.Systems
             state.Dependency = focuses.Dispose(state.Dependency);
             state.Dependency = relevant.Dispose(state.Dependency);
         }
-
-        /// <summary>
-        /// 접속 초점을 소유한 우주선 위치로 옮김. 우주선이 없으면 마지막 위치를 유지함.
-        /// </summary>
-        private void UpdateConnectionPositions(ref SystemState state)
-        {
-            var ships = new NativeHashMap<int, float3>(8, Allocator.Temp);
-
-            foreach (
-                var (owner, transform) in
-                SystemAPI.Query<RefRO<GhostOwner>, RefRO<LocalTransform>>()
-                    .WithAll<PlayerSpaceshipMovementComponent>()
-            ) {
-                ships[owner.ValueRO.NetworkId] = transform.ValueRO.Position;
-            }
-
-            foreach (
-                var (position, networkId) in
-                SystemAPI.Query<RefRW<GhostConnectionPosition>, RefRO<NetworkId>>()
-            ) {
-                if (ships.TryGetValue(networkId.ValueRO.Value, out float3 shipPosition))
-                {
-                    position.ValueRW.Position = shipPosition;
-                }
-            }
-
-            ships.Dispose();
-        }
-    }
-
-    /// <summary>
-    /// 한 접속의 복제 범위 중심.
-    /// </summary>
-    public struct RelevancyFocus
-    {
-        public Entity Connection;
-        public int NetworkId;
-        public float2 Position;
     }
 
     /// <summary>
