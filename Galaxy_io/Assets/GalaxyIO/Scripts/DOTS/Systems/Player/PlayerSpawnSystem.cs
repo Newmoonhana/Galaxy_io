@@ -86,16 +86,16 @@ namespace GalaxyIO.DOTS.Systems
                 // 틱과 NetworkId 를 섞어 같은 틱에 들어온 요청끼리도 좌표가 갈림.
                 var random = Random.CreateFromIndex(tick ^ ((uint)networkId.Value * 0x9E3779B9u));
 
-                // 회전과 크기는 프리팹 기본값(identity, 1)을 그대로 씀.
-                ecb.SetComponent(
-                    playerShip,
-                    LocalTransform.FromPosition(
-                        new float3(
-                            random.NextFloat2(new float2(-SpawnRange), new float2(SpawnRange)),
-                            0.0F
-                        )
-                    )
+                var spawnPosition = new float3(
+                    random.NextFloat2(new float2(-SpawnRange), new float2(SpawnRange)),
+                    0.0F
                 );
+
+                // 회전과 크기는 프리팹 기본값(identity, 1)을 그대로 씀.
+                ecb.SetComponent(playerShip, LocalTransform.FromPosition(spawnPosition));
+
+                // Ghost 복제 범위의 중심. 이미 있으면 값만 덮어씀. (리스폰)
+                ecb.AddComponent(connectionEntity, new GhostConnectionPosition { Position = spawnPosition });
 
                 // 스폰이 완료되었으니 RPC Entity 제거
                 ecb.DestroyEntity(rpcEntity);

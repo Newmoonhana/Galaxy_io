@@ -48,6 +48,9 @@ namespace GalaxyIO.DOTS.Systems
             float deltaTime = SystemAPI.Time.DeltaTime;
             uint spawnTick = networkTime.ServerTick.SerializedData;
 
+            // 첫 투사체를 만들 때 한 번만 생성. 모든 우주선이 같은 버퍼를 씀.
+            var commandBuffer = new EntityCommandBuffer();
+
             foreach (
                 var (transform, inputRequest, movement, owner, delay, turrets, spaceship) in
                     SystemAPI.Query<
@@ -65,13 +68,6 @@ namespace GalaxyIO.DOTS.Systems
                     movement.ValueRO.DeltaMovement,
                     math.normalizesafe(SpaceshipHeading.FromRotation(transform.ValueRO.Rotation), float2.zero)
                 );
-
-                // 발사할 때만 commandBuffer 생성.
-                var commandBuffer = inputRequest.ValueRO.TurretTriggered
-                    ? SystemAPI
-                        .GetSingleton<EndPredictedSimulationEntityCommandBufferSystem.Singleton>()
-                        .CreateCommandBuffer(state.WorldUnmanaged)
-                    : new EntityCommandBuffer();
 
                 // ref 참조를 위해 foreach가 아닌 for로 접근
                 for (int i = 0; i < turrets.Length; i++)
@@ -102,6 +98,13 @@ namespace GalaxyIO.DOTS.Systems
                     if (!registeredGhosts.ContainsKey(SystemAPI.GetComponent<GhostType>(turret.ProjectilePrefab)))
                     {
                         continue;
+                    }
+
+                    if (!commandBuffer.IsCreated)
+                    {
+                        commandBuffer = SystemAPI
+                            .GetSingleton<EndPredictedSimulationEntityCommandBufferSystem.Singleton>()
+                            .CreateCommandBuffer(state.WorldUnmanaged);
                     }
 
                     // 클라이언트와 서버가 같은 값을 내는 식별자.
