@@ -49,7 +49,7 @@ namespace GalaxyIO.DOTS.Collision
 
     /// <summary>
     /// 질의 상자와 겹치는 충돌체 인덱스를 하나씩 돌려주는 반복자.
-    /// 격자를 끄면 전체를 훑음. 두 경우 모두 경계 상자가 겹치는 것만 돌려줌.
+    /// 경계 상자가 겹치는 것만 돌려줌.
     /// </summary>
     public struct SpatialHashCandidates
     {
@@ -63,9 +63,8 @@ namespace GalaxyIO.DOTS.Collision
         private int2 size;
 
         private float cellSize;
-        private bool enabled;
 
-        // 켜면 다음에 볼 칸 번호, 끄면 다음 프록시 인덱스
+        // 다음에 볼 칸 번호
         private int cursor;
 
         // 지금 보고 있는 칸과 그 칸의 반복 중 여부
@@ -76,7 +75,6 @@ namespace GalaxyIO.DOTS.Collision
             NativeParallelMultiHashMap<int2, int> cells,
             NativeList<ColliderProxy> proxies,
             float cellSize,
-            bool enabled,
             Aabb bounds)
         {
             this.cells = cells;
@@ -84,7 +82,6 @@ namespace GalaxyIO.DOTS.Collision
             this.proxies = proxies;
             this.bounds = bounds;
             this.cellSize = cellSize;
-            this.enabled = enabled;
             this.min = SpatialHash.ToCell(bounds.Min, cellSize);
             this.size = SpatialHash.ToCell(bounds.Max, cellSize) - this.min + 1;
             this.cursor = 0;
@@ -94,23 +91,6 @@ namespace GalaxyIO.DOTS.Collision
 
         public bool Next(out int index)
         {
-            if (!enabled)
-            {
-                while (cursor < proxies.Length)
-                {
-                    index = cursor++;
-
-                    if (bounds.Overlaps(proxies[index].Bounds))
-                    {
-                        return true;
-                    }
-                }
-
-                index = -1;
-
-                return false;
-            }
-
             while (true)
             {
                 if (inCell)

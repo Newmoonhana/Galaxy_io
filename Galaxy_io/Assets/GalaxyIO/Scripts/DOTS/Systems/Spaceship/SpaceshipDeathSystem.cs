@@ -21,6 +21,7 @@ namespace GalaxyIO.DOTS.Systems
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            state.RequireForUpdate<RelevancyConfigComponent>();
             state.RequireForUpdate(
                 SystemAPI.QueryBuilder()
                     .WithAll<SpaceshipSpecComponent, LocalTransform, GhostOwner>()
@@ -31,28 +32,25 @@ namespace GalaxyIO.DOTS.Systems
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            // 복제 범위를 쓰면 근처 접속과 소유자에게만 보냄. 끄면 모두에게 보냄.
-            bool filtered = SystemAPI.TryGetSingleton(out RelevancyConfigComponent config) && config.UseRelevancy;
+            // 복제 범위 안의 접속과 소유자에게만 보냄.
+            RelevancyConfigComponent config = SystemAPI.GetSingleton<RelevancyConfigComponent>();
             float outerRadius = config.Radius + config.Hysteresis;
             float outerRadiusSq = outerRadius * outerRadius;
 
             var focuses = new NativeList<RelevancyFocus>(4, Allocator.Temp);
 
-            if (filtered)
-            {
-                foreach (
-                    var (position, networkId, connection) in
-                    SystemAPI.Query<RefRO<GhostConnectionPosition>, RefRO<NetworkId>>()
-                        .WithAll<NetworkStreamInGame>()
-                        .WithEntityAccess()
-                ) {
-                    focuses.Add(new RelevancyFocus
-                    {
-                        Connection = connection,
-                        NetworkId  = networkId.ValueRO.Value,
-                        Position   = position.ValueRO.Position.xy,
-                    });
-                }
+            foreach (
+                var (position, networkId, connection) in
+                SystemAPI.Query<RefRO<GhostConnectionPosition>, RefRO<NetworkId>>()
+                    .WithAll<NetworkStreamInGame>()
+                    .WithEntityAccess()
+            ) {
+                focuses.Add(new RelevancyFocus
+                {
+                    Connection = connection,
+                    NetworkId  = networkId.ValueRO.Value,
+                    Position   = position.ValueRO.Position.xy,
+                });
             }
 
             // Query 순회 중의 구조 변경(Structural Change)은 ECB 로 미뤄서 처리함.
@@ -74,11 +72,6 @@ namespace GalaxyIO.DOTS.Systems
                     OwnerNetworkId = owner.ValueRO.NetworkId,
                 };
 
-                if (!filtered)
-                {
-                    Send(ecb, message, Entity.Null);
-                }
-
                 for (int i = 0; i < focuses.Length; i++)
                 {
                     if (focuses[i].NetworkId == message.OwnerNetworkId
@@ -96,7 +89,6 @@ namespace GalaxyIO.DOTS.Systems
             focuses.Dispose();
         }
 
-        // TargetConnection 이 Entity.Null 이면 접속한 모든 클라이언트로 전송됨.
         private static void Send(EntityCommandBuffer ecb, in SpaceshipDestroyedRPC message, Entity target)
         {
             Entity rpcEntity = ecb.CreateEntity();

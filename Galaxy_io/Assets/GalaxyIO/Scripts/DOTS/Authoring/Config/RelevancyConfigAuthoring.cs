@@ -10,11 +10,7 @@ namespace GalaxyIO.DOTS.Authoring.Config
     public sealed class RelevancyConfigAuthoring : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("끄면 모든 Ghost 를 모든 접속에 보냄. 성능 비교용.")]
-        public bool UseRelevancy = true;
-
-        [SerializeField]
-        [Tooltip("접속 초점에서 이 반경 안의 Ghost 만 보냄. 화면 대각선 절반보다 크게 잡을 것.")]
+        [Tooltip("접속 초점에서 이 반경 안의 Ghost 만 보냄. 레이더 탐지 거리로도 씀. 화면 대각선 절반보다 크게 잡을 것.")]
         [Min(1.0F)]
         public float Radius = 64.0F;
 
@@ -32,9 +28,8 @@ namespace GalaxyIO.DOTS.Authoring.Config
 
             AddComponent(entity, new RelevancyConfigComponent
             {
-                UseRelevancy = authoring.UseRelevancy,
-                Radius       = authoring.Radius,
-                Hysteresis   = authoring.Hysteresis,
+                Radius     = authoring.Radius,
+                Hysteresis = authoring.Hysteresis,
             });
         }
     }

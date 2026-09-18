@@ -8,9 +8,6 @@ namespace GalaxyIO.DOTS.Components.Singleton
     /// </summary>
     public struct CollisionConfigComponent : IComponentData
     {
-        // 끄면 모든 충돌체와 전수 비교함.
-        public bool UseSpatialHash;
-
         // 격자 칸 한 변 길이
         public float CellSize;
 

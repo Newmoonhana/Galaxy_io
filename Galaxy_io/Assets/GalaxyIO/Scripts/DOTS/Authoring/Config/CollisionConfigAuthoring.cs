@@ -10,10 +10,6 @@ namespace GalaxyIO.DOTS.Authoring.Config
     public sealed class CollisionConfigAuthoring : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("끄면 모든 충돌체와 전수 비교함. 성능 비교용.")]
-        public bool UseSpatialHash = true;
-
-        [SerializeField]
         [Tooltip("격자 칸 한 변 길이. 작을수록 후보는 줄고 등록할 칸은 늘어남.")]
         [Min(0.1F)]
         public float CellSize = 8.0F;
@@ -37,10 +33,9 @@ namespace GalaxyIO.DOTS.Authoring.Config
 
             AddComponent(entity, new CollisionConfigComponent
             {
-                UseSpatialHash = authoring.UseSpatialHash,
-                CellSize       = authoring.CellSize,
-                RewindSpeed    = authoring.RewindSpeed,
-                Restitution    = authoring.Restitution,
+                CellSize    = authoring.CellSize,
+                RewindSpeed = authoring.RewindSpeed,
+                Restitution = authoring.Restitution,
             });
         }
     }
