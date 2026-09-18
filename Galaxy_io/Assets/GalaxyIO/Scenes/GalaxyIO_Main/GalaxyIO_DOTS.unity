@@ -200,8 +200,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53a1b66e5321c314abb500438b194c68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.EnemySpawnConfigAuthoring
-  StressTest: 1
   Cap: 2000
+  SpawnInterval: 2
+  SpawnPerRadar: 4
+  RadarCap: 20
+  SpawnDistanceRange: {x: 40, y: 64}
+  ViewHalfExtents: {x: 50, y: 30}
 --- !u!114 &163557127
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -214,7 +218,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ad21c427d0e33034a985e27501447916, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.CollisionConfigAuthoring
-  UseSpatialHash: 1
   CellSize: 8
   RewindSpeed: 16
   Restitution: 1
@@ -230,7 +233,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 860e5571e9f86ab4fb57fc0530ae1107, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.RelevancyConfigAuthoring
-  UseRelevancy: 1
   Radius: 64
   Hysteresis: 8
 --- !u!1 &1598268223

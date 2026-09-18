@@ -16,28 +16,30 @@ namespace JWServer.Runtime.Login
         /// [PLACEHOLDER] 통합 게임 백엔드서버에서 사용되는 게임의 식별자
         /// </summary>
         public const string GAME_CODE = "DBB834D5B129E3C71EEAE6B61F503291";
-        
+
 #if UNITY_EDITOR
         private const string AUTH_SERVER = "http://localhost:5050";
 #else
         /// <summary>
         /// [PLACEHOLDER] 개발 서버 주소 / 운영 서버 주소
         /// </summary>
-        private string AUTH_SERVER => SO_NmhnConfigData.Instance.ModeType != MODETYPE.BUILD ? "https://192.168.0.1" : "https://jwgameserver.com";
+        /// private const string AUTH_SERVER => SO_NmhnConfigData.Instance.ModeType != MODETYPE.BUILD ? "https://192.168.0.1" : "https://jwgameserver.com";
+        /// TODO: 빌드 에러 나서 임시로 주석처리함.
+        private const string AUTH_SERVER = "http://localhost:5050";
 #endif
-        
+
         /// <summary>
         /// [PLACEHOLDER] 인증 정보를 저장할 파일명
         /// </summary>
         private const string AUTH_FILE = "thunder_veil_auth.json";
-        
+
         private const string CONTENT_TYPE_JSON = "application/json"; // HTTP통신 데이터 타입(JSON)
-        
+
         /// <summary>
         /// 엑세스 토큰 & 리프레시토큰 — 메모리에서만 존재
         /// </summary>
         private static GameUserTokenDTO sUserTokenData;
-        
+
         /// <summary>
         /// `sAccessToken`이 유효한지 보장함. ID/PW를 입력하여 로그인 하였거나<p/>
         /// 자동 로그인 기능으로 로그인에 성공하였을 때 true.<p/>
@@ -47,7 +49,7 @@ namespace JWServer.Runtime.Login
         ///         통신 시도 -> Refresh 토큰으로 통신 재시도"하는 프로세스가 존재해야 함.
         /// </summary>
         private static bool sIsOnline;
-        
+
         /// <summary>
         /// 인증이 필요한 API 호출을 감싸서, Access 토큰 만료 시 자동으로
         /// Refresh 토큰으로 재발급받고 원래 호출을 재시도
@@ -84,7 +86,7 @@ namespace JWServer.Runtime.Login
             sUserTokenData = default;
             sIsOnline = false;
         }
-        
+
         /// <summary>
         /// 디스크에 영구히 보존되는 데이터 파일 위치<p/>
         /// Application.persistentDataPath: OS에서 보장하는 영구 데이터들의 위치를 담고 있음
@@ -117,7 +119,7 @@ namespace JWServer.Runtime.Login
             sUserTokenData = JsonUtility.FromJson<GameUserTokenDTO>(json);
             DebugLog.Log($"{sPersistentDataPath} 경로의 저장된 토큰 참조\njson = {json}");
         }
-        
+
         /// <summary>
         /// JW 게임 서버에서 받은 응답을 DTO로 변환(역직렬화)<p/>
         /// </summary>
@@ -128,11 +130,11 @@ namespace JWServer.Runtime.Login
             //오류 메세지 출력
             if (req.result == UnityWebRequest.Result.ConnectionError)
                 return new GameUserResponseDTO(_responseMessage: CommonMsg.CONNECTION_ERROR);
-            
+
             string responseJson = req.downloadHandler.text;
             return JsonUtility.FromJson<GameUserResponseDTO>(responseJson);
         }
-        
+
         /// <summary>
         /// 사용자 회원가입<p/>
         /// 필수 파라미터: actionType, gameCode, memberType, memberId, memberPw (6자리이상), memberName<p/>
@@ -142,7 +144,7 @@ namespace JWServer.Runtime.Login
         {
             const string gameUserRequestEndpoint = "/api/account/gameuser";
             string postData = JsonUtility.ToJson(request);
-            
+
             // 웹 요청 전송 — using-IDisposable 실패시 자동으로 Close
             using (UnityWebRequest req = UnityWebRequest.Post(AUTH_SERVER + gameUserRequestEndpoint, postData, CONTENT_TYPE_JSON))
             {
@@ -158,7 +160,7 @@ namespace JWServer.Runtime.Login
                 return response;
             }
         }
-        
+
         /// <summary>
         /// 사용자 로그인
         /// <p/>
@@ -171,7 +173,7 @@ namespace JWServer.Runtime.Login
                 return new GameUserResponseDTO(_responseMessage: CommonMsg.ALREADY_ONLINE);
 
             const string gameUserRequestEndpoint = "/api/account/gameuser";
-            
+
             string postData = JsonUtility.ToJson(request);
 
             using (UnityWebRequest req = UnityWebRequest.Post(AUTH_SERVER + gameUserRequestEndpoint, postData, CONTENT_TYPE_JSON))
@@ -189,7 +191,7 @@ namespace JWServer.Runtime.Login
                 return response;
             }
         }
-        
+
         /// <summary>
         /// 저장되어 있는 Access토큰과 Refresh토큰으로 로그인 시도
         /// <p/>
@@ -220,7 +222,7 @@ namespace JWServer.Runtime.Login
 
             return dto;
         }
-        
+
         // Hidden API — `GameStart` 호출은 `AutoLogIn`에서 자동으로 처리해줌
         private static async Awaitable<GameUserResponseDTO> GameStart()
         {
@@ -239,7 +241,7 @@ namespace JWServer.Runtime.Login
                 return response;
             }
         }
-        
+
         /// <summary>
         /// Access토큰 만료 후 다시 받기 (세션에 저장되어 있는 Refresh토큰으로 Access토큰 재발급)
         /// </summary>
@@ -262,6 +264,6 @@ namespace JWServer.Runtime.Login
                 return response;
             }
         }
-        
+
     }
 }

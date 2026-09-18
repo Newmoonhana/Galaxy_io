@@ -50,12 +50,6 @@ namespace GalaxyIO.DOTS.Systems
             RelevancyConfigComponent config = SystemAPI.GetSingleton<RelevancyConfigComponent>();
             RefRW<GhostRelevancy> relevancy = SystemAPI.GetSingletonRW<GhostRelevancy>();
 
-            if (!config.UseRelevancy)
-            {
-                relevancy.ValueRW.GhostRelevancyMode = GhostRelevancyMode.Disabled;
-                return;
-            }
-
             relevancy.ValueRW.GhostRelevancyMode = GhostRelevancyMode.SetIsRelevant;
 
             // 접속 초점을 소유한 우주선 위치로 옮김. 우주선이 없으면 마지막 위치를 유지함.

@@ -42,26 +42,20 @@ namespace GalaxyIO.DOTS.Systems
             int count = spaceshipQuery.CalculateEntityCount();
             var proxies = new NativeList<ColliderProxy>(count, Allocator.TempJob);
 
-            // 칸 -> proxies 인덱스. 선체 하나가 여러 칸에 걸침. 해시를 끄면 비워 둠.
-            var cells = new NativeParallelMultiHashMap<int2, int>(
-                config.UseSpatialHash ? math.max(count * 2, 1) : 1,
-                Allocator.TempJob
-            );
+            // 칸 -> proxies 인덱스. 선체 하나가 여러 칸에 걸침.
+            var cells = new NativeParallelMultiHashMap<int2, int>(math.max(count * 2, 1), Allocator.TempJob);
 
             state.Dependency = new GatherSpaceshipProxyJob
             {
                 Proxies = proxies,
             }.Schedule(state.Dependency);
 
-            if (config.UseSpatialHash)
+            state.Dependency = new BuildSpatialHashJob
             {
-                state.Dependency = new BuildSpatialHashJob
-                {
-                    Proxies  = proxies,
-                    Cells    = cells,
-                    CellSize = config.CellSize,
-                }.Schedule(state.Dependency);
-            }
+                Proxies  = proxies,
+                Cells    = cells,
+                CellSize = config.CellSize,
+            }.Schedule(state.Dependency);
 
             // 지연이 있는 클라이언트의 명중을 되감아 판정하려면 지난 틱 위치가 필요함.
             state.Dependency = new RecordSpaceshipColliderJob
@@ -72,30 +66,27 @@ namespace GalaxyIO.DOTS.Systems
             // 세 판정은 각자 자기 Entity 의 버퍼에만 쓰므로 함께 돌 수 있음.
             JobHandle spaceship = new SpaceshipCollisionDetectionJob
             {
-                Proxies        = proxies,
-                Cells          = cells,
-                CellSize       = config.CellSize,
-                UseSpatialHash = config.UseSpatialHash,
+                Proxies  = proxies,
+                Cells    = cells,
+                CellSize = config.CellSize,
             }.ScheduleParallel(state.Dependency);
 
             JobHandle projectile = new ProjectileCollisionDetectionJob
             {
-                Proxies        = proxies,
-                Cells          = cells,
-                CellSize       = config.CellSize,
-                UseSpatialHash = config.UseSpatialHash,
-                Histories      = SystemAPI.GetBufferLookup<SpaceshipColliderHistory>(true),
-                RewindSpeed    = config.RewindSpeed,
-                DeltaTime      = SystemAPI.Time.DeltaTime,
-                CurrentTick    = networkTime.ServerTick,
+                Proxies     = proxies,
+                Cells       = cells,
+                CellSize    = config.CellSize,
+                Histories   = SystemAPI.GetBufferLookup<SpaceshipColliderHistory>(true),
+                RewindSpeed = config.RewindSpeed,
+                DeltaTime   = SystemAPI.Time.DeltaTime,
+                CurrentTick = networkTime.ServerTick,
             }.ScheduleParallel(state.Dependency);
 
             JobHandle sight = new SightCollisionDetectionJob
             {
-                Proxies        = proxies,
-                Cells          = cells,
-                CellSize       = config.CellSize,
-                UseSpatialHash = config.UseSpatialHash,
+                Proxies  = proxies,
+                Cells    = cells,
+                CellSize = config.CellSize,
             }.ScheduleParallel(state.Dependency);
 
             state.Dependency = JobHandle.CombineDependencies(spaceship, projectile, sight);
@@ -178,7 +169,6 @@ namespace GalaxyIO.DOTS.Systems
         public NativeParallelMultiHashMap<int2, int> Cells;
 
         public float CellSize;
-        public bool UseSpatialHash;
 
         private void Execute(
             Entity entity,
@@ -201,7 +191,7 @@ namespace GalaxyIO.DOTS.Systems
                 Ignore   = Entity.Null,
             };
 
-            var candidates = new SpatialHashCandidates(Cells, Proxies, CellSize, UseSpatialHash, receiver.Bounds);
+            var candidates = new SpatialHashCandidates(Cells, Proxies, CellSize, receiver.Bounds);
 
             while (candidates.Next(out int i))
             {
@@ -245,7 +235,6 @@ namespace GalaxyIO.DOTS.Systems
         public BufferLookup<SpaceshipColliderHistory> Histories;
 
         public float CellSize;
-        public bool UseSpatialHash;
 
         // 되감는 동안 우주선이 움직일 수 있는 최대 속력. 질의 상자를 이만큼 넓힘.
         public float RewindSpeed;
@@ -281,7 +270,7 @@ namespace GalaxyIO.DOTS.Systems
                 Ignore   = projectile.Owner,
             };
 
-            var candidates = new SpatialHashCandidates(Cells, Proxies, CellSize, UseSpatialHash, receiver.Bounds);
+            var candidates = new SpatialHashCandidates(Cells, Proxies, CellSize, receiver.Bounds);
 
             while (candidates.Next(out int i))
             {
@@ -365,7 +354,6 @@ namespace GalaxyIO.DOTS.Systems
         public NativeParallelMultiHashMap<int2, int> Cells;
 
         public float CellSize;
-        public bool UseSpatialHash;
 
         private void Execute(
             Entity entity,
@@ -390,7 +378,7 @@ namespace GalaxyIO.DOTS.Systems
                 Ignore          = Entity.Null,
             };
 
-            var candidates = new SpatialHashCandidates(Cells, Proxies, CellSize, UseSpatialHash, receiver.Bounds);
+            var candidates = new SpatialHashCandidates(Cells, Proxies, CellSize, receiver.Bounds);
 
             while (candidates.Next(out int i))
             {

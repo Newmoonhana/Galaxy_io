@@ -41,11 +41,8 @@ namespace GalaxyIO.DOTS.Systems
 
             var proxies = new NativeList<ColliderProxy>(count, Allocator.TempJob);
 
-            // 칸 -> proxies 인덱스. 해시를 끄면 비워 둠.
-            var cells = new NativeParallelMultiHashMap<int2, int>(
-                config.UseSpatialHash ? math.max(count * 2, 1) : 1,
-                Allocator.TempJob
-            );
+            // 칸 -> proxies 인덱스
+            var cells = new NativeParallelMultiHashMap<int2, int>(math.max(count * 2, 1), Allocator.TempJob);
 
             // Spaceship Collider 수집
             state.Dependency = new GatherSpaceshipProxyJob
@@ -53,22 +50,18 @@ namespace GalaxyIO.DOTS.Systems
                 Proxies = proxies,
             }.Schedule(state.Dependency);
 
-            if (config.UseSpatialHash)
+            state.Dependency = new BuildSpatialHashJob
             {
-                state.Dependency = new BuildSpatialHashJob
-                {
-                    Proxies  = proxies,
-                    Cells    = cells,
-                    CellSize = config.CellSize,
-                }.Schedule(state.Dependency);
-            }
+                Proxies  = proxies,
+                Cells    = cells,
+                CellSize = config.CellSize,
+            }.Schedule(state.Dependency);
 
             state.Dependency = new ProjectileHidingJob
             {
-                Proxies        = proxies,
-                Cells          = cells,
-                CellSize       = config.CellSize,
-                UseSpatialHash = config.UseSpatialHash,
+                Proxies  = proxies,
+                Cells    = cells,
+                CellSize = config.CellSize,
                 CommandBuffer = SystemAPI
                     .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
                     .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
@@ -94,7 +87,6 @@ namespace GalaxyIO.DOTS.Systems
         public NativeParallelMultiHashMap<int2, int> Cells;
 
         public float CellSize;
-        public bool UseSpatialHash;
 
         public EntityCommandBuffer.ParallelWriter CommandBuffer;
 
@@ -140,7 +132,7 @@ namespace GalaxyIO.DOTS.Systems
                 Ignore   = shared.Owner,
             };
 
-            var candidates = new SpatialHashCandidates(Cells, Proxies, CellSize, UseSpatialHash, receiver.Bounds);
+            var candidates = new SpatialHashCandidates(Cells, Proxies, CellSize, receiver.Bounds);
 
             while (candidates.Next(out int i))
             {

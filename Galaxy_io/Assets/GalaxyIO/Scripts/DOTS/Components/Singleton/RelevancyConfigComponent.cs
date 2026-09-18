@@ -8,9 +8,6 @@ namespace GalaxyIO.DOTS.Components.Singleton
     /// </summary>
     public struct RelevancyConfigComponent : IComponentData
     {
-        // 끄면 모든 Ghost 를 모든 접속에 보냄.
-        public bool UseRelevancy;
-
         // 접속 초점에서 이 반경 안의 Ghost 만 보냄.
         public float Radius;
 
