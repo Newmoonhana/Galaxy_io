@@ -4,13 +4,11 @@ using JWServer.Runtime.DTO;
 using JWServer.Runtime.Login;
 using JWServer.Runtime.Utils;
 using Newmoonhana.Runtime.Tools.PopupUI.Window;
-using Newmoonhana.Runtime.Tools.Scene;
 using Newmoonhana.Runtime.Utils;
 using Newmoonhana.Runtime.Utils.DEBUG;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace GalaxyIO.Tools.PopupUI.Window
@@ -24,11 +22,14 @@ namespace GalaxyIO.Tools.PopupUI.Window
         [SerializeField] private TMP_Text errorMsg_txt;
         
         private UnityEvent<string> _changeWindow;
+        // 로그인 성공을 알림. 다음에 표시할 창은 PopupLobby가 결정함.
+        private UnityEvent _loginSuccess;
 
         protected override void Awake()
         {
             base.Awake();
             _changeWindow = new UnityEvent<string>();
+            _loginSuccess = new UnityEvent();
         }
 
         protected override void Start()
@@ -44,6 +45,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
             base.Dispose();
             _changeWindow?.RemoveAllListeners();
             _changeWindow = null;
+            _loginSuccess?.RemoveAllListeners();
+            _loginSuccess = null;
         }
 
         protected override void OnEnable()
@@ -63,6 +66,14 @@ namespace GalaxyIO.Tools.PopupUI.Window
         public void AddListener(UnityAction<string> _action)
         {
             _changeWindow.AddListener(_action);
+        }
+
+        /// <summary>
+        /// 로그인 성공 시 알림 받을 리스너 등록.
+        /// </summary>
+        public void AddListener(UnityAction _action)
+        {
+            _loginSuccess.AddListener(_action);
         }
 
         private void OnSignInBtnPress()
@@ -103,8 +114,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             #region 로그인 성공
             if (ResponseMsgUtil.IsOk(result.responseMessage) || result.responseMessage is CommonMsg.ALREADY_ONLINE)
             {
-                // TODO -> 씬 이동 말고 ChangeWindow로
-                //SceneManager.LoadScene("GalaxyIO_Main", LoadSceneMode.Single);
+                _loginSuccess?.Invoke();
                 return;
             }
             #endregion
