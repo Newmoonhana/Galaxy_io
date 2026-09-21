@@ -269,7 +269,7 @@ GameObject:
   - component: {fileID: 1904972668195748966}
   - component: {fileID: 9041939622024070054}
   m_Layer: 5
-  m_Name: Popup Msg Box
+  m_Name: Common Msg Box
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -307,7 +307,7 @@ MonoBehaviour:
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 52e2d488298bf274987a30deaaf32e42, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Tools.PopupUI.Popup.PopupMessageBox
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Tools.PopupUI.Popup.CommonMessageBox
 --- !u!1 &4869527233182102917
 GameObject:
   m_ObjectHideFlags: 0

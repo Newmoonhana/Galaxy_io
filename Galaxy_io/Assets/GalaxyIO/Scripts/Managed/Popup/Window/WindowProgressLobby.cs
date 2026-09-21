@@ -14,7 +14,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
         // [TEMP] 해당 윈도우 디자인 커스텀 시 사용 가능성 높은 커스텀 윈도우 스크립트
 
         private UnityEvent<string> _changeWindow;
-        // 로그인(자동 로그인) 성공을 알림. 다음에 표시할 창은 PopupLobby가 결정함.
+        // 로그인(자동 로그인) 성공을 알림. 다음에 표시할 창은 LobbyUI가 결정함.
         private UnityEvent _loginSuccess;
         private Awaitable runProgress_handle;
 

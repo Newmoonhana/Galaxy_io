@@ -12,19 +12,19 @@ namespace GalaxyIO.Tools.PopupUI.Window
         [SerializeField] private TMP_Text msg_txt;
         [SerializeField] private Button exit_btn;
         
-        private UnityEvent closePopup;
+        private UnityEvent closeMsgBox;
         
         protected override void Awake()
         {
             base.Awake();
-            closePopup = new UnityEvent();
+            closeMsgBox = new UnityEvent();
         }
 
         public override void Dispose()
         {
             base.Dispose();
-            closePopup?.RemoveAllListeners();
-            closePopup = null;
+            closeMsgBox?.RemoveAllListeners();
+            closeMsgBox = null;
         }
 
         protected override void OnEnable()
@@ -43,7 +43,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
         
         public void AddListener(UnityAction _action)
         {
-            closePopup.AddListener(_action);
+            closeMsgBox.AddListener(_action);
         }
 
         public void SetTitleText(string title)
@@ -66,7 +66,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
         public void OnExitBtnPress()
         {
-            closePopup?.Invoke();
+            closeMsgBox?.Invoke();
         }
     }
 

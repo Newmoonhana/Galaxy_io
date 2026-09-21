@@ -16,7 +16,7 @@ MonoBehaviour:
   m_GUID: 01f568d22c688ac4f929e001526db059
   m_SerializeEntries:
   - m_GUID: 5b74ebed8b381a94193d59bbf01d3caf
-    m_Address: Popup_MsgBox
+    m_Address: Common_MsgBox
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
@@ -25,18 +25,13 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 8c9cfa26abfee488c85f1582747f6a02
-    m_Address: S_Login
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: a5b13f46df9e88a4db83245fa7098647
-    m_Address: S_Game
+  - m_GUID: ae6fa7ebd0e97194c8358e626173bd18
+    m_Address: Respawn_UI
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ef1484e690c4c484297b5c657ee794bd
-    m_Address: Popup_Login
+    m_Address: Lobby_UI
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

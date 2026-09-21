@@ -5,7 +5,7 @@ using UnityEngine.EventSystems;
 
 namespace GalaxyIO.Tools.PopupUI.Popup
 {
-    public class PopupMessageBox : PopupBase
+    public class CommonMessageBox : PopupBase
     {
         private WindowMsgBox msgBox_win;
         

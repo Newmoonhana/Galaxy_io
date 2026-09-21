@@ -22,7 +22,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
         [SerializeField] private TMP_Text errorMsg_txt;
         
         private UnityEvent<string> _changeWindow;
-        // 로그인 성공을 알림. 다음에 표시할 창은 PopupLobby가 결정함.
+        // 로그인 성공을 알림. 다음에 표시할 창은 LobbyUI가 결정함.
         private UnityEvent _loginSuccess;
 
         protected override void Awake()
@@ -125,19 +125,19 @@ namespace GalaxyIO.Tools.PopupUI.Window
             else
             {
                 // 서버 자체 오류 시 경고창 팝업 호출
-                const string key = "Popup_MsgBox";
+                const string key = "Common_MsgBox";
                 await AddressableAssetsManager.gameObject_lst.LoadData(key);
                 GameObject winObj = Instantiate(AddressableAssetsManager.gameObject_lst.GetData(key).Data, transform.parent);
                 AddressableAssetsManager.gameObject_lst.GetData(key).UnLoad();
-                PopupMessageBox msgBox_popup = winObj?.GetComponent<PopupMessageBox>();
-                if (msgBox_popup == null)
+                CommonMessageBox msgBox = winObj?.GetComponent<CommonMessageBox>();
+                if (msgBox == null)
                 {
                     errorMsg_txt.text = "something error...";
                     DebugLog.LogError($"프리팹 {key} 등록 안됨!");
                 }
                 
-                msgBox_popup.SetWinText("Login Failed", result.responseMessage);
-                msgBox_popup.Refresh();
+                msgBox.SetWinText("Login Failed", result.responseMessage);
+                msgBox.Refresh();
             }
             return;
 

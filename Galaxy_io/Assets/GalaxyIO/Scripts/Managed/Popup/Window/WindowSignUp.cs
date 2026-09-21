@@ -154,19 +154,19 @@ namespace GalaxyIO.Tools.PopupUI.Window
             }
             
             // 서버 자체 오류 시 경고창 팝업 호출
-            const string key = "Popup_MsgBox";
+            const string key = "Common_MsgBox";
             await AddressableAssetsManager.gameObject_lst.LoadData(key);
             GameObject winObj = Instantiate(AddressableAssetsManager.gameObject_lst.GetData(key).Data, transform.parent);
             AddressableAssetsManager.gameObject_lst.GetData(key).UnLoad();
-            PopupMessageBox msgBox_popup = winObj?.GetComponent<PopupMessageBox>();
-            if (msgBox_popup == null)
+            CommonMessageBox msgBox = winObj?.GetComponent<CommonMessageBox>();
+            if (msgBox == null)
             {
                 errorMsg_txt.text = "something error...";
                 DebugLog.LogError($"프리팹 {key} 등록 안됨!");
             }
 
-            msgBox_popup.SetWinText("Sign Up Failed", result.responseMessage);
-            msgBox_popup.Refresh();
+            msgBox.SetWinText("Sign Up Failed", result.responseMessage);
+            msgBox.Refresh();
                 
             return;
             

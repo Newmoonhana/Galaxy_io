@@ -5,9 +5,6 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/GalaxyIO/Scenes/S_Login.unity
-    guid: 8c9cfa26abfee488c85f1582747f6a02
   - enabled: 1
     path: Assets/GalaxyIO/Scenes/GalaxyIO_Main.unity
     guid: a5b13f46df9e88a4db83245fa7098647
