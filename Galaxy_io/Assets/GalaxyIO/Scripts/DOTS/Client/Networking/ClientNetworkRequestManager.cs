@@ -1,4 +1,5 @@
 ﻿using GalaxyIO.DOTS.Client.Components.Message;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
 using Unity.Networking.Transport;
@@ -16,13 +17,17 @@ namespace GalaxyIO.DOTS.Client.Networking
         /// 실제 접속과 RPC 전송은 <see cref="Systems.ClientConnectionSystem"/>이 처리함.
         /// (DOTS Entities가 제공하는 Networking 기능을 이용하기 위해)
         /// </summary>
+        /// <param name="playerName">플레이어 이름. 비어 있으면 서버가 요청을 버림.</param>
         /// <returns>
         /// 요청 접수 여부. Client World가 없으면 false. 접수됐다는 뜻이지
         /// 접속 완료를 의미하지는 않음.
         /// </returns>
-        public static bool RequestPlayerSpawn(NetworkEndpoint endpoint)
+        public static bool RequestPlayerSpawn(NetworkEndpoint endpoint, string playerName)
         {
-            return Enqueue(endpoint);
+            var name = new FixedString64Bytes();
+            name.CopyFromTruncated(playerName);
+
+            return Enqueue(endpoint, name);
         }
 
         /// <summary>
@@ -32,7 +37,7 @@ namespace GalaxyIO.DOTS.Client.Networking
         {
             var clientWorld = ClientServerBootstrap.ClientWorld;
 
-            if (clientWorld == null || !Enqueue(default))
+            if (clientWorld == null || !Enqueue(default, default))
             {
                 return false;
             }
@@ -50,7 +55,7 @@ namespace GalaxyIO.DOTS.Client.Networking
         /// <summary>
         /// 요청 엔티티를 남김.
         /// </summary>
-        private static bool Enqueue(NetworkEndpoint endpoint)
+        private static bool Enqueue(NetworkEndpoint endpoint, FixedString64Bytes name)
         {
             // Thin Client 를 제외한 실제 Client World.
             var clientWorld = ClientServerBootstrap.ClientWorld;
@@ -75,6 +80,7 @@ namespace GalaxyIO.DOTS.Client.Networking
                 entityManager.AddComponentData(request, new PlayerSpawnRequest
                 {
                     Endpoint = endpoint,
+                    Name     = name,
                 });
             }
 

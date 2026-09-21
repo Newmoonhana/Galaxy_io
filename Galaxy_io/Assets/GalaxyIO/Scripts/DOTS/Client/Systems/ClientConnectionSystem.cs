@@ -87,7 +87,7 @@ namespace GalaxyIO.DOTS.Client.Systems
 
             Entity rpcEntity = ecb.CreateEntity();
 
-            ecb.AddComponent<SpawnRequestRPC>(rpcEntity);
+            ecb.AddComponent(rpcEntity, new SpawnRequestRPC { Name = request.Name });
 
             ecb.AddComponent(
                 rpcEntity,

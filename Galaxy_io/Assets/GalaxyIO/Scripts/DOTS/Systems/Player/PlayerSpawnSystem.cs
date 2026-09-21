@@ -53,9 +53,8 @@ namespace GalaxyIO.DOTS.Systems
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
             foreach (
-                var (request, rpcEntity) in
-                SystemAPI.Query<RefRO<ReceiveRpcCommandRequest>>()
-                    .WithAll<SpawnRequestRPC>()
+                var (request, rpc, rpcEntity) in
+                SystemAPI.Query<RefRO<ReceiveRpcCommandRequest>, RefRO<SpawnRequestRPC>>()
                     .WithEntityAccess()
             ) {
                 Entity connectionEntity = request.ValueRO.SourceConnection;
@@ -73,6 +72,24 @@ namespace GalaxyIO.DOTS.Systems
                     continue;
                 }
 
+                // 접속 요청은 이름을 싣고, 리스폰 요청은 비어 있음. 비어 있으면 Connection 에 남긴 이름을 씀.
+                FixedString64Bytes playerName = rpc.ValueRO.Name;
+
+                if (playerName.IsEmpty && SystemAPI.HasComponent<PlayerNameComponent>(connectionEntity))
+                {
+                    playerName = SystemAPI.GetComponent<PlayerNameComponent>(connectionEntity).Value;
+                }
+
+                // 이름 없는 요청은 버림. 클라이언트가 빈 이름을 막으므로 정상 경로로는 오지 않음.
+                if (playerName.IsEmpty)
+                {
+                    owners.Remove(networkId.Value);
+                    ecb.DestroyEntity(rpcEntity);
+                    continue;
+                }
+
+                ecb.AddComponent(connectionEntity, new PlayerNameComponent { Value = playerName });
+
                 Entity playerShip = ecb.Instantiate(shipPrefab);
 
                 ecb.SetComponent(
@@ -82,6 +99,8 @@ namespace GalaxyIO.DOTS.Systems
                         NetworkId = networkId.Value
                     }
                 );
+
+                ecb.SetComponent(playerShip, new PlayerNameComponent { Value = playerName });
 
                 // 틱과 NetworkId 를 섞어 같은 틱에 들어온 요청끼리도 좌표가 갈림.
                 var random = Random.CreateFromIndex(tick ^ ((uint)networkId.Value * 0x9E3779B9u));

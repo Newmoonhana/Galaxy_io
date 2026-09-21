@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+﻿using Unity.Collections;
+using Unity.Entities;
 using Unity.Networking.Transport;
 
 namespace GalaxyIO.DOTS.Client.Components.Message
@@ -11,5 +12,8 @@ namespace GalaxyIO.DOTS.Client.Components.Message
     {
         // 접속할 서버 주소. 이미 접속된 뒤의 리스폰 요청은 비워 둠.
         public NetworkEndpoint Endpoint;
+
+        // 플레이어 이름. 리스폰 요청은 비워 둠.
+        public FixedString64Bytes Name;
     }
 }

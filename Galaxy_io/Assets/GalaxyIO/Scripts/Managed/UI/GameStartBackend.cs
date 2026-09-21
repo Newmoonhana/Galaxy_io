@@ -1,6 +1,7 @@
 using GalaxyIO.DOTS.Bootstrap;
 using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Networking;
+using GalaxyIO.DOTS.Components.Actor;
 using TMPro;
 using Unity.Entities;
 using Unity.NetCode;
@@ -22,6 +23,14 @@ namespace GalaxyIO.Scripts.Managed.UI
         [SerializeField]
         [Tooltip("서버 주소 입력창")]
         private IpAddressField addressField;
+
+        [SerializeField]
+        [Tooltip("플레이어 이름 입력창")]
+        private TMP_InputField nameField;
+
+        [SerializeField]
+        [Tooltip("이름이 비었을 때 띄울 안내문")]
+        private TMP_Text nameWarning;
 
         [SerializeField]
         [Tooltip("주소를 읽지 못했을 때 띄울 안내문")]
@@ -49,6 +58,8 @@ namespace GalaxyIO.Scripts.Managed.UI
         {
             warning.gameObject.SetActive(false);
             unreachable.gameObject.SetActive(false);
+            nameWarning.gameObject.SetActive(false);
+            nameField.characterLimit = PlayerNameComponent.MaxLength;
         }
 
         private void Start()
@@ -101,6 +112,7 @@ namespace GalaxyIO.Scripts.Managed.UI
             addressField.Fill(NetcodeBootstrap.LoopbackAddress);
             warning.gameObject.SetActive(false);
             unreachable.gameObject.SetActive(false);
+            nameWarning.gameObject.SetActive(false);
         }
 
         /// <summary>
@@ -109,6 +121,18 @@ namespace GalaxyIO.Scripts.Managed.UI
         public void OnPressGameStart()
         {
             unreachable.gameObject.SetActive(false);
+
+            // 공백만 입력한 경우도 빈 이름으로 취급함.
+            string playerName = nameField.text.Trim();
+
+            if (playerName.Length == 0)
+            {
+                warning.gameObject.SetActive(false);
+                nameWarning.gameObject.SetActive(true);
+                return;
+            }
+
+            nameWarning.gameObject.SetActive(false);
 
             // 모양이 맞아도 값이 범위를 넘으면(e.g. 999.0.0.1) 여기서 걸림.
             if (!NetworkEndpoint.TryParse(
@@ -122,7 +146,7 @@ namespace GalaxyIO.Scripts.Managed.UI
                 return;
             }
 
-            if (ClientNetworkRequestManager.RequestPlayerSpawn(endpoint))
+            if (ClientNetworkRequestManager.RequestPlayerSpawn(endpoint, playerName))
             {
                 warning.gameObject.SetActive(false);
                 SetConnecting(true);
@@ -137,6 +161,7 @@ namespace GalaxyIO.Scripts.Managed.UI
             connecting = value;
             startButton.interactable = !value;
             loopbackButton.interactable = !value;
+            nameField.interactable = !value;
         }
     }
 }

@@ -142,11 +142,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 return;
             }
 
-            if (ClientNetworkRequestManager.RequestPlayerSpawn(endpoint))
-            {
-                warning.gameObject.SetActive(false);
-                SetConnecting(true);
-            }
+            // TODO: "닉네임" 파라미터 가져오기, 사실 이 모듈이 삭제될 예정이라 쓸일 없을것 같긴함
+            // if (ClientNetworkRequestManager.RequestPlayerSpawn(endpoint))
+            // {
+            //    warning.gameObject.SetActive(false);
+            //    SetConnecting(true);
+            // }
         }
 
         /// <summary>
