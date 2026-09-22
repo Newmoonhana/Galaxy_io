@@ -1,4 +1,5 @@
 using System;
+using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.Tools.PopupUI.Popup;
 using JWServer.Runtime.DTO;
 using JWServer.Runtime.Login;
@@ -21,6 +22,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
         [SerializeField] private TMP_InputField pw_if;
         [SerializeField] private TMP_InputField pwValidate_if;
         [SerializeField] private TMP_InputField memberName_if;
+        [SerializeField] private TMP_InputField nickName_if;
         [SerializeField] private TMP_Text errorMsg_txt;
 
         // JW 서버의 memberName 최대 길이.
@@ -33,6 +35,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             base.Awake();
             changeWindow = new UnityEvent<string>();
             memberName_if.characterLimit = MemberNameMaxLength;
+            nickName_if.characterLimit = PlayerNameComponent.MaxLength;
         }
 
         protected override void Start()
@@ -42,6 +45,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             pw_if.text = string.Empty;
             pwValidate_if.text = string.Empty;
             memberName_if.text = string.Empty;
+            nickName_if.text = string.Empty;
             errorMsg_txt.text = string.Empty;
         }
 
@@ -125,6 +129,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 errorMsg_txt.text = "Invalid Name!";
                 return;
             }
+            string nickName = nickName_if.text.Trim();
+            if (string.IsNullOrEmpty(nickName))
+            {
+                errorMsg_txt.text = "Invalid NickName!";
+                return;
+            }
             #endregion
             
             //서버 체크
@@ -136,7 +146,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 _memberType: 0,
                 _memberId: id,
                 _memberPw: pw,
-                _memberName: memberName
+                _memberName: memberName,
+                _nickName: nickName
             );
             bool isDuplicateId = false;
             GameUserResponseDTO result = await CommonProgress.Show<GameUserResponseDTO>(transform.parent, async () =>
@@ -175,6 +186,11 @@ namespace GalaxyIO.Tools.PopupUI.Window
             if (result.responseMessage is RefreshTokenMsg.ACCOUNT_ALREADY_EXISTS)
             {
                 WriteErrorMsgText("이미 존재하는 회원입니다.");
+                return;
+            }
+            if (result.responseMessage is RefreshTokenMsg.NICKNAME_ALREADY_EXISTS)
+            {
+                WriteErrorMsgText("이미 사용 중인 닉네임입니다.");
                 return;
             }
             

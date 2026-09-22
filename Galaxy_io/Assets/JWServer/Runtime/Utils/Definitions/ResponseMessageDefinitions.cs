@@ -18,6 +18,7 @@ namespace JWServer.Runtime.Utils
         public const string GAME_CODE_NOT_FOUND = "GAME_CODE_NOT_FOUND";
         public const string GAME_ACCOUNT_NOT_FOUND = "GAME_ACCOUNT_NOT_FOUND";
         public const string ACCOUNT_ALREADY_EXISTS = "ACCOUNT_ALREADY_EXISTS";
+        public const string NICKNAME_ALREADY_EXISTS = "NICKNAME_ALREADY_EXISTS";
         public const string EXCEPTION_OCCURRED = "EXCEPTION_OCCURRED";
         public const string SERVICE_UNDER_MAINTENANCE = "SERVICE_UNDER_MAINTENANCE";
         public const string SERVICE_BLOCKED = "SERVICE_BLOCKED";
