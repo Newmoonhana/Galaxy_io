@@ -1,0 +1,126 @@
+using GalaxyIO.Tools.PopupUI.Popup;
+using JWServer.Runtime.Login;
+using Newmoonhana.Runtime.Tools.PopupUI.Window;
+using Newmoonhana.Runtime.Utils.DEBUG;
+using TMPro;
+using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.UI;
+
+namespace GalaxyIO.Tools.PopupUI.Window
+{
+    /// <summary>
+    /// 로비 메인 메뉴 창.
+    /// </summary>
+    public class WindowLobbyMain : WindowBase
+    {
+        [SerializeField] private Button signInOut_btn;
+        [SerializeField] private TMP_Text signInOut_txt;
+        [SerializeField] private Button connect_btn;
+        [SerializeField] private Button host_btn;
+        [SerializeField] private Button settings_btn;
+        [SerializeField] private Button exit_btn;
+
+        private UnityEvent<string> _changeWindow;
+
+        protected override void Awake()
+        {
+            base.Awake();
+            _changeWindow = new UnityEvent<string>();
+        }
+
+        public override void Dispose()
+        {
+            base.Dispose();
+            _changeWindow?.RemoveAllListeners();
+            _changeWindow = null;
+        }
+
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+            signInOut_btn.onClick.AddListener(OnSignInOutBtnPress);
+            connect_btn.onClick.AddListener(OnConnectBtnPress);
+            host_btn.onClick.AddListener(OnHostBtnPress);
+            settings_btn.onClick.AddListener(OnSettingsBtnPress);
+            exit_btn.onClick.AddListener(OnExitBtnPress);
+        }
+
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            signInOut_btn.onClick.RemoveListener(OnSignInOutBtnPress);
+            connect_btn.onClick.RemoveListener(OnConnectBtnPress);
+            host_btn.onClick.RemoveListener(OnHostBtnPress);
+            settings_btn.onClick.RemoveListener(OnSettingsBtnPress);
+            exit_btn.onClick.RemoveListener(OnExitBtnPress);
+        }
+
+        public override void Open()
+        {
+            base.Open();
+            RefreshSignInOut();
+        }
+
+        public void AddListener(UnityAction<string> _action)
+        {
+            _changeWindow.AddListener(_action);
+        }
+
+        // [TEMP] 번역 적용 시 I2방식으로 변경 필요
+        private void RefreshSignInOut()
+        {
+            signInOut_txt.SetText(LoginManager.IsOnline ? "Sign Out" : "Sign In");
+        }
+
+        private void OnSignInOutBtnPress()
+        {
+            if (!IsActive()) return;
+
+            if (!LoginManager.IsOnline)
+            {
+                _changeWindow?.Invoke("signIn");
+                return;
+            }
+
+            LoginManager.LogOut();
+            RefreshSignInOut();
+        }
+
+        private void OnConnectBtnPress()
+        {
+            if (!IsActive()) return;
+            _changeWindow?.Invoke("gameStart");
+        }
+
+        // [TEMP] 서버 생성 미구현
+        private void OnHostBtnPress()
+        {
+            if (!IsActive()) return;
+            DebugLog.Log("[TEMP] Host Server 미구현");
+        }
+
+        private void OnSettingsBtnPress()
+        {
+            if (!IsActive()) return;
+            _ = OpenOption();
+        }
+        private async Awaitable OpenOption()
+        {
+            // 로드 중 중복 입력 방지. 열린 뒤엔 옵션 팝업의 BlockerUI가 입력 차단.
+            Deactivate();
+            await CommonOption.Open();
+            Activate();
+        }
+
+        private void OnExitBtnPress()
+        {
+            if (!IsActive()) return;
+#if UNITY_EDITOR
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+            Application.Quit();
+#endif
+        }
+    }
+}

@@ -17,6 +17,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
     {
         [SerializeField] private Button signIn_btn;
         [SerializeField] private Button signUp_btn;
+        [SerializeField] private Button cancel_btn;
         [SerializeField] private TMP_InputField id_if;
         [SerializeField] private TMP_InputField pw_if;
         [SerializeField] private TMP_Text errorMsg_txt;
@@ -54,6 +55,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             base.OnEnable();
             signIn_btn.onClick.AddListener(OnSignInBtnPress);
             signUp_btn.onClick.AddListener(OnSignUpBtnPress);
+            cancel_btn.onClick.AddListener(OnCancelBtnPress);
         }
 
         protected override void OnDisable()
@@ -61,6 +63,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             base.OnDisable();
             signIn_btn.onClick.RemoveListener(OnSignInBtnPress);
             signUp_btn.onClick.RemoveListener(OnSignUpBtnPress);
+            cancel_btn.onClick.RemoveListener(OnCancelBtnPress);
         }
         
         public void AddListener(UnityAction<string> _action)
@@ -100,15 +103,14 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             // 서버 체크
             errorMsg_txt.text = string.Empty;
-            // TODO -> 기다리는 동안의 UI 처리(취소 등 다른 입력 금지, 비주얼 표기 등) 필요
             Deactivate();
-            GameUserResponseDTO result = await LoginManager.LogIn(new GameUserRequestDTO(
+            GameUserResponseDTO result = await CommonProgress.Show(transform.parent, () => LoginManager.LogIn(new GameUserRequestDTO(
                 _gameCode: LoginManager.GAME_CODE,
                 _actionType: "LOGIN",
                 _memberType: 0,
                 _memberId: id,
                 _memberPw: pw,
-                _memberName: "[TEST]")); //인풋 값 X
+                _memberName: "[TEST]"))); //인풋 값 X
             Activate();
             
             #region 로그인 성공
@@ -154,6 +156,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             if (!IsActive()) return;
             _changeWindow?.Invoke("signUp");
+        }
+
+        private void OnCancelBtnPress()
+        {
+            if (!IsActive()) return;
+            _changeWindow?.Invoke("main");
         }
     }
 }

@@ -20,7 +20,11 @@ namespace GalaxyIO.Tools.PopupUI.Window
         [SerializeField] private TMP_InputField id_if;
         [SerializeField] private TMP_InputField pw_if;
         [SerializeField] private TMP_InputField pwValidate_if;
+        [SerializeField] private TMP_InputField memberName_if;
         [SerializeField] private TMP_Text errorMsg_txt;
+
+        // JW 서버의 memberName 최대 길이.
+        private const int MemberNameMaxLength = 100;
 
         private UnityEvent<string> changeWindow;
 
@@ -28,6 +32,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             base.Awake();
             changeWindow = new UnityEvent<string>();
+            memberName_if.characterLimit = MemberNameMaxLength;
         }
 
         protected override void Start()
@@ -36,6 +41,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             id_if.text = string.Empty;
             pw_if.text = string.Empty;
             pwValidate_if.text = string.Empty;
+            memberName_if.text = string.Empty;
             errorMsg_txt.text = string.Empty;
         }
 
@@ -106,17 +112,23 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 errorMsg_txt.text = "Validate Password doesn't match!";
                 return;
             }
-            // 아이디와 비번이 같을 시
+            /*// 아이디와 비번이 같을 시
             if (string.Equals(id, pw, StringComparison.Ordinal))
             {
                 errorMsg_txt.text = "아이디와 비밀번호가 동일할 수 없습니다";
+                return;
+            }*/
+            // 공백만 입력한 경우도 빈 이름으로 취급함.
+            string memberName = memberName_if.text.Trim();
+            if (string.IsNullOrEmpty(memberName))
+            {
+                errorMsg_txt.text = "Invalid Name!";
                 return;
             }
             #endregion
             
             //서버 체크
             errorMsg_txt.text = string.Empty;
-            // TODO -> 기다리는 동안의 UI 처리(취소 등 다른 입력 금지, 비주얼 표기 등) 필요
             Deactivate();
             GameUserRequestDTO signUpUserData = new GameUserRequestDTO(
                 _gameCode: LoginManager.GAME_CODE,
@@ -124,16 +136,29 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 _memberType: 0,
                 _memberId: id,
                 _memberPw: pw,
-                _memberName: "[TEMP] 테스트 유저"
+                _memberName: memberName
             );
-            GameUserResponseDTO result = await LoginManager.SignUp(signUpUserData);
+            bool isDuplicateId = false;
+            GameUserResponseDTO result = await CommonProgress.Show<GameUserResponseDTO>(transform.parent, async () =>
+            {
+                // 가입 전 ID 중복 확인
+                MemberIdDupCheckResponseDTO dupCheck = await LoginManager.CheckMemberIdDup(id);
+                isDuplicateId = ResponseMsgUtil.IsOk(dupCheck.responseMessage) && dupCheck.isDuplicate;
+                return isDuplicateId ? default : await LoginManager.SignUp(signUpUserData);
+            });
             Activate();
+
+            if (isDuplicateId)
+            {
+                WriteErrorMsgText("이미 존재하는 회원 아이디입니다.");
+                return;
+            }
 
             #region 로그인 성공
             if (ResponseMsgUtil.IsOk(result.responseMessage))
             {
                 DebugLog.Log("회원가입 성공!");
-                changeWindow?.Invoke("signIn");
+                changeWindow?.Invoke("main");   // 회원가입 성공 시 로그인까지 완료된 상태
                 return;
             }
             #endregion

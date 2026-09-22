@@ -15,6 +15,11 @@ MonoBehaviour:
   m_GroupName: Default Local Group
   m_GUID: 01f568d22c688ac4f929e001526db059
   m_SerializeEntries:
+  - m_GUID: 038abd15f7262b54e8fa1c498a38cde1
+    m_Address: Common_Progress
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 5b74ebed8b381a94193d59bbf01d3caf
     m_Address: Common_MsgBox
     m_ReadOnly: 0
@@ -27,6 +32,11 @@ MonoBehaviour:
     FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ae6fa7ebd0e97194c8358e626173bd18
     m_Address: Respawn_UI
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: b7790e68ce7a63a4f8707162475ddde8
+    m_Address: Common_Option
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0

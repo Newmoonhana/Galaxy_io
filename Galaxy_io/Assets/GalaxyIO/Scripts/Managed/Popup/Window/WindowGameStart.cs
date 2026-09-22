@@ -1,7 +1,9 @@
 using GalaxyIO.DOTS.Bootstrap;
 using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Networking;
+using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.Scripts.Managed.UI;
+using JWServer.Runtime.Login;
 using Newmoonhana.Runtime.Tools.PopupUI.Window;
 using TMPro;
 using Unity.Entities;
@@ -14,11 +16,13 @@ using UnityEngine.UI;
 namespace GalaxyIO.Tools.PopupUI.Window
 {
     /// <summary>
-    /// 로그인 성공 후 서버 접속 및 플레이어 스폰을 요청하는 게임 시작 대기 창.
+    /// 서버 접속 및 플레이어 스폰을 요청하는 게임 시작 창. 비로그인도 접속 가능.
     /// </summary>
     public class WindowGameStart : WindowBase
     {
         [SerializeField] private IpAddressField addressField;
+        [SerializeField] private TMP_InputField playerName_if;
+        [SerializeField] private TMP_Text nameWarning;
         [SerializeField] private TMP_Text warning;
         [SerializeField] private TMP_Text unreachable;
         [SerializeField] private Button startButton;
@@ -26,6 +30,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
         // 접속에 성공해 게임 시작 창을 닫아도 되는 시점을 알림.
         private UnityEvent _connected;
+        private UnityEvent<string> _changeWindow;
 
         private EntityQuery requestQuery;
         private EntityQuery failedQuery;
@@ -38,6 +43,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             base.Awake();
             _connected = new UnityEvent();
+            _changeWindow = new UnityEvent<string>();
+            playerName_if.characterLimit = PlayerNameComponent.MaxLength;
         }
 
         protected override void Start()
@@ -46,6 +53,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             warning.gameObject.SetActive(false);
             unreachable.gameObject.SetActive(false);
+            nameWarning.gameObject.SetActive(false);
 
             World clientWorld = ClientServerBootstrap.ClientWorld;
             if (clientWorld == null) return;
@@ -64,6 +72,15 @@ namespace GalaxyIO.Tools.PopupUI.Window
             base.Dispose();
             _connected?.RemoveAllListeners();
             _connected = null;
+            _changeWindow?.RemoveAllListeners();
+            _changeWindow = null;
+        }
+
+        public override void Open()
+        {
+            base.Open();
+            // 로그인 유저는 로그인 id를 제안값으로 채움. 수정 가능, 서버 계정과 무관.
+            playerName_if.text = LoginManager.UserId;
         }
 
         protected override void OnEnable()
@@ -86,6 +103,20 @@ namespace GalaxyIO.Tools.PopupUI.Window
         public void AddListener(UnityAction _action)
         {
             _connected.AddListener(_action);
+        }
+
+        public void AddListener(UnityAction<string> _action)
+        {
+            _changeWindow.AddListener(_action);
+        }
+
+        /// <summary>
+        /// 로비 메인으로 복귀. [TEMP] 버튼 onClick 연결용.
+        /// </summary>
+        public void OnPressBack()
+        {
+            if (!IsActive() || connecting) return;
+            _changeWindow?.Invoke("main");
         }
 
         private void Update()
@@ -119,6 +150,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             addressField.Fill(NetcodeBootstrap.LoopbackAddress);
             warning.gameObject.SetActive(false);
             unreachable.gameObject.SetActive(false);
+            nameWarning.gameObject.SetActive(false);
         }
 
         /// <summary>
@@ -129,6 +161,18 @@ namespace GalaxyIO.Tools.PopupUI.Window
             if (!IsActive()) return;
 
             unreachable.gameObject.SetActive(false);
+
+            // 공백만 입력한 경우도 빈 이름으로 취급함.
+            string playerName = playerName_if.text.Trim();
+
+            if (playerName.Length == 0)
+            {
+                warning.gameObject.SetActive(false);
+                nameWarning.gameObject.SetActive(true);
+                return;
+            }
+
+            nameWarning.gameObject.SetActive(false);
 
             // 모양이 맞아도 값이 범위를 넘으면(e.g. 999.0.0.1) 여기서 걸림.
             if (!NetworkEndpoint.TryParse(
@@ -142,12 +186,11 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 return;
             }
 
-            // TODO: "닉네임" 파라미터 가져오기, 사실 이 모듈이 삭제될 예정이라 쓸일 없을것 같긴함
-            // if (ClientNetworkRequestManager.RequestPlayerSpawn(endpoint))
-            // {
-            //    warning.gameObject.SetActive(false);
-            //    SetConnecting(true);
-            // }
+            if (ClientNetworkRequestManager.RequestPlayerSpawn(endpoint, playerName))
+            {
+                warning.gameObject.SetActive(false);
+                SetConnecting(true);
+            }
         }
 
         /// <summary>
@@ -158,6 +201,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             connecting = value;
             startButton.interactable = !value;
             loopbackButton.interactable = !value;
+            playerName_if.interactable = !value;
         }
     }
 }
