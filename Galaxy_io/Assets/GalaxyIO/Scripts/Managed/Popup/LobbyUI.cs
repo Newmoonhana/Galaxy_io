@@ -1,4 +1,5 @@
 using GalaxyIO.Tools.PopupUI.Window;
+using JWServer.Runtime.DTO;
 using JWServer.Runtime.Login;
 using Newmoonhana.Runtime;
 using Newmoonhana.Runtime.Tools.PopupUI.Popup;
@@ -16,14 +17,16 @@ namespace GalaxyIO.Tools.PopupUI.Popup
     public class LobbyUI : PopupBase
     {
         #region IState
-        private class ProgressState : IState
+        /// <summary>
+        /// 로비 메인 메뉴 창
+        /// </summary>
+        private class MainState : IState
         {
-            WindowProgressLobby win;
-            public ProgressState(WindowProgressLobby _win, UnityAction<string> _changeWindow, UnityAction _onLoginSuccess)
+            private WindowLobbyMain win;
+            public MainState(WindowLobbyMain _win, UnityAction<string> _changeWindow)
             {
                 win = _win;
                 win.AddListener(_changeWindow);
-                win.AddListener(_onLoginSuccess);
                 OnExit();
             }
 
@@ -39,7 +42,6 @@ namespace GalaxyIO.Tools.PopupUI.Popup
                 win.Deactivate();
                 win.Close();
             }
-
             public void Dispose()
             {
                 win?.Dispose();
@@ -104,14 +106,15 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             }
         }
         /// <summary>
-        /// 로그인 성공 후 게임 시작(서버 접속) 대기 창
+        /// 게임 시작(서버 접속) 창
         /// </summary>
         private class GameStartState : IState
         {
             private WindowGameStart win;
-            public GameStartState(WindowGameStart _win, UnityAction _onConnected)
+            public GameStartState(WindowGameStart _win, UnityAction<string> _changeWindow, UnityAction _onConnected)
             {
                 win = _win;
+                win.AddListener(_changeWindow);
                 win.AddListener(_onConnected);
                 OnExit();
             }
@@ -145,12 +148,14 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         {
             base.Start();
 
-            stateM.Add("progress", new ProgressState(transform.GetComponentInChildren<WindowProgressLobby>(true), ChangeState, () => ChangeState("gameStart")));
-            stateM.Add("signIn", new SignInState(transform.GetComponentInChildren<WindowSignIn>(true), ChangeState, () => GameStart()));
+            stateM.Add("progress", new EmptyState());
+            stateM.Add("main", new MainState(transform.GetComponentInChildren<WindowLobbyMain>(true), ChangeState));
+            stateM.Add("signIn", new SignInState(transform.GetComponentInChildren<WindowSignIn>(true), ChangeState, () => ChangeState("main")));
             stateM.Add("signUp", new SignUpState(transform.GetComponentInChildren<WindowSignUp>(true), ChangeState));
-            stateM.Add("gameStart", new GameStartState(transform.GetComponentInChildren<WindowGameStart>(true), () => ChangeState("none")));
+            stateM.Add("gameStart", new GameStartState(transform.GetComponentInChildren<WindowGameStart>(true), ChangeState, () => ChangeState("none")));
             stateM.Add("none", new EmptyState());
             stateM.Change("progress");
+            _ = RunAutoLogIn();
         }
 
         public override void Dispose()
@@ -159,9 +164,19 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             stateM?.Dispose();
         }
 
-        private void GameStart()
+        /// <summary>
+        /// 진행 팝업을 띄운 채로 자동 로그인. 결과와 무관하게 메인으로 이동.
+        /// </summary>
+        private async Awaitable RunAutoLogIn()
         {
-            
+            await CommonProgress.Show<GameUserResponseDTO>(transform, async () =>
+            {
+                await Awaitable.WaitForSecondsAsync(0.5f);  //너무 빨라서 인지 안되서 넣음
+                return await LoginManager.AutoLogIn();
+            });
+
+            if (stateM == null) return;  // 대기 중 삭제됨
+            ChangeState("main");
         }
     }
 }

@@ -15,7 +15,7 @@ namespace JWServer.Runtime.Login
         /// <summary>
         /// [PLACEHOLDER] 통합 게임 백엔드서버에서 사용되는 게임의 식별자
         /// </summary>
-        public const string GAME_CODE = "DBB834D5B129E3C71EEAE6B61F503291";
+        public const string GAME_CODE = "91D3FE9281715AE3C9F96BC327789961";
 
 #if UNITY_EDITOR
         private const string AUTH_SERVER = "http://localhost:5050";
@@ -49,6 +49,17 @@ namespace JWServer.Runtime.Login
         ///         통신 시도 -> Refresh 토큰으로 통신 재시도"하는 프로세스가 존재해야 함.
         /// </summary>
         private static bool sIsOnline;
+
+        /// <summary>
+        /// 로그인 여부. 로비 UI 표기용.
+        /// </summary>
+        public static bool IsOnline => sIsOnline;
+
+        /// <summary>
+        /// 로그인/회원가입으로 받은 유저 id. 자동 로그인 시 서버가 주지 않아 빈 값.
+        /// </summary>
+        private static string sUserId;
+        public static string UserId => sUserId;
 
         /// <summary>
         /// 인증이 필요한 API 호출을 감싸서, Access 토큰 만료 시 자동으로
@@ -85,6 +96,7 @@ namespace JWServer.Runtime.Login
         {
             sUserTokenData = default;
             sIsOnline = false;
+            sUserId = string.Empty;
         }
 
         /// <summary>
@@ -155,6 +167,7 @@ namespace JWServer.Runtime.Login
                 {
                     sUserTokenData = new GameUserTokenDTO(response);
                     sIsOnline = true;
+                    sUserId = response.userId;
                     SaveAuth();
                 }
                 return response;
@@ -185,6 +198,7 @@ namespace JWServer.Runtime.Login
                 {
                     sUserTokenData = new GameUserTokenDTO(response);
                     sIsOnline = true;
+                    sUserId = response.userId;
                     SaveAuth();
                 }
 
@@ -221,6 +235,36 @@ namespace JWServer.Runtime.Login
             }
 
             return dto;
+        }
+
+        /// <summary>
+        /// 로그아웃. 서버 로그아웃 API 없음. 로컬 토큰 삭제가 곧 로그아웃.
+        /// </summary>
+        public static void LogOut()
+        {
+            sUserTokenData = default;
+            sIsOnline = false;
+            sUserId = string.Empty;
+            if (File.Exists(sPersistentDataPath))
+                File.Delete(sPersistentDataPath);
+        }
+
+        /// <summary>
+        /// 회원 ID 중복 확인. 게임별 계정이 아닌 공통 회원 DB 기준.
+        /// </summary>
+        public static async Awaitable<MemberIdDupCheckResponseDTO> CheckMemberIdDup(string memberId)
+        {
+            const string memberIdDupCheckEndpoint = "/api/account/memberiddupcheck";
+            string postData = JsonUtility.ToJson(new MemberIdDupCheckRequestDTO(GAME_CODE, memberId));
+
+            using (UnityWebRequest req = UnityWebRequest.Post(AUTH_SERVER + memberIdDupCheckEndpoint, postData, CONTENT_TYPE_JSON))
+            {
+                await req.SendWebRequest();
+                if (req.result == UnityWebRequest.Result.ConnectionError)
+                    return new MemberIdDupCheckResponseDTO { responseMessage = CommonMsg.CONNECTION_ERROR };
+
+                return JsonUtility.FromJson<MemberIdDupCheckResponseDTO>(req.downloadHandler.text);
+            }
         }
 
         // Hidden API — `GameStart` 호출은 `AutoLogIn`에서 자동으로 처리해줌

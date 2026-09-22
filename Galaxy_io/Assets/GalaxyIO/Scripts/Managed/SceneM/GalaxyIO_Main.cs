@@ -18,6 +18,8 @@ namespace GalaxyIO.Main
         private EntityQuery deathQuery;
         private bool hasDeathQuery;
         private RespawnUI respawnUI;
+        // 옵션 팝업 로드 중 중복 입력 방지.
+        private bool isOptionLoading;
 
         protected void Start()
         {
@@ -58,6 +60,21 @@ namespace GalaxyIO.Main
         {
             base.Release();
             AddressableAssetsManager.gameObject_lst.RemoveData(respawnUIKey);
+        }
+
+        /// <summary>
+        /// 인게임 옵션 버튼 AddListener 연결용.
+        /// </summary>
+        public void OnPressOption()
+        {
+            if (isOptionLoading) return;
+            _ = OpenOption();
+        }
+        private async Awaitable OpenOption()
+        {
+            isOptionLoading = true;
+            await CommonOption.Open();
+            isOptionLoading = false;
         }
 
         private async Awaitable LoadLobbyUI()
