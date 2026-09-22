@@ -9,7 +9,7 @@ namespace GalaxyIO.DOTS.Components.Actor
     /// </summary>
     public struct PlayerNameComponent : IComponentData
     {
-        // 입력창 글자 수 제한. 한글 기준 3바이트씩이라 FixedString64Bytes 에 들어감.
+        // 이름 글자 수 제한. 한글 기준 3바이트씩이라 FixedString64Bytes 에 들어감.
         public const int MaxLength = 12;
 
         [GhostField]

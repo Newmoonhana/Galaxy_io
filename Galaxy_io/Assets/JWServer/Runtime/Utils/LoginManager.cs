@@ -62,6 +62,12 @@ namespace JWServer.Runtime.Login
         public static string UserId => sUserId;
 
         /// <summary>
+        /// 게임 계정 닉네임. 로그인 성공 시 accountinfo로 받아옴. 비로그인/조회 실패 시 빈 값.
+        /// </summary>
+        private static string sNickName;
+        public static string NickName => sNickName;
+
+        /// <summary>
         /// 인증이 필요한 API 호출을 감싸서, Access 토큰 만료 시 자동으로
         /// Refresh 토큰으로 재발급받고 원래 호출을 재시도
         /// </summary>
@@ -97,6 +103,7 @@ namespace JWServer.Runtime.Login
             sUserTokenData = default;
             sIsOnline = false;
             sUserId = string.Empty;
+            sNickName = string.Empty;
         }
 
         /// <summary>
@@ -169,6 +176,7 @@ namespace JWServer.Runtime.Login
                     sIsOnline = true;
                     sUserId = response.userId;
                     SaveAuth();
+                    await FetchAccountInfo();
                 }
                 return response;
             }
@@ -200,6 +208,7 @@ namespace JWServer.Runtime.Login
                     sIsOnline = true;
                     sUserId = response.userId;
                     SaveAuth();
+                    await FetchAccountInfo();
                 }
 
                 return response;
@@ -232,6 +241,7 @@ namespace JWServer.Runtime.Login
             {
                 sIsOnline = true;
                 DebugLog.Log($"자동 로그인 정보:\n{sUserTokenData}");
+                await FetchAccountInfo();
             }
 
             return dto;
@@ -245,6 +255,7 @@ namespace JWServer.Runtime.Login
             sUserTokenData = default;
             sIsOnline = false;
             sUserId = string.Empty;
+            sNickName = string.Empty;
             if (File.Exists(sPersistentDataPath))
                 File.Delete(sPersistentDataPath);
         }
@@ -283,6 +294,30 @@ namespace JWServer.Runtime.Login
                 await req.SendWebRequest();
                 GameUserResponseDTO response = DeserializeJsonResponse(req);
                 return response;
+            }
+        }
+
+        /// <summary>
+        /// 게임 계정 정보를 조회해 닉네임 저장. 실패 시 빈 값.
+        /// </summary>
+        private static async Awaitable FetchAccountInfo()
+        {
+            const string accountInfoEndpoint = "/api/game/accountinfo";
+
+            using (UnityWebRequest req = UnityWebRequest.Post(AUTH_SERVER + accountInfoEndpoint, "", CONTENT_TYPE_JSON))
+            {
+                req.SetRequestHeader("Authorization", "Bearer " + sUserTokenData.accessToken);
+                await req.SendWebRequest();
+
+                // 오류 응답(4xx/5xx)엔 닉네임이 없음.
+                if (req.result != UnityWebRequest.Result.Success)
+                {
+                    sNickName = string.Empty;
+                    return;
+                }
+
+                AccountInfoResponseDTO response = JsonUtility.FromJson<AccountInfoResponseDTO>(req.downloadHandler.text);
+                sNickName = ResponseMsgUtil.IsOk(response.responseMessage) ? response.accountNickName : string.Empty;
             }
         }
 

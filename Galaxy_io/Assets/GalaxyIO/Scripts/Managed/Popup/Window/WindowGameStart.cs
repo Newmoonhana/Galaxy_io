@@ -21,12 +21,14 @@ namespace GalaxyIO.Tools.PopupUI.Window
     public class WindowGameStart : WindowBase
     {
         [SerializeField] private IpAddressField addressField;
-        [SerializeField] private TMP_InputField playerName_if;
-        [SerializeField] private TMP_Text nameWarning;
+        [SerializeField] private TMP_Text playerName_txt;
         [SerializeField] private TMP_Text warning;
         [SerializeField] private TMP_Text unreachable;
         [SerializeField] private Button startButton;
         [SerializeField] private Button loopbackButton;
+
+        // 이번에 창을 열 때 확정한 이름.
+        private string playerName;
 
         // 접속에 성공해 게임 시작 창을 닫아도 되는 시점을 알림.
         private UnityEvent _connected;
@@ -44,7 +46,6 @@ namespace GalaxyIO.Tools.PopupUI.Window
             base.Awake();
             _connected = new UnityEvent();
             _changeWindow = new UnityEvent<string>();
-            playerName_if.characterLimit = PlayerNameComponent.MaxLength;
         }
 
         protected override void Start()
@@ -53,7 +54,6 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             warning.gameObject.SetActive(false);
             unreachable.gameObject.SetActive(false);
-            nameWarning.gameObject.SetActive(false);
 
             World clientWorld = ClientServerBootstrap.ClientWorld;
             if (clientWorld == null) return;
@@ -79,8 +79,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
         public override void Open()
         {
             base.Open();
-            // 로그인 유저는 로그인 id를 제안값으로 채움. 수정 가능, 서버 계정과 무관.
-            playerName_if.text = LoginManager.UserId;
+            playerName = ResolvePlayerName();
+            playerName_txt.SetText(playerName);
         }
 
         protected override void OnEnable()
@@ -150,7 +150,6 @@ namespace GalaxyIO.Tools.PopupUI.Window
             addressField.Fill(NetcodeBootstrap.LoopbackAddress);
             warning.gameObject.SetActive(false);
             unreachable.gameObject.SetActive(false);
-            nameWarning.gameObject.SetActive(false);
         }
 
         /// <summary>
@@ -161,18 +160,6 @@ namespace GalaxyIO.Tools.PopupUI.Window
             if (!IsActive()) return;
 
             unreachable.gameObject.SetActive(false);
-
-            // 공백만 입력한 경우도 빈 이름으로 취급함.
-            string playerName = playerName_if.text.Trim();
-
-            if (playerName.Length == 0)
-            {
-                warning.gameObject.SetActive(false);
-                nameWarning.gameObject.SetActive(true);
-                return;
-            }
-
-            nameWarning.gameObject.SetActive(false);
 
             // 모양이 맞아도 값이 범위를 넘으면(e.g. 999.0.0.1) 여기서 걸림.
             if (!NetworkEndpoint.TryParse(
@@ -201,7 +188,22 @@ namespace GalaxyIO.Tools.PopupUI.Window
             connecting = value;
             startButton.interactable = !value;
             loopbackButton.interactable = !value;
-            playerName_if.interactable = !value;
+        }
+
+        /// <summary>
+        /// 로그인 유저는 계정 닉네임, 비로그인 유저는 게스트 이름.
+        /// </summary>
+        private string ResolvePlayerName()
+        {
+            string nickName = LoginManager.NickName;
+
+            // 닉네임 조회 실패 시에도 게스트 이름 사용. 창 열 때마다 새 번호.
+            if (!LoginManager.IsOnline || string.IsNullOrEmpty(nickName))
+                return $"Guest#{Random.Range(0, 10000):D4}";
+
+            return nickName.Length > PlayerNameComponent.MaxLength
+                ? nickName.Substring(0, PlayerNameComponent.MaxLength)
+                : nickName;
         }
     }
 }
