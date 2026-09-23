@@ -199,7 +199,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             // 닉네임 조회 실패 시에도 게스트 이름 사용. 창 열 때마다 새 번호.
             if (!LoginManager.IsOnline || string.IsNullOrEmpty(nickName))
-                return $"Guest#{Random.Range(0, 10000):D4}";
+                return $"Pilot#{Random.Range(0, 10000):D4}";
 
             return nickName.Length > PlayerNameComponent.MaxLength
                 ? nickName.Substring(0, PlayerNameComponent.MaxLength)
