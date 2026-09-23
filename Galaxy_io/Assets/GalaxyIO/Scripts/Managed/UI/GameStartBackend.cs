@@ -22,7 +22,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         [SerializeField]
         [Tooltip("서버 주소 입력창")]
-        private IpAddressField addressField;
+        private ServerAddressField addressField;
 
         [SerializeField]
         [Tooltip("플레이어 이름 입력창")]

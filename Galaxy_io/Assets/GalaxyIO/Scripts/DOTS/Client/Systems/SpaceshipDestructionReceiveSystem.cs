@@ -1,4 +1,5 @@
 ﻿using GalaxyIO.DOTS.Client.Components.Message;
+using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Burst;
@@ -11,7 +12,7 @@ using Unity.Transforms;
 namespace GalaxyIO.DOTS.Client.Systems
 {
     /// <summary>
-    /// 우주선 파괴 알림을 받아 폭발 연출을 스폰하고 리스폰 창 태그를 남기는 시스템.
+    /// 우주선 파괴 알림을 받아 폭발 연출/효과음을 스폰하고 리스폰 창 태그를 남기는 시스템.
     /// </summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
@@ -39,6 +40,11 @@ namespace GalaxyIO.DOTS.Client.Systems
                 ? LocalTransform.Identity
                 : SystemAPI.GetComponent<LocalTransform>(explosionPrefab);
 
+            bool hasSound = SystemAPI.HasComponent<EffectSoundComponent>(explosionPrefab);
+            EffectSoundComponent explosionSound = hasSound
+                ? SystemAPI.GetComponent<EffectSoundComponent>(explosionPrefab)
+                : default;
+
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
             foreach (
@@ -54,6 +60,15 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                     explosionTransform.Position = new float3(destroyed.ValueRO.Position, 0.0F);
                     ecb.SetComponent(explosion, explosionTransform);
+                }
+
+                if (hasSound)
+                {
+                    ecb.AddComponent(ecb.CreateEntity(), new SoundMessage
+                    {
+                        Clip     = explosionSound.Clip,
+                        Position = destroyed.ValueRO.Position,
+                    });
                 }
 
                 if (destroyed.ValueRO.OwnerNetworkId == localNetworkId)

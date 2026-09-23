@@ -110,6 +110,7 @@ namespace GalaxyIO.DOTS.Systems
                     // 서버가 직접 쏘므로 되감을 보간 지연이 없음.
                     var shared = SystemAPI.GetComponent<SharedProjectileComponent>(turret.ProjectilePrefab);
                     shared.Owner = spaceship;
+                    shared.TurretIndex = (byte)i;
                     shared.InterpolationDelay = 0;
                     commandBuffer.SetComponent(projectile, shared);
 

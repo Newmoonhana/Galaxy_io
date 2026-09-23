@@ -10,6 +10,9 @@ namespace GalaxyIO.DOTS.Authoring
     [RequireComponent(typeof(ParticleSystem))]
     public sealed class EffectAuthoring : MonoBehaviour
     {
+        [SerializeField]
+        [Tooltip("연출과 함께 재생할 효과음. 비워두면 소리 없음.")]
+        public AudioClip Sound;
     }
 
     public sealed class EffectBaker : Baker<EffectAuthoring>
@@ -25,6 +28,11 @@ namespace GalaxyIO.DOTS.Authoring
             {
                 Remaining = main.duration + main.startLifetime.constantMax,
             });
+
+            if (authoring.Sound != null)
+            {
+                AddComponent(entity, new EffectSoundComponent { Clip = authoring.Sound });
+            }
         }
     }
 }

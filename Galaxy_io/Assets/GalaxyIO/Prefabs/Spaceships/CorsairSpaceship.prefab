@@ -147,11 +147,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9cb50671457845078735f0c82b81a855, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.EnemyAuthoring
+  DisplayName: Corsair
   AIType: 0
   SightCenter: {x: 0, y: 0}
-  SightRadius: 12
-  SightAngle: 120
-  ChaseDistance: 20
+  SightRadius: 25
+  SightAngle: 140
+  ChaseDistance: 36
   HostileFactions: 0100000002000000
   FireDuration: 2
   RestDurationRange: {x: 1, y: 2}
@@ -246,3 +247,4 @@ MonoBehaviour:
   Projectile: {fileID: 3898896724990523705, guid: c36f47c0d656b6b4a8bd8213db63a2e2, type: 3}
   RPS: 4
   Accuracy: 0.95
+  ShotSound: {fileID: 8300000, guid: 8f2159ab85736df4bb50ddfff148331f, type: 3}

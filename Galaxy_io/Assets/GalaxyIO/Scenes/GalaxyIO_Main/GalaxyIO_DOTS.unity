@@ -221,6 +221,7 @@ MonoBehaviour:
   CellSize: 8
   RewindSpeed: 16
   Restitution: 1
+  CrashSound: {fileID: 8300000, guid: 4378f2fdcdd062c4ea9a2e27c62d6bae, type: 3}
 --- !u!114 &163557128
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,6 +1,7 @@
 using GalaxyIO.Tools.PopupUI.Window;
 using Newmoonhana.Runtime.Tools.PopupUI.Popup;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 
 namespace GalaxyIO.Tools.PopupUI.Popup
@@ -33,6 +34,14 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         {
             msgBox_win.SetTitleText(_label);
             msgBox_win.SetMessageText(_responseMessage);
+        }
+
+        /// <summary>
+        /// 닫기 버튼에 동작 추가. 창은 항상 닫힘.
+        /// </summary>
+        public void AddListener(UnityAction _action)
+        {
+            msgBox_win.AddListener(_action);
         }
         
         public void Refresh()

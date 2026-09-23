@@ -1,6 +1,7 @@
 using GalaxyIO.Tools.PopupUI.Window;
 using Newmoonhana.Runtime.Tools.PopupUI.Popup;
 using Newmoonhana.Runtime.Utils.Pattern;
+using UnityEngine.Events;
 
 namespace GalaxyIO.Tools.PopupUI.Popup
 {
@@ -39,12 +40,28 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         }
         #endregion
 
+        private WindowRespawn respawn_win;
+
+        protected override void Awake()
+        {
+            base.Awake();
+            respawn_win = transform.GetComponentInChildren<WindowRespawn>(true);
+        }
+
         protected override void Start()
         {
             base.Start();
 
-            stateM.Add("respawn", new RespawnState(transform.GetComponentInChildren<WindowRespawn>(true)));
+            stateM.Add("respawn", new RespawnState(respawn_win));
             stateM.Change("respawn");
+        }
+
+        /// <summary>
+        /// 생성 직후 호출. 나가기 처리는 생성한 쪽이 담당.
+        /// </summary>
+        public void AddListener(UnityAction _onQuit)
+        {
+            respawn_win.AddListener(_onQuit);
         }
     }
 }

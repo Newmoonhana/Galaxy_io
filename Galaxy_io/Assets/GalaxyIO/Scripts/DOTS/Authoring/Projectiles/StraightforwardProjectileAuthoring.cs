@@ -51,6 +51,9 @@ namespace GalaxyIO.DOTS.Authoring
             });
 
             AddBuffer<ProjectileHitElement>(entity);
+
+            // 켜진 채로 스폰됨. 클라이언트가 발사음 재생 후 끔.
+            AddComponent<ShotSoundPendingTag>(entity);
         }
     }
 }

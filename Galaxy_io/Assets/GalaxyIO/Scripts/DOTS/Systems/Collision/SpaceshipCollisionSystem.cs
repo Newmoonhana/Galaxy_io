@@ -7,6 +7,7 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
 using Unity.Mathematics;
+using Unity.NetCode;
 using Unity.Transforms;
 
 namespace GalaxyIO.DOTS.Systems
@@ -34,11 +35,18 @@ namespace GalaxyIO.DOTS.Systems
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            float restitution = SystemAPI.GetSingleton<CollisionConfigComponent>().Restitution;
+            CollisionConfigComponent config = SystemAPI.GetSingleton<CollisionConfigComponent>();
+            float restitution = config.Restitution;
 
             state.Dependency = new SpaceshipCollisionJob
             {
-                Movements = SystemAPI.GetComponentLookup<SpaceshipMovementComponent>(true),
+                Movements    = SystemAPI.GetComponentLookup<SpaceshipMovementComponent>(true),
+                Owners       = SystemAPI.GetComponentLookup<GhostOwner>(true),
+                EnemyNames   = SystemAPI.GetComponentLookup<EnemyNameComponent>(true),
+                Records      = SystemAPI.GetBufferLookup<DamageRecordElement>(),
+                KillingBlows = SystemAPI.GetComponentLookup<KillingBlowComponent>(),
+                RamDamage    = config.RamDamage,
+                ElapsedTime  = SystemAPI.Time.ElapsedTime,
             }.ScheduleParallel(state.Dependency);
 
             // 속도 상태는 조종 주체마다 따로 들고 있어 나눠 반영함.
@@ -57,7 +65,7 @@ namespace GalaxyIO.DOTS.Systems
     }
 
     /// <summary>
-    /// 데미지 식이 대칭이라 각 우주선이 자기 몫만 계산함.
+    /// 두 우주선의 상대 속력으로 데미지를 줌. 식이 대칭이라 각 우주선이 자기 몫만 계산함.
     /// </summary>
     [BurstCompile]
     public partial struct SpaceshipCollisionJob : IJobEntity
@@ -65,32 +73,72 @@ namespace GalaxyIO.DOTS.Systems
         [ReadOnly]
         public ComponentLookup<SpaceshipMovementComponent> Movements;
 
+        [ReadOnly]
+        public ComponentLookup<GhostOwner> Owners;
+
+        [ReadOnly]
+        public ComponentLookup<EnemyNameComponent> EnemyNames;
+
+        // 아래 둘은 자기 Entity 에만 씀. Entity 마다 한 번씩만 실행돼 병렬이어도 겹치지 않음.
+        [NativeDisableParallelForRestriction]
+        public BufferLookup<DamageRecordElement> Records;
+
+        [NativeDisableParallelForRestriction]
+        public ComponentLookup<KillingBlowComponent> KillingBlows;
+
+        // 상대 속력 1당 데미지
+        public float RamDamage;
+
+        public double ElapsedTime;
+
         private void Execute(
+            Entity entity,
             in DynamicBuffer<SpaceshipCollisionElement> messages,
             ref LocalTransform transform,
             ref SpaceshipSpecComponent spec,
             in SpaceshipMovementComponent movement)
         {
-            float2 direction = math.normalizesafe(movement.DeltaMovement, float2.zero);
-            float speed = math.length(movement.DeltaMovement);
             float2 push = float2.zero;
             float damage = 0.0F;
+
+            // 이번 틱에 가장 세게 부딪힌 상대. 이 충돌로 격추되면 막타로 남김.
+            Entity strongest = Entity.Null;
+            float strongestHit = 0.0F;
 
             for (int i = 0; i < messages.Length; i++)
             {
                 CollisionMessage message = messages[i].Message;
-                float2 otherDirection = float2.zero;
-                float otherSpeed = 0.0F;
+                float hit = 0.0F;
 
                 // 이번 틱에 파괴된 상대는 이동 정보가 없음. 밀어내기만 남김.
                 if (Movements.TryGetComponent(message.Other, out SpaceshipMovementComponent other))
                 {
-                    otherDirection = math.normalizesafe(other.DeltaMovement, float2.zero);
-                    otherSpeed = math.length(other.DeltaMovement);
+                    float2 relative = movement.DeltaMovement - other.DeltaMovement;
+
+                    // 서로 다가가는 중일 때만 데미지. 튕겨 나간 뒤 맞닿은 틱은 제외.
+                    if (math.dot(relative, message.Normal) < 0.0F)
+                    {
+                        // 마주 올수록 커지고, 같은 방향으로 나란히 가면 0에 가까워짐.
+                        hit = math.length(relative) * RamDamage;
+                    }
                 }
 
-                // 서로 마주 볼수록 1에 가까워지는 정면 충돌 계수. 같은 방향으로 스치면 0.
-                damage += speed * otherSpeed * math.max(0.0F, -math.dot(direction, otherDirection));
+                damage += hit;
+
+                if (hit > strongestHit)
+                {
+                    strongest = message.Other;
+                    strongestHit = hit;
+                }
+
+                // 플레이어와 부딪힌 데미지만 어시스트 판정용으로 기록함.
+                if (hit > 0.0F
+                    && Owners.TryGetComponent(message.Other, out GhostOwner otherOwner)
+                    && otherOwner.NetworkId > 0
+                    && Records.TryGetBuffer(entity, out DynamicBuffer<DamageRecordElement> records))
+                {
+                    DamageRecord.Add(records, otherOwner.NetworkId, hit, ElapsedTime);
+                }
 
                 // 깊이의 절반씩 서로 물러나면 딱 맞닿음.
                 // 빠를수록 한 틱에 깊이 박히므로 밀려나는 양도 자동으로 커짐.
@@ -106,8 +154,21 @@ namespace GalaxyIO.DOTS.Systems
                 return;
             }
 
+            float healthBefore = spec.Health;
             spec.Health = math.max(spec.Health - damage, 0.0F);
             spec.RepairCooldown = spec.RepairDelay;
+
+            // 체력을 0으로 만든 충돌만 막타로 남김.
+            if (healthBefore > 0.0F && spec.Health <= 0.0F && KillingBlows.HasComponent(entity))
+            {
+                KillingBlows[entity] = new KillingBlowComponent
+                {
+                    Type      = KillType.Ram,
+                    NetworkId = Owners.TryGetComponent(strongest, out GhostOwner killer) ? killer.NetworkId : -1,
+                    EnemyName = EnemyNames.TryGetComponent(strongest, out EnemyNameComponent enemyName)
+                        ? enemyName.Value : default,
+                };
+            }
         }
     }
 

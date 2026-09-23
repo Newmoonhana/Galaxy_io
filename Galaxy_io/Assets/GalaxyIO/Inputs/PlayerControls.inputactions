@@ -213,6 +213,34 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "Menu",
+            "id": "253f48a2-ed89-4c2a-9065-8dba7400a3e8",
+            "actions": [
+                {
+                    "name": "Toggle_Game_Menu",
+                    "type": "Button",
+                    "id": "65a8d020-8d5e-49a0-8b25-2df8fadb50ce",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "02bc190d-6574-48c8-a232-10bc49f6e31e",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Toggle_Game_Menu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": []

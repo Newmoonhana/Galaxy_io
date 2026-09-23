@@ -23,6 +23,15 @@ namespace GalaxyIO.DOTS.Authoring.Config
         [Tooltip("부딪혔을 때 튕겨 나가는 정도. 0이면 파고드는 속도만 사라짐.")]
         [Range(0.0F, 1.0F)]
         public float Restitution = 1.0F;
+
+        [SerializeField]
+        [Tooltip("상대 속력 1당 충돌 데미지. 두 우주선이 같은 값을 받음.")]
+        [Min(0.0F)]
+        public float RamDamage = 2.0F;
+
+        [SerializeField]
+        [Tooltip("우주선끼리 부딪혔을 때 재생할 효과음")]
+        public AudioClip CrashSound;
     }
 
     public sealed class CollisionConfigBaker : Baker<CollisionConfigAuthoring>
@@ -36,6 +45,8 @@ namespace GalaxyIO.DOTS.Authoring.Config
                 CellSize    = authoring.CellSize,
                 RewindSpeed = authoring.RewindSpeed,
                 Restitution = authoring.Restitution,
+                RamDamage   = authoring.RamDamage,
+                CrashSound  = authoring.CrashSound,
             });
         }
     }
