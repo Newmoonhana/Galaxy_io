@@ -12,12 +12,17 @@ namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
     /// 체력이 0이 된 우주선을 제거하고 파괴 사실을 근처 클라이언트와 소유자에게 알리는 시스템.
+    /// 플레이어 격추는 킬 로그로 전체에 알림. 격추에 따른 점수 변경을 요청함.
     /// </summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(DespawnSystemGroup))]
     public partial struct SpaceshipDeathSystem : ISystem
     {
+        // 격추 점수. 테스트용 규칙.
+        private const int EnemyKillScore = 1;
+        private const int PlayerKillScore = 5;
+
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
@@ -53,6 +58,16 @@ namespace GalaxyIO.DOTS.Systems
                 });
             }
 
+            // 킬 로그용 이름. 우주선은 파괴돼도 Connection 에는 이름이 남아 있음.
+            var names = new NativeHashMap<int, FixedString64Bytes>(4, Allocator.Temp);
+
+            foreach (var (networkId, playerName) in SystemAPI.Query<RefRO<NetworkId>, RefRO<PlayerNameComponent>>())
+            {
+                names[networkId.ValueRO.Value] = playerName.ValueRO.Value;
+            }
+
+            double time = SystemAPI.Time.ElapsedTime;
+
             // Query 순회 중의 구조 변경(Structural Change)은 ECB 로 미뤄서 처리함.
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
@@ -81,20 +96,119 @@ namespace GalaxyIO.DOTS.Systems
                     }
                 }
 
+                bool isPlayer = SystemAPI.HasComponent<PlayerNameComponent>(entity);
+
+                if (SystemAPI.HasComponent<KillingBlowComponent>(entity))
+                {
+                    int killer = SystemAPI.GetComponent<KillingBlowComponent>(entity).NetworkId;
+
+                    // AI 막타(-1)와 알 수 없는 막타(0)는 점수 없음.
+                    if (killer > 0 && killer != owner.ValueRO.NetworkId)
+                    {
+                        Post(ecb, ScoreMessage.Add(killer, isPlayer ? PlayerKillScore : EnemyKillScore));
+                    }
+                }
+
+                // 킬 로그는 플레이어 격추만. Entity.Null 이면 모든 접속에 전송.
+                if (isPlayer)
+                {
+                    KillLogRPC log = MakeKillLog(
+                        SystemAPI.GetComponent<KillingBlowComponent>(entity),
+                        SystemAPI.GetBuffer<DamageRecordElement>(entity),
+                        time, names
+                    );
+
+                    log.Victim = SystemAPI.GetComponent<PlayerNameComponent>(entity).Value;
+                    log.VictimNetworkId = owner.ValueRO.NetworkId;
+
+                    Send(ecb, log, Entity.Null);
+
+                    // 사망하면 점수를 모두 잃음.
+                    Post(ecb, ScoreMessage.Set(owner.ValueRO.NetworkId, 0));
+                }
+
                 ecb.DestroyEntity(entity);
             }
 
             ecb.Playback(state.EntityManager);
             ecb.Dispose();
+            names.Dispose();
             focuses.Dispose();
         }
 
-        private static void Send(EntityCommandBuffer ecb, in SpaceshipDestroyedRPC message, Entity target)
+        private static void Send<T>(EntityCommandBuffer ecb, in T message, Entity target)
+            where T : unmanaged, IRpcCommand
         {
             Entity rpcEntity = ecb.CreateEntity();
 
             ecb.AddComponent(rpcEntity, message);
             ecb.AddComponent(rpcEntity, new SendRpcCommandRequest { TargetConnection = target });
+        }
+
+        private static void Post(EntityCommandBuffer ecb, in ScoreMessage message)
+        {
+            ecb.AddComponent(ecb.CreateEntity(), message);
+        }
+
+        /// <summary>
+        /// 막타와 어시스트를 채움. 격추된 쪽은 호출한 곳이 채움.
+        /// 막타 주인을 알 수 없으면(쏜 AI 파괴, 접속 종료) 막타 이름을 비움.
+        /// </summary>
+        private static KillLogRPC MakeKillLog(
+            in KillingBlowComponent blow,
+            in DynamicBuffer<DamageRecordElement> records,
+            double time,
+            in NativeHashMap<int, FixedString64Bytes> names)
+        {
+            var log = new KillLogRPC { Type = blow.Type };
+
+            if (names.TryGetValue(blow.NetworkId, out FixedString64Bytes killerName))
+            {
+                log.Killer = killerName;
+                log.KillerNetworkId = blow.NetworkId;
+            }
+            else if (!blow.EnemyName.IsEmpty)
+            {
+                log.Killer = new FixedString64Bytes(blow.EnemyName);
+            }
+
+            log.AssistantNetworkId = FindAssistant(records, time, names, log.KillerNetworkId);
+
+            if (log.AssistantNetworkId != 0)
+            {
+                log.Assistant = names[log.AssistantNetworkId];
+            }
+
+            return log;
+        }
+
+        /// <summary>
+        /// 막타를 제외하고 누적 데미지가 가장 큰 플레이어. 만료됐거나 접속을 끊은 플레이어는 제외. 없으면 0.
+        /// </summary>
+        private static int FindAssistant(
+            in DynamicBuffer<DamageRecordElement> records,
+            double time,
+            in NativeHashMap<int, FixedString64Bytes> names,
+            int killer)
+        {
+            int assistant = 0;
+            float mostAmount = 0.0F;
+
+            for (int i = 0; i < records.Length; i++)
+            {
+                DamageRecordElement record = records[i];
+
+                if (record.NetworkId != killer
+                    && DamageRecord.IsAlive(record, time)
+                    && names.ContainsKey(record.NetworkId)
+                    && record.Amount > mostAmount)
+                {
+                    assistant = record.NetworkId;
+                    mostAmount = record.Amount;
+                }
+            }
+
+            return assistant;
         }
     }
 }

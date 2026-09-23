@@ -1,4 +1,5 @@
 ﻿using GalaxyIO.DOTS.Client.Authoring;
+using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Actor;
 using Unity.Entities;
@@ -30,10 +31,14 @@ namespace GalaxyIO.DOTS.Client.Systems
 
         private bool initialized;
 
+        private EntityQuery menuOpenQuery;
+
         protected override void OnCreate()
         {
             RequireForUpdate<PlayerInputComponent>();
             RequireForUpdate<GhostOwnerIsLocal>();
+
+            menuOpenQuery = GetEntityQuery(ComponentType.ReadOnly<GameMenuOpenTag>());
         }
 
         protected override void OnStartRunning()
@@ -77,10 +82,12 @@ namespace GalaxyIO.DOTS.Client.Systems
 
         protected override void OnUpdate()
         {
+            bool menuOpen = !menuOpenQuery.IsEmpty;
+
             foreach (var (playerInput, transform) in SystemAPI.Query<RefRW<PlayerInputComponent>, RefRO<LocalTransform>>().WithAll<GhostOwnerIsLocal>())
             {
-                // Unfocused 상태에선 움직이지 않음.
-                if (!Application.isFocused)
+                // Unfocused 상태, 게임 메뉴가 열린 동안엔 움직이지 않음.
+                if (!Application.isFocused || menuOpen)
                 {
                     playerInput.ValueRW.MouseCursor = transform.ValueRO.Position.xy;
                     playerInput.ValueRW.MoveArrows = float2.zero;
@@ -99,15 +106,16 @@ namespace GalaxyIO.DOTS.Client.Systems
                     playerInput.ValueRW.MoveArrows = new float2(arrowMovement.x, arrowMovement.y);
                 }
 
-                bool firePressed = turretAction.ReadValue<float>() > 0.0F;
+                // 게임 메뉴가 열린 동안엔 발사/가속도 막음.
+                bool firePressed = !menuOpen && turretAction.ReadValue<float>() > 0.0F;
                 playerInput.ValueRW.TurretTriggered = firePressed;
 
                 // 마지막 Fire입력값이 false이면 이번 프레임에 누르기 시작했다는 뜻
                 playerInput.ValueRW.TurretTriggeredInThisFrame = firePressed && !fireLastlyPressed;
                 fireLastlyPressed = firePressed;
 
-                playerInput.ValueRW.ArtilleryTriggered = artilleryAction.ReadValue<float>() > 0.0F;
-                playerInput.ValueRW.AccelerationTriggered = accelerationAction.ReadValue<float>() > 0.0F;
+                playerInput.ValueRW.ArtilleryTriggered = !menuOpen && artilleryAction.ReadValue<float>() > 0.0F;
+                playerInput.ValueRW.AccelerationTriggered = !menuOpen && accelerationAction.ReadValue<float>() > 0.0F;
             }
         }
     }

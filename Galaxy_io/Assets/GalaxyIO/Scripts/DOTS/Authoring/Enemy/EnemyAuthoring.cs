@@ -1,5 +1,6 @@
 ﻿using GalaxyIO.DOTS.Components.Actor;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -22,6 +23,12 @@ namespace GalaxyIO.DOTS.Authoring
     [RequireComponent(typeof(SpaceshipAuthoring))]
     public sealed class EnemyAuthoring : MonoBehaviour
     {
+        [Header("Display")]
+
+        [SerializeField]
+        [Tooltip("킬 로그에 표시할 이름")]
+        public string DisplayName = "";
+
         [Header("AI")]
 
         [SerializeField]
@@ -92,6 +99,14 @@ namespace GalaxyIO.DOTS.Authoring
         {
             Entity entity = GetEntity(TransformUsageFlags.Dynamic);
             SpaceshipAuthoring spaceship = GetComponent<SpaceshipAuthoring>();
+
+            var displayName = new FixedString32Bytes();
+            displayName.CopyFromTruncated(authoring.DisplayName);
+
+            AddComponent(entity, new EnemyNameComponent { Value = displayName });
+
+            // 점수용 막타. 서버만 채움.
+            AddComponent<KillingBlowComponent>(entity);
 
             AddComponent(entity, new EnemyPerceptionComponent
             {

@@ -189,7 +189,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             stateM.Add("signUp", new SignUpState(transform.GetComponentInChildren<WindowSignUp>(true), ChangeState,
                 userData => stateM.Change("signUpJWServer", userData)));
             stateM.Add("signUpJWServer", new SignUpJWServerState(transform.GetComponentInChildren<WindowSignUpJWServer>(true), ChangeState));
-            stateM.Add("gameStart", new GameStartState(transform.GetComponentInChildren<WindowGameStart>(true), ChangeState, () => ChangeState("none")));
+            stateM.Add("gameStart", new GameStartState(transform.GetComponentInChildren<WindowGameStart>(true), ChangeState, () => ChangeState("main")));
             stateM.Add("none", new EmptyState());
             stateM.Change("progress");
             _ = RunAutoLogIn();

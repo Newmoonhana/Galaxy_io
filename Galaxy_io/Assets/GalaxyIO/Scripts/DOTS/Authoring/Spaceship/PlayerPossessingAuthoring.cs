@@ -22,6 +22,10 @@ namespace GalaxyIO.DOTS.Authoring
             // 값은 스폰 시 서버가 채움.
             AddComponent<PlayerNameComponent>(entity);
 
+            // 킬 로그용 피격 기록과 막타. 서버만 채움.
+            AddBuffer<DamageRecordElement>(entity);
+            AddComponent<KillingBlowComponent>(entity);
+
             SpaceshipAuthoring spaceship = GetComponent<SpaceshipAuthoring>();
 
             // 우주선이 아닌 오브젝트에도 붙을 수 있으므로 스펙이 없으면 비행 모델은 생략함.

@@ -1,6 +1,7 @@
 ﻿using GalaxyIO.DOTS.Authoring;
 using Unity.Entities;
 using Unity.Transforms;
+using UnityEngine;
 
 namespace GalaxyIO.DOTS.Components.Actor
 {
@@ -23,5 +24,8 @@ namespace GalaxyIO.DOTS.Components.Actor
 
         // 터렛에서 발사되는 투사체
         public Entity ProjectilePrefab;
+
+        // 발사음. 없으면 default.
+        public UnityObjectRef<AudioClip> ShotSound;
     }
 }

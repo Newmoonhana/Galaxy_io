@@ -95,6 +95,8 @@ namespace GalaxyIO.DOTS.Authoring
 
             AddBuffer<SpaceshipCollisionElement>(entity);
 
+            AddComponent<CrashSoundCooldownComponent>(entity);
+
             // 투사체는 GameObject가 아닌 Entity 참조로 저장됨.
             foreach (Transform t in authoring.Turrets)
             {
@@ -111,7 +113,8 @@ namespace GalaxyIO.DOTS.Authoring
                     MaxFireCooldown  = (turretAuthoring == null || turretAuthoring.Projectile == null) ? 0.0F : 1.0F / turretAuthoring.RPS,
                     Spread           = (turretAuthoring == null || turretAuthoring.Projectile == null) ? 0.0F : (1.0F - turretAuthoring.Accuracy) * math.TORADIANS * 90.0F,
                     ProjectilePrefab = (turretAuthoring == null || turretAuthoring.Projectile == null)
-                        ? Entity.Null : GetEntity(turretAuthoring.Projectile, TransformUsageFlags.Dynamic)
+                        ? Entity.Null : GetEntity(turretAuthoring.Projectile, TransformUsageFlags.Dynamic),
+                    ShotSound        = turretAuthoring == null ? default : turretAuthoring.ShotSound,
                 });
             }
         }

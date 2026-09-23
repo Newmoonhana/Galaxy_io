@@ -137,6 +137,7 @@ namespace GalaxyIO.DOTS.Systems
                     // 나머지 값은 프리팹 베이킹 결과를 그대로 씀.
                     var shared = SystemAPI.GetComponent<SharedProjectileComponent>(turret.ProjectilePrefab);
                     shared.Owner = spaceship;
+                    shared.TurretIndex = (byte)i;
                     shared.InterpolationDelay = delay.ValueRO.Delay;
                     commandBuffer.SetComponent(projectile, shared);
 

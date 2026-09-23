@@ -23,6 +23,12 @@ namespace GalaxyIO.DOTS.Systems
 
         // 판정 시점의 Instigator 위치
         public float2 InstigatorPosition;
+
+        // 투사체 소유자. 쏜 우주선이 파괴돼도 남음. AI 는 -1.
+        public int InstigatorNetworkId;
+
+        // 쏜 AI 의 표시 이름. 플레이어거나 쏜 AI 가 파괴됐으면 비어 있음.
+        public FixedString32Bytes InstigatorEnemyName;
     }
 
     /// <summary>
@@ -52,14 +58,18 @@ namespace GalaxyIO.DOTS.Systems
             {
                 Transforms = SystemAPI.GetComponentLookup<LocalTransform>(true),
                 Colliders  = SystemAPI.GetComponentLookup<ColliderComponent>(true),
+                EnemyNames = SystemAPI.GetComponentLookup<EnemyNameComponent>(true),
                 Damages    = damages.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
 
             state.Dependency = new ApplySpaceshipDamageJob
             {
-                Damages = damages,
-                Specs   = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(),
-                Events  = SystemAPI.GetBufferLookup<EnemyEventElement>(),
+                Damages      = damages,
+                Specs        = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(),
+                Events       = SystemAPI.GetBufferLookup<EnemyEventElement>(),
+                Records      = SystemAPI.GetBufferLookup<DamageRecordElement>(),
+                KillingBlows = SystemAPI.GetComponentLookup<KillingBlowComponent>(),
+                ElapsedTime  = SystemAPI.Time.ElapsedTime,
             }.Schedule(state.Dependency);
 
             state.Dependency = damages.Dispose(state.Dependency);
@@ -79,11 +89,15 @@ namespace GalaxyIO.DOTS.Systems
         [ReadOnly]
         public ComponentLookup<ColliderComponent> Colliders;
 
+        [ReadOnly]
+        public ComponentLookup<EnemyNameComponent> EnemyNames;
+
         public NativeQueue<SpaceshipDamage>.ParallelWriter Damages;
 
         private void Execute(
             in DynamicBuffer<ProjectileHitElement> messages,
-            ref SharedProjectileComponent projectile)
+            ref SharedProjectileComponent projectile,
+            in GhostOwner owner)
         {
             if (messages.IsEmpty)
             {
@@ -92,12 +106,16 @@ namespace GalaxyIO.DOTS.Systems
 
             FindInstigator(projectile.Owner, out Entity instigator, out float2 instigatorPosition);
 
+            EnemyNames.TryGetComponent(projectile.Owner, out EnemyNameComponent enemyName);
+
             Damages.Enqueue(new SpaceshipDamage
             {
-                Spaceship          = messages[0].Message.Other,
-                Amount             = projectile.Damage,
-                Instigator         = instigator,
-                InstigatorPosition = instigatorPosition,
+                Spaceship           = messages[0].Message.Other,
+                Amount              = projectile.Damage,
+                Instigator          = instigator,
+                InstigatorPosition  = instigatorPosition,
+                InstigatorNetworkId = owner.NetworkId,
+                InstigatorEnemyName = enemyName.Value,
             });
 
             projectile.Lifetime = 0.0F;
@@ -131,6 +149,9 @@ namespace GalaxyIO.DOTS.Systems
         public NativeQueue<SpaceshipDamage> Damages;
         public ComponentLookup<SpaceshipSpecComponent> Specs;
         public BufferLookup<EnemyEventElement> Events;
+        public BufferLookup<DamageRecordElement> Records;
+        public ComponentLookup<KillingBlowComponent> KillingBlows;
+        public double ElapsedTime;
 
         public void Execute()
         {
@@ -143,9 +164,28 @@ namespace GalaxyIO.DOTS.Systems
                 }
 
                 SpaceshipSpecComponent spec = Specs[damage.Spaceship];
+                float healthBefore = spec.Health;
                 spec.Health = math.max(spec.Health - damage.Amount, 0.0F);
                 spec.RepairCooldown = spec.RepairDelay;
                 Specs[damage.Spaceship] = spec;
+
+                // 플레이어가 입힌 데미지만 어시스트 판정용으로 기록함.
+                if (damage.InstigatorNetworkId > 0
+                    && Records.TryGetBuffer(damage.Spaceship, out DynamicBuffer<DamageRecordElement> records))
+                {
+                    DamageRecord.Add(records, damage.InstigatorNetworkId, damage.Amount, ElapsedTime);
+                }
+
+                // 체력을 0으로 만든 타격만 막타로 남김.
+                if (healthBefore > 0.0F && spec.Health <= 0.0F && KillingBlows.HasComponent(damage.Spaceship))
+                {
+                    KillingBlows[damage.Spaceship] = new KillingBlowComponent
+                    {
+                        Type      = KillType.Indirect,
+                        NetworkId = damage.InstigatorNetworkId,
+                        EnemyName = damage.InstigatorEnemyName,
+                    };
+                }
 
                 // 이벤트 버퍼를 가진 AI 에게만 알림.
                 if (damage.Instigator != Entity.Null

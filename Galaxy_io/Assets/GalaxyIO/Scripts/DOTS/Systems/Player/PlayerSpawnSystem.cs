@@ -6,6 +6,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.NetCode;
 using Unity.Transforms;
+using UnityEngine;
 using Random = Unity.Mathematics.Random;
 
 namespace GalaxyIO.DOTS.Systems
@@ -18,7 +19,7 @@ namespace GalaxyIO.DOTS.Systems
     public partial struct PlayerSpawnSystem : ISystem
     {
         // 스폰 좌표 범위(월드 유닛). [-SpawnRange, SpawnRange] 사각형 안에서 균등 추출함.
-        private const float SpawnRange = 5.0F;
+        private const float SpawnRange = 100.0F;
 
         public void OnCreate(ref SystemState state)
         {
@@ -86,6 +87,13 @@ namespace GalaxyIO.DOTS.Systems
                     owners.Remove(networkId.Value);
                     ecb.DestroyEntity(rpcEntity);
                     continue;
+                }
+
+                // Connection 에 이름이 없으면 첫 스폰 = 입장.
+                if (!SystemAPI.HasComponent<PlayerNameComponent>(connectionEntity))
+                {
+                    Debug.Log($"[Server] Joined: {playerName} (NetworkId {networkId.Value})");
+                    ecb.AddComponent(connectionEntity, new PlayerNameCleanup { Value = playerName });
                 }
 
                 ecb.AddComponent(connectionEntity, new PlayerNameComponent { Value = playerName });

@@ -1,3 +1,6 @@
+using System;
+using System.Net;
+using System.Net.Sockets;
 using GalaxyIO.DOTS.Bootstrap;
 using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Networking;
@@ -12,6 +15,7 @@ using Unity.Networking.Transport;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
+using Random = UnityEngine.Random;
 
 namespace GalaxyIO.Tools.PopupUI.Window
 {
@@ -20,12 +24,14 @@ namespace GalaxyIO.Tools.PopupUI.Window
     /// </summary>
     public class WindowGameStart : WindowBase
     {
-        [SerializeField] private IpAddressField addressField;
+        [SerializeField] private ServerAddressField addressField;
         [SerializeField] private TMP_Text playerName_txt;
+        [SerializeField] private TMP_InputField playerName_input;
         [SerializeField] private TMP_Text warning;
         [SerializeField] private TMP_Text unreachable;
         [SerializeField] private Button startButton;
         [SerializeField] private Button loopbackButton;
+        [SerializeField] private Button exitButton;
 
         // 이번에 창을 열 때 확정한 이름.
         private string playerName;
@@ -88,6 +94,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             base.OnEnable();
             startButton.onClick.AddListener(OnPressGameStart);
             loopbackButton.onClick.AddListener(OnPressLoopback);
+            exitButton.onClick.AddListener(OnPressBack);
         }
 
         protected override void OnDisable()
@@ -95,6 +102,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             base.OnDisable();
             startButton.onClick.RemoveListener(OnPressGameStart);
             loopbackButton.onClick.RemoveListener(OnPressLoopback);
+            exitButton.onClick.RemoveListener(OnPressBack);
         }
 
         /// <summary>
@@ -108,15 +116,6 @@ namespace GalaxyIO.Tools.PopupUI.Window
         public void AddListener(UnityAction<string> _action)
         {
             _changeWindow.AddListener(_action);
-        }
-
-        /// <summary>
-        /// 로비 메인으로 복귀. [TEMP] 버튼 onClick 연결용.
-        /// </summary>
-        public void OnPressBack()
-        {
-            if (!IsActive() || connecting) return;
-            _changeWindow?.Invoke("main");
         }
 
         private void Update()
@@ -141,6 +140,15 @@ namespace GalaxyIO.Tools.PopupUI.Window
         }
 
         /// <summary>
+        /// 로비 메인으로 복귀. [TEMP] 버튼 onClick 연결용.
+        /// </summary>
+        public void OnPressBack()
+        {
+            if (!IsActive() || connecting) return;
+            _changeWindow?.Invoke("main");
+        }
+
+        /// <summary>
         /// 루프백 주소를 입력창에 채움. 접속은 하지 않음.
         /// </summary>
         private void OnPressLoopback()
@@ -161,23 +169,83 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             unreachable.gameObject.SetActive(false);
 
-            // 모양이 맞아도 값이 범위를 넘으면(e.g. 999.0.0.1) 여기서 걸림.
-            if (!NetworkEndpoint.TryParse(
-                    addressField.Address,
-                    NetcodeBootstrap.Port,
-                    out NetworkEndpoint endpoint,
-                    NetworkFamily.Ipv4
-                ))
+            // 서버에 요청할 플레이어 이름. 입력 필드가 없으면 화면을 열 때 설정한 `playerName`으로 자동으로 설정하고,
+            // 따로 입력한 이름이 있다면 그 이름으로 요청함.
+            string requestPlayerName = string.IsNullOrWhiteSpace(playerName_input.text) ? playerName : playerName_input.text.Trim();
+            _ = ConnectAsync(requestPlayerName);
+        }
+
+        /// <summary>
+        /// 주소를 해석한 뒤 스폰을 요청함. 해석 중에도 버튼을 잠금.
+        /// </summary>
+        private async Awaitable ConnectAsync(string requestPlayerName)
+        {
+            SetLocked(true);
+
+            NetworkEndpoint? endpoint = await ResolveAsync(addressField.Address);
+
+            if (endpoint == null)
             {
                 warning.gameObject.SetActive(true);
+                SetLocked(false);
                 return;
             }
 
-            if (ClientNetworkRequestManager.RequestPlayerSpawn(endpoint, playerName))
+            warning.gameObject.SetActive(false);
+
+            if (ClientNetworkRequestManager.RequestPlayerSpawn(endpoint.Value, requestPlayerName))
             {
-                warning.gameObject.SetActive(false);
                 SetConnecting(true);
             }
+            else
+            {
+                SetLocked(false);
+            }
+        }
+
+        /// <summary>
+        /// IP 주소는 그대로, 도메인은 DNS 조회로 IPv4 엔드포인트를 만듦. 실패하면 null.
+        /// </summary>
+        private static async Awaitable<NetworkEndpoint?> ResolveAsync(string address)
+        {
+            // 모양이 맞아도 값이 범위를 넘으면(e.g. 999.0.0.1) 여기서 걸림.
+            if (NetworkEndpoint.TryParse(address, NetcodeBootstrap.Port, out NetworkEndpoint endpoint, NetworkFamily.Ipv4))
+            {
+                return endpoint;
+            }
+
+            if (Uri.CheckHostName(address) != UriHostNameType.Dns)
+            {
+                return null;
+            }
+
+            IPAddress[] addresses = null;
+
+            try
+            {
+                addresses = await Dns.GetHostAddressesAsync(address);
+            }
+            catch (Exception)
+            {
+                // 조회 실패. 아래에서 null 반환.
+            }
+
+            await Awaitable.MainThreadAsync();
+
+            if (addresses == null)
+            {
+                return null;
+            }
+
+            foreach (IPAddress ip in addresses)
+            {
+                if (ip.AddressFamily == AddressFamily.InterNetwork)
+                {
+                    return NetworkEndpoint.Parse(ip.ToString(), NetcodeBootstrap.Port);
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -186,6 +254,11 @@ namespace GalaxyIO.Tools.PopupUI.Window
         private void SetConnecting(bool value)
         {
             connecting = value;
+            SetLocked(value);
+        }
+
+        private void SetLocked(bool value)
+        {
             startButton.interactable = !value;
             loopbackButton.interactable = !value;
         }

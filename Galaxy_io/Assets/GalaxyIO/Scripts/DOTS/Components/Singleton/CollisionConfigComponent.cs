@@ -1,5 +1,6 @@
 using GalaxyIO.DOTS.Authoring.Config;
 using Unity.Entities;
+using UnityEngine;
 
 namespace GalaxyIO.DOTS.Components.Singleton
 {
@@ -16,5 +17,11 @@ namespace GalaxyIO.DOTS.Components.Singleton
 
         // 선체끼리 부딪혔을 때 튕겨 나가는 정도. 0이면 미끄러짐.
         public float Restitution;
+
+        // 상대 속력 1당 충돌 데미지
+        public float RamDamage;
+
+        // 선체끼리 부딪혔을 때 재생할 효과음. 클라이언트만 씀.
+        public UnityObjectRef<AudioClip> CrashSound;
     }
 }

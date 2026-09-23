@@ -21,6 +21,10 @@ namespace GalaxyIO.DOTS.Components.Actor
         [GhostField]
         public Entity Owner;
 
+        // 발사한 터렛의 Owner 버퍼 인덱스. 클라이언트가 발사음을 찾는 데 씀.
+        [GhostField]
+        public byte TurretIndex;
+
         // 직전 틱 이동 변위. 고속 투사체가 표적을 통과하지 않도록 충돌체를 늘리는 데 씀.
         // 이동 시스템이 매 틱 기록함.
         public float2 Displacement;
