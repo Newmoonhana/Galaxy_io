@@ -22,18 +22,13 @@ namespace GalaxyIO.Tools.PopupUI.Window
         [SerializeField] private Button cancel_btn;
         [SerializeField] private TMP_InputField id_if;
         [SerializeField] private TMP_InputField pw_if;
-        [SerializeField] private TMP_InputField memberName_if;
         [SerializeField] private TMP_InputField nickName_if;
         [SerializeField] private TMP_Text accountErrorMsg_txt;
-        [SerializeField] private TMP_Text memberNameErrorMsg_txt;
         [SerializeField] private TMP_Text nickNameErrorMsg_txt;
-
-        // JW 서버의 memberName 최대 길이.
-        private const int MemberNameMaxLength = 100;
 
         /// <summary>
         /// Win_SignUp에서 넘겨받은 회원 정보. 입력값은 이 창에서 다시 채움.
-        /// memberName은 JOIN 필수값이지만, 기존 회원이면 서버가 기존 값을 유지함.
+        /// 이름은 통합 회원 가입 때 등록한 값을 그대로 쓰므로 이 창에서 받지 않음.
         /// </summary>
         private GameUserRequestDTO userData;
 
@@ -43,7 +38,6 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             base.Awake();
             changeWindow = new UnityEvent<string>();
-            memberName_if.characterLimit = MemberNameMaxLength;
             nickName_if.characterLimit = PlayerNameComponent.MaxLength;
         }
 
@@ -97,7 +91,6 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             id_if.text = userData.memberId ?? string.Empty;
             pw_if.text = userData.memberPw ?? string.Empty;
-            memberName_if.text = userData.memberName ?? string.Empty;
             nickName_if.text = userData.nickName ?? string.Empty;
             ClearErrorMsg();
         }
@@ -132,13 +125,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 accountErrorMsg_txt.text = "패스워드는 6자리를 넘어야합니다";
                 return;
             }
-            // 공백만 입력한 경우도 빈 이름으로 취급함.
-            string memberName = memberName_if.text.Trim();
-            if (string.IsNullOrEmpty(memberName))
-            {
-                memberNameErrorMsg_txt.text = "Invalid Name!";
-                return;
-            }
+            // 공백만 입력한 경우도 빈 닉네임으로 취급함.
             string nickName = nickName_if.text.Trim();
             if (string.IsNullOrEmpty(nickName))
             {
@@ -149,8 +136,11 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             userData.memberId = id;
             userData.memberPw = pw;
-            userData.memberName = memberName;
             userData.nickName = nickName;
+            // 기존 회원이면 서버가 등록된 이름을 그대로 유지함. 다만 JOIN은 memberName이
+            // 비어 있으면 400을 돌려주므로, Win_SignUp에서 받아온 값이 없으면 ID로 채워 보냄.
+            if (string.IsNullOrEmpty(userData.memberName))
+                userData.memberName = id;
 
             //서버 체크 — 통합 회원 확인이 끝나야 가입을 시도함
             Deactivate();
@@ -225,7 +215,6 @@ namespace GalaxyIO.Tools.PopupUI.Window
         private void ClearErrorMsg()
         {
             accountErrorMsg_txt.text = string.Empty;
-            memberNameErrorMsg_txt.text = string.Empty;
             nickNameErrorMsg_txt.text = string.Empty;
         }
 
