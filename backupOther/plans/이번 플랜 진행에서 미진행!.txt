@@ -1,0 +1,11 @@
+
+### 이번 플랜 진행에서 미진행!
+- Win_SignUpJWServer 윈도우를 추가, Win_SignUp에서 INVALID_CREDENTIALS 메시지를 리턴받을 시 통합 ID 중복이라는 뜻이므로,
+  Win_SignUp 대신 Win_SignUpJWServer를 통해 통합 서버 ID로 회원가입를 진행
+- Win_SignUp에 닉네임 InputField를 추가, 회원가입 시 nickName도 signUpUserData에 세팅
+- Win_SignUpJWServer 윈도우에선 우선 통합 서버에 로그인을 시도, 로그인 성공 시 닉네임 InputField를 활성화하여 /api/account/gameuser 회원가입
+- 실명 인풋?
+
+> 참고사항:
+> `C:\Users\User\Documents\Server_yijoongwon\allInOneGameServer`는 JW서버 소스 코드
+> /api/game/check는 JW서버 소스 코드 경로의 코드 및 `ApiGuide.razor` 참고
