@@ -21,6 +21,14 @@ namespace JWServer.Runtime.Utils
         }
 
         /// <summary>
+        /// 통합 서버에 해당 회원 ID 자체가 없는지를 반환
+        /// </summary>
+        public static bool IsMemberNotFound(string msg)
+        {
+            return msg is RefreshTokenMsg.GAME_MEMBER_NOT_FOUND;
+        }
+
+        /// <summary>
         /// 서버 연결에 실패했는지 여부 반환(e.g. 서버가 다운됐거나, 디바이스가 오프라인)
         /// </summary>
         public static bool IsServerUnreachable(string msg)
