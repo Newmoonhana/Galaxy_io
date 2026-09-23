@@ -278,6 +278,24 @@ namespace JWServer.Runtime.Login
             }
         }
 
+        /// <summary>
+        /// 통합 회원(memberType=0)의 ID/PW 확인. 게임 계정 유무와 회원 활성 상태는 보지 않음.
+        /// </summary>
+        public static async Awaitable<MemberCheckResponseDTO> CheckMemberCredential(string memberId, string memberPw)
+        {
+            const string memberCheckEndpoint = "/api/account/check";
+            string postData = JsonUtility.ToJson(new MemberCheckRequestDTO(memberId, memberPw));
+
+            using (UnityWebRequest req = UnityWebRequest.Post(AUTH_SERVER + memberCheckEndpoint, postData, CONTENT_TYPE_JSON))
+            {
+                await req.SendWebRequest();
+                if (req.result == UnityWebRequest.Result.ConnectionError)
+                    return new MemberCheckResponseDTO { responseMessage = CommonMsg.CONNECTION_ERROR };
+
+                return JsonUtility.FromJson<MemberCheckResponseDTO>(req.downloadHandler.text);
+            }
+        }
+
         // Hidden API — `GameStart` 호출은 `AutoLogIn`에서 자동으로 처리해줌
         private static async Awaitable<GameUserResponseDTO> GameStart()
         {

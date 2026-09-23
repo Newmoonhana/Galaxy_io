@@ -14,6 +14,7 @@ namespace JWServer.Runtime.Utils
         public const string INVALID_JWT_TOKEN = "INVALID_JWT_TOKEN";
         public const string EXPIRED_JWT_TOKEN = "EXPIRED_JWT_TOKEN";
         public const string INVALID_CREDENTIALS = "INVALID_CREDENTIALS";
+        public const string GAME_MEMBER_NOT_FOUND = "GAME_MEMBER_NOT_FOUND";
         public const string USER_ACCESS_DENIED = "USER_ACCESS_DENIED";
         public const string GAME_CODE_NOT_FOUND = "GAME_CODE_NOT_FOUND";
         public const string GAME_ACCOUNT_NOT_FOUND = "GAME_ACCOUNT_NOT_FOUND";

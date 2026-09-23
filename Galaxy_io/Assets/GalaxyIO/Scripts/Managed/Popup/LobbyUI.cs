@@ -80,7 +80,40 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         private class SignUpState : IState
         {
             private WindowSignUp win;
-            public SignUpState(WindowSignUp _win, UnityAction<string> _changeWindow)
+            public SignUpState(WindowSignUp _win, UnityAction<string> _changeWindow,
+                UnityAction<GameUserRequestDTO> _toJWServerSignUp)
+            {
+                win = _win;
+                win.AddListener(_changeWindow);
+                win.AddJWServerListener(_toJWServerSignUp);
+                OnExit();
+            }
+
+            public void UpdateState(float elapsedTime) {}
+            public void Render() {}
+            public void OnEnter(object p_data)
+            {
+                win.Open();
+                win.Activate();
+            }
+            public void OnExit()
+            {
+                win.Deactivate();
+                win.Close();
+            }
+            public void Dispose()
+            {
+                win?.Dispose();
+                win = null;
+            }
+        }
+        /// <summary>
+        /// 통합 ID로 이 게임의 계정을 추가하는 창
+        /// </summary>
+        private class SignUpJWServerState : IState
+        {
+            private WindowSignUpJWServer win;
+            public SignUpJWServerState(WindowSignUpJWServer _win, UnityAction<string> _changeWindow)
             {
                 win = _win;
                 win.AddListener(_changeWindow);
@@ -91,6 +124,8 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             public void Render() {}
             public void OnEnter(object p_data)
             {
+                if (p_data is GameUserRequestDTO userData)
+                    win.SetUserData(userData);
                 win.Open();
                 win.Activate();
             }
@@ -151,7 +186,9 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             stateM.Add("progress", new EmptyState());
             stateM.Add("main", new MainState(transform.GetComponentInChildren<WindowLobbyMain>(true), ChangeState));
             stateM.Add("signIn", new SignInState(transform.GetComponentInChildren<WindowSignIn>(true), ChangeState, () => ChangeState("main")));
-            stateM.Add("signUp", new SignUpState(transform.GetComponentInChildren<WindowSignUp>(true), ChangeState));
+            stateM.Add("signUp", new SignUpState(transform.GetComponentInChildren<WindowSignUp>(true), ChangeState,
+                userData => stateM.Change("signUpJWServer", userData)));
+            stateM.Add("signUpJWServer", new SignUpJWServerState(transform.GetComponentInChildren<WindowSignUpJWServer>(true), ChangeState));
             stateM.Add("gameStart", new GameStartState(transform.GetComponentInChildren<WindowGameStart>(true), ChangeState, () => ChangeState("none")));
             stateM.Add("none", new EmptyState());
             stateM.Change("progress");

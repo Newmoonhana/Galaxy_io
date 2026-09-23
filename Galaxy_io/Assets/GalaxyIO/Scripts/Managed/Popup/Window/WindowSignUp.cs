@@ -18,6 +18,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
     {
         [SerializeField] private Button enter_btn;
         [SerializeField] private Button cancel_btn;
+        // 이미 통합 서버 회원인 경우 Win_SignUpJWServer로 넘어가는 버튼.
+        [SerializeField] private Button jwServer_btn;
         [SerializeField] private TMP_InputField id_if;
         [SerializeField] private TMP_InputField pw_if;
         [SerializeField] private TMP_InputField pwValidate_if;
@@ -31,11 +33,14 @@ namespace GalaxyIO.Tools.PopupUI.Window
         private const int MemberNameMaxLength = 100;
 
         private UnityEvent<string> changeWindow;
+        // 통합 서버에 같은 ID의 회원이 있을 때, 입력값을 Win_SignUpJWServer로 넘김.
+        private UnityEvent<GameUserRequestDTO> toJWServerSignUp;
 
         protected override void Awake()
         {
             base.Awake();
             changeWindow = new UnityEvent<string>();
+            toJWServerSignUp = new UnityEvent<GameUserRequestDTO>();
             memberName_if.characterLimit = MemberNameMaxLength;
             nickName_if.characterLimit = PlayerNameComponent.MaxLength;
         }
@@ -56,6 +61,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
             base.Dispose();
             changeWindow?.RemoveAllListeners();
             changeWindow = null;
+            toJWServerSignUp?.RemoveAllListeners();
+            toJWServerSignUp = null;
         }
         
         protected override void OnEnable()
@@ -64,6 +71,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             
             enter_btn.onClick.AddListener(OnSignUpBtnPress);
             cancel_btn.onClick.AddListener(OnCancelBtnPress);
+            jwServer_btn.onClick.AddListener(OnJWServerBtnPress);
         }
 
         protected override void OnDisable()
@@ -72,6 +80,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             
             enter_btn.onClick.RemoveListener(OnSignUpBtnPress);
             cancel_btn.onClick.RemoveListener(OnCancelBtnPress);
+            jwServer_btn.onClick.RemoveListener(OnJWServerBtnPress);
         }
         
         public void AddListener(UnityAction<string> _action)
@@ -79,11 +88,14 @@ namespace GalaxyIO.Tools.PopupUI.Window
             changeWindow.AddListener(_action);
         }
 
-        private void OnSignUpBtnPress()
+        /// <summary>
+        /// 통합 ID 중복 시 알림 받을 리스너 등록.
+        /// </summary>
+        public void AddJWServerListener(UnityAction<GameUserRequestDTO> _action)
         {
-            if (!IsActive()) return;
-            _ = RunSignUp();
+            toJWServerSignUp.AddListener(_action);
         }
+        
         private async Awaitable RunSignUp()
         {
             #region 서버 체크 전 조건 확인
@@ -119,12 +131,6 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 accountErrorMsg_txt.text = "Validate Password doesn't match!";
                 return;
             }
-            /*// 아이디와 비번이 같을 시
-            if (string.Equals(id, pw, StringComparison.Ordinal))
-            {
-                accountErrorMsg_txt.text = "아이디와 비밀번호가 동일할 수 없습니다";
-                return;
-            }*/
             // 공백만 입력한 경우도 빈 이름으로 취급함.
             string memberName = memberName_if.text.Trim();
             if (string.IsNullOrEmpty(memberName))
@@ -151,21 +157,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 _memberName: memberName,
                 _nickName: nickName
             );
-            bool isDuplicateId = false;
-            GameUserResponseDTO result = await CommonProgress.Show<GameUserResponseDTO>(transform.parent, async () =>
-            {
-                // 가입 전 ID 중복 확인
-                MemberIdDupCheckResponseDTO dupCheck = await LoginManager.CheckMemberIdDup(id);
-                isDuplicateId = ResponseMsgUtil.IsOk(dupCheck.responseMessage) && dupCheck.isDuplicate;
-                return isDuplicateId ? default : await LoginManager.SignUp(signUpUserData);
-            });
+            GameUserResponseDTO result = await CommonProgress.Show(transform.parent, () => LoginManager.SignUp(signUpUserData));
             Activate();
-
-            if (isDuplicateId)
-            {
-                WriteErrorMsgText(accountErrorMsg_txt, "이미 존재하는 회원 아이디입니다.");
-                return;
-            }
 
             #region 로그인 성공
             if (ResponseMsgUtil.IsOk(result.responseMessage))
@@ -177,13 +170,14 @@ namespace GalaxyIO.Tools.PopupUI.Window
             #endregion
             
             #region 회원가입 실패
-            // 규칙 예외 처리 (아이디 중복 오류 등)
-            // 이미 존재하는 아이디로 회원가입 시도 시
+            // 통합 서버에 같은 ID의 회원이 있음. 통합 ID 회원가입 창을 쓰라고 안내만 함.
             if (ResponseMsgUtil.IsInvalidCredential(result.responseMessage))
             {
-                WriteErrorMsgText(accountErrorMsg_txt, "이미 존재하는 회원 아이디입니다.");
+                WriteErrorMsgText(accountErrorMsg_txt, "이미 JW 서버 아이디가 있습니다!");
                 return;
             }
+            
+            // ---- 규칙 예외 처리 (아이디 중복 오류 등) ----
             // 이미 존재하는 회원 정보(아이디 비번 전부 동일)로 회원가입 시도 시
             if (result.responseMessage is RefreshTokenMsg.ACCOUNT_ALREADY_EXISTS)
             {
@@ -195,8 +189,9 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 WriteErrorMsgText(nickNameErrorMsg_txt, "이미 사용 중인 닉네임입니다.");
                 return;
             }
+            // --------
             
-            // 서버 자체 오류 시 경고창 팝업 호출
+            // ---- 서버 자체 오류 시 경고창 팝업 호출 ----
             const string key = "Common_MsgBox";
             await AddressableAssetsManager.gameObject_lst.LoadData(key);
             GameObject winObj = Instantiate(AddressableAssetsManager.gameObject_lst.GetData(key).Data, transform.parent);
@@ -210,6 +205,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             msgBox.SetWinText("Sign Up Failed", result.responseMessage);
             msgBox.Refresh();
+            // --------
                 
             return;
             
@@ -229,10 +225,36 @@ namespace GalaxyIO.Tools.PopupUI.Window
             nickNameErrorMsg_txt.text = string.Empty;
         }
         
+        private void OnSignUpBtnPress()
+        {
+            if (!IsActive()) return;
+            _ = RunSignUp();
+        }
+        
         private void OnCancelBtnPress()
         {
             if (!IsActive()) return;
             changeWindow?.Invoke("signIn");
+        }
+        
+        /// <summary>
+        /// 통합 ID 회원가입 창으로 이동. 입력 검증과 통합 회원 확인은 그 창이 담당하므로
+        /// 여기서는 지금까지 입력한 값만 넘김.
+        /// </summary>
+        private void OnJWServerBtnPress()
+        {
+            if (!IsActive()) return;
+
+            ClearErrorMsg();
+            toJWServerSignUp?.Invoke(new GameUserRequestDTO(
+                _gameCode: LoginManager.GAME_CODE,
+                _actionType: "JOIN",
+                _memberType: 0,
+                _memberId: id_if.text,
+                _memberPw: pw_if.text,
+                _memberName: memberName_if.text.Trim(),
+                _nickName: nickName_if.text.Trim()
+            ));
         }
     }
 }
