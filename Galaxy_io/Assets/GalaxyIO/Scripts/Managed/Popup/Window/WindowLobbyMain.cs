@@ -5,6 +5,8 @@ using Newmoonhana.Runtime.Utils.DEBUG;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
 using UnityEngine.UI;
 
 namespace GalaxyIO.Tools.PopupUI.Window
@@ -44,6 +46,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             host_btn.onClick.AddListener(OnHostBtnPress);
             settings_btn.onClick.AddListener(OnSettingsBtnPress);
             exit_btn.onClick.AddListener(OnExitBtnPress);
+            LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
         }
 
         protected override void OnDisable()
@@ -54,7 +57,10 @@ namespace GalaxyIO.Tools.PopupUI.Window
             host_btn.onClick.RemoveListener(OnHostBtnPress);
             settings_btn.onClick.RemoveListener(OnSettingsBtnPress);
             exit_btn.onClick.RemoveListener(OnExitBtnPress);
+            LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
         }
+
+        private void OnLocaleChanged(Locale _locale) => RefreshSignInOut();
 
         public override void Open()
         {
@@ -67,10 +73,9 @@ namespace GalaxyIO.Tools.PopupUI.Window
             _changeWindow.AddListener(_action);
         }
 
-        // [TEMP] 번역 적용 시 I2방식으로 변경 필요
         private void RefreshSignInOut()
         {
-            signInOut_txt.SetText(LoginManager.IsOnline ? "Sign Out" : "Sign In");
+            signInOut_txt.SetText(L10n.Get(LoginManager.IsOnline ? "Lobby/SignOut" : "Lobby/SignIn"));
         }
 
         private void OnSignInOutBtnPress()

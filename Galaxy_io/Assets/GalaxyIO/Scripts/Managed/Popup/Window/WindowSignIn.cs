@@ -90,13 +90,13 @@ namespace GalaxyIO.Tools.PopupUI.Window
             string id = id_if.text;
             if (string.IsNullOrEmpty(id))
             {
-                WriteErrorMsgText("Invalid ID!");
+                WriteErrorMsgText(L10n.Get("SignIn/InvalidId"));
                 return;
             }
             string pw = pw_if.text;
             if (string.IsNullOrEmpty(pw))
             {
-                WriteErrorMsgText("Invalid Password!");
+                WriteErrorMsgText(L10n.Get("SignIn/InvalidPw"));
                 return;
             }
             #endregion
@@ -123,7 +123,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             
             #region 로그인 실패
             if (ResponseMsgUtil.IsInvalidCredential(result.responseMessage))
-                WriteErrorMsgText("Invalid ID or Password!");
+                WriteErrorMsgText(L10n.Get("SignIn/InvalidCredential"));
             else
             {
                 // 서버 자체 오류 시 경고창 팝업 호출
@@ -134,16 +134,15 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 CommonMessageBox msgBox = winObj?.GetComponent<CommonMessageBox>();
                 if (msgBox == null)
                 {
-                    errorMsg_txt.text = "something error...";
+                    errorMsg_txt.text = L10n.Get("Common/UnknownError");
                     DebugLog.LogError($"프리팹 {key} 등록 안됨!");
                 }
                 
-                msgBox.SetWinText("Login Failed", result.responseMessage);
+                msgBox.SetWinText(L10n.Get("SignIn/FailedTitle"), result.responseMessage);
                 msgBox.Refresh();
             }
             return;
 
-            // [TEMP] 번역 적용 시 I2방식으로 변경 필요
             // 실패 메세지 출력(비밀번호 틀릴 시 같은 굳이 창이 뜰 필요 없는 경우)
             void WriteErrorMsgText(string text)
             {

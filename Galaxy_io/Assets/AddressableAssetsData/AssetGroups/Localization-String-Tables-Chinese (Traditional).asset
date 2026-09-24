@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: Localization-String-Tables-Chinese (Traditional)
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: Localization-String-Tables-Chinese (Traditional)
+  m_GUID: ab682509248dea7439f25d7e7fd53ed3
+  m_SerializeEntries:
+  - m_GUID: b57372c0c7dafc7468f09bafe64e1dcc
+    m_Address: GalaxyIO_UI_zh-TW
+    m_ReadOnly: 1
+    m_SerializedLabels:
+    - Locale-zh-TW
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 1
+  m_Settings: {fileID: 11400000, guid: 375bcd4d0552e8a4daea0aa1a437bec5, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: bdc592959068fe94980cccc3eafeecd1, type: 2}
+    - {fileID: 11400000, guid: cb6112d4487d3ef4db6f1fd9e5ed7789, type: 2}
+    - {fileID: 11400000, guid: 32f6a457c4c005e4098e50c24fd420cc, type: 2}

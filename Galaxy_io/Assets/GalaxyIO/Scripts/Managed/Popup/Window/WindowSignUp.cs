@@ -99,49 +99,48 @@ namespace GalaxyIO.Tools.PopupUI.Window
         private async Awaitable RunSignUp()
         {
             #region 서버 체크 전 조건 확인
-            // [TEMP] errorMsg_txt 부분 전체적으로 번역 적용 시 텍스트 넘겨주기 대신 키 값 넘겨주기 필요
             ClearErrorMsg();
             string id = id_if.text;
             if (string.IsNullOrEmpty(id))
             {
-                accountErrorMsg_txt.text = "Invalid ID!";
+                accountErrorMsg_txt.text = L10n.Get("SignUp/InvalidId");
                 return;
             }
             string pw = pw_if.text;
             if (string.IsNullOrEmpty(pw))
             {
-                accountErrorMsg_txt.text = "Invalid Password!";
+                accountErrorMsg_txt.text = L10n.Get("SignUp/InvalidPw");
                 return;
             }
             if (pw.Length < 6)
             {
-                accountErrorMsg_txt.text = "패스워드는 6자리를 넘어야합니다";
+                accountErrorMsg_txt.text = L10n.Get("SignUp/PwTooShort");
                 return;
             }
             
             string pwCheck = pwValidate_if.text;
             if (string.IsNullOrEmpty(pwCheck))
             {
-                accountErrorMsg_txt.text = "Invalid Validate Password!";
+                accountErrorMsg_txt.text = L10n.Get("SignUp/InvalidPwValidate");
                 return;
             }
             // 패스워드, 패스워드 확인에 입력된 값이 다를 때
             if (!string.Equals(pw, pwCheck, StringComparison.Ordinal))
             {
-                accountErrorMsg_txt.text = "Validate Password doesn't match!";
+                accountErrorMsg_txt.text = L10n.Get("SignUp/PwMismatch");
                 return;
             }
             // 공백만 입력한 경우도 빈 이름으로 취급함.
             string memberName = memberName_if.text.Trim();
             if (string.IsNullOrEmpty(memberName))
             {
-                memberNameErrorMsg_txt.text = "Invalid Name!";
+                memberNameErrorMsg_txt.text = L10n.Get("SignUp/InvalidName");
                 return;
             }
             string nickName = nickName_if.text.Trim();
             if (string.IsNullOrEmpty(nickName))
             {
-                nickNameErrorMsg_txt.text = "Invalid NickName!";
+                nickNameErrorMsg_txt.text = L10n.Get("SignUp/InvalidNickName");
                 return;
             }
             #endregion
@@ -199,17 +198,16 @@ namespace GalaxyIO.Tools.PopupUI.Window
             CommonMessageBox msgBox = winObj?.GetComponent<CommonMessageBox>();
             if (msgBox == null)
             {
-                accountErrorMsg_txt.text = "something error...";
+                accountErrorMsg_txt.text = L10n.Get("Common/UnknownError");
                 DebugLog.LogError($"프리팹 {key} 등록 안됨!");
             }
 
-            msgBox.SetWinText("Sign Up Failed", result.responseMessage);
+            msgBox.SetWinText(L10n.Get("SignUp/FailedTitle"), result.responseMessage);
             msgBox.Refresh();
             // --------
                 
             return;
             
-            // [TEMP] 번역 적용 시 I2방식으로 변경 필요
             // 실패 메세지 출력(비밀번호 틀릴 시 같은 굳이 창이 뜰 필요 없는 경우)
             void WriteErrorMsgText(TMP_Text target, string text)
             {

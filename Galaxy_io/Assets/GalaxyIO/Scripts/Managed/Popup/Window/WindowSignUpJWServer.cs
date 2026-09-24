@@ -106,30 +106,29 @@ namespace GalaxyIO.Tools.PopupUI.Window
         private async Awaitable RunSignUp()
         {
             #region 서버 체크 전 조건 확인
-            // [TEMP] errorMsg_txt 부분 전체적으로 번역 적용 시 텍스트 넘겨주기 대신 키 값 넘겨주기 필요
             ClearErrorMsg();
             string id = id_if.text;
             if (string.IsNullOrEmpty(id))
             {
-                accountErrorMsg_txt.text = "Invalid ID!";
+                accountErrorMsg_txt.text = L10n.Get("SignUp/InvalidId");
                 return;
             }
             string pw = pw_if.text;
             if (string.IsNullOrEmpty(pw))
             {
-                accountErrorMsg_txt.text = "Invalid Password!";
+                accountErrorMsg_txt.text = L10n.Get("SignUp/InvalidPw");
                 return;
             }
             if (pw.Length < 6)
             {
-                accountErrorMsg_txt.text = "패스워드는 6자리를 넘어야합니다";
+                accountErrorMsg_txt.text = L10n.Get("SignUp/PwTooShort");
                 return;
             }
             // 공백만 입력한 경우도 빈 닉네임으로 취급함.
             string nickName = nickName_if.text.Trim();
             if (string.IsNullOrEmpty(nickName))
             {
-                nickNameErrorMsg_txt.text = "Invalid NickName!";
+                nickNameErrorMsg_txt.text = L10n.Get("SignUp/InvalidNickName");
                 return;
             }
             #endregion
@@ -167,27 +166,27 @@ namespace GalaxyIO.Tools.PopupUI.Window
             // 통합 서버에 없는 ID — 일반 회원가입 대상.
             if (ResponseMsgUtil.IsMemberNotFound(result.responseMessage))
             {
-                accountErrorMsg_txt.text = "JW 서버 통합 회원이 아닙니다.\n일반 회원가입을 이용해 주세요.";
+                accountErrorMsg_txt.text = L10n.Get("SignUpJW/NotIntegrated");
                 return;
             }
             if (ResponseMsgUtil.IsInvalidCredential(result.responseMessage))
             {
-                accountErrorMsg_txt.text = "비밀번호가 일치하지 않습니다.";
+                accountErrorMsg_txt.text = L10n.Get("SignUpJW/PwMismatch");
                 return;
             }
             // 이 게임의 계정이 이미 있음. 회원가입이 아니라 로그인 대상.
             if (result.responseMessage is RefreshTokenMsg.ACCOUNT_ALREADY_EXISTS)
             {
-                accountErrorMsg_txt.text = "이미 이 게임에 가입된 계정입니다.\n로그인으로 진행해 주세요.";
+                accountErrorMsg_txt.text = L10n.Get("SignUpJW/AlreadyJoined");
                 return;
             }
             if (result.responseMessage is RefreshTokenMsg.NICKNAME_ALREADY_EXISTS)
             {
-                nickNameErrorMsg_txt.text = "이미 사용 중인 닉네임입니다.";
+                nickNameErrorMsg_txt.text = L10n.Get("SignUpJW/NickNameTaken");
                 return;
             }
 
-            await ShowErrorMsgBox("Sign Up Failed", result.responseMessage);
+            await ShowErrorMsgBox(L10n.Get("SignUp/FailedTitle"), result.responseMessage);
             #endregion
         }
 
@@ -203,7 +202,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             CommonMessageBox msgBox = winObj?.GetComponent<CommonMessageBox>();
             if (msgBox == null)
             {
-                accountErrorMsg_txt.text = "something error...";
+                accountErrorMsg_txt.text = L10n.Get("Common/UnknownError");
                 DebugLog.LogError($"프리팹 {key} 등록 안됨!");
                 return;
             }
