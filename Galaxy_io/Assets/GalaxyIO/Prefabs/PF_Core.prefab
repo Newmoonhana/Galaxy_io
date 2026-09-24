@@ -56,6 +56,11 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7640880782638385940, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: mixerChannel
+      value:
+      objectReference: {fileID: -3692124028134072481, guid: 15e71c7a7a5c51d4b906936e900d03e5,
+        type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects:
     - {fileID: 8576237685870290170, guid: c2e56c8721fe2174f968d5541736b335, type: 3}

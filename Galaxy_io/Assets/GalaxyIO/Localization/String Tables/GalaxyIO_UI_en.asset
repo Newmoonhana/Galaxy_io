@@ -1,0 +1,252 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9620f8c34305754d8cc9a7e49e852d9, type: 3}
+  m_Name: GalaxyIO_UI_en
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.StringTable
+  m_LocaleId:
+    m_Code: en
+  m_SharedData: {fileID: 11400000, guid: 866e35aa3dd363f46ad9a9b6dddb04dc, type: 2}
+  m_Metadata:
+    m_Items: []
+  m_TableData:
+  - m_Id: 7277965312
+    m_Localized: Enter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7370240000
+    m_Localized: Cancel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434304
+    m_Localized: Exit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434305
+    m_Localized: Show
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434306
+    m_Localized: Hide
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434307
+    m_Localized: Loading...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434308
+    m_Localized: something error...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434309
+    m_Localized: Enter ID
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434310
+    m_Localized: Enter your ID...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434311
+    m_Localized: Enter PW
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434312
+    m_Localized: Enter your password...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434313
+    m_Localized: Validate the password...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434314
+    m_Localized: Enter Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434315
+    m_Localized: Enter your real name...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434316
+    m_Localized: Enter NickName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434317
+    m_Localized: Enter your nickname...
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434318
+    m_Localized: nnn.nnn.nnn.nnn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434319
+    m_Localized: GALAXY.IO
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434320
+    m_Localized: Sign In
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434321
+    m_Localized: Sign Out
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434322
+    m_Localized: Connect to Server
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434323
+    m_Localized: Host Server
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434324
+    m_Localized: Settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434325
+    m_Localized: Start Game
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434326
+    m_Localized: Loopback
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434327
+    m_Localized: Invalid IP address
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434328
+    m_Localized: Server unreachable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434329
+    m_Localized: Sign In
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434330
+    m_Localized: Not a member yet?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434331
+    m_Localized: Sign Up
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434332
+    m_Localized: Invalid ID!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434333
+    m_Localized: Invalid Password!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434334
+    m_Localized: Invalid ID or Password!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434335
+    m_Localized: Login Failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434336
+    m_Localized: Sign Up
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434337
+    m_Localized: Already have a JW Server ID?
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434338
+    m_Localized: Invalid ID!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434339
+    m_Localized: Invalid Password!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434340
+    m_Localized: Password must be longer than 6 characters.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434341
+    m_Localized: Invalid Validate Password!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434342
+    m_Localized: Validate Password doesn't match!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434343
+    m_Localized: Invalid Name!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434344
+    m_Localized: Invalid NickName!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434345
+    m_Localized: Sign Up Failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434346
+    m_Localized: Sign up with integrated ID
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434347
+    m_Localized: 'Not a JW Server integrated member.
+
+      Please use the normal
+      sign up.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434348
+    m_Localized: Password doesn't match.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434349
+    m_Localized: 'This account already joined this game.
+
+      Please sign in instead.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434350
+    m_Localized: This nickname is already in use.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434351
+    m_Localized: Settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434352
+    m_Localized: Master Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434353
+    m_Localized: Background Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434354
+    m_Localized: Ingame Sound Volume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434355
+    m_Localized: Language
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434356
+    m_Localized: Save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434357
+    m_Localized: Respawn
+    m_Metadata:
+      m_Items: []
+  references:
+    version: 2
+    RefIds: []

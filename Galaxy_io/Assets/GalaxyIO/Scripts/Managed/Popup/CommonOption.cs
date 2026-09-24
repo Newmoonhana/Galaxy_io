@@ -2,6 +2,7 @@ using GalaxyIO.Tools.PopupUI.Window;
 using Newmoonhana.Runtime.Tools.PopupUI.Popup;
 using Newmoonhana.Runtime.Utils;
 using UnityEngine;
+using UnityEngine.Localization.Settings;
 
 namespace GalaxyIO.Tools.PopupUI.Popup
 {
@@ -19,6 +20,8 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         /// </summary>
         public static async Awaitable Open()
         {
+            // 언어 콤보박스가 AvailableLocales를 바로 읽으므로 초기화 먼저.
+            await LocalizationSettings.InitializationOperation.Task;
             await AddressableAssetsManager.gameObject_lst.LoadData(key);
             Instantiate(AddressableAssetsManager.gameObject_lst.GetData(key).Data);
             AddressableAssetsManager.gameObject_lst.GetData(key).UnLoad();

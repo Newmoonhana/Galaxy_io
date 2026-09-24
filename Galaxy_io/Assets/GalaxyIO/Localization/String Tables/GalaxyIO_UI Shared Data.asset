@@ -1,0 +1,252 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b11a58205ec3474ca216360e9fa74a8, type: 3}
+  m_Name: GalaxyIO_UI Shared Data
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Tables.SharedTableData
+  m_TableCollectionName: GalaxyIO_UI
+  m_TableCollectionNameGuidString: 866e35aa3dd363f46ad9a9b6dddb04dc
+  m_Entries:
+  - m_Id: 7277965312
+    m_Key: Common/Enter
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7370240000
+    m_Key: Common/Cancel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434304
+    m_Key: Common/Exit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434305
+    m_Key: Common/Show
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434306
+    m_Key: Common/Hide
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434307
+    m_Key: Common/Loading
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434308
+    m_Key: Common/UnknownError
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434309
+    m_Key: Field/Id
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434310
+    m_Key: Field/IdPlaceholder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434311
+    m_Key: Field/Pw
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434312
+    m_Key: Field/PwPlaceholder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434313
+    m_Key: Field/PwValidatePlaceholder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434314
+    m_Key: Field/Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434315
+    m_Key: Field/NamePlaceholder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434316
+    m_Key: Field/NickName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434317
+    m_Key: Field/NickNamePlaceholder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434318
+    m_Key: Field/IpPlaceholder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434319
+    m_Key: Lobby/Title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434320
+    m_Key: Lobby/SignIn
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434321
+    m_Key: Lobby/SignOut
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434322
+    m_Key: Lobby/Connect
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434323
+    m_Key: Lobby/Host
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434324
+    m_Key: Lobby/Settings
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434325
+    m_Key: GameStart/Start
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434326
+    m_Key: GameStart/Loopback
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434327
+    m_Key: GameStart/InvalidIp
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434328
+    m_Key: GameStart/Unreachable
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434329
+    m_Key: SignIn/Title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434330
+    m_Key: SignIn/AskSignUp
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434331
+    m_Key: SignIn/SignUp
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434332
+    m_Key: SignIn/InvalidId
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434333
+    m_Key: SignIn/InvalidPw
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434334
+    m_Key: SignIn/InvalidCredential
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434335
+    m_Key: SignIn/FailedTitle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434336
+    m_Key: SignUp/Title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434337
+    m_Key: SignUp/AskJWServer
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434338
+    m_Key: SignUp/InvalidId
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434339
+    m_Key: SignUp/InvalidPw
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434340
+    m_Key: SignUp/PwTooShort
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434341
+    m_Key: SignUp/InvalidPwValidate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434342
+    m_Key: SignUp/PwMismatch
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434343
+    m_Key: SignUp/InvalidName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434344
+    m_Key: SignUp/InvalidNickName
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434345
+    m_Key: SignUp/FailedTitle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434346
+    m_Key: SignUpJW/Title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434347
+    m_Key: SignUpJW/NotIntegrated
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434348
+    m_Key: SignUpJW/PwMismatch
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434349
+    m_Key: SignUpJW/AlreadyJoined
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434350
+    m_Key: SignUpJW/NickNameTaken
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434351
+    m_Key: Option/Title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434352
+    m_Key: Option/MasterVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434353
+    m_Key: Option/BackgroundVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434354
+    m_Key: Option/IngameVolume
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434355
+    m_Key: Option/Language
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434356
+    m_Key: Option/Save
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7374434357
+    m_Key: Respawn/Button
+    m_Metadata:
+      m_Items: []
+  m_Metadata:
+    m_Items: []
+  m_KeyGenerator:
+    rid: 4356265629500047582
+  references:
+    version: 2
+    RefIds:
+    - rid: 4356265629500047582
+      type: {class: DistributedUIDGenerator, ns: UnityEngine.Localization.Tables, asm: Unity.Localization}
+      data:
+        m_CustomEpoch: 1790276286925
