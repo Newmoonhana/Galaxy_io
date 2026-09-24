@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: ed10cfea0d645480d8f84f9f4aee2651
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.1
+  assetPath: Assets/AssetInventory/Reuse/Common/Geometry/Runtime/ThirdParty/LibTessDotNet-v1.1.15/Instructions.txt
+  uploadId: 992364

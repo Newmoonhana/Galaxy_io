@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 0cf7071c0e4a48c196254be422158aca
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.1
+  assetPath: Assets/AssetInventory/AI/Skills/asset-inventory-audit-dependencies-and-duplicates/SKILL.md
+  uploadId: 992364

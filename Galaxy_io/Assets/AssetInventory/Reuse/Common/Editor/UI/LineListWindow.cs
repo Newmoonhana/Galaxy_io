@@ -11,8 +11,6 @@ namespace ImpossibleRobert.Common
     /// </summary>
     public sealed class LineListWindow : EditorWindow
     {
-        private const float Padding = 8f;
-
         private string[] _lines = Array.Empty<string>();
         private Action<int, string> _onLineClick;
         private CommonSearchableLineList _lineList;
@@ -51,14 +49,13 @@ namespace ImpossibleRobert.Common
 
             root.Clear();
             root.style.flexGrow = 1f;
-            root.style.paddingLeft = Padding;
-            root.style.paddingRight = Padding;
-            root.style.paddingTop = Padding;
-            root.style.paddingBottom = Padding;
+            CommonUITK.ApplyWindowLayout(root);
             root.UnregisterCallback<KeyDownEvent>(OnKeyDown);
             root.RegisterCallback<KeyDownEvent>(OnKeyDown);
 
             _lineList = new CommonSearchableLineList(_lines, _onLineClick);
+            _lineList.AddToClassList(CommonUITK.WindowBodyClass);
+            CommonUITK.ApplyWindowLayout(_lineList);
             root.Add(_lineList);
 
             if (_focusSearchField)

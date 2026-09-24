@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: d6030b0bbf5bf634a9f0df5b4a908fc5
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.1
+  assetPath: Assets/AssetInventory/Reuse/Common/Geometry/Runtime/ThirdParty/Clipper2Lib/HashCode.cs
+  uploadId: 992364

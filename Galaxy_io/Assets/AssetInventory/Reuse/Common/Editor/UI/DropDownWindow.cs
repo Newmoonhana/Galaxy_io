@@ -86,10 +86,7 @@ namespace ImpossibleRobert.Common
 
             root.Clear();
             root.style.flexGrow = 1f;
-            root.style.paddingLeft = 4f;
-            root.style.paddingRight = 4f;
-            root.style.paddingTop = 4f;
-            root.style.paddingBottom = 4f;
+            CommonUITK.ApplyWindowLayout(root);
             root.UnregisterCallback<KeyDownEvent>(OnKeyDown);
             root.RegisterCallback<KeyDownEvent>(OnKeyDown);
 

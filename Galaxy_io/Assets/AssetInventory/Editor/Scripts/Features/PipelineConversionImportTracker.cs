@@ -11,6 +11,7 @@ namespace AssetInventory
     {
         private const string ActiveSessionKey = "AssetInventory.PipelineConversionImportTracker.Active";
         private const string PathsSessionKey = "AssetInventory.PipelineConversionImportTracker.Paths";
+        private const string ExpectedPathsSessionKey = "AssetInventory.PipelineConversionImportTracker.ExpectedPaths";
 
         [Serializable]
         private sealed class PathState
@@ -25,6 +26,7 @@ namespace AssetInventory
             if (!continueExisting || !IsTracking)
             {
                 SessionState.EraseString(PathsSessionKey);
+                SessionState.EraseString(ExpectedPathsSessionKey);
             }
             SessionState.SetBool(ActiveSessionKey, true);
         }
@@ -32,6 +34,7 @@ namespace AssetInventory
         internal static List<string> Complete()
         {
             List<string> result = LoadPaths()
+                .Intersect(LoadPaths(ExpectedPathsSessionKey), StringComparer.OrdinalIgnoreCase)
                 .OrderBy(path => path, StringComparer.OrdinalIgnoreCase)
                 .ToList();
             Cancel();
@@ -42,6 +45,19 @@ namespace AssetInventory
         {
             SessionState.SetBool(ActiveSessionKey, false);
             SessionState.EraseString(PathsSessionKey);
+            SessionState.EraseString(ExpectedPathsSessionKey);
+        }
+
+        internal static void ExpectImportedAssets(IEnumerable<string> paths)
+        {
+            if (!IsTracking || paths == null) return;
+            HashSet<string> expected = LoadPaths(ExpectedPathsSessionKey);
+            foreach (string path in paths)
+            {
+                string normalized = NormalizeProjectPath(path);
+                if (IsRelevantImportedAsset(normalized)) expected.Add(normalized);
+            }
+            SessionState.SetString(ExpectedPathsSessionKey, JsonUtility.ToJson(new PathState {Paths = expected.ToList()}));
         }
 
         internal static void RecordImportedAssetsForTests(IEnumerable<string> importedAssets)
@@ -80,10 +96,10 @@ namespace AssetInventory
             SessionState.SetString(PathsSessionKey, JsonUtility.ToJson(state));
         }
 
-        private static HashSet<string> LoadPaths()
+        private static HashSet<string> LoadPaths(string sessionKey = PathsSessionKey)
         {
             HashSet<string> result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            string json = SessionState.GetString(PathsSessionKey, string.Empty);
+            string json = SessionState.GetString(sessionKey, string.Empty);
             if (string.IsNullOrEmpty(json)) return result;
 
             try
@@ -97,7 +113,7 @@ namespace AssetInventory
             }
             catch
             {
-                SessionState.EraseString(PathsSessionKey);
+                SessionState.EraseString(sessionKey);
             }
             return result;
         }

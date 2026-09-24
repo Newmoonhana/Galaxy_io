@@ -84,7 +84,7 @@ namespace AssetInventory
             if (root == null) return;
 
             root.Clear();
-            AssetInventoryUITK.ApplyWindowStyles(root);
+            AssetInventoryUITK.ApplyWindowStyles(root, false);
             root.AddToClassList(MainShellClass);
             root.UnregisterCallback<KeyDownEvent>(OnNativeShellKeyDown, TrickleDown.TrickleDown);
             root.RegisterCallback<KeyDownEvent>(OnNativeShellKeyDown, TrickleDown.TrickleDown);

@@ -2,7 +2,7 @@
 
 This adapter is bundled with Asset Inventory and requires no separate activation step.
 
-When Unity Pipeline `0.5.0-exp.1` or newer is installed, the adapter assembly compiles automatically and Pipeline discovers all 31 lower snake case `asset_inventory_*` commands. Pipeline owns its Editor server lifecycle and starts it by default when no settings asset opts out through `AutoStart`.
+When Unity Pipeline `0.6.0-exp.1` or newer is installed, the adapter assembly compiles automatically and Pipeline discovers all 31 lower snake case `asset_inventory_*` commands. Pipeline owns its Editor server lifecycle and starts it by default when no settings asset opts out through `AutoStart`.
 
 When Pipeline is absent, the package version define excludes this assembly and the base Asset Inventory package remains compilable.
 

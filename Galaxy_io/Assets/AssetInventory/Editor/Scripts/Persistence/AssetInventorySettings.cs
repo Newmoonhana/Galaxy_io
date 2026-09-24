@@ -474,6 +474,7 @@ namespace AssetInventory
         public bool limitCacheSize = true;
         public int cacheLimit = 60; // in gigabyte
         public int massOpenWarnThreshold = 7;
+        public bool logAssetStoreAuthenticationWarnings = true;
         public int logAreas = LOG_IMAGE_RESIZING | LOG_AUDIO_PARSING | LOG_MEDIA_DOWNLOADS | LOG_PACKAGE_PARSING | LOG_CUSTOM_ACTION | LOG_PREVIEW_CREATION;
         public int dbOptimizationPeriod = 30; // days
         public int dbOptimizationReminderPeriod = 1; // days
@@ -541,6 +542,9 @@ namespace AssetInventory
         public int tab;
         public bool quickIndexingDone;
         public ulong statsImports;
+        // Independent of legacy statistics so existing users qualify after five new file imports.
+        public int reviewPromptImports;
+        public bool reviewPromptShown;
 
         // wizard state
         public bool wizardCompleted;
@@ -650,6 +654,40 @@ namespace AssetInventory
                 "search.actions.previewanim",
                 "search.actions.sidebar"
             };
+        }
+    }
+
+    internal static class ReviewPrompt
+    {
+        private const int RequiredImports = 5;
+
+        internal static bool RecordFileImport(AssetInventorySettings settings, bool previewMode, bool outOfProject)
+        {
+            if (previewMode || outOfProject || settings.reviewPromptShown || settings.reviewPromptImports >= RequiredImports) return false;
+
+            settings.reviewPromptImports++;
+            return true;
+        }
+
+        internal static bool IsPending(AssetInventorySettings settings)
+        {
+            return !settings.reviewPromptShown && settings.reviewPromptImports >= RequiredImports;
+        }
+
+        internal static bool TryShow(AssetInventorySettings settings, Func<bool> persist, Action show)
+        {
+            if (!IsPending(settings)) return false;
+
+            // Persist before opening the modal dialog so reloads and other windows cannot repeat it.
+            settings.reviewPromptShown = true;
+            if (!persist())
+            {
+                settings.reviewPromptShown = false;
+                return false;
+            }
+
+            show();
+            return true;
         }
     }
 }

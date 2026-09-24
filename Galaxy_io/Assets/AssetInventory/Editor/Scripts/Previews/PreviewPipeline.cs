@@ -406,7 +406,8 @@ namespace AssetInventory
             if (AI.Config.useUnityPipelineConverter && srpSupportPackage == null && (matMode == MaterializationMode.Full || matMode == MaterializationMode.Selective))
             {
                 CurrentSub = "Converting materials to current render pipeline...";
-                await PipelineConverter.RunUnityConverterAsync();
+                if (await PipelineConverter.WaitForMaterialImports(() => CancellationRequested))
+                    PipelineConverter.ConvertImportedMaterials(materializedPaths?.Values, true, false);
             }
 
             // Reset sub-progress for the preview generation phase

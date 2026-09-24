@@ -1,0 +1,18 @@
+fileFormatVersion: 2
+guid: 8922bd81773ce194da01cb38284ab93b
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.1
+  assetPath: Assets/AssetInventory/Reuse/Common/Editor/Documentation/DocumentationInspectorCapture.cs
+  uploadId: 992364

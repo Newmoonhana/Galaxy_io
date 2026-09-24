@@ -1252,14 +1252,9 @@ namespace AssetInventory
 
             if ((AI.Config.useCustomPipelineConverter || AI.Config.useUnityPipelineConverter) && !previewMode && conversionNeeded && info.SRPSupportPackage == null)
             {
-                bool unityConverterSucceeded = false;
-                if (AI.Config.useUnityPipelineConverter)
+                if (await PipelineConverter.WaitForMaterialImports())
                 {
-                    unityConverterSucceeded = await PipelineConverter.RunUnityConverterAsync();
-                }
-                if (!unityConverterSucceeded && AI.Config.useCustomPipelineConverter)
-                {
-                    PipelineConverter.ConvertImportedMaterials(batchResult.Paths.Values);
+                    PipelineConverter.ConvertImportedMaterials(batchResult.Paths.Values, AI.Config.useUnityPipelineConverter, AI.Config.useCustomPipelineConverter);
                 }
             }
 
@@ -1270,6 +1265,7 @@ namespace AssetInventory
             }
 
             AI.Config.statsImports++;
+            if (ReviewPrompt.RecordFileImport(AI.Config, previewMode, outOfProject)) AI.SaveConfig();
 
             return importResult;
         }

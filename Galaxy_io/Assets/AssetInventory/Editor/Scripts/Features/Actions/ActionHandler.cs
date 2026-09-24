@@ -593,7 +593,12 @@ namespace AssetInventory
                             ACTION_ASSET_STORE_PURCHASES,
                             "Updating purchases",
                             imp => imp.FetchOnlineAssets());
-                        if (result != null) AI.TriggerPackageRefresh();
+                        if (result != null && !CancellationRequested)
+                        {
+                            AI.Config.lastPurchasesUpdate = DateTime.Now;
+                            AI.SaveConfig();
+                            AI.TriggerPackageRefresh();
+                        }
                         break;
                     }
 
@@ -912,13 +917,18 @@ namespace AssetInventory
                             {
                                 if (await imp.FetchAssetsDetails(itemsToUpdate, true, true)) skipEvents = false;
                             }
-                            else
+                            else if (AssetStoreAuthentication.Current.CanRequest())
                             {
                                 Debug.Log("New method for fetching asset details did not work, falling back to full scan.");
                                 if (await imp.FetchAssetsDetails(forceUpdate, 0, forceUpdate)) skipEvents = false;
                             }
                         }
                     }
+                }
+                if (assetId == 0 && !imp.RefreshFailed && !imp.CancellationRequested && !CancellationRequested)
+                {
+                    AI.Config.lastMetadataUpdate = DateTime.Now;
+                    AI.SaveConfig();
                 }
             };
 

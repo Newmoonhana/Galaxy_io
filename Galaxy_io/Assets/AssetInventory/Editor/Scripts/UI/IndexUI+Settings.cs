@@ -2609,14 +2609,24 @@ namespace AssetInventory
                 hash = AddHash(hash, AI.Config.codeIndexExtensions);
                 hash = AddHash(hash, AI.Config.codeIndexMaxFileSizeKb);
                 hash = AddHash(hash, AI.Config.codeIndexSemanticRerank);
-                hash = AddHash(hash, Intelligence.IsOllamaInstalled);
-                hash = AddHash(hash, Intelligence.LoadingModels);
-                hash = AddHash(hash, Intelligence.DownloadingModel);
-                hash = AddHash(hash, _activeOllamaDownloadModel);
-                hash = AddHash(hash, _curOllamaProgress);
-                hash = AddHash(hash, _maxOllamaProgress);
-                hash = AddHash(hash, Intelligence.IsLMStudioInstalled);
-                hash = AddHash(hash, Intelligence.LoadingLMStudioModels);
+                // Availability getters start network probes, so only read the backend whose controls are visible.
+                if (AI.Config.showAISettings && (AI.Config.aiCaptionsFeatureEnabled || AI.Config.semanticSearchFeatureEnabled))
+                {
+                    if (AI.Config.aiBackend == 1)
+                    {
+                        hash = AddHash(hash, Intelligence.IsOllamaInstalled);
+                        hash = AddHash(hash, Intelligence.LoadingModels);
+                        hash = AddHash(hash, Intelligence.DownloadingModel);
+                        hash = AddHash(hash, _activeOllamaDownloadModel);
+                        hash = AddHash(hash, _curOllamaProgress);
+                        hash = AddHash(hash, _maxOllamaProgress);
+                    }
+                    else if (AI.Config.aiBackend == 2)
+                    {
+                        hash = AddHash(hash, Intelligence.IsLMStudioInstalled);
+                        hash = AddHash(hash, Intelligence.LoadingLMStudioModels);
+                    }
+                }
                 hash = AddHash(hash, _captionTestRunning);
                 hash = AddHash(hash, _captionTest);
                 return hash;
@@ -3546,6 +3556,15 @@ namespace AssetInventory
                 "Diagnostics",
                 "Limit exception logging to the subsystems currently being investigated.");
             diagnostics.Add(CreateNativeAdvancedLogAreasRow());
+            diagnostics.Add(CreateNativeSettingsToggleRow(
+                "Asset Store Authentication Warnings",
+                "Log one warning per Editor session when Unity authentication is missing or expired. Disabling this does not resume paused Asset Store requests.",
+                AI.Config.logAssetStoreAuthenticationWarnings,
+                value =>
+                {
+                    AI.Config.logAssetStoreAuthenticationWarnings = value;
+                    MarkNativeAdvancedSettingsChanged();
+                }));
         }
 
         private VisualElement CreateNativeAdvancedFontSizeRow()
@@ -3651,6 +3670,7 @@ namespace AssetInventory
                 hash = AddHash(hash, AI.Config.noPackageTileTextBelow);
                 hash = AddHash(hash, AI.Config.awaitNonBlocking);
                 hash = AddHash(hash, AI.Config.logAreas);
+                hash = AddHash(hash, AI.Config.logAssetStoreAuthenticationWarnings);
                 return hash;
             }
         }

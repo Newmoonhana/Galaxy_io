@@ -51,7 +51,7 @@ namespace AssetInventory
             catch (Exception e)
             {
                 DBError = e.Message;
-                Debug.LogError($"Error opening database: {DBError}");
+                Debug.LogError($"Error opening database: {e}");
                 _db = null;
             }
         }

@@ -1028,6 +1028,20 @@ namespace AssetInventory
             AI.SaveConfig();
         }
 
+        private double _nextReviewPromptAttempt;
+
+        private void TryShowReviewPrompt()
+        {
+            if (!_initDone || !AI.IsInitialized || _isCleaningUp || _nativeShellContentBlocked || searchMode || instantSelection) return;
+            if (Application.isBatchMode || EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isCompiling || EditorApplication.isUpdating) return;
+            if (focusedWindow != this || _blockingInProgress || _dragImportInProgress || _pickerSelectionInProgress || AI.Actions.AnyActionsInProgress) return;
+            if (!ReviewPrompt.IsPending(AI.Config) || EditorApplication.timeSinceStartup < _nextReviewPromptAttempt) return;
+
+            // Back off if settings cannot be saved, without losing the pending prompt.
+            _nextReviewPromptAttempt = EditorApplication.timeSinceStartup + 30;
+            ReviewPrompt.TryShow(AI.Config, AI.TrySaveConfig, ShowInterstitial);
+        }
+
         private void ShowInterstitial()
         {
             if (EditorUtility.DisplayDialog("Your Support Counts", "This message will only appear once. Thanks for using Asset Inventory! I hope you enjoy using it.\n\n" +
@@ -1128,9 +1142,10 @@ namespace AssetInventory
         private async Task CheckForToolUpdates()
         {
             _updateAvailable = false;
+            if (Application.isBatchMode) return;
 
             await Task.Delay(2000); // let remainder of window initialize first
-            if (string.IsNullOrEmpty(CloudProjectSettings.accessToken)) return;
+            if (!AssetStoreAuthentication.Current.CanAutoRefresh(Application.isBatchMode, true)) return;
 
             _onlineInfo = await AssetStore.RetrieveAssetDetails(AI.ASSET_STORE_ID, null, true);
             if (_onlineInfo == null) return;
@@ -1140,9 +1155,11 @@ namespace AssetInventory
 
         private async Task CheckForAssetUpdates()
         {
+            if (Application.isBatchMode) return;
             await Task.Delay(2500); // let remainder of window initialize first
 
-            if (!AI.IsInitialized) return; // Skip if initialization failed
+            if (!AI.IsInitialized || (!AI.Config.autoRefreshPurchases && !AI.Config.autoRefreshMetadata)) return;
+            if (!AssetStoreAuthentication.Current.CanAutoRefresh(Application.isBatchMode)) return;
 
             if (AI.Config.autoRefreshPurchases)
             {
@@ -1152,14 +1169,11 @@ namespace AssetInventory
                 }
                 else
                 {
-                    AI.Config.lastPurchasesUpdate = DateTime.Now;
-                    AI.SaveConfig();
-
                     await AI.Actions.RunAction(ActionHandler.ACTION_ASSET_STORE_PURCHASES);
                 }
             }
 
-            if (AI.Config.autoRefreshMetadata)
+            if (AI.Config.autoRefreshMetadata && AssetStoreAuthentication.Current.CanAutoRefresh(Application.isBatchMode))
             {
                 if (AI.Config.lastMetadataUpdate != DateTime.MinValue && (DateTime.Now - AI.Config.lastMetadataUpdate).TotalHours < AI.Config.metadataTimeout)
                 {
@@ -1167,9 +1181,6 @@ namespace AssetInventory
                 }
                 else
                 {
-                    AI.Config.lastMetadataUpdate = DateTime.Now;
-                    AI.SaveConfig();
-
                     await AI.Actions.RunAction(ActionHandler.ACTION_ASSET_STORE_DETAILS);
                 }
             }
@@ -1184,6 +1195,8 @@ namespace AssetInventory
 
         private void OnInspectorUpdate()
         {
+            TryShowReviewPrompt();
+
             // Only repaint when there's actual state change, avoiding unnecessary redraws
             if (_needsRepaint || _requireSearchUpdate || _requireAssetTreeRebuild || _requireReportTreeRebuild
                 || _requireLookupUpdate != ChangeImpact.None || _blockingInProgress || _dragImportInProgress || _animationPlayer?.IsLoaded == true)

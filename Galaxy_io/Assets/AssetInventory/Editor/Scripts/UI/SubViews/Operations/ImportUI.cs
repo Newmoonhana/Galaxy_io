@@ -48,7 +48,7 @@ namespace AssetInventory
                 {
                     Assembly assembly = Assembly.Load("UnityEditor.CoreModule");
                     Type packageUtility = assembly.GetType("UnityEditor.PackageUtility");
-                    _customFolderReflectionAvailable = packageUtility.GetMethod("ExtractAndPrepareAssetList", BindingFlags.Public | BindingFlags.Static) != null;
+                    _customFolderReflectionAvailable = GetPackageExtractionMethod(packageUtility) != null;
                 }
                 return _customFolderReflectionAvailable.Value;
             }
@@ -95,6 +95,7 @@ namespace AssetInventory
             AssetDatabase.importPackageFailed -= ImportFailed;
             AssemblyReloadEvents.beforeAssemblyReload -= OnBeforeAssemblyReload;
             AssemblyReloadEvents.afterAssemblyReload -= OnAfterAssemblyReload;
+            EditorApplication.delayCall -= ResumeImportAfterReload;
             StopStatusRefresh();
         }
 
@@ -105,11 +106,14 @@ namespace AssetInventory
 
         private void OnAfterAssemblyReload()
         {
-            if (_running)
-            {
-                // means there was an import active which triggered a recompile, so let's continue
-                BulkImportAssets(_interactive, false);
-            }
+            // Unity can reload scripts from inside its native package-import call. Resume
+            // only after that stack unwinds, and keep waiting for the in-flight package.
+            if (_running) EditorApplication.delayCall += ResumeImportAfterReload;
+        }
+
+        private void ResumeImportAfterReload()
+        {
+            if (this != null && _running) BulkImportAssets(_interactive, false);
         }
 
         public void Init(List<AssetInfo> assets, bool unattended = false, Action callback = null, bool noCustomFolder = false, string lockPref = null)
@@ -536,7 +540,7 @@ namespace AssetInventory
             bool hasInteractiveImportSelection = HasStartableImportSelection(_assets, false);
 
             Button automatic = AssetInventoryUITK.CreatePrimaryButton("Import Automatically", () => BulkImportAssets(false, true));
-            automatic.tooltip = "Import without any further interaction or confirmation.";
+            automatic.tooltip = "Import all package contents. Unity may still request confirmation for package signatures or project settings.";
             automatic.SetEnabled(!_running && !gatheringVersions && hasImportSelection);
             footer.Add(automatic);
 
@@ -733,35 +737,40 @@ namespace AssetInventory
                 if (interactive)
                 {
                     // phase 1: all that can be imported in one go (registry, archives)
-                    await DoBulkImport(importQueue.Where(a => a.AssetSource == Asset.Source.Archive || a.AssetSource == Asset.Source.RegistryPackage), false, false);
+                    await DoBulkImport(importQueue.Where(a => a.AssetSource == Asset.Source.Archive || a.AssetSource == Asset.Source.RegistryPackage), false);
 
                     // phase 2: all the remaining
-                    await DoBulkImport(importQueue.Where(a => a.AssetSource != Asset.Source.Archive && a.AssetSource != Asset.Source.RegistryPackage), true, false);
+                    await DoBulkImport(importQueue.Where(a => a.AssetSource != Asset.Source.Archive && a.AssetSource != Asset.Source.RegistryPackage), true);
                 }
                 else
                 {
-                    await DoBulkImport(importQueue, false, true);
+                    await DoBulkImport(importQueue, false);
                 }
                 allDone = importQueue.All(a => a.ImportState == AssetInfo.ImportStateOptions.Imported);
-                _running = false;
-                BuildIfReady();
             }
             else
             {
                 allDone = true;
             }
 
+            bool conversionEnabled = AI.Config.useCustomPipelineConverter || AI.Config.useUnityPipelineConverter;
+            bool materialsReady = conversionEnabled && !_cancellationRequested && await PipelineConverter.WaitForMaterialImports(() => this == null || _cancellationRequested);
+            if (this == null) return;
             List<string> importedConversionPaths = PipelineConversionImportTracker.Complete();
 
-            // TODO: check if there are support packages and import those
-            if (!_cancellationRequested && (AI.Config.useCustomPipelineConverter || AI.Config.useUnityPipelineConverter))
+            try
             {
-                bool unityConverterSucceeded = false;
-                if (AI.Config.useUnityPipelineConverter) unityConverterSucceeded = PipelineConverter.RunUnityConverter();
-                if (!unityConverterSucceeded && AI.Config.useCustomPipelineConverter)
-                {
-                    PipelineConverter.ConvertImportedMaterials(importedConversionPaths);
-                }
+                if (materialsReady)
+                    PipelineConverter.ConvertImportedMaterials(importedConversionPaths, AI.Config.useUnityPipelineConverter, AI.Config.useCustomPipelineConverter);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"Asset Inventory imported the package, but material conversion failed: {e}");
+            }
+            finally
+            {
+                _running = false;
+                BuildIfReady();
             }
 
             OnImportDone?.Invoke();
@@ -774,17 +783,17 @@ namespace AssetInventory
             if (_unattended || allDone) Close();
         }
 
-        private async Task DoBulkImport(IEnumerable<AssetInfo> queue, bool interactive, bool allAutomatic)
+        private async Task DoBulkImport(IEnumerable<AssetInfo> queue, bool interactive)
         {
-            bool startedAssetEditing = !interactive;
-            if (startedAssetEditing) AssetDatabase.StartAssetEditing(); // will cause progress UI to stay on top and not close anymore if used in interactive
+            // Package imports and registry requests complete on editor updates. Never hold
+            // StartAssetEditing across these requests or the asynchronous completion waits.
             try
             {
                 foreach (AssetInfo info in queue)
                 {
                     _curInfo = info;
 
-                    if (info.ImportState != AssetInfo.ImportStateOptions.Importing || !interactive)
+                    if (info.ImportState != AssetInfo.ImportStateOptions.Importing)
                     {
                         info.ImportState = AssetInfo.ImportStateOptions.Importing;
 
@@ -803,6 +812,8 @@ namespace AssetInventory
                             if (!string.IsNullOrWhiteSpace(relFolder) && IsCustomFolderUnsupported(info)) relFolder = null;
                             string targetPath = Path.Combine(relFolder ?? "Assets", info.GetDisplayName());
                             await Task.Run(() => CompressionUtil.ExtractArchive(archivePath, targetPath));
+                            if (Directory.Exists(targetPath))
+                                PipelineConversionImportTracker.ExpectImportedAssets(Directory.EnumerateFiles(targetPath, "*", SearchOption.AllDirectories));
                             info.ImportState = Directory.Exists(targetPath) ? AssetInfo.ImportStateOptions.Imported : AssetInfo.ImportStateOptions.Failed;
                         }
                         else
@@ -851,11 +862,6 @@ namespace AssetInventory
                                 {
                                     Debug.Log($"Package '{info}' contains ProjectSettings files. Switching to interactive import to prevent accidental project settings override.");
                                     interactive = true;
-                                    if (startedAssetEditing)
-                                    {
-                                        AssetDatabase.StopAssetEditing();
-                                        startedAssetEditing = false;
-                                    }
                                 }
                             }
 
@@ -889,6 +895,19 @@ namespace AssetInventory
                             }
 
                             // launch directly or intercept package resolution to tweak paths
+                            if (files != null)
+                            {
+                                FieldInfo destinationField = contentType.GetField("destinationAssetPath");
+                                if (destinationField != null)
+                                {
+                                    PipelineConversionImportTracker.ExpectImportedAssets(files.Select(item =>
+                                    {
+                                        string path = destinationField.GetValue(item) as string;
+                                        if (string.IsNullOrEmpty(path) || string.IsNullOrEmpty(actualRelFolder) || !path.StartsWith("Assets/")) return path;
+                                        return actualRelFolder + path.Substring(path.IndexOf('/'));
+                                    }));
+                                }
+                            }
                             object assetOrigin = info.ToAsset().GetUnityAssetOrigin();
                             if (projectSettingsFiltered)
                             {
@@ -954,7 +973,8 @@ namespace AssetInventory
             }
             catch (Exception e)
             {
-                Debug.LogError($"Error importing packages: {e.Message}");
+                if (_curInfo != null) _curInfo.ImportState = AssetInfo.ImportStateOptions.Failed;
+                Debug.LogError($"Error importing packages: {e}");
             }
 
             // handle potentially pending imports and put them back in the queue
@@ -963,7 +983,6 @@ namespace AssetInventory
                 if (info.ImportState == AssetInfo.ImportStateOptions.Importing) info.ImportState = AssetInfo.ImportStateOptions.Queued;
             });
 
-            if (startedAssetEditing) AssetDatabase.StopAssetEditing();
             AssetDatabase.Refresh();
             Client.Resolve();
 
@@ -1025,18 +1044,18 @@ namespace AssetInventory
 
             Assembly assembly = Assembly.Load("UnityEditor.CoreModule");
             Type packageUtility = assembly.GetType("UnityEditor.PackageUtility");
-// Unity removed ExtractAndPrepareAssetList in favor of PrepareAssetList in 6.3.11f but does not expose the latter in the c# bindings so that reflection is not possible
-//#if UNITY_6000_3_OR_NEWER
-            //MethodInfo PrepareAssetList = packageUtility.GetMethod("PrepareAssetList", BindingFlags.NonPublic);
-            //object itemsObj = PrepareAssetList?.Invoke(null, new object[] {packageFile, null, null, null});
-//#else
-            MethodInfo extractAndPrepareAssetList = packageUtility.GetMethod("ExtractAndPrepareAssetList", BindingFlags.Public | BindingFlags.Static);
+            MethodInfo extractAndPrepareAssetList = GetPackageExtractionMethod(packageUtility);
             object itemsObj = extractAndPrepareAssetList?.Invoke(null, new object[] {packageFile, null, null});
-//#endif
             if (itemsObj != null) items = (object[])itemsObj;
             contentType = assembly.GetType("UnityEditor.ImportPackageItem");
 
             return items;
+        }
+
+        internal static MethodInfo GetPackageExtractionMethod(Type packageUtility)
+        {
+            // Unity versions can remove either the extraction method or PackageUtility itself.
+            return packageUtility?.GetMethod("ExtractAndPrepareAssetList", BindingFlags.Public | BindingFlags.Static);
         }
 
         private int CountPackageChanges(object[] items, Type type)

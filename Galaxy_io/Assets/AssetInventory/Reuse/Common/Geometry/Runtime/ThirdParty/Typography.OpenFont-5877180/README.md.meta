@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 60ba9e89a5e37702c63ae5f7acff72a2
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.1
+  assetPath: Assets/AssetInventory/Reuse/Common/Geometry/Runtime/ThirdParty/Typography.OpenFont-5877180/README.md
+  uploadId: 992364

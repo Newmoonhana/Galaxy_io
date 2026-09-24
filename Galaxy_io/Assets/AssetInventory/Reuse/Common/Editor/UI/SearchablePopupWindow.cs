@@ -11,7 +11,6 @@ namespace ImpossibleRobert.Common
     public sealed class SearchablePopupWindow : EditorWindow
     {
         private const float ItemHeight = 22f;
-        private const float Padding = 4f;
         private const float MinimumWidth = 200f;
         private const float DefaultHeight = 400f;
 
@@ -91,10 +90,7 @@ namespace ImpossibleRobert.Common
 
             root.Clear();
             root.style.flexGrow = 1f;
-            root.style.paddingLeft = Padding;
-            root.style.paddingRight = Padding;
-            root.style.paddingTop = Padding;
-            root.style.paddingBottom = Padding;
+            CommonUITK.ApplyWindowLayout(root);
             root.UnregisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
             root.RegisterCallback<KeyDownEvent>(OnKeyDown, TrickleDown.TrickleDown);
 

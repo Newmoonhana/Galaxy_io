@@ -15,6 +15,23 @@ namespace ImpossibleRobert.Common
     public static partial class CommonUITK
     {
         public const string WindowFooterClass = "common-window-footer";
+        public const string WindowBodyClass = "common-window-body";
+
+        /// <summary>
+        /// Applies standalone window spacing without insetting scrollbars. Mark split or tab hosts with WindowBodyClass and apply this layout to their individual scrolling panes. Inspector roots retain their own padding unless explicitly opted into this layout.
+        /// </summary>
+        public static void ApplyWindowLayout(VisualElement root)
+        {
+            if (root == null) throw new ArgumentNullException(nameof(root));
+            StyleSheet sheet = LoadStyleSheetFromAnchor(
+                "CommonUITK", "Editor/UI/UITK/CommonUITK.cs", "Editor/UI/UITK/CommonWindow.uss");
+            if (sheet != null && !root.styleSheets.Contains(sheet)) root.styleSheets.Add(sheet);
+            root.AddToClassList("common-window-root");
+            root.style.paddingLeft = 0f;
+            root.style.paddingRight = 0f;
+            root.style.paddingTop = 8f;
+            root.style.paddingBottom = 0f;
+        }
 
         static readonly Dictionary<string, StyleSheet> StyleSheetCache = new Dictionary<string, StyleSheet>();
 

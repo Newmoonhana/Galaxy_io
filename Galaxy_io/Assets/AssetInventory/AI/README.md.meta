@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 0a3f520071d74edcafd2b9696bc65859
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.1
+  assetPath: Assets/AssetInventory/AI/README.md
+  uploadId: 992364

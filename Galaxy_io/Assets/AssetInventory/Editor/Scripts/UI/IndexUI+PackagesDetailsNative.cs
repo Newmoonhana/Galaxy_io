@@ -43,6 +43,19 @@ namespace AssetInventory
         private const string PackagesDetailActionIconClass = "ai-package-detail-action-icon";
         private const string PackagesDetailCompactActionClass = "ai-package-detail-compact-action";
         private const string PackagesDetailStatusControlClass = "ai-package-detail-status-control";
+
+        private sealed class NativeBulkDownloadStatusElements
+        {
+            public VisualElement DownloadingRow;
+            public Label DownloadingLabel;
+            public Label DownloadingValue;
+            public VisualElement RemainingRow;
+            public Label RemainingLabel;
+            public Label RemainingValue;
+            public VisualElement PausedRow;
+            public Label PausedLabel;
+            public Label PausedValue;
+        }
         private const string PackagesDetailStatusActionClass = "ai-package-detail-status-action";
         private const string PackagesDetailToggleClass = "ai-package-detail-toggle";
         private const string PackagesDetailPreviewContainerClass = "ai-package-detail-preview-container";
@@ -70,6 +83,7 @@ namespace AssetInventory
         private const string PackagesDetailMetadataRemoveClass = "ai-package-detail-metadata-remove";
         private const string PackagesDetailMetadataActionsClass = "ai-package-detail-metadata-actions";
         private const string PackagesDetailBulkChoiceClass = "ai-package-detail-bulk-choice";
+        private const string PackagesDetailBulkCommandsClass = "ai-package-detail-bulk-commands";
         private const string PackagesDetailVersionFieldClass = "ai-package-detail-version-field";
         private const string PackagesDetailUpdateStrategyClass = "ai-package-detail-update-strategy";
 
@@ -177,6 +191,11 @@ namespace AssetInventory
                     hash = hash * 31 + (_selectedTreeAssets?.Count ?? 0);
                     hash = hash * 31 + _assetBulkTags.Count;
                     hash = hash * 31 + AI.GetObserver().PrioInitializationDone.GetHashCode();
+                    BulkPackageDownloadSummary summary = CalculateBulkPackageDownloadSummary(_selectedTreeAssets, _assets);
+                    hash = hash * 31 + summary.NotDownloaded;
+                    hash = hash * 31 + summary.UpdateAvailable;
+                    hash = hash * 31 + summary.PackageUpdateAvailable;
+                    hash = hash * 31 + summary.UpdateAvailableButCustom;
                 }
                 return hash;
             }
@@ -2208,37 +2227,41 @@ namespace AssetInventory
                 actions.Add(AssetInventoryUITK.CreateHelpBox($"Gathering data (*): {progress}%"));
             }
 
-            AddNativeBulkIndexingActions(actions, bulkAssets);
-
             AddNativeBulkChoice(actions, "package.bulk.actions.extract", "Keep Cached", "Keep selected packages extracted in the cache.",
                 () => bulkAssets.ForEach(info => AI.SetAssetExtraction(info, true)),
                 () => bulkAssets.ForEach(info => AI.SetAssetExtraction(info, false)));
             if (AI.Actions.PackageBackupsEnabled)
             {
-                AddNativeBulkChoice(actions, "package.bulk.actions.backup", "Backup", null,
+                AddNativeBulkChoice(actions, "package.bulk.actions.backup", "Backup", "Create backups for selected packages whenever the package backup action runs.",
                     () => { bulkAssets.ForEach(info => AI.SetAssetBackup(info, true, false)); AI.TriggerPackageRefresh(); },
                     () => { bulkAssets.ForEach(info => AI.SetAssetBackup(info, false, false)); AI.TriggerPackageRefresh(); });
             }
+            AddNativeBulkIndexingChoices(actions, bulkAssets);
             if (AI.Actions.AICaptionsEnabled)
             {
-                AddNativeBulkChoice(actions, "package.bulk.actions.aiusage", "AI Captions", null,
+                AddNativeBulkChoice(actions, "package.bulk.actions.aiusage", "AI Captions", "Create AI captions for selected packages whenever the caption action runs.",
                     () => { bulkAssets.ForEach(info => AI.SetAssetAIUse(info, true, false)); AI.TriggerPackageRefresh(); },
                     () => { bulkAssets.ForEach(info => AI.SetAssetAIUse(info, false, false)); AI.TriggerPackageRefresh(); });
             }
             if (AI.Actions.SemanticSearchEnabled)
             {
-                AddNativeBulkChoice(actions, "package.bulk.actions.semanticindex", "Semantic Index", null,
+                AddNativeBulkChoice(actions, "package.bulk.actions.semanticindex", "Semantic Index", "Include selected packages when updating the semantic asset index.",
                     () => { bulkAssets.ForEach(info => AI.SetAssetSemanticIndexUse(info, true, false)); AI.TriggerPackageRefresh(); },
                     () => { bulkAssets.ForEach(info => AI.SetAssetSemanticIndexUse(info, false, false)); AI.TriggerPackageRefresh(); });
             }
             if (AI.Actions.CodeSearchEnabled)
             {
-                AddNativeBulkChoice(actions, "package.bulk.actions.codeindex", "Code Index", null,
+                AddNativeBulkChoice(actions, "package.bulk.actions.codeindex", "Code Index", "Include selected packages when updating the code search index.",
                     () => { bulkAssets.ForEach(info => AI.SetAssetCodeIndexUse(info, true, false)); AI.TriggerPackageRefresh(); },
                     () => { bulkAssets.ForEach(info => AI.SetAssetCodeIndexUse(info, false, false)); AI.TriggerPackageRefresh(); });
             }
-            AddNativeBulkDownloadActions(actions, bulkAssets, observer);
-            AddNativeBulkCommandActions(actions, bulkAssets);
+
+            VisualElement commands = new VisualElement();
+            commands.AddToClassList(PackagesDetailBulkCommandsClass);
+            AddNativeBulkDownloadActions(commands, bulkAssets, observer);
+            AddNativeBulkIndexingActions(commands, bulkAssets);
+            AddNativeBulkCommandActions(commands, bulkAssets);
+            actions.Add(commands);
             root.Add(actions);
 
             VisualElement tags = CreateNativePackageTagsSection(bulkAssets, null, bulkTags);
@@ -2246,18 +2269,23 @@ namespace AssetInventory
             return root;
         }
 
-        private void AddNativeBulkIndexingActions(VisualElement parent, List<AssetInfo> assets)
+        private void AddNativeBulkIndexingChoices(VisualElement parent, List<AssetInfo> assets)
         {
-            List<AssetInfo> roots = assets
-                .Where(info => info != null && info.ParentId <= 0 && info.AssetSource != Asset.Source.CurrentProject && info.SafeName != Asset.NONE)
-                .GroupBy(info => info.AssetId)
-                .Select(group => group.First())
-                .ToList();
+            List<AssetInfo> roots = GetNativeBulkPackageRoots(assets);
             if (roots.Count == 0) return;
 
-            VisualElement controls = new VisualElement();
-            controls.AddToClassList(PackagesDetailActionsClass);
-            controls.AddToClassList(PackagesDetailActionGridClass);
+            AddNativeBulkChoice(parent, "package.bulk.actions.disablefutureindexing", "Do Not Index", "Skip selected packages in future indexing runs. Existing indexed content is kept.",
+                () => SetFutureIndexing(roots, false),
+                () => SetFutureIndexing(roots, true));
+            AddNativeBulkChoice(parent, "package.bulk.actions.hidefromcatalog", "Exclude", "Hide selected packages and their existing results from package and search views. Use None to include them again.",
+                () => SetNativeBulkPackageExclusion(roots, true),
+                () => SetNativeBulkPackageExclusion(roots, false));
+        }
+
+        private void AddNativeBulkIndexingActions(VisualElement parent, List<AssetInfo> assets)
+        {
+            List<AssetInfo> roots = GetNativeBulkPackageRoots(assets);
+            if (roots.Count == 0) return;
 
             List<AssetInfo> indexTargets = roots.Where(CanIndexPackageNow).ToList();
             if (indexTargets.Count > 0)
@@ -2269,37 +2297,16 @@ namespace AssetInventory
                     : hasNoIndex
                         ? "Include & Index Selected Now"
                         : "Index Selected Now";
-                AddNativePackageAction(controls, "package.bulk.actions.includeandindex", indexCaption, () => IncludeAndIndexPackagesNow(indexTargets, hasExcluded),
+                string indexTooltip = hasExcluded
+                    ? "Include the selected packages again, enable future indexing, and index them now."
+                    : hasNoIndex
+                        ? "Enable future indexing for the selected packages and index them now."
+                        : "Index only the selected packages now.";
+                AddNativePackageAction(parent, "package.bulk.actions.includeandindex", indexCaption, () => IncludeAndIndexPackagesNow(indexTargets, hasExcluded),
                     enabled: !AI.Actions.ActionsInProgress,
                     primary: true,
                     alwaysShow: true,
-                    tooltip: "Index only the selected packages and include them in future indexing runs.");
-            }
-
-            List<AssetInfo> visibleRoots = roots.Where(info => !info.Exclude).ToList();
-            if (visibleRoots.Count > 0)
-            {
-                AddNativePackageAction(controls, "package.bulk.actions.disablefutureindexing", "Disable Future Indexing", () => SetFutureIndexing(visibleRoots, false),
-                    enabled: !AI.Actions.ActionsInProgress,
-                    alwaysShow: true,
-                    tooltip: "Skip these packages in future indexing runs while retaining their existing indexed content.");
-
-                AddNativePackageAction(controls, "package.bulk.actions.hidefromcatalog", "Exclude...", () =>
-                {
-                    if (!EditorUtility.DisplayDialog("Exclude Packages", $"Exclude {visibleRoots.Count} selected package{(visibleRoots.Count == 1 ? string.Empty : "s")} and their existing search results?\n\nYou can find them again with the Excluded maintenance filter.", "Exclude", "Cancel")) return;
-                    SetNativeBulkPackageExclusion(visibleRoots, true);
-                    ScheduleNativePackageDetailsRebuild();
-                }, enabled: !AI.Actions.ActionsInProgress, tooltip: "Exclude the selected packages from package and search views. This can be reversed.");
-            }
-
-            List<AssetInfo> excludedRoots = roots.Where(info => info.Exclude).ToList();
-            if (excludedRoots.Count > 0)
-            {
-                AddNativePackageAction(controls, "package.bulk.actions.restorecatalog", "Include Again", () =>
-                {
-                    SetNativeBulkPackageExclusion(excludedRoots, false);
-                    ScheduleNativePackageDetailsRebuild();
-                }, enabled: !AI.Actions.ActionsInProgress, alwaysShow: true, tooltip: "Include the selected packages and their existing indexed content in package and search views again.");
+                    tooltip: indexTooltip);
             }
 
             List<AssetInfo> cleanupTargets = roots
@@ -2307,14 +2314,21 @@ namespace AssetInventory
                 .ToList();
             if (cleanupTargets.Count > 0)
             {
-                AddNativePackageAction(controls, "package.bulk.actions.removeindexedcontent", "Remove Indexed Content...", () => RemoveIndexedContent(cleanupTargets),
+                AddNativePackageAction(parent, "package.bulk.actions.removeindexedcontent", "Remove Indexed Content...", () => RemoveIndexedContent(cleanupTargets),
                     enabled: !AI.Actions.ActionsInProgress,
                     destructive: true,
                     alwaysShow: true,
                     tooltip: "Remove searchable content and generated data while keeping package records and source archives.");
             }
+        }
 
-            parent.Add(controls);
+        private static List<AssetInfo> GetNativeBulkPackageRoots(IEnumerable<AssetInfo> assets)
+        {
+            return assets?
+                .Where(info => info != null && info.ParentId <= 0 && info.AssetSource != Asset.Source.CurrentProject && info.SafeName != Asset.NONE)
+                .GroupBy(info => info.AssetId)
+                .Select(group => group.First())
+                .ToList() ?? new List<AssetInfo>();
         }
 
         private void AddNativeBulkChoice(VisualElement parent, string key, string label, string tooltip, Action all, Action none)
@@ -2327,8 +2341,12 @@ namespace AssetInventory
             row.Add(title);
             VisualElement controls = new VisualElement();
             controls.AddToClassList(PackagesDetailActionsClass);
-            controls.Add(AssetInventoryUITK.CreateSecondaryButton("All", () => { all?.Invoke(); ScheduleNativePackageDetailsRebuild(); }));
-            controls.Add(AssetInventoryUITK.CreateSecondaryButton("None", () => { none?.Invoke(); ScheduleNativePackageDetailsRebuild(); }));
+            Button allButton = AssetInventoryUITK.CreateSecondaryButton("All", () => { all?.Invoke(); ScheduleNativePackageDetailsRebuild(); });
+            allButton.tooltip = $"Set {label} for all selected packages.";
+            controls.Add(allButton);
+            Button noneButton = AssetInventoryUITK.CreateSecondaryButton("None", () => { none?.Invoke(); ScheduleNativePackageDetailsRebuild(); });
+            noneButton.tooltip = $"Clear {label} for all selected packages.";
+            controls.Add(noneButton);
             row.Add(controls);
             parent.Add(CreateNativePackageKeyedBlock(key, () => row));
         }
@@ -2349,7 +2367,8 @@ namespace AssetInventory
             {
                 AddNativePackageAction(parent, null, $"Download remaining {summary.NotDownloaded}", () =>
                 {
-                    foreach (AssetInfo info in assets.Where(asset => IsBulkAssetStoreDownloadTarget(asset, asset?.PackageDownloader?.GetState().state))) StartBulkPackageDownload(info, false);
+                    List<AssetInfo> targets = assets.Where(asset => IsBulkAssetStoreDownloadTarget(asset, asset?.PackageDownloader?.GetState().state)).ToList();
+                    StartBulkPackageDownloads(targets, false);
                     ScheduleNativePackageDetailsRebuild();
                 });
             }
@@ -2357,7 +2376,8 @@ namespace AssetInventory
             {
                 AddNativePackageAction(parent, null, $"Download {summary.UpdateAvailable} update{(summary.UpdateAvailable == 1 ? string.Empty : "s")}", () =>
                 {
-                    foreach (AssetInfo info in assets.Where(asset => IsBulkAssetStoreUpdateTarget(asset, _assets, asset?.PackageDownloader?.GetState().state))) StartBulkPackageDownload(info, true);
+                    List<AssetInfo> targets = assets.Where(asset => IsBulkAssetStoreUpdateTarget(asset, _assets, asset?.PackageDownloader?.GetState().state)).ToList();
+                    StartBulkPackageDownloads(targets, true);
                     ScheduleNativePackageDetailsRebuild();
                 }, primary: true);
             }
@@ -2373,12 +2393,73 @@ namespace AssetInventory
             {
                 parent.Add(AssetInventoryUITK.CreateHelpBox($"{summary.UpdateAvailableButCustom}{initializing} updates cannot run because the assets are local custom packages."));
             }
-            if (summary.Downloading > 0)
+            NativeBulkDownloadStatusElements status = CreateNativeBulkDownloadStatus(parent);
+            RefreshNativeBulkDownloadStatus(status);
+            parent.schedule.Execute(() => RefreshNativeBulkDownloadStatus(status)).Every(250);
+        }
+
+        private NativeBulkDownloadStatusElements CreateNativeBulkDownloadStatus(VisualElement parent)
+        {
+            NativeBulkDownloadStatusElements status = new NativeBulkDownloadStatusElements
             {
-                AddNativePackageDetailRow(parent, null, "Downloading" + initializing, $"{summary.Downloading:N0}");
-                AddNativePackageDetailRow(parent, null, "Remaining" + initializing, EditorUtility.FormatBytes(summary.RemainingBytes));
-            }
-            if (summary.Paused > 0) AddNativePackageDetailRow(parent, null, "Paused", $"{summary.Paused:N0}");
+                DownloadingRow = CreateNativePackageDetailRow("Downloading", string.Empty),
+                RemainingRow = CreateNativePackageDetailRow("Remaining", string.Empty),
+                PausedRow = CreateNativePackageDetailRow("Paused", string.Empty)
+            };
+            status.DownloadingLabel = status.DownloadingRow.Q<Label>(className: PackagesDetailLabelClass);
+            status.DownloadingValue = status.DownloadingRow.Q<Label>(className: PackagesDetailValueClass);
+            status.RemainingLabel = status.RemainingRow.Q<Label>(className: PackagesDetailLabelClass);
+            status.RemainingValue = status.RemainingRow.Q<Label>(className: PackagesDetailValueClass);
+            status.PausedLabel = status.PausedRow.Q<Label>(className: PackagesDetailLabelClass);
+            status.PausedValue = status.PausedRow.Q<Label>(className: PackagesDetailValueClass);
+            parent.Add(status.DownloadingRow);
+            parent.Add(status.RemainingRow);
+            parent.Add(status.PausedRow);
+            return status;
+        }
+
+        private void RefreshNativeBulkDownloadStatus(NativeBulkDownloadStatusElements status)
+        {
+            if (status == null) return;
+
+            BulkPackageDownloadSummary summary = CalculateBulkPackageDownloadSummary(_selectedTreeAssets, _assets);
+            string initializing = AI.GetObserver().PrioInitializationDone ? string.Empty : "*";
+            SetNativeBulkDownloadStatusRow(
+                status.DownloadingRow,
+                status.DownloadingLabel,
+                status.DownloadingValue,
+                "Downloading" + initializing,
+                $"{summary.Downloading:N0}",
+                summary.Downloading > 0);
+            SetNativeBulkDownloadStatusRow(
+                status.RemainingRow,
+                status.RemainingLabel,
+                status.RemainingValue,
+                "Remaining" + initializing,
+                EditorUtility.FormatBytes(Math.Max(0, summary.RemainingBytes)),
+                summary.Downloading > 0);
+            SetNativeBulkDownloadStatusRow(
+                status.PausedRow,
+                status.PausedLabel,
+                status.PausedValue,
+                "Paused",
+                $"{summary.Paused:N0}",
+                summary.Paused > 0);
+        }
+
+        private static void SetNativeBulkDownloadStatusRow(
+            VisualElement row,
+            Label label,
+            Label value,
+            string labelText,
+            string valueText,
+            bool visible)
+        {
+            if (row == null || label == null || value == null) return;
+            label.text = labelText;
+            value.text = valueText;
+            row.tooltip = valueText;
+            row.style.display = visible ? DisplayStyle.Flex : DisplayStyle.None;
         }
 
         private void AddNativeBulkCommandActions(VisualElement parent, List<AssetInfo> assets)

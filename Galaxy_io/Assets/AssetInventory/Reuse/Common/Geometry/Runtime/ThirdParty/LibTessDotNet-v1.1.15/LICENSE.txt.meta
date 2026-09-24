@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 0a86ad084b9a544fe94876a70d4fa52a
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.1
+  assetPath: Assets/AssetInventory/Reuse/Common/Geometry/Runtime/ThirdParty/LibTessDotNet-v1.1.15/LICENSE.txt
+  uploadId: 992364

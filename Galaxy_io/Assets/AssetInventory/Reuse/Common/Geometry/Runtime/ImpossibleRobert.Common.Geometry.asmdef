@@ -1,0 +1,14 @@
+{
+    "name": "ImpossibleRobert.Common.Geometry",
+    "rootNamespace": "ImpossibleRobert.Common.Geometry",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": ["LibTessDotNet.Double.dll", "Typography.OpenFont.dll"],
+    "autoReferenced": false,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

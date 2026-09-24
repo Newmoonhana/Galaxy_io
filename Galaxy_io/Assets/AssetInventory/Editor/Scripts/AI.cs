@@ -22,7 +22,7 @@ namespace AssetInventory
 #endif
     public static partial class AI
     {
-        public const string VERSION = "4.8.0";
+        public const string VERSION = "4.8.1";
         public const string DEFINE_SYMBOL = "ASSET_INVENTORY";
 
         public const string DEFINE_SYMBOL_HIDE_AI = DEFINE_SYMBOL + "_HIDE_AI";
