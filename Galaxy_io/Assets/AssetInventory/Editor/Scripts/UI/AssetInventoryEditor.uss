@@ -3441,6 +3441,37 @@
     margin-bottom: 8px;
 }
 
+.ai-packages-download-progress {
+    flex-direction: row;
+    align-items: center;
+    min-width: 0;
+    margin-top: 7px;
+}
+
+.ai-packages-download-progress-dismiss {
+    flex-shrink: 0;
+    margin-left: 6px;
+}
+
+.ai-packages-download-progress .ai-packages-download-progress-bar {
+    flex-grow: 1;
+    flex-shrink: 1;
+    min-width: 120px;
+    margin-right: 0;
+}
+
+.ai-packages-download-progress-wide .ai-packages-download-progress-bar {
+    min-width: 420px;
+}
+
+.ai-packages-download-progress-narrow .ai-packages-download-progress-bar {
+    min-width: 80px;
+}
+
+.ai-packages-download-progress-narrow .ai-packages-download-progress-dismiss {
+    margin-left: 4px;
+}
+
 .ai-packages-row {
     flex-direction: row;
     align-items: center;
@@ -4168,7 +4199,12 @@
     min-height: 22px;
     padding-left: 7px;
     padding-right: 7px;
+    color: rgb(255, 255, 255);
     -unity-text-align: middle-center;
+}
+
+.ai-uitk-light .ai-package-detail-tag {
+    color: rgb(0, 0, 0);
 }
 
 .ai-package-detail-metadata-control {
@@ -4211,6 +4247,11 @@
 .ai-package-detail-bulk-choice .ai-button {
     width: 60px;
     min-width: 60px;
+}
+
+.ai-package-detail-bulk-commands {
+    min-width: 0;
+    margin-top: 6px;
 }
 
 .ai-settings-root {
@@ -5609,13 +5650,17 @@
 
 .ai-package-location-actions {
     flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
+    min-width: 0;
     margin-left: 123px;
     margin-top: 2px;
 }
 
 .ai-package-location-actions .ai-button {
     min-width: 126px;
+    margin-right: 4px;
+    margin-bottom: 4px;
 }
 
 .ai-package-preview {

@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 20afdb0320d65d000de8dbdcf411bd87
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.1
+  assetPath: Assets/AssetInventory/Reuse/Common/Geometry/Runtime/ThirdParty/Typography.OpenFont-5877180/LICENSE-Apache-2.0.txt
+  uploadId: 992364

@@ -3328,7 +3328,6 @@ namespace AssetInventory
                     {
                         if (autoPing && AI.Config.pingImported) PingAsset(new AssetInfo().WithProjectPath(mainFile));
                     }
-                    if (AI.Config.statsImports == 5) ShowInterstitial();
                 }
 
                 return mainFile;

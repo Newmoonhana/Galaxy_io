@@ -162,6 +162,7 @@ namespace AssetInventory
         private ToolbarSearchField _nativePackageSearchField;
         private VisualElement _nativePackageSavedSearches;
         private VisualElement _nativePackageControls;
+        private BulkPackageDownloadProgressView _nativeBulkPackageDownloadProgress;
         private UnityEngine.UIElements.PopupField<string> _nativePackageSortPopup;
         private UnityEngine.UIElements.PopupField<string> _nativePackageGroupPopup;
         private Button _nativePackageSortDirectionButton;
@@ -219,6 +220,7 @@ namespace AssetInventory
         private GridControl _pgrid;
 
         [SerializeField] private CommonMultiColumnState assetColumnState;
+        [SerializeField] private BulkPackageDownloadSession _bulkPackageDownloadSession;
         private int[] _packageColumnDisplayOrder;
         private AssetTreeViewControl AssetTreeView
         {
@@ -489,7 +491,7 @@ namespace AssetInventory
         private void SetFutureIndexing(IEnumerable<AssetInfo> packages, bool included)
         {
             List<AssetInfo> roots = packages?
-                .Where(info => info != null && info.ParentId <= 0 && !info.Exclude && info.AssetSource != Asset.Source.CurrentProject)
+                .Where(info => info != null && info.ParentId <= 0 && info.AssetSource != Asset.Source.CurrentProject)
                 .GroupBy(info => info.AssetId)
                 .Select(group => group.First())
                 .ToList() ?? new List<AssetInfo>();
@@ -576,6 +578,7 @@ namespace AssetInventory
 
             FlushNativePackageTreeRefresh();
             RefreshNativePackageHeaderState();
+            RefreshNativeBulkPackageDownloadProgress();
             RefreshNativePackageGridView();
             RefreshNativePackageInspector();
             _nativePackageTreeAdapter?.RepaintCells();
@@ -601,12 +604,15 @@ namespace AssetInventory
                 _nativePackageControls = AssetInventoryUITK.CreateSection();
                 _nativePackageControls.AddToClassList(PackagesControlsClass);
                 _nativePackageControls.Add(CreateNativePackageHeaderRow());
+                _nativeBulkPackageDownloadProgress = new BulkPackageDownloadProgressView(DismissNativeBulkPackageDownloadProgress);
+                _nativePackageControls.Add(_nativeBulkPackageDownloadProgress);
                 _nativePackagesBody.Add(_nativePackageControls);
             }
             else
             {
                 _nativePackageSavedSearches = null;
                 _nativePackageControls = null;
+                _nativeBulkPackageDownloadProgress = null;
             }
 
             _nativePackageGridView = null;
@@ -715,6 +721,7 @@ namespace AssetInventory
             _nativePackagesAdvancedVisibilityStateHash = AssetInventoryUITK.GetAdvancedVisibilityStateHash();
             _nativePackagesHeaderStateHash = GetNativePackagesHeaderStateHash();
             RefreshNativePackageHeaderState();
+            RefreshNativeBulkPackageDownloadProgress();
             RefreshNativePackageGridView();
             RefreshNativePackageInspector();
         }
@@ -2971,6 +2978,61 @@ namespace AssetInventory
             return info != null && info.AssetSource == Asset.Source.AssetStorePackage;
         }
 
+        private void StartBulkPackageDownloads(List<AssetInfo> targets, bool markWasOutdated)
+        {
+            if (targets == null || targets.Count == 0) return;
+
+            List<BulkPackageDownloadTargetSpec> specs = new List<BulkPackageDownloadTargetSpec>(targets.Count);
+            for (int i = 0; i < targets.Count; i++)
+            {
+                AssetInfo info = targets[i];
+                if (info == null || info.ParentId != 0) continue;
+                specs.Add(BulkPackageDownloadTargetSpec.FromAsset(info));
+            }
+            if (specs.Count == 0) return;
+
+            _bulkPackageDownloadSession ??= new BulkPackageDownloadSession();
+            _bulkPackageDownloadSession.AddOrMerge(specs);
+            for (int i = 0; i < targets.Count; i++)
+            {
+                StartBulkPackageDownload(targets[i], markWasOutdated);
+            }
+
+            RefreshNativeBulkPackageDownloadProgress();
+        }
+
+        private void RefreshNativeBulkPackageDownloadProgress()
+        {
+            if (_nativeBulkPackageDownloadProgress == null) return;
+            if (_bulkPackageDownloadSession == null || _bulkPackageDownloadSession.TargetCount == 0)
+            {
+                _nativeBulkPackageDownloadProgress.Hide();
+                return;
+            }
+            if (_assets == null) return;
+
+            List<BulkPackageDownloadObservation> observations = new List<BulkPackageDownloadObservation>(_bulkPackageDownloadSession.TargetCount);
+            for (int i = 0; i < _assets.Count; i++)
+            {
+                AssetInfo info = _assets[i];
+                if (info == null || !_bulkPackageDownloadSession.Matches(info.AssetId, info.ForeignId)) continue;
+
+                if (info.PackageDownloader == null) AI.GetObserver().Attach(info);
+                observations.Add(BulkPackageDownloadObservation.FromAsset(info));
+            }
+
+            DateTime now = DateTime.UtcNow;
+            BulkPackageDownloadProgressSnapshot snapshot = _bulkPackageDownloadSession.Refresh(observations, now);
+            _nativeBulkPackageDownloadProgress.Apply(snapshot);
+            if (_bulkPackageDownloadSession.ShouldClear(now)) DismissNativeBulkPackageDownloadProgress();
+        }
+
+        private void DismissNativeBulkPackageDownloadProgress()
+        {
+            _bulkPackageDownloadSession = null;
+            _nativeBulkPackageDownloadProgress?.Hide();
+        }
+
         private static void StartBulkPackageDownload(AssetInfo info, bool markWasOutdated)
         {
             if (info == null || info.ParentId != 0) return;
@@ -3811,7 +3873,7 @@ namespace AssetInventory
             }
 
             // refresh metadata automatically for single selections
-            if (_selectedTreeAsset != null && AI.Config.autoRefreshMetadata && _selectedTreeAsset.ForeignId > 0 && (DateTime.Now - _selectedTreeAsset.LastOnlineRefresh).TotalHours >= AI.Config.metadataTimeout)
+            if (_selectedTreeAsset != null && AI.Config.autoRefreshMetadata && _selectedTreeAsset.ForeignId > 0 && (DateTime.Now - _selectedTreeAsset.LastOnlineRefresh).TotalHours >= AI.Config.metadataTimeout && AssetStoreAuthentication.Current.CanAutoRefresh(Application.isBatchMode))
             {
                 _ = AI.Actions.FetchAssetDetails(true, _selectedTreeAsset.AssetId, _selectedTreeAsset.LastOnlineRefresh > DateTime.MinValue); // skip downstream events to avoid hick-ups
                 _selectedTreeAsset.LastOnlineRefresh = DateTime.Now; // safety in case the above fails, e.g. for deleted packages

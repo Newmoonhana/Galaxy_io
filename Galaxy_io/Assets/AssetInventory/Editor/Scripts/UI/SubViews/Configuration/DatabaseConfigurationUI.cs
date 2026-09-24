@@ -406,23 +406,8 @@ namespace AssetInventory
                         MySqlConnectionTimeout = _mysqlConnectionTimeout
                     };
 
-                    MySQLDatabaseConnection testConn = new MySQLDatabaseConnection(testSettings);
-
-                    testConn.TestConnection();
-                    testConn.Close();
-                    testConn.Dispose();
-
-                    EditorUtility.DisplayDialog("Connection Test", "Connection successful!", "OK");
-                }
-                catch (NotImplementedException e)
-                {
-                    // Log full stack trace to console for debugging
-                    Debug.LogError($"MySQL Connection Test Failed:\n{e}");
-
-                    EditorUtility.DisplayDialog("Connection Test Failed",
-                        "Could not connect to MySQL database.\n\n" +
-                        "The password is most likely incorrect. Please verify your credentials and try again.",
-                        "OK");
+                    TestConnection(new MySQLDatabaseConnection(testSettings), (success, message) =>
+                        EditorUtility.DisplayDialog(success ? "Connection Test" : "Connection Test Failed", message, "OK"));
                 }
                 catch (Exception e)
                 {
@@ -439,6 +424,30 @@ namespace AssetInventory
                     Build();
                 }
             };
+        }
+
+        internal static void TestConnection(IDatabaseConnection connection, Action<bool, string> showResult)
+        {
+            bool success;
+            string message;
+            try
+            {
+                using (connection)
+                {
+                    success = connection.TestConnection();
+                }
+                message = success
+                    ? "Connection successful!"
+                    : "Could not connect to the MySQL database. Check the server settings, credentials, and SSL configuration. See the Unity Console for the full error.";
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"MySQL Connection Test Failed:\n{e}");
+                success = false;
+                message = $"Could not connect to the MySQL database: {e.Message}\n\nSee the Unity Console for the full error.";
+            }
+
+            showResult(success, message);
         }
 
         private void SaveAndConnect()
@@ -480,30 +489,38 @@ namespace AssetInventory
                 AI.ClearAllCaches();
                 AI.Init(false, true);
 
-                // Notify any open UI windows to reload (via AI.OnDatabaseSwitched event)
-                AI.TriggerDatabaseSwitched();
-
-                // Check if connection was successful
-                if (!string.IsNullOrEmpty(DBAdapter.DBError))
+                bool connected = CompleteDatabaseSwitch(_selectedDatabaseType, (success, message) =>
+                    EditorUtility.DisplayDialog(success ? "Success" : "Connection Error", message, "OK"));
+                if (connected)
                 {
-                    EditorUtility.DisplayDialog("Connection Error",
-                        $"Failed to connect to {_selectedDatabaseType} database:\n\n{DBAdapter.DBError}\n\nPlease check your settings and try again.",
-                        "OK");
+                    Close();
                 }
                 else
                 {
-                    EditorUtility.DisplayDialog("Success",
-                        $"Successfully switched to {_selectedDatabaseType} database.",
-                        "OK");
-                    Close();
+                    Build();
                 }
             }
             catch (Exception e)
             {
+                Debug.LogError($"Error saving database configuration:\n{e}");
                 EditorUtility.DisplayDialog("Error",
                     $"Error saving database configuration:\n\n{e.Message}",
                     "OK");
             }
+        }
+
+        internal static bool CompleteDatabaseSwitch(string databaseType, Action<bool, string> showResult)
+        {
+            if (!DBAdapter.IsDBOpen() || !string.IsNullOrEmpty(DBAdapter.DBError))
+            {
+                string error = string.IsNullOrEmpty(DBAdapter.DBError) ? "The database connection is not open." : DBAdapter.DBError;
+                showResult(false, $"Settings were saved, but the connection to the {databaseType} database failed:\n\n{error}\n\nCheck your settings and try again. See the Unity Console for the full error.");
+                return false;
+            }
+
+            AI.TriggerDatabaseSwitched();
+            showResult(true, $"Successfully switched to {databaseType} database.");
+            return true;
         }
     }
 }

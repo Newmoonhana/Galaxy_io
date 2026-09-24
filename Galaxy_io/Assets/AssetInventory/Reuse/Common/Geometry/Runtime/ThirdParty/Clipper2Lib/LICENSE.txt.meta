@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 07e7ca71e643c2f4186f2a936a305bde
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.1
+  assetPath: Assets/AssetInventory/Reuse/Common/Geometry/Runtime/ThirdParty/Clipper2Lib/LICENSE.txt
+  uploadId: 992364

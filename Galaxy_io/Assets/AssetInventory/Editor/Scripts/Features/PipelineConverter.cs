@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using UnityEditor;
 #if USE_URP
 using UnityEditor.Rendering.Universal;
+using UniversalRenderPipelineAsset = UnityEngine.Rendering.Universal.UniversalRenderPipelineAsset;
 #endif
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -44,6 +45,10 @@ namespace AssetInventory
             "_OutlineColor",
             "_WeightNormal",
             "_WeightBold"
+        };
+        private static readonly string[] UiMaskPropertyNames =
+        {
+            "_Stencil", "_StencilComp", "_StencilOp", "_StencilReadMask", "_StencilWriteMask", "_ColorMask"
         };
 
         internal enum MaterialSurfaceMode
@@ -272,10 +277,10 @@ namespace AssetInventory
             return !((urpCompatible || hdrpCompatible) && !birpCompatible);
         }
 
-        internal static MaterialConversionInfo AnalyzeMaterialForConversion(Material mat, string shaderName)
+        internal static MaterialConversionInfo AnalyzeMaterialForConversion(Material mat, string shaderName, bool previewOnly = false)
         {
             if (mat == null) return new MaterialConversionInfo(false, false, false, MaterialSurfaceMode.Opaque, false);
-            if (IsTextMeshProMaterial(mat))
+            if (IsProtectedMaterial(mat))
             {
                 return new MaterialConversionInfo(false, false, false, MaterialSurfaceMode.Transparent, false);
             }
@@ -302,7 +307,7 @@ namespace AssetInventory
             bool hasMainTexture = mat.HasProperty("_MainTex");
             bool hasColor = mat.HasProperty("_Color");
             bool doubleSided = IsDoubleSidedMaterial(mat);
-            MaterialConversionInfo info = AnalyzeShaderForConversion(shaderName, renderType, queueTag, hasMainTexture, hasColor, doubleSided);
+            MaterialConversionInfo info = AnalyzeShaderForConversion(shaderName, renderType, queueTag, hasMainTexture, hasColor, doubleSided, previewOnly);
 
             if (mat.HasProperty("_Mode"))
             {
@@ -335,7 +340,7 @@ namespace AssetInventory
         internal static bool TryCreateErrorShaderPreviewMaterial(Material source, bool preferParticleShader, bool isOnURP, bool isOnHDRP, out Material fallback)
         {
             fallback = null;
-            if (IsTextMeshProMaterial(source)) return false;
+            if (IsProtectedMaterial(source)) return false;
             if (!TryReadSerializedErrorMaterialSnapshot(source, out SerializedErrorMaterialSnapshot snapshot)) return false;
 
             Shader shader = ResolveSerializedErrorFallbackShader(preferParticleShader, isOnURP, isOnHDRP);
@@ -650,7 +655,8 @@ namespace AssetInventory
             string queueTag,
             bool hasMainTexture,
             bool hasColor,
-            bool shaderIsDoubleSided)
+            bool shaderIsDoubleSided,
+            bool previewOnly = false)
         {
             shaderName ??= "";
             renderType ??= "";
@@ -682,7 +688,23 @@ namespace AssetInventory
 
             bool hasRemappableProperties = hasMainTexture || hasColor;
             bool customLegacySurface = hasRemappableProperties && surfaceMode != MaterialSurfaceMode.Opaque;
-            return new MaterialConversionInfo(customLegacySurface, false, customLegacySurface, surfaceMode, doubleSided);
+            return new MaterialConversionInfo(previewOnly && customLegacySurface, false, customLegacySurface, surfaceMode, doubleSided);
+        }
+
+        // UI shaders can be pipeline-independent, including when used by particle renderers.
+        // The masking contract is stronger evidence than a name or a single stencil property.
+        internal static bool IsProtectedMaterial(Material material)
+        {
+            if (material == null) return false;
+            if (IsTextMeshProMaterial(material)) return true;
+            if (UiMaskPropertyNames.All(material.HasProperty)) return true;
+            if (material.HasProperty("_MainTex") &&
+                string.Equals(material.GetTag("CanUseSpriteAtlas", false, ""), "True", StringComparison.OrdinalIgnoreCase)) return true;
+
+            // Missing shaders and previously converted materials retain their serialized properties.
+            if (!IsErrorShaderMaterial(material) && material.shader != null && !IsPipelineShader(material.shader.name)) return false;
+            return TryGetSerializedMaterialBlock(material, out string block) &&
+                UiMaskPropertyNames.All(property => Regex.IsMatch(block, @"^\s*-\s+" + Regex.Escape(property) + @":", RegexOptions.Multiline));
         }
 
         private static MaterialSurfaceMode DetermineSurfaceMode(string shaderName, string renderType, string queueTag)
@@ -879,13 +901,39 @@ namespace AssetInventory
         /// </summary>
         public static void ConvertImportedMaterials(IEnumerable<string> importedPaths)
         {
+            ConvertImportedMaterials(importedPaths, false, true);
+        }
+
+        internal static async Task<bool> WaitForMaterialImports(Func<bool> cancelled = null)
+        {
+            // Yield to asset postprocessors and package initialization before inspecting shaders.
+            await Task.Yield();
+            double deadline = EditorApplication.timeSinceStartup + 60;
+            while (EditorApplication.isCompiling || EditorApplication.isUpdating || ShaderUtil.anythingCompiling)
+            {
+                if (cancelled?.Invoke() == true) return false;
+                if (EditorApplication.timeSinceStartup >= deadline)
+                {
+                    Debug.LogWarning("Asset Inventory left imported materials unchanged because Unity is still processing assets or shaders. Conversion can be run from the Assets menu once processing finishes.");
+                    return false;
+                }
+                await Task.Delay(100);
+            }
+            return cancelled?.Invoke() != true;
+        }
+
+        internal static void ConvertImportedMaterials(IEnumerable<string> importedPaths, bool useUnityConverter, bool useCustomConverter)
+        {
             bool isOnURP = AssetUtils.IsOnURP();
             bool isOnHDRP = AssetUtils.IsOnHDRP();
             if (!isOnURP && !isOnHDRP) return;
 
-            List<string> pathList = importedPaths?.Where(path => !string.IsNullOrEmpty(path)).ToList() ?? new List<string>();
+            List<string> pathList = importedPaths?.Where(path => !string.IsNullOrEmpty(path))
+                .Select(NormalizeProjectPath).Where(path => path.StartsWith("Assets/", StringComparison.Ordinal))
+                .Distinct(StringComparer.Ordinal).ToList() ?? new List<string>();
+            if (pathList.Count == 0 || (!useUnityConverter && !useCustomConverter)) return;
+            Func<Material, bool> unityConverter = useUnityConverter ? CreateScopedUnityConverter() : null;
             HashSet<string> particleRendererMaterialPaths = CollectParticleRendererMaterialPaths(pathList);
-            bool anyChanged = false;
             int scannedMaterials = 0;
             int convertedMaterials = 0;
             foreach (string path in pathList)
@@ -895,18 +943,28 @@ namespace AssetInventory
                 Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
                 if (mat == null) continue;
                 scannedMaterials++;
-                if (IsTextMeshProMaterial(mat)) continue;
+                if (IsProtectedMaterial(mat) || IsShaderGraphAsset(mat.shader)) continue;
 
                 string shaderName = mat.shader != null ? mat.shader.name : "";
                 MaterialConversionInfo conversionInfo = AnalyzeMaterialForConversion(mat, shaderName);
                 bool materialUsedByParticleRenderer = particleRendererMaterialPaths.Contains(NormalizeProjectPath(path));
-                if (TryConvertSerializedErrorParticleMaterial(mat, materialUsedByParticleRenderer, isOnURP, isOnHDRP))
+                if (useCustomConverter && TryConvertSerializedErrorParticleMaterial(mat, materialUsedByParticleRenderer, isOnURP, isOnHDRP))
                 {
-                    anyChanged = true;
                     convertedMaterials++;
+                    AssetDatabase.SaveAssetIfDirty(mat);
                     continue;
                 }
+                // Shader-family names alone must not authorize rewriting a publisher's shader.
+                if (!IsBuiltInShader(mat.shader)) continue;
                 if (!conversionInfo.ShouldConvert && !ShouldUseParticleMaterialForImportedRendererConversion(shaderName, conversionInfo, materialUsedByParticleRenderer)) continue;
+
+                if (unityConverter?.Invoke(mat) == true)
+                {
+                    convertedMaterials++;
+                    AssetDatabase.SaveAssetIfDirty(mat);
+                    continue;
+                }
+                if (!useCustomConverter) continue;
 
                 if (ShouldUseParticleMaterialForImportedRendererConversion(shaderName, conversionInfo, materialUsedByParticleRenderer))
                 {
@@ -920,15 +978,77 @@ namespace AssetInventory
                 {
                     ConvertMaterial(mat, shaderName, isOnURP, isOnHDRP);
                 }
-                anyChanged = true;
                 convertedMaterials++;
+                AssetDatabase.SaveAssetIfDirty(mat);
             }
 
-            if (anyChanged) AssetDatabase.SaveAssets();
             if (AI.Config.LogPreviewCreation)
             {
-                Debug.Log($"[Asset Inventory] Custom pipeline converter inspected {scannedMaterials} imported material(s), converted {convertedMaterials}.");
+                Debug.Log($"[Asset Inventory] Pipeline converter inspected {scannedMaterials} imported material(s), converted {convertedMaterials}.");
             }
+        }
+
+        private static Func<Material, bool> CreateScopedUnityConverter()
+        {
+#if USE_URP
+            if (!AssetUtils.IsOnURP()) return null;
+            // Newer URP versions expose their registered upgraders. Older versions keep the
+            // existing custom fallback; never run a project-wide converter for an import.
+            Type upgraderType = typeof(Converters).Assembly.GetType("UnityEditor.Rendering.Universal.StandardUpgrader")?.BaseType;
+            MethodInfo fetch = upgraderType?.GetMethod("FetchAllUpgradersForPipeline", new[] {typeof(Type)});
+            if (fetch != null)
+            {
+                try
+                {
+                    object upgraders = fetch.Invoke(null, new object[] {typeof(UniversalRenderPipelineAsset)});
+                    MethodInfo upgrade = upgraderType.GetMethods(BindingFlags.Public | BindingFlags.Static).FirstOrDefault(method =>
+                    {
+                        ParameterInfo[] parameters = method.GetParameters();
+                        return method.Name == "Upgrade" && parameters.Length == 3 && parameters[0].ParameterType == typeof(Material) &&
+                            upgraders != null && parameters[1].ParameterType.IsInstanceOfType(upgraders) && parameters[2].ParameterType.IsEnum;
+                    });
+                    if (upgrade != null)
+                    {
+                        object flags = Enum.ToObject(upgrade.GetParameters()[2].ParameterType, 0);
+                        return material =>
+                        {
+                            Material candidate = new Material(material) {name = material.name};
+                            try
+                            {
+                                upgrade.Invoke(null, new[] {candidate, upgraders, flags});
+                                if (candidate.shader == material.shader) return false;
+                                EditorUtility.CopySerialized(candidate, material);
+                                EditorUtility.SetDirty(material);
+                                return true;
+                            }
+                            catch (Exception e)
+                            {
+                                Debug.LogWarning($"Asset Inventory could not convert '{AssetDatabase.GetAssetPath(material)}' with Unity's material upgrader: {e.Message}");
+                                return false;
+                            }
+                            finally
+                            {
+                                UnityEngine.Object.DestroyImmediate(candidate);
+                            }
+                        };
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.LogWarning($"Asset Inventory could not initialize scoped Unity material conversion: {e.Message}");
+                }
+            }
+            if (!AI.Config.useCustomPipelineConverter)
+                Debug.LogWarning("This Unity version does not expose scoped material upgraders. Enable Asset Inventory's Custom Converter or use Unity's Render Pipeline Converter explicitly.");
+#endif
+            return null;
+        }
+
+        private static bool IsBuiltInShader(Shader shader)
+        {
+            string path = AssetDatabase.GetAssetPath(shader);
+            return path == "Resources/unity_builtin_extra" || path == "Library/unity default resources" ||
+                path == "Library/unity editor resources";
         }
 
         /// <summary>
@@ -937,57 +1057,10 @@ namespace AssetInventory
         /// </summary>
         public static void ConvertAllProjectMaterials()
         {
-            bool isOnURP = AssetUtils.IsOnURP();
-            bool isOnHDRP = AssetUtils.IsOnHDRP();
-            if (!isOnURP && !isOnHDRP) return;
-
-            HashSet<string> particleRendererMaterialPaths = CollectAllParticleRendererMaterialPaths();
-            string[] materialGuids = AssetDatabase.FindAssets("t:Material");
-            bool anyChanged = false;
-            int scannedMaterials = 0;
-            int convertedMaterials = 0;
-            foreach (string guid in materialGuids)
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                if (!path.StartsWith("Assets/")) continue;
-
-                Material mat = AssetDatabase.LoadAssetAtPath<Material>(path);
-                if (mat == null) continue;
-                scannedMaterials++;
-                if (IsTextMeshProMaterial(mat)) continue;
-
-                string shaderName = mat.shader != null ? mat.shader.name : "";
-                MaterialConversionInfo conversionInfo = AnalyzeMaterialForConversion(mat, shaderName);
-                bool materialUsedByParticleRenderer = particleRendererMaterialPaths.Contains(NormalizeProjectPath(path));
-                if (TryConvertSerializedErrorParticleMaterial(mat, materialUsedByParticleRenderer, isOnURP, isOnHDRP))
-                {
-                    anyChanged = true;
-                    convertedMaterials++;
-                    continue;
-                }
-                if (!conversionInfo.ShouldConvert && !ShouldUseParticleMaterialForImportedRendererConversion(shaderName, conversionInfo, materialUsedByParticleRenderer)) continue;
-
-                if (ShouldUseParticleMaterialForImportedRendererConversion(shaderName, conversionInfo, materialUsedByParticleRenderer))
-                {
-                    ConvertParticleMaterial(mat, shaderName, isOnURP);
-                }
-                else if (conversionInfo.CustomLegacySurface)
-                {
-                    ConvertCustomSurfaceMaterial(mat, shaderName, conversionInfo, isOnURP, isOnHDRP);
-                }
-                else
-                {
-                    ConvertMaterial(mat, shaderName, isOnURP, isOnHDRP);
-                }
-                anyChanged = true;
-                convertedMaterials++;
-            }
-
-            if (anyChanged) AssetDatabase.SaveAssets();
-            if (AI.Config.LogPreviewCreation)
-            {
-                Debug.Log($"[Asset Inventory] Custom pipeline converter inspected {scannedMaterials} project material(s), converted {convertedMaterials}.");
-            }
+            IEnumerable<string> paths = AssetDatabase.FindAssets("t:Material")
+                .Concat(AssetDatabase.FindAssets("t:Prefab"))
+                .Select(AssetDatabase.GUIDToAssetPath);
+            ConvertImportedMaterials(paths);
         }
 
         internal static bool ShouldUseParticleMaterialForImportedRendererConversion(string shaderName, MaterialConversionInfo conversionInfo, bool materialUsedByParticleRenderer)
@@ -1006,7 +1079,7 @@ namespace AssetInventory
         private static bool TryConvertSerializedErrorParticleMaterial(Material mat, bool materialUsedByParticleRenderer, bool isOnURP, bool isOnHDRP)
         {
             if (!materialUsedByParticleRenderer) return false;
-            if (IsTextMeshProMaterial(mat)) return false;
+            if (IsProtectedMaterial(mat) || IsShaderGraphAsset(mat.shader)) return false;
             if (!IsErrorShaderMaterial(mat)) return false;
             if (!TryReadSerializedErrorMaterialSnapshot(mat, out SerializedErrorMaterialSnapshot snapshot)) return false;
             if (!ShouldUseSerializedErrorParticleMaterialForImportedRendererConversion(snapshot, materialUsedByParticleRenderer)) return false;
@@ -1057,18 +1130,6 @@ namespace AssetInventory
             foreach (string path in importedPaths)
             {
                 if (string.IsNullOrEmpty(path) || !path.EndsWith(".prefab", StringComparison.OrdinalIgnoreCase)) continue;
-                CollectParticleRendererMaterialPathsFromPrefab(path, materialPaths);
-            }
-            return materialPaths;
-        }
-
-        private static HashSet<string> CollectAllParticleRendererMaterialPaths()
-        {
-            HashSet<string> materialPaths = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-            foreach (string guid in AssetDatabase.FindAssets("t:Prefab"))
-            {
-                string path = AssetDatabase.GUIDToAssetPath(guid);
-                if (string.IsNullOrEmpty(path) || !path.StartsWith("Assets/", StringComparison.OrdinalIgnoreCase)) continue;
                 CollectParticleRendererMaterialPathsFromPrefab(path, materialPaths);
             }
             return materialPaths;

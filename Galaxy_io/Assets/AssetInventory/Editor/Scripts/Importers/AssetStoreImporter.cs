@@ -18,6 +18,22 @@ namespace AssetInventory
         private const int PAGE_SIZE = 100; // more is not supported by Asset Store
         private const string DIAG_PURCHASES = "Purchases.json";
 
+        private readonly Func<int, string, Task<APIResponse<AssetDetails>>> _fetchDetails;
+        private readonly Func<string, Task<APIResponse<AssetPurchases>>> _fetchPurchases;
+        private readonly Func<bool> _canRequest;
+        internal bool RefreshFailed { get; private set; }
+
+        public AssetStoreImporter() : this((id, etag) => AssetStore.RetrieveAssetDetailsResponse(id, etag),
+            uri => AssetStore.FetchStoreAPI<AssetPurchases>(uri), () => AssetStoreAuthentication.Current.CanRequest()) { }
+
+        internal AssetStoreImporter(Func<int, string, Task<APIResponse<AssetDetails>>> fetchDetails,
+            Func<string, Task<APIResponse<AssetPurchases>>> fetchPurchases, Func<bool> canRequest)
+        {
+            _fetchDetails = fetchDetails;
+            _fetchPurchases = fetchPurchases;
+            _canRequest = canRequest;
+        }
+
         private sealed class SyntyAuthoritySnapshot
         {
             private readonly string _location;
@@ -196,6 +212,7 @@ namespace AssetInventory
             catch (Exception e)
             {
                 Debug.LogError($"Could not update purchases: {e.Message}");
+                return null;
             }
 
             if (tagsChanged)
@@ -204,19 +221,11 @@ namespace AssetInventory
                 Tagging.LoadAssignments();
             }
 
-            return assets;
+            return CancellationRequested ? null : assets;
         }
 
         public async Task<bool> FetchAssetsDetails(bool forceUpdate = false, int assetId = 0, bool resetEtag = false)
         {
-            if (forceUpdate)
-            {
-                string eTag = resetEtag ? ", ETag=null" : "";
-                const string noIndexFilter = "NoIndex=0 and (ParentId<=0 or ParentId not in (select Id from Asset where NoIndex=1))";
-                string whereClause = assetId > 0 ? " where Id=" + assetId + " and " + noIndexFilter : " where " + noIndexFilter;
-                DBAdapter.DB.Execute($"update Asset set LastOnlineRefresh=0{eTag}{whereClause}");
-            }
-
             List<Asset> assets;
             if (assetId > 0)
             {
@@ -233,7 +242,7 @@ namespace AssetInventory
                     .ToList();
 
                 assets = dbAssets
-                    .Where(a => (DateTime.Now - a.LastOnlineRefresh).TotalDays >= AI.Config.assetStoreRefreshCycle)
+                    .Where(a => forceUpdate || (DateTime.Now - a.LastOnlineRefresh).TotalDays >= AI.Config.assetStoreRefreshCycle)
                     .ToList();
             }
 
@@ -241,7 +250,7 @@ namespace AssetInventory
                 .Where(a => a.AssetSource != Asset.Source.Synty || AI.Config.syntyLinkAssetStoreMetadata)
                 .Where(a => a.AssetSource == Asset.Source.Synty || !HasNoIndex(a))
                 .ToList();
-            return await FetchAssetsDetailsInternal(assets);
+            return await FetchAssetsDetailsInternal(assets, forceUpdate && resetEtag);
         }
 
         public async Task<bool> FetchAssetsDetails(List<Asset> assets, bool forceUpdate = false, bool resetEtag = false)
@@ -251,25 +260,10 @@ namespace AssetInventory
                 .Where(a => a.AssetSource == Asset.Source.Synty || !HasNoIndex(a))
                 .ToList() ?? new List<Asset>();
 
-            if (forceUpdate)
-            {
-                string eTag = resetEtag ? ", ETag=null" : "";
-                string assetIds = string.Join(",", assets.Select(a => a.Id));
-                if (!string.IsNullOrEmpty(assetIds))
-                {
-                    DBAdapter.DB.Execute($"update Asset set LastOnlineRefresh=0{eTag} where Id in ({assetIds})");
-                }
-                assets.ForEach(a =>
-                {
-                    a.LastOnlineRefresh = DateTime.MinValue;
-                    if (resetEtag) a.ETag = null;
-                });
-            }
-
-            return await FetchAssetsDetailsInternal(assets);
+            return await FetchAssetsDetailsInternal(assets, forceUpdate && resetEtag);
         }
 
-        private async Task<bool> FetchAssetsDetailsInternal(List<Asset> assets)
+        private async Task<bool> FetchAssetsDetailsInternal(List<Asset> assets, bool resetEtag)
         {
             bool requireReload = false;
 
@@ -292,6 +286,12 @@ namespace AssetInventory
                 if (CancellationRequested) break;
 
                 await semaphore.WaitAsync();
+                if (CancellationRequested || !_canRequest())
+                {
+                    RefreshFailed = true;
+                    semaphore.Release();
+                    break;
+                }
 
                 async Task ProcessAsset(Asset currentAsset, int curAssetId, int currentAssetIndex)
                 {
@@ -299,14 +299,20 @@ namespace AssetInventory
                     {
                         bool linkedSynty = currentAsset.AssetSource == Asset.Source.Synty;
 
-                        AssetDetails details = await AssetStore.RetrieveAssetDetails(curAssetId, currentAsset.ETag);
+                        APIResponse<AssetDetails> response = await _fetchDetails(curAssetId, resetEtag ? null : currentAsset.ETag);
+                        if (!response.Succeeded)
+                        {
+                            RefreshFailed = true;
+                            return;
+                        }
+                        AssetDetails details = response.Data;
                         DateTime oldLastUpdate = currentAsset.LastUpdate;
                         currentAsset = DBAdapter.DB.Find<Asset>(a => a.Id == currentAsset.Id); // reload in case it was changed in the meantime
                         if (currentAsset == null) return;
                         linkedSynty = currentAsset.AssetSource == Asset.Source.Synty;
                         if (linkedSynty && (AI.Config == null || !AI.Config.syntyLinkAssetStoreMetadata || currentAsset.ForeignId != curAssetId)) return;
                         SyntyAuthoritySnapshot syntyAuthority = linkedSynty ? new SyntyAuthoritySnapshot(currentAsset) : null;
-                        if (details == null) // happens if unchanged through etag
+                        if (response.Status == APIResponseStatus.NotModified)
                         {
                             currentAsset.LastOnlineRefresh = DateTime.Now;
                             DBAdapter.DB.Update(currentAsset);
@@ -350,7 +356,9 @@ namespace AssetInventory
                             });
                             if (currentAsset.AssetSource == Asset.Source.AssetStorePackage && (downloadDetails == null || string.IsNullOrEmpty(downloadDetails.filename_safe_package_name)))
                             {
-                                Debug.Log($"Could not fetch download detail information for '{currentAsset.SafeName}'");
+                                RefreshFailed = true;
+                                if (_canRequest()) Debug.Log($"Could not fetch download detail information for '{currentAsset.SafeName}'");
+                                return;
                             }
                             else if (downloadDetails != null)
                             {
@@ -519,6 +527,7 @@ namespace AssetInventory
                     }
                     catch (Exception e)
                     {
+                        RefreshFailed = true;
                         Debug.LogError($"Error fetching asset details for '{currentAsset}': {e.Message}");
                     }
                     finally
@@ -532,6 +541,8 @@ namespace AssetInventory
 
             // Await all tasks to complete
             await Task.WhenAll(tasks);
+            if (CancellationRequested) RefreshFailed = true;
+            semaphore.Dispose();
 
             return requireReload;
         }
@@ -572,6 +583,11 @@ namespace AssetInventory
             }
 
             if (assetsWithUploadId.Count == 0) return itemsToUpdate;
+            if (!_canRequest())
+            {
+                RefreshFailed = true;
+                return null;
+            }
 
 #if UNITY_6000_3_OR_NEWER
             int chunkSize = 30; // API limit, needs to be lower since otherwise connection throws "unreadable" errors, might be temporary curl issue in Unity alpha
@@ -584,6 +600,11 @@ namespace AssetInventory
 
             for (int i = 0; i < totalChunks; i += AI.Config.maxConcurrentUnityRequests)
             {
+                if (CancellationRequested || !_canRequest())
+                {
+                    RefreshFailed = true;
+                    break;
+                }
                 List<Task<(List<Asset> chunk, AssetUpdateResult update)>> currentBatch = new List<Task<(List<Asset>, AssetUpdateResult)>>();
 
                 for (int j = i; j < i + AI.Config.maxConcurrentUnityRequests && j < totalChunks; j++)
@@ -609,7 +630,8 @@ namespace AssetInventory
                 }
 
                 (List<Asset> chunk, AssetUpdateResult update)[] batchResults = await Task.WhenAll(currentBatch);
-                if (batchResults.All(r => r.update == null)) return null; // all failed
+                if (batchResults.Any(r => r.update?.result?.results == null)) RefreshFailed = true;
+                if (batchResults.All(r => r.update?.result?.results == null)) return null;
 
                 for (int k = 0; k < batchResults.Length; k++)
                 {
@@ -618,7 +640,7 @@ namespace AssetInventory
                     SetProgress("Fetching Asset Store updates...", i + k + 1);
 
                     (List<Asset> chunk, AssetUpdateResult update) = batchResults[k];
-                    if (update == null) continue;
+                    if (update?.result?.results == null) continue;
 
                     // initialize with all items that were not returned and never fetched
                     List<Asset> chunkUpdates = chunk
@@ -667,9 +689,11 @@ namespace AssetInventory
         {
             RestartProgress("Fetching purchases");
             AssetPurchases result = await DoRetrievePurchases();
+            if (result == null || CancellationRequested) return null;
 
             RestartProgress("Fetching hidden purchases");
             AssetPurchases hiddenResult = await DoRetrievePurchases("&status=hidden");
+            if (hiddenResult == null || CancellationRequested) return null;
 
             if (result != null && hiddenResult?.results != null)
             {
@@ -685,8 +709,10 @@ namespace AssetInventory
             MainCount = 1;
             MainProgress = 1;
 
-            string token = CloudProjectSettings.accessToken;
-            AssetPurchases result = await AssetUtils.FetchAPIData<AssetPurchases>($"{URL_PURCHASES}?offset=0&limit={PAGE_SIZE}{urlSuffix}", "GET", null, token);
+            if (!_canRequest() || CancellationRequested) return null;
+            APIResponse<AssetPurchases> response = await _fetchPurchases($"{URL_PURCHASES}?offset=0&limit={PAGE_SIZE}{urlSuffix}");
+            AssetPurchases result = response.Data;
+            if (!response.Succeeded || result?.results == null) return null;
 
             // if more results than page size retrieve rest as well and merge
             // Unity's web client can only run on the main thread
@@ -697,14 +723,16 @@ namespace AssetInventory
 
                 for (int i = 1; i <= pageCount; i += AI.Config.maxConcurrentUnityRequests)
                 {
-                    List<Task<AssetPurchases>> currentBatch = new List<Task<AssetPurchases>>();
+                    if (CancellationRequested || !_canRequest()) return null;
+                    List<Task<APIResponse<AssetPurchases>>> currentBatch = new List<Task<APIResponse<AssetPurchases>>>();
 
                     for (int j = i; j < i + AI.Config.maxConcurrentUnityRequests && j <= pageCount; j++)
                     {
                         int offset = j * PAGE_SIZE;
-                        currentBatch.Add(AssetUtils.FetchAPIData<AssetPurchases>($"{URL_PURCHASES}?offset={offset}&limit={PAGE_SIZE}{urlSuffix}", "GET", null, token));
+                        currentBatch.Add(_fetchPurchases($"{URL_PURCHASES}?offset={offset}&limit={PAGE_SIZE}{urlSuffix}"));
                     }
-                    AssetPurchases[] pageResults = await Task.WhenAll(currentBatch);
+                    APIResponse<AssetPurchases>[] pageResults = await Task.WhenAll(currentBatch);
+                    if (CancellationRequested || pageResults.Any(page => !page.Succeeded || page.Data?.results == null)) return null;
 
                     for (int k = 0; k < pageResults.Length; k++)
                     {
@@ -712,18 +740,11 @@ namespace AssetInventory
                         MetaProgress.Report(ProgressId, i + k + 1, pageCount + 1, string.Empty);
                         if (CancellationRequested) break;
 
-                        if (pageResults[k]?.results != null)
-                        {
-                            result.results.AddRange(pageResults[k].results);
-                        }
-                        else
-                        {
-                            Debug.LogError("Could only retrieve a partial list of asset purchases. Most likely the Unity web API has a hick-up. Try again later.");
-                        }
+                        result.results.AddRange(pageResults[k].Data.results);
                     }
                 }
             }
-            return result;
+            return !CancellationRequested && result.results.Count == result.total ? result : null;
         }
 
         private void PersistMedia(Asset asset, AssetDetails details)

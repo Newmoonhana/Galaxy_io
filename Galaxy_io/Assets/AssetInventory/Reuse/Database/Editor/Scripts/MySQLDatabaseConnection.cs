@@ -92,7 +92,7 @@ namespace Database
             }
             catch (Exception e)
             {
-                Debug.LogError($"MySQL connection test failed: {e.Message}");
+                Debug.LogError($"MySQL connection test failed: {e}");
                 return false;
             }
         }

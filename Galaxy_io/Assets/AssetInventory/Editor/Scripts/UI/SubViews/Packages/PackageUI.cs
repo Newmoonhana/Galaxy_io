@@ -385,7 +385,22 @@ namespace AssetInventory
             {
                 VisualElement actions = new VisualElement();
                 actions.AddToClassList(PackageLocationActionsClass);
-                actions.Add(AssetInventoryUITK.CreateSecondaryButton("Set Location...", ChangeLocation));
+
+                Button setLocation = AssetInventoryUITK.CreateSecondaryButton("Set Location...", ChangeLocation);
+                setLocation.tooltip = "Reconnect this catalog entry to an existing file or folder without moving it.";
+                actions.Add(setLocation);
+
+                if (PackageLocationRelocator.SupportsRenameFile(_asset))
+                {
+                    Button rename = null;
+                    rename = AssetInventoryUITK.CreateSecondaryButton("Rename File...", () => RenameFile(rename));
+                    bool canRename = PackageLocationRelocator.CanRenameFile(_asset, out string renameReason, _ => false);
+                    rename.SetEnabled(canRename);
+                    rename.tooltip = canRename
+                        ? "Rename the source file without changing the package name, identity, metadata, or directory. The extension is preserved automatically."
+                        : renameReason;
+                    actions.Add(rename);
+                }
                 details.Add(actions);
             }
 
@@ -587,6 +602,11 @@ namespace AssetInventory
             return TryChangeLocation(selectedPath, out _);
         }
 
+        internal bool RenameFileForTests(string newBaseName)
+        {
+            return TryRenameFile(newBaseName, out _);
+        }
+
         private void ChangeLocation()
         {
             string currentLocation = _asset.GetLocation(true);
@@ -607,7 +627,7 @@ namespace AssetInventory
 
             if (!TryChangeLocation(selectedPath, out string errorMessage))
             {
-                EditorUtility.DisplayDialog("Invalid Location", errorMessage, "OK");
+                EditorUtility.DisplayDialog("Set Location Failed", errorMessage, "OK");
             }
             else
             {
@@ -617,45 +637,49 @@ namespace AssetInventory
 
         private bool TryChangeLocation(string selectedPath, out string errorMessage)
         {
-            errorMessage = null;
-            if (_asset == null)
-            {
-                errorMessage = "No package is loaded.";
-                return false;
-            }
+            if (!PackageLocationRelocator.TrySetLocation(_asset, selectedPath, out errorMessage)) return false;
 
-            if (!CanChangeLocation(_asset))
-            {
-                errorMessage = "This package type does not support manual location changes.";
-                return false;
-            }
-
-            if (string.IsNullOrWhiteSpace(selectedPath))
-            {
-                errorMessage = "Select a package location first.";
-                return false;
-            }
-
-            string normalizedPath = selectedPath.Replace("\\", "/");
-            if (RequiresFolderLocation(_asset))
-            {
-                if (!Directory.Exists(normalizedPath))
-                {
-                    errorMessage = "The selected package folder does not exist.";
-                    return false;
-                }
-            }
-            else if (!File.Exists(normalizedPath))
-            {
-                errorMessage = "The selected package file does not exist.";
-                return false;
-            }
-
-            _asset.SetLocation(normalizedPath);
-            if (_info != null) _info.SetLocation(_asset.Location);
-            DBAdapter.DB.Update(_asset);
-            _onSave?.Invoke(_asset);
+            SyncRelocatedLocation();
             return true;
+        }
+
+        private void RenameFile(Button anchor)
+        {
+            if (_asset == null || anchor == null) return;
+
+            string sourcePath = _asset.GetLocation(true);
+            string currentBaseName = string.IsNullOrWhiteSpace(sourcePath) ? string.Empty : Path.GetFileNameWithoutExtension(sourcePath);
+            NameWindow.ShowAsDropDown(
+                CommonUITK.ToScreenDropdownAnchor(this, anchor),
+                currentBaseName,
+                newBaseName =>
+                {
+                    if (!TryRenameFile(newBaseName, out string errorMessage))
+                    {
+                        EditorUtility.DisplayDialog("Rename File Failed", errorMessage, "OK");
+                        BuildIfReady();
+                        return;
+                    }
+
+                    BuildIfReady();
+                    ShowNotification(new GUIContent("Package file renamed."), 1.5f);
+                },
+                false,
+                "Filename (without extension)");
+        }
+
+        private bool TryRenameFile(string newBaseName, out string errorMessage)
+        {
+            if (!PackageLocationRelocator.TryRenameFile(_asset, newBaseName, out errorMessage)) return false;
+
+            SyncRelocatedLocation();
+            return true;
+        }
+
+        private void SyncRelocatedLocation()
+        {
+            if (_info != null) _info.SetLocation(_asset.Location);
+            _onSave?.Invoke(_asset);
         }
 
         internal bool ShouldCloseOnNextGUI()
@@ -682,24 +706,7 @@ namespace AssetInventory
 
         private static bool CanChangeLocation(Asset asset)
         {
-            if (asset == null || asset.ParentId > 0) return false;
-
-            switch (asset.AssetSource)
-            {
-                case Asset.Source.AssetStorePackage:
-                case Asset.Source.CustomPackage:
-                case Asset.Source.Archive:
-                case Asset.Source.Directory:
-                    return true;
-
-                case Asset.Source.RegistryPackage:
-                    return asset.PackageSource == PackageSource.Embedded
-                        || asset.PackageSource == PackageSource.Local
-                        || asset.PackageSource == PackageSource.LocalTarball;
-
-                default:
-                    return false;
-            }
+            return PackageLocationRelocator.SupportsSetLocation(asset);
         }
 
         private static bool RequiresFolderLocation(Asset asset)

@@ -81,6 +81,7 @@ namespace Automator
                 styleSheet,
                 "automator-inspector",
                 "automator-action-editor");
+            CommonUITK.ApplyWindowLayout(_editorRoot);
             rootVisualElement.Add(_editorRoot);
 
             if (_action == null || _repository == null)
@@ -184,7 +185,7 @@ namespace Automator
                     Save();
                     RunAction();
                 });
-            VisualElement footer = CommonUITK.CreateWindowFooter(10f, 10f, "automator-action-editor-footer");
+            VisualElement footer = CommonUITK.CreateWindowFooter(0f, 0f, "automator-action-editor-footer");
             footer.Add(saveClose);
             footer.Add(saveRun);
             _editorRoot.Add(footer);

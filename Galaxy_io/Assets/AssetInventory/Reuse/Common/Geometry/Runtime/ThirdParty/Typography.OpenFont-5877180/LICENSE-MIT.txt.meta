@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 6e7a7588254a51e107f0dd53af79019b
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.1
+  assetPath: Assets/AssetInventory/Reuse/Common/Geometry/Runtime/ThirdParty/Typography.OpenFont-5877180/LICENSE-MIT.txt
+  uploadId: 992364

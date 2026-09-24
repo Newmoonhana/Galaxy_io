@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 890285da290141f3a032cfcc3b4b08e3
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 349582
+  packageName: Asset Inventory - Find Every Asset in Your Library
+  packageVersion: 4.8.1
+  assetPath: Assets/AssetInventory/AI/Skills/asset-inventory-import-assets-safely/SKILL.md
+  uploadId: 992364

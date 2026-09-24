@@ -514,6 +514,12 @@ namespace AssetInventory
 
         public static async Task<T> FetchAPIData<T>(string uri, string method = "GET", string postContent = null, string token = null, string etag = null, Action<string> eTagCallback = null, int retries = 1, Action<long> responseIssueCodeCallback = null, bool suppressErrors = false, string postType = "application/json")
         {
+            APIResponse<T> response = await FetchAPIResponse<T>(uri, method, postContent, token, etag, eTagCallback, retries, responseIssueCodeCallback, suppressErrors, postType);
+            return response.Data;
+        }
+
+        internal static async Task<APIResponse<T>> FetchAPIResponse<T>(string uri, string method = "GET", string postContent = null, string token = null, string etag = null, Action<string> eTagCallback = null, int retries = 1, Action<long> responseIssueCodeCallback = null, bool suppressErrors = false, string postType = "application/json", bool suppressAuthenticationErrors = false)
+        {
             Restart:
             using (UnityWebRequest uwr = method == "GET" ? UnityWebRequest.Get(uri) : new UnityWebRequest(uri, method))
             {
@@ -532,6 +538,8 @@ namespace AssetInventory
                 UnityWebRequestAsyncOperation request = uwr.SendWebRequest();
                 while (!request.isDone) await Task.Yield();
 
+                if (uwr.responseCode == 304) return new APIResponse<T> {Status = APIResponseStatus.NotModified};
+
                 if (uwr.result == UnityWebRequest.Result.ConnectionError)
                 {
                     if (retries > 0)
@@ -546,7 +554,8 @@ namespace AssetInventory
                     responseIssueCodeCallback?.Invoke(uwr.responseCode);
                     if (uwr.responseCode == (int)HttpStatusCode.Unauthorized)
                     {
-                        if (!suppressErrors) Debug.LogError($"Invalid or expired API Token when contacting {uri}");
+                        if (!suppressErrors && !suppressAuthenticationErrors) Debug.LogError($"Invalid or expired API Token when contacting {uri}");
+                        return new APIResponse<T> {Status = APIResponseStatus.AuthenticationFailure};
                     }
                     else
                     {
@@ -557,7 +566,7 @@ namespace AssetInventory
                 {
                     if (typeof (T) == typeof (string))
                     {
-                        return (T)Convert.ChangeType(uwr.downloadHandler.text, typeof (T));
+                        return new APIResponse<T> {Status = APIResponseStatus.Success, Data = (T)Convert.ChangeType(uwr.downloadHandler.text, typeof (T))};
                     }
 
                     string newEtag = uwr.GetResponseHeader("ETag");
@@ -565,7 +574,8 @@ namespace AssetInventory
 
                     try
                     {
-                        return JsonConvert.DeserializeObject<T>(uwr.downloadHandler.text);
+                        T data = JsonConvert.DeserializeObject<T>(uwr.downloadHandler.text);
+                        return new APIResponse<T> {Status = data == null ? APIResponseStatus.Failure : APIResponseStatus.Success, Data = data};
                     }
                     catch (Exception e)
                     {
@@ -575,7 +585,7 @@ namespace AssetInventory
                 }
             }
 
-            return default(T);
+            return new APIResponse<T>();
         }
 
         public static async Task LoadImageAsync(string imageUrl, string targetFile)
@@ -858,7 +868,7 @@ namespace AssetInventory
 
         public static bool IsOnURP()
         {
-            RenderPipelineAsset rpa = GraphicsSettings.defaultRenderPipeline;
+            RenderPipelineAsset rpa = GraphicsSettings.currentRenderPipeline;
             if (rpa == null) return false;
 
             return rpa.GetType().Name.Contains("UniversalRenderPipelineAsset");
@@ -866,7 +876,7 @@ namespace AssetInventory
 
         public static bool IsOnHDRP()
         {
-            RenderPipelineAsset rpa = GraphicsSettings.defaultRenderPipeline;
+            RenderPipelineAsset rpa = GraphicsSettings.currentRenderPipeline;
             if (rpa == null) return false;
 
             return rpa.GetType().Name.Contains("HDRenderPipelineAsset");

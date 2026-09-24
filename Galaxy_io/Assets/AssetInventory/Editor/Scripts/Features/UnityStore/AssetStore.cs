@@ -45,20 +45,30 @@ namespace AssetInventory
         private static PropertyInfo _originalTextProp;
         private static MethodInfo _clearSearchMethod;
 
+        internal static Task<APIResponse<T>> FetchStoreAPI<T>(string uri, string method = "GET", string postContent = null,
+            string etag = null, Action<string> eTagCallback = null, Action<long> responseIssueCodeCallback = null, bool suppressErrors = false)
+        {
+            return AssetStoreAuthentication.Current.Request(token => AssetUtils.FetchAPIResponse<T>(uri, method, postContent,
+                token, etag, eTagCallback, responseIssueCodeCallback: responseIssueCodeCallback, suppressErrors: suppressErrors,
+                suppressAuthenticationErrors: true), suppressErrors);
+        }
+
         public static async Task<AssetDetails> RetrieveAssetDetails(int id, string eTag = null, bool suppressErrors = false)
         {
-            string token = CloudProjectSettings.accessToken;
+            return (await RetrieveAssetDetailsResponse(id, eTag, suppressErrors)).Data;
+        }
+
+        internal static async Task<APIResponse<AssetDetails>> RetrieveAssetDetailsResponse(int id, string eTag = null, bool suppressErrors = false)
+        {
             string newEtag = eTag;
-            AssetDetails result = await AssetUtils.FetchAPIData<AssetDetails>($"{URL_ASSET_DETAILS}/{id}", "GET", null, token, eTag, newCacheTag => newEtag = newCacheTag, 1, null, suppressErrors);
-            if (result != null) result.ETag = newEtag;
+            APIResponse<AssetDetails> result = await FetchStoreAPI<AssetDetails>($"{URL_ASSET_DETAILS}/{id}", etag: eTag, eTagCallback: newCacheTag => newEtag = newCacheTag, suppressErrors: suppressErrors);
+            if (result.Data != null) result.Data.ETag = newEtag;
 
             return result;
         }
 
         public static async Task<AssetUpdateResult> RetrieveAssetUpdates(List<Asset> assets)
         {
-            string token = CloudProjectSettings.accessToken;
-
             // build bulk update request
             List<AssetUpdateRequest> aurs = new List<AssetUpdateRequest>();
             foreach (Asset asset in assets)
@@ -70,15 +80,14 @@ namespace AssetInventory
                 aur.version = asset.Version;
                 aurs.Add(aur);
             }
-            AssetUpdateResult result = await AssetUtils.FetchAPIData<AssetUpdateResult>(URL_ASSET_UPDATE, "POST", JsonConvert.SerializeObject(aurs), token);
+            AssetUpdateResult result = (await FetchStoreAPI<AssetUpdateResult>(URL_ASSET_UPDATE, "POST", JsonConvert.SerializeObject(aurs))).Data;
 
             return result;
         }
 
         public static async Task<DownloadInfo> RetrieveAssetDownloadInfo(int id, Action<long> responseIssueCodeCallback = null)
         {
-            string token = CloudProjectSettings.accessToken;
-            DownloadInfoResult result = await AssetUtils.FetchAPIData<DownloadInfoResult>($"{URL_ASSET_DOWNLOAD}/{id}", "GET", null, token, null, null, 1, responseIssueCodeCallback);
+            DownloadInfoResult result = (await FetchStoreAPI<DownloadInfoResult>($"{URL_ASSET_DOWNLOAD}/{id}", responseIssueCodeCallback: responseIssueCodeCallback)).Data;
 
             // special handling of "." also in AssetStoreDownloadInfo
             // null values in content itself should never happen, only one known case:
@@ -428,17 +437,7 @@ namespace AssetInventory
 
         public static void ImportPackage(string archivePath, bool interactive, object assetOrigin)
         {
-            if (assetOrigin != null)
-            {
-                Assembly assembly = Assembly.Load("UnityEditor.CoreModule");
-                Type asc = assembly.GetType("UnityEditor.AssetDatabase");
-                MethodInfo importPackageMethod = asc.GetMethod("ImportPackageWithOrigin", BindingFlags.NonPublic | BindingFlags.Static);
-                importPackageMethod?.Invoke(null, new[] {archivePath, assetOrigin, interactive ? 0 : 1});
-            }
-            else
-            {
-                UnityEditorCompat.ImportPackage(archivePath, interactive);
-            }
+            UnityPackageImport.Import(archivePath, interactive, assetOrigin);
         }
     }
 }

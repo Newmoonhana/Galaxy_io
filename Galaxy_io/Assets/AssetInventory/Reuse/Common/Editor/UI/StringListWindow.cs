@@ -61,10 +61,7 @@ namespace ImpossibleRobert.Common
 
             root.Clear();
             root.style.flexGrow = 1f;
-            root.style.paddingLeft = 8f;
-            root.style.paddingRight = 8f;
-            root.style.paddingTop = 8f;
-            root.style.paddingBottom = 8f;
+            CommonUITK.ApplyWindowLayout(root);
 
             Label title = new Label(_title ?? "Items");
             title.style.unityFontStyleAndWeight = FontStyle.Bold;
@@ -79,9 +76,11 @@ namespace ImpossibleRobert.Common
             _listView.SetAddHandler((list, _) => list.AddItem(string.Empty));
             _listView.style.flexGrow = 1f;
             _listView.ListView.style.flexGrow = 1f;
+            _listView.AddToClassList(CommonUITK.WindowBodyClass);
+            CommonUITK.ApplyWindowLayout(_listView);
             root.Add(_listView);
 
-            VisualElement footer = CommonUITK.CreateWindowFooter(8f, 8f);
+            VisualElement footer = CommonUITK.CreateWindowFooter(0f, 0f);
             Button ok = new Button(Accept) {text = "OK"};
             ok.style.minWidth = 110f;
             ok.style.height = 24f;
