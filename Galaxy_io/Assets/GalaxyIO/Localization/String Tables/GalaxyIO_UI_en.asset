@@ -247,6 +247,10 @@ MonoBehaviour:
     m_Localized: Respawn
     m_Metadata:
       m_Items: []
+  - m_Id: 167624026419200
+    m_Localized: Quit
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

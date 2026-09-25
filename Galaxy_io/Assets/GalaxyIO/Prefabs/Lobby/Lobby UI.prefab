@@ -66,7 +66,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Loopback
+  m_text: '[DEBUG]
+
+    Loopback'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e81b5d9a8b1957447bc77c40597b80a2, type: 2}
   m_sharedMaterial: {fileID: -1909263686767613974, guid: e81b5d9a8b1957447bc77c40597b80a2, type: 2}
@@ -957,6 +959,7 @@ GameObject:
   - component: {fileID: 3418639709300101079}
   - component: {fileID: 6576789864433277111}
   - component: {fileID: 7723496423326153622}
+  - component: {fileID: 8257997921905662541}
   m_Layer: 5
   m_Name: Text
   m_TagString: Untagged
@@ -1083,6 +1086,46 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &8257997921905662541
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 835383452513390168}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56eb0353ae6e5124bb35b17aff880f16, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Localization::UnityEngine.Localization.Components.LocalizeStringEvent
+  m_StringReference:
+    m_TableReference:
+      m_TableCollectionName: GUID:866e35aa3dd363f46ad9a9b6dddb04dc
+    m_TableEntryReference:
+      m_KeyId: 7374434304
+      m_Key: 
+    m_FallbackState: 0
+    m_WaitForCompletion: 0
+    m_LocalVariables: []
+  m_FormatArguments: []
+  m_UpdateString:
+    m_PersistentCalls:
+      m_Calls:
+      - m_Target: {fileID: 7723496423326153622}
+        m_TargetAssemblyTypeName: TMPro.TextMeshProUGUI, Unity.TextMeshPro
+        m_MethodName: set_text
+        m_Mode: 0
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 1
+  references:
+    version: 2
+    RefIds: []
 --- !u!1 &845096930615908092
 GameObject:
   m_ObjectHideFlags: 0
@@ -3187,7 +3230,6 @@ MonoBehaviour:
   startButton: {fileID: 3290982367014062943}
   loopbackButton: {fileID: 8232889747010611961}
   exitButton: {fileID: 4860442143218246067}
-  mainWindow: {fileID: 7052346120559686522}
 --- !u!222 &6713758569271353122
 CanvasRenderer:
   m_ObjectHideFlags: 0

@@ -239,6 +239,10 @@ MonoBehaviour:
     m_Key: Respawn/Button
     m_Metadata:
       m_Items: []
+  - m_Id: 167624026419200
+    m_Key: Quit/Button
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
