@@ -527,7 +527,7 @@ GameObject:
   m_Component:
   - component: {fileID: 488028734}
   - component: {fileID: 488028735}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: NameLabels
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -805,7 +805,8 @@ MonoBehaviour:
   m_RequiresDepthTextureOption: 2
   m_RequiresOpaqueTextureOption: 2
   m_CameraType: 0
-  m_Cameras: []
+  m_Cameras:
+  - {fileID: 888208578}
   m_RendererIndex: -1
   m_VolumeLayerMask:
     serializedVersion: 2
@@ -1203,7 +1204,7 @@ GameObject:
   - component: {fileID: 1279052654}
   - component: {fileID: 1279052656}
   - component: {fileID: 1279052655}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: RadarBackground
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1278,7 +1279,7 @@ GameObject:
   - component: {fileID: 1404916991}
   - component: {fileID: 1404916993}
   - component: {fileID: 1404916992}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: RadarScanner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1352,7 +1353,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1444829302}
   - component: {fileID: 1444829303}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: HealthBars
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1684,8 +1685,8 @@ Canvas:
   m_GameObject: {fileID: 2007162044}
   m_Enabled: 1
   serializedVersion: 3
-  m_RenderMode: 0
-  m_Camera: {fileID: 0}
+  m_RenderMode: 1
+  m_Camera: {fileID: 888208578}
   m_PlaneDistance: 100
   m_PixelPerfect: 0
   m_ReceivesEvents: 1
