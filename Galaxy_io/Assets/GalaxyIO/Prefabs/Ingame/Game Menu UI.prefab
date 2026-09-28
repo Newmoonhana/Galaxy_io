@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 3931753024129411061}
   - component: {fileID: 8136798549140750436}
   - component: {fileID: 8501990957489406546}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Win_GameMenu
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -524,7 +524,7 @@ GameObject:
   - component: {fileID: 4637726274897386230}
   - component: {fileID: 8780875077132754949}
   - component: {fileID: 2987906927268562167}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -783,7 +783,7 @@ GameObject:
   - component: {fileID: 798430844312669865}
   - component: {fileID: 4621748765150194848}
   - component: {fileID: 2050613622203492818}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Game Menu UI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -885,3 +885,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a4c25b4b04c91ac4996692a04b7aac55, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Tools.PopupUI.Popup.GameMenuUI
+  canvasType: 1
+  orderType: 0

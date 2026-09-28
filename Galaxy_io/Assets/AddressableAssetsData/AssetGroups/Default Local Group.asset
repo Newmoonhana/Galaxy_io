@@ -25,6 +25,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6a913b02cd534d70a305c67500d916cf
+    m_Address: SO_UICanvasConfig
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: 6fab1e817a176be4b9a54a1638637138
     m_Address: SO_NmhnConfigData
     m_ReadOnly: 0

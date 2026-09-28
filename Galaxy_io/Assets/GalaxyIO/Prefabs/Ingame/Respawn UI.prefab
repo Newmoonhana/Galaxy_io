@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8896892552888859176}
   - component: {fileID: 3931753024129411061}
   - component: {fileID: 8136798549140750436}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Win_Respawn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -713,7 +713,7 @@ GameObject:
   - component: {fileID: 4637726274897386230}
   - component: {fileID: 8780875077132754949}
   - component: {fileID: 2987906927268562167}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -794,7 +794,7 @@ GameObject:
   - component: {fileID: 798430844312669865}
   - component: {fileID: 4621748765150194848}
   - component: {fileID: 7214490777130373775}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Respawn UI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -896,3 +896,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f25563dab68983d4780e24c9960992e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Tools.PopupUI.Popup.RespawnUI
+  canvasType: 1
+  orderType: 0
