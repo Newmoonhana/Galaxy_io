@@ -24,9 +24,10 @@
       "dependencies": {
         "com.unity.ugui": "3.0.0",
         "com.unity.addressables": "2.9.1",
-        "com.unity.render-pipelines.core": "17.3.0"
+        "com.unity.render-pipelines.core": "17.3.0",
+        "com.unity.render-pipelines.universal": "17.3.0"
       },
-      "hash": "96ac3974964293bbb588e296e9a44d93e5e622f2"
+      "hash": "284ce5a782ffaa9a67c6dbf1a2d6675702144098"
     },
     "com.unity.2d.animation": {
       "version": "13.0.6",

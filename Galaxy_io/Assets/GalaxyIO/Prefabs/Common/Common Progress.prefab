@@ -278,7 +278,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2068758121444029198}
   - component: {fileID: 4063498222692475024}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Common Progress
   m_TagString: Untagged
   m_Icon: {fileID: 0}

@@ -3180,7 +3180,7 @@ GameObject:
   - component: {fileID: 4658020269283824476}
   - component: {fileID: 6713758569271353122}
   - component: {fileID: 7026048434222761740}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: WIN_GameStart
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -4684,7 +4684,7 @@ GameObject:
   - component: {fileID: 1289387706724476989}
   - component: {fileID: 712432387424343167}
   - component: {fileID: 7287030839829231593}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Dynamic Group
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9683,7 +9683,7 @@ GameObject:
   - component: {fileID: 8409547152920330984}
   - component: {fileID: 5290463807805762591}
   - component: {fileID: 5225206598504776653}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Lobby UI
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -9727,6 +9727,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4dcc8081349abb14d8480bfdca5a2bf4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Tools.PopupUI.Popup.LobbyUI
+  canvasType: 1
+  orderType: 1
 --- !u!223 &8409547152920330984
 Canvas:
   m_ObjectHideFlags: 0
@@ -10676,7 +10678,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4704621909250184365}
   - component: {fileID: 8729700286264470684}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Button Group
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -13899,7 +13901,7 @@ GameObject:
   - component: {fileID: 3769102451148567781}
   - component: {fileID: 597951101162500589}
   - component: {fileID: 72919893259380760}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: WIN_LobbyMain
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -17147,7 +17149,7 @@ GameObject:
   - component: {fileID: 1704019040680017751}
   - component: {fileID: 3982855618029062500}
   - component: {fileID: 1798553168227941277}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Interaction Group
   m_TagString: Untagged
   m_Icon: {fileID: 0}
