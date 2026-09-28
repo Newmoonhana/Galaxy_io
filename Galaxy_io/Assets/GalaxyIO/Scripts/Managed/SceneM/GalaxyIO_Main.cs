@@ -45,6 +45,8 @@ namespace GalaxyIO.Main
         private bool wasInGame;
         // 나가기로 끊는 중. 이때는 안내창을 띄우지 않음.
         private bool isQuitting;
+        // 게임 오버로 리스폰 대기 중. 인게임 재시작까지 게임 메뉴를 막음.
+        private bool isGameOver;
 
         protected void Start()
         {
@@ -104,23 +106,34 @@ namespace GalaxyIO.Main
             hud.enabled = visible;
         }
 
-        // 파괴 시 리스폰 UI 생성, 리스폰 시 삭제.
+        // 게임 오버 / 인게임 재시작 전환 감지. PlayerDeathTag 생성·삭제가 기준.
         private void UpdateRespawnUI()
         {
             bool dead = !deathQuery.IsEmpty;
             if (dead == (respawnUI != null)) return;
 
-            if (dead)
-            {
-                GameObject prefab = AddressableAssetsManager.gameObject_lst.GetData(respawnUIKey).Data;
-                respawnUI = Instantiate(prefab).GetComponent<RespawnUI>();
-                respawnUI.AddListener(QuitGame);
-            }
-            else
-            {
-                Destroy(respawnUI.gameObject);
-                respawnUI = null;
-            }
+            if (dead) OnGameOver();
+            else OnGameRestart();
+        }
+
+        // 게임 오버. 리스폰 창을 띄우고 게임 메뉴를 막음. 열려 있던 메뉴는 닫음.
+        private void OnGameOver()
+        {
+            GameObject prefab = AddressableAssetsManager.gameObject_lst.GetData(respawnUIKey).Data;
+            respawnUI = Instantiate(prefab).GetComponent<RespawnUI>();
+            respawnUI.AddListener(QuitGame);
+
+            isGameOver = true;
+            CloseGameMenu();
+        }
+
+        // 인게임 재시작. 리스폰 창을 치우고 게임 메뉴를 다시 허용.
+        private void OnGameRestart()
+        {
+            Destroy(respawnUI.gameObject);
+            respawnUI = null;
+
+            isGameOver = false;
         }
 
         // 나가기 없이 인게임이 끝나면 서버와 끊긴 것. 안내창 생성, 버튼을 누르면 로비로 나감.
@@ -164,6 +177,9 @@ namespace GalaxyIO.Main
                 CloseGameMenu();
                 return;
             }
+
+            // 게임 오버 중엔 ESC 무시. 리스폰 창의 나가기만 남김.
+            if (isGameOver) return;
 
             if (menuAction == null || !menuAction.action.WasPressedThisFrame()) return;
 
