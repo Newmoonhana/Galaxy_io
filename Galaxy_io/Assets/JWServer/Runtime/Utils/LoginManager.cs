@@ -16,16 +16,14 @@ namespace JWServer.Runtime.Login
         /// [PLACEHOLDER] 통합 게임 백엔드서버에서 사용되는 게임의 식별자
         /// </summary>
         public const string GAME_CODE = "91D3FE9281715AE3C9F96BC327789961";
-
+        
 #if UNITY_EDITOR
         private const string AUTH_SERVER = "http://localhost:5050";
 #else
         /// <summary>
         /// [PLACEHOLDER] 개발 서버 주소 / 운영 서버 주소
         /// </summary>
-        /// private const string AUTH_SERVER => SO_NmhnConfigData.Instance.ModeType != MODETYPE.BUILD ? "https://192.168.0.1" : "https://jwgameserver.com";
-        /// TODO: 빌드 에러 나서 임시로 주석처리함.
-        private const string AUTH_SERVER = "http://localhost:5050";
+        private static string AUTH_SERVER => SO_NmhnConfigData.Instance.ModeType != MODETYPE.PROD ? "https://192.168.0.1" : "https://jwgameserver.com";
 #endif
 
         /// <summary>
