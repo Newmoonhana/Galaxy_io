@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Collections;
 using Unity.Entities;
@@ -8,52 +7,52 @@ using UnityEngine;
 namespace GalaxyIO.DOTS.Authoring.Config
 {
     /// <summary>
-    /// 런타임에 스폰할 프리팹 목록. 월드당 한 개.
+    /// <see cref="PrefabRegistryAsset"/>을 서브씬에 베이킹하는 연결 컴포넌트. 월드당 한 개.
     /// </summary>
     public sealed class PrefabRegistryAuthoring : MonoBehaviour
     {
-        [Serializable]
-        public struct Entry
-        {
-            [Tooltip("코드와 네트워크가 이 프리팹을 가리키는 키")]
-            public PrefabId Id;
-
-            public GameObject Prefab;
-        }
-
         [SerializeField]
-        [Tooltip("PrefabId 로 찾을 프리팹 목록. 순서는 상관없음.")]
-        public List<Entry> Prefabs = new List<Entry>();
+        [Tooltip("베이킹할 프리팹 레지스트리")]
+        public PrefabRegistryAsset Registry;
     }
 
     public sealed class PrefabRegistryBaker : Baker<PrefabRegistryAuthoring>
     {
         public override void Bake(PrefabRegistryAuthoring authoring)
         {
+            // 에셋 내용이 바뀌면 다시 베이킹.
+            DependsOn(authoring.Registry);
+
+            if (authoring.Registry == null)
+            {
+                Debug.LogWarning("PrefabRegistry: 레지스트리 에셋이 비어 있음.", authoring);
+                return;
+            }
+
             Entity entity = GetEntity(TransformUsageFlags.None);
             DynamicBuffer<PrefabRegistryElement> registry = AddBuffer<PrefabRegistryElement>(entity);
 
             // 가장 큰 Id 까지 빈 칸으로 채워 둠. 칸 번호가 곧 Id.
             int maxId = 0;
 
-            foreach (PrefabRegistryAuthoring.Entry entry in authoring.Prefabs)
+            foreach (PrefabRegistryAsset.Entry entry in authoring.Registry.Prefabs)
             {
                 maxId = Math.Max(maxId, (int)entry.Id);
             }
 
             registry.Resize(maxId + 1, NativeArrayOptions.ClearMemory);
 
-            foreach (PrefabRegistryAuthoring.Entry entry in authoring.Prefabs)
+            foreach (PrefabRegistryAsset.Entry entry in authoring.Registry.Prefabs)
             {
                 if (entry.Id == PrefabId.None || entry.Prefab == null)
                 {
-                    Debug.LogWarning($"PrefabRegistry: 비어 있는 항목을 건너뜀. ({entry.Id})", authoring);
+                    Debug.LogWarning($"PrefabRegistry: 비어 있는 항목을 건너뜀. ({entry.Id})", authoring.Registry);
                     continue;
                 }
 
                 if (registry.Contains(entry.Id))
                 {
-                    Debug.LogWarning($"PrefabRegistry: Id 중복. 뒤의 항목을 버림. ({entry.Id})", authoring);
+                    Debug.LogWarning($"PrefabRegistry: Id 중복. 뒤의 항목을 버림. ({entry.Id})", authoring.Registry);
                     continue;
                 }
 
