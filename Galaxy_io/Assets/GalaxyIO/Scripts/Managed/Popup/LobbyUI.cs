@@ -146,11 +146,14 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         private class GameStartState : IState
         {
             private WindowGameStart win;
-            public GameStartState(WindowGameStart _win, UnityAction<string> _changeWindow, UnityAction _onConnected)
+            private readonly SERVERTYPE serverType;
+
+            public GameStartState(WindowGameStart _win, UnityAction<string> _changeWindow, UnityAction _onConnected, SERVERTYPE _serverType)
             {
                 win = _win;
                 win.AddListener(_changeWindow);
                 win.AddListener(_onConnected);
+                serverType = _serverType;
                 OnExit();
             }
 
@@ -158,6 +161,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             public void Render() {}
             public void OnEnter(object p_data)
             {
+                win.SetServerType(serverType);
                 win.Open();
                 win.Activate();
             }
@@ -189,7 +193,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             stateM.Add("signUp", new SignUpState(transform.GetComponentInChildren<WindowSignUp>(true), ChangeState,
                 userData => stateM.Change("signUpJWServer", userData)));
             stateM.Add("signUpJWServer", new SignUpJWServerState(transform.GetComponentInChildren<WindowSignUpJWServer>(true), ChangeState));
-            stateM.Add("gameStart", new GameStartState(transform.GetComponentInChildren<WindowGameStart>(true), ChangeState, () => ChangeState("none")));
+            stateM.Add("gameStart", new GameStartState(transform.GetComponentInChildren<WindowGameStart>(true), ChangeState, () => ChangeState("none"), SERVERTYPE.PRIVATE));
             stateM.Add("none", new EmptyState());
             stateM.Change("progress");
             _ = RunAutoLogIn();

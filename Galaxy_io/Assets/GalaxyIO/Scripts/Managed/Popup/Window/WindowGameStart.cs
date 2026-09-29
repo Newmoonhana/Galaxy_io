@@ -20,21 +20,36 @@ using Random = UnityEngine.Random;
 namespace GalaxyIO.Tools.PopupUI.Window
 {
     /// <summary>
+    /// 접속 대상 서버 종류. 공개 서버는 이름이 계정 기준으로 고정됨.
+    /// </summary>
+    public enum SERVERTYPE
+    {
+        PUBLIC,
+        PRIVATE,
+    }
+
+    /// <summary>
     /// 서버 접속 및 플레이어 스폰을 요청하는 게임 시작 창. 비로그인도 접속 가능.
     /// </summary>
     public class WindowGameStart : WindowBase
     {
         [SerializeField] private ServerAddressField addressField;
-        [SerializeField] private TMP_Text playerName_txt;
         [SerializeField] private TMP_InputField playerName_input;
         [SerializeField] private TMP_Text warning;
         [SerializeField] private TMP_Text unreachable;
+        [SerializeField] private TMP_Text nameWarning;
         [SerializeField] private Button startButton;
         [SerializeField] private Button loopbackButton;
         [SerializeField] private Button exitButton;
 
-        // 이번에 창을 열 때 확정한 이름.
-        private string playerName;
+        // 직접 입력한 이름. 세션 동안 유지함.
+        private static string sessionName = string.Empty;
+
+        // 접속 대상 서버 종류. 창을 열기 전에 로비가 지정함.
+        private SERVERTYPE serverType = SERVERTYPE.PRIVATE;
+
+        // 이름을 직접 입력할 수 있는 상태.
+        private bool nameEditable;
 
         // 접속에 성공해 게임 시작 창을 닫아도 되는 시점을 알림.
         private UnityEvent _connected;
@@ -47,11 +62,18 @@ namespace GalaxyIO.Tools.PopupUI.Window
         // 접속 결과를 기다리는 중.
         private bool connecting;
 
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+        private static void ResetStaticData()
+        {
+            sessionName = string.Empty;
+        }
+
         protected override void Awake()
         {
             base.Awake();
             _connected = new UnityEvent();
             _changeWindow = new UnityEvent<string>();
+            playerName_input.characterLimit = PlayerNameComponent.MaxLength;
         }
 
         protected override void Start()
@@ -60,6 +82,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             warning.gameObject.SetActive(false);
             unreachable.gameObject.SetActive(false);
+            nameWarning.gameObject.SetActive(false);
 
             World clientWorld = ClientServerBootstrap.ClientWorld;
             if (clientWorld == null) return;
@@ -85,8 +108,16 @@ namespace GalaxyIO.Tools.PopupUI.Window
         public override void Open()
         {
             base.Open();
-            playerName = ResolvePlayerName();
-            playerName_txt.SetText(playerName);
+            nameWarning.gameObject.SetActive(false);
+            RefreshName();
+        }
+
+        /// <summary>
+        /// 접속 대상 서버 종류를 지정함. <see cref="Open"/> 전에 호출해야 함.
+        /// </summary>
+        public void SetServerType(SERVERTYPE _type)
+        {
+            serverType = _type;
         }
 
         protected override void OnEnable()
@@ -95,6 +126,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             startButton.onClick.AddListener(OnPressGameStart);
             loopbackButton.onClick.AddListener(OnPressLoopback);
             exitButton.onClick.AddListener(OnPressBack);
+            playerName_input.onValueChanged.AddListener(OnNameChanged);
         }
 
         protected override void OnDisable()
@@ -103,6 +135,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             startButton.onClick.RemoveListener(OnPressGameStart);
             loopbackButton.onClick.RemoveListener(OnPressLoopback);
             exitButton.onClick.RemoveListener(OnPressBack);
+            playerName_input.onValueChanged.RemoveListener(OnNameChanged);
         }
 
         /// <summary>
@@ -169,9 +202,16 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             unreachable.gameObject.SetActive(false);
 
-            // 서버에 요청할 플레이어 이름. 입력 필드가 없으면 화면을 열 때 설정한 `playerName`으로 자동으로 설정하고,
-            // 따로 입력한 이름이 있다면 그 이름으로 요청함.
-            string requestPlayerName = string.IsNullOrWhiteSpace(playerName_input.text) ? playerName : playerName_input.text.Trim();
+            // 공백만 입력한 경우도 빈 이름으로 취급함.
+            string requestPlayerName = playerName_input.text.Trim();
+
+            if (requestPlayerName.Length == 0)
+            {
+                nameWarning.gameObject.SetActive(true);
+                return;
+            }
+
+            nameWarning.gameObject.SetActive(false);
             _ = ConnectAsync(requestPlayerName);
         }
 
@@ -261,6 +301,33 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             startButton.interactable = !value;
             loopbackButton.interactable = !value;
+            playerName_input.interactable = !value && nameEditable;
+        }
+
+        /// <summary>
+        /// 사설 서버에 비로그인으로 접속할 때만 이름을 직접 입력할 수 있음.
+        /// 그 외에는 계정 닉네임/게스트 이름으로 고정함.
+        /// </summary>
+        private void RefreshName()
+        {
+            nameEditable = serverType == SERVERTYPE.PRIVATE && !LoginManager.IsOnline;
+            playerName_input.interactable = nameEditable;
+
+            // 편집 가능하면 세션에 남은 이름을, 없으면 게스트 이름을 제안값으로 채움.
+            string name = nameEditable && !string.IsNullOrWhiteSpace(sessionName)
+                ? sessionName
+                : ResolvePlayerName();
+
+            playerName_input.SetTextWithoutNotify(name);
+        }
+
+        // 편집 가능한 상태에서 입력한 이름만 세션에 남김.
+        private void OnNameChanged(string value)
+        {
+            if (!nameEditable) return;
+
+            sessionName = value;
+            nameWarning.gameObject.SetActive(false);
         }
 
         /// <summary>

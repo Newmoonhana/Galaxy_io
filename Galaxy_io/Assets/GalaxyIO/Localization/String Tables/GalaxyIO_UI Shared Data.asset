@@ -243,6 +243,10 @@ MonoBehaviour:
     m_Key: Quit/Button
     m_Metadata:
       m_Items: []
+  - m_Id: 1579988063940608
+    m_Key: GameStart/InvalidName
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

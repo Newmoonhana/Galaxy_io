@@ -251,6 +251,10 @@ MonoBehaviour:
     m_Localized: Quit
     m_Metadata:
       m_Items: []
+  - m_Id: 1579988063940608
+    m_Localized: Enter your name
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
