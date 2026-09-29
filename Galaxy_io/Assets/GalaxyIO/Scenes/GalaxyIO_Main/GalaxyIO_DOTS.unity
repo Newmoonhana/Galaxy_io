@@ -152,13 +152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b10c2e9cfeaf45fbbc3b098970151cbf, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.PrefabRegistryAuthoring
-  Prefabs:
-  - Id: 1
-    Prefab: {fileID: 1177794197835979121, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-  - Id: 2
-    Prefab: {fileID: 6977692746202840440, guid: d60e724c2bc8acc4c9960df853e2b5fe, type: 3}
-  - Id: 3
-    Prefab: {fileID: 4645922343098088288, guid: 1cbbe28b3ef5cea4188479f2e14b0b18, type: 3}
+  Registry: {fileID: 11400000, guid: 7955d1a2a92242ee893d5fd868295801, type: 2}
 --- !u!4 &163557124
 Transform:
   m_ObjectHideFlags: 0
@@ -221,6 +215,7 @@ MonoBehaviour:
   CellSize: 8
   RewindSpeed: 16
   Restitution: 1
+  RamDamage: 2
   CrashSound: {fileID: 8300000, guid: 4378f2fdcdd062c4ea9a2e27c62d6bae, type: 3}
 --- !u!114 &163557128
 MonoBehaviour:
