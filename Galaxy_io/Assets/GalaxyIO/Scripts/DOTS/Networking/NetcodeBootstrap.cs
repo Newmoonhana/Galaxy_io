@@ -25,14 +25,17 @@ namespace GalaxyIO.DOTS.Bootstrap
             // 수행하지 않음. 접속 시점은 게임 시작 버튼이 제어함.
             DefaultConnectAddress = NetworkEndpoint.AnyIpv4;
 
-            // 서버가 Listen 할 포트. 0 이면 Listen 하지 않음.
-            // 클라이언트 전용 프로세스는 0. 에디터에서는 이 값이 있으면 PlayMode Tools 주소로 자동 접속함.
-            AutoConnectPort = RequestedPlayType == PlayType.Client ? (ushort)0 : Port;
+            // 자동 Listen과 자동 접속을 모두 끔. 서버는 `GameSession`이 열 때만 Listen 함.
+            AutoConnectPort = 0;
 
             // 접속 실패를 빠르게 알리도록 타임아웃을 줄인 드라이버 사용.
             NetworkStreamReceiveSystem.DriverConstructor = new NetcodeDriverConstructor();
 
-            return base.Initialize(defaultWorldName);
+            // 역할(접속/호스팅)이 정해지기 전에는 클라이언트/서버 월드를 만들지 않음.
+            // 월드는 `GameSession`이 만들고, 그 뒤에 인게임 씬을 로드함.
+            // 인게임 씬의 SubScene 은 로드 시점에 존재하는 월드로만 스트리밍되므로 순서가 중요함.
+            CreateLocalWorld(defaultWorldName);
+            return true;
         }
     }
 }
