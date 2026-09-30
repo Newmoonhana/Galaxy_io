@@ -95,7 +95,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
         private void OnConnectBtnPress()
         {
             if (!IsActive()) return;
-            _changeWindow?.Invoke("gameStart");
+            _changeWindow?.Invoke("serverBranch");
         }
 
         private void OnHostBtnPress()

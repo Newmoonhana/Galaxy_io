@@ -141,18 +141,16 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             }
         }
         /// <summary>
-        /// 게임 시작(서버 접속) 창
+        /// 공개/사설 서버를 고르는 분기 창
         /// </summary>
-        private class GameStartState : IState
+        private class ServerBranchState : IState
         {
-            private WindowGameStart win;
-            private readonly SERVERTYPE serverType;
+            private WindowServerBranch win;
 
-            public GameStartState(WindowGameStart _win, UnityAction<string> _changeWindow, SERVERTYPE _serverType)
+            public ServerBranchState(WindowServerBranch _win, UnityAction<string> _changeWindow)
             {
                 win = _win;
                 win.AddListener(_changeWindow);
-                serverType = _serverType;
                 OnExit();
             }
 
@@ -160,7 +158,38 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             public void Render() {}
             public void OnEnter(object p_data)
             {
-                win.SetServerType(serverType);
+                win.Open();
+                win.Activate();
+            }
+            public void OnExit()
+            {
+                win.Deactivate();
+                win.Close();
+            }
+            public void Dispose()
+            {
+                win?.Dispose();
+                win = null;
+            }
+        }
+        /// <summary>
+        /// 게임 시작(서버 접속) 창. 공개/사설 창이 같은 형태라 하나로 씀.
+        /// </summary>
+        private class GameStartState : IState
+        {
+            private WindowGameStartBase win;
+
+            public GameStartState(WindowGameStartBase _win, UnityAction<string> _changeWindow)
+            {
+                win = _win;
+                win.AddListener(_changeWindow);
+                OnExit();
+            }
+
+            public void UpdateState(float elapsedTime) {}
+            public void Render() {}
+            public void OnEnter(object p_data)
+            {
                 win.Open();
                 win.Activate();
             }
@@ -224,17 +253,54 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             stateM.Add("signUp", new SignUpState(transform.GetComponentInChildren<WindowSignUp>(true), ChangeState,
                 userData => stateM.Change("signUpJWServer", userData)));
             stateM.Add("signUpJWServer", new SignUpJWServerState(transform.GetComponentInChildren<WindowSignUpJWServer>(true), ChangeState));
-            stateM.Add("gameStart", new GameStartState(transform.GetComponentInChildren<WindowGameStart>(true), ChangeState, SERVERTYPE.PRIVATE));
+            stateM.Add("serverBranch", new ServerBranchState(transform.GetComponentInChildren<WindowServerBranch>(true), ChangeState));
+            stateM.Add("gameStartPublic", new GameStartState(transform.GetComponentInChildren<WindowGameStartPublic>(true), ChangeState));
+            stateM.Add("gameStartPrivate", new GameStartState(transform.GetComponentInChildren<WindowGameStartPrivate>(true), ChangeState));
             stateM.Add("serverHost", new ServerHostState(transform.GetComponentInChildren<WindowServerHost>(true), ChangeState));
             stateM.Add("none", new EmptyState());
             stateM.Change("progress");
             _ = RunAutoLogIn();
         }
 
+        /// <summary>
+        /// 인게임에서 돌아오면 로비 씬 루트가 다시 켜짐.
+        /// 남은 안내가 있으면 떠날 때 창 위에 띄우고, 없으면 로비 메인으로 되돌림.
+        /// </summary>
+        protected override void OnEnable()
+        {
+            base.OnEnable();
+
+            // 최초 생성 시엔 상태가 아직 없음. 복귀한 경우만 처리함.
+            if (stateM == null || string.IsNullOrEmpty(stateM.CurrentToString)) return;
+
+            // 로비가 다시 보이므로 세션용 로딩 오버레이는 필요 없음.
+            CommonProgress.HideAcrossScenes();
+
+            if (LobbyReturn.TakeNotice(out string title, out string body))
+            {
+                _ = ShowNotice(title, body);
+                return;
+            }
+
+            ChangeState("main");
+        }
+
         public override void Dispose()
         {
             base.Dispose();
             stateM?.Dispose();
+        }
+
+        /// <summary>
+        /// 복귀 안내를 로비 화면 위에 띄움.
+        /// </summary>
+        private async Awaitable ShowNotice(string _title, string _body)
+        {
+            CommonMessageBox msgBox = await CommonMessageBox.Open(transform);
+            if (msgBox == null) return;
+
+            msgBox.SetWinText(_title, _body);
+            msgBox.Refresh();
         }
 
         /// <summary>

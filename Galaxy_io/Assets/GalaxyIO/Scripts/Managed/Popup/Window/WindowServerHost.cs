@@ -6,8 +6,6 @@ using GalaxyIO.DOTS.Networking;
 using GalaxyIO.Tools;
 using GalaxyIO.Tools.PopupUI.Popup;
 using Newmoonhana.Runtime.Tools.PopupUI.Window;
-using Newmoonhana.Runtime.Utils;
-using Newmoonhana.Runtime.Utils.DEBUG;
 using TMPro;
 using Unity.Entities;
 using Unity.NetCode;
@@ -160,17 +158,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
         /// </summary>
         private async Awaitable ShowHostFailed()
         {
-            const string key = "Common_MsgBox";
-            await AddressableAssetsManager.gameObject_lst.LoadData(key);
-            GameObject winObj = Instantiate(AddressableAssetsManager.gameObject_lst.GetData(key).Data, transform.parent);
-            AddressableAssetsManager.gameObject_lst.GetData(key).UnLoad();
-            CommonMessageBox msgBox = winObj?.GetComponent<CommonMessageBox>();
-
-            if (msgBox == null)
-            {
-                DebugLog.LogError($"프리팹 {key} 등록 안됨!");
-                return;
-            }
+            CommonMessageBox msgBox = await CommonMessageBox.Open(transform.parent);
+            if (msgBox == null) return;
 
             msgBox.SetWinText(L10n.Get("ServerHost/FailedTitle"), L10n.Get("ServerHost/Failed"));
             msgBox.Refresh();

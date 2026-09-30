@@ -255,10 +255,6 @@ MonoBehaviour:
     m_Localized: Enter your name
     m_Metadata:
       m_Items: []
-  - m_Id: 1607330714939392
-    m_Localized: Public Server
-    m_Metadata:
-      m_Items: []
   - m_Id: 1607330895294464
     m_Localized: Connection Failed
     m_Metadata:
@@ -273,6 +269,18 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 1607330895294467
     m_Localized: Couldn't open the server.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1607330895294468
+    m_Localized: Select Server
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1607330895294469
+    m_Localized: Public Server
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1607330895294470
+    m_Localized: Private Server
     m_Metadata:
       m_Items: []
   references:
