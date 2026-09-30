@@ -148,11 +148,10 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             private WindowGameStart win;
             private readonly SERVERTYPE serverType;
 
-            public GameStartState(WindowGameStart _win, UnityAction<string> _changeWindow, UnityAction _onConnected, SERVERTYPE _serverType)
+            public GameStartState(WindowGameStart _win, UnityAction<string> _changeWindow, SERVERTYPE _serverType)
             {
                 win = _win;
                 win.AddListener(_changeWindow);
-                win.AddListener(_onConnected);
                 serverType = _serverType;
                 OnExit();
             }
@@ -162,6 +161,38 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             public void OnEnter(object p_data)
             {
                 win.SetServerType(serverType);
+                win.Open();
+                win.Activate();
+            }
+            public void OnExit()
+            {
+                win.Deactivate();
+                win.Close();
+            }
+            public void Dispose()
+            {
+                win?.Dispose();
+                win = null;
+            }
+        }
+        /// <summary>
+        /// 사설 서버를 직접 여는 창
+        /// </summary>
+        private class ServerHostState : IState
+        {
+            private WindowServerHost win;
+
+            public ServerHostState(WindowServerHost _win, UnityAction<string> _changeWindow)
+            {
+                win = _win;
+                win.AddListener(_changeWindow);
+                OnExit();
+            }
+
+            public void UpdateState(float elapsedTime) {}
+            public void Render() {}
+            public void OnEnter(object p_data)
+            {
                 win.Open();
                 win.Activate();
             }
@@ -193,7 +224,8 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             stateM.Add("signUp", new SignUpState(transform.GetComponentInChildren<WindowSignUp>(true), ChangeState,
                 userData => stateM.Change("signUpJWServer", userData)));
             stateM.Add("signUpJWServer", new SignUpJWServerState(transform.GetComponentInChildren<WindowSignUpJWServer>(true), ChangeState));
-            stateM.Add("gameStart", new GameStartState(transform.GetComponentInChildren<WindowGameStart>(true), ChangeState, () => ChangeState("none"), SERVERTYPE.PRIVATE));
+            stateM.Add("gameStart", new GameStartState(transform.GetComponentInChildren<WindowGameStart>(true), ChangeState, SERVERTYPE.PRIVATE));
+            stateM.Add("serverHost", new ServerHostState(transform.GetComponentInChildren<WindowServerHost>(true), ChangeState));
             stateM.Add("none", new EmptyState());
             stateM.Change("progress");
             _ = RunAutoLogIn();
