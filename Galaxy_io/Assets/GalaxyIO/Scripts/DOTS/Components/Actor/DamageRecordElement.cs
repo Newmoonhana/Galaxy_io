@@ -3,7 +3,7 @@ using Unity.Entities;
 namespace GalaxyIO.DOTS.Components.Actor
 {
     /// <summary>
-    /// 플레이어 우주선이 다른 플레이어에게 받은 데미지 기록. 킬 로그의 막타/어시스트 판정에 씀.
+    /// 우주선이 플레이어에게 받은 데미지 기록. 킬 로그의 어시스트, 아이템 드랍 조건 판정에 씀.
     /// 서버만 채움.
     /// </summary>
     [InternalBufferCapacity(4)]

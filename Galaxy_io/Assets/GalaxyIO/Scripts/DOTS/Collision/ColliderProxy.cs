@@ -18,6 +18,9 @@ namespace GalaxyIO.DOTS.Collision
 
         // AI 시야
         Sight = 1 << 2,
+
+        // 아이템 감지 원
+        Item = 1 << 3,
     }
 
     /// <summary>
@@ -40,7 +43,7 @@ namespace GalaxyIO.DOTS.Collision
         // 소속 진영
         public FactionID Faction;
 
-        // 시야가 대상으로 삼을 진영 마스크. 시야 충돌체만 채움.
+        // 시야, 아이템이 대상으로 삼을 진영 마스크. 시야, 아이템 충돌체만 채움.
         public uint HostileFactions;
 
         // 이 Entity 와는 쌍을 만들지 않음. (투사체를 쏜 우주선)
@@ -69,8 +72,8 @@ namespace GalaxyIO.DOTS.Collision
                 return false;
             }
 
-            // 시야는 적대 진영만 봄. 선체와 투사체는 동맹이 아니면 부딪힘.
-            return receiver.Layer == CollisionLayer.Sight
+            // 시야, 아이템은 마스크의 진영만 봄. 선체와 투사체는 동맹이 아니면 부딪힘.
+            return receiver.Layer == CollisionLayer.Sight || receiver.Layer == CollisionLayer.Item
                 ? ((uint)target.Faction & receiver.HostileFactions) != 0
                 : !Faction.IsAllied(receiver.Faction, target.Faction);
         }

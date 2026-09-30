@@ -1,0 +1,56 @@
+using GalaxyIO.DOTS.Authoring;
+using GalaxyIO.DOTS.Components.Singleton;
+using Unity.Entities;
+using Unity.Mathematics;
+using Unity.NetCode;
+
+namespace GalaxyIO.DOTS.Components.Actor
+{
+    /// <summary>
+    /// <see cref="ItemAuthoring"/>의 DOTS 구조체. 월드에 떨어진 아이템 한 묶음.
+    /// 줍기 판정은 Entity 의 <see cref="ColliderComponent"/>(스프라이트 크기 OBB)로 함.
+    /// </summary>
+    public struct ItemComponent : IComponentData
+    {
+        // 클라이언트가 스프라이트를 고르는 데 씀.
+        [GhostField]
+        public ItemId Id;
+
+        // 묶음 개수. 클라이언트가 겹쳐 그릴 스프라이트 수를 정하는 데 씀.
+        [GhostField]
+        public int Count;
+
+        // 끌려가는 대상 플레이어. 없으면 Entity.Null.
+        public Entity Target;
+
+        // 플레이어를 감지하는 원. 이 안의 플레이어에게 끌려감.
+        public ColliderComponent Attraction;
+
+        // 대상에게 끌려가는 속력
+        public float FollowSpeed;
+
+        // 스폰 직후 미끄러지는 속도. 대상이 생기면 0.
+        public float2 Velocity;
+
+        // 스폰 시 미끄러지는 최대 속력
+        public float SlideSpeed;
+
+        // 미끄러지는 속력의 감속도
+        public float SlideDeceleration;
+
+        // 튕길 때 기울어지는 최대 각도(라디안)
+        public float BounceAngle;
+
+        // 기울었다가 0도로 돌아오기까지의 시간(초)
+        public float BounceDuration;
+
+        // 남은 튕김 시간(초). 0 이면 튕김 없음.
+        public float BounceRemaining;
+
+        // 기울어지는 방향. 오른쪽으로 미끄러지면 -1(시계 방향), 왼쪽이면 +1.
+        public float BounceSide;
+
+        // 남은 수명(초). 0 이 되면 사라짐.
+        public float Lifetime;
+    }
+}

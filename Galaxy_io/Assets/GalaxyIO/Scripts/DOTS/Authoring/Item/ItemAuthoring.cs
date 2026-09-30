@@ -1,0 +1,87 @@
+using GalaxyIO.DOTS.Components.Actor;
+using Unity.Entities;
+using Unity.Mathematics;
+using UnityEngine;
+
+namespace GalaxyIO.DOTS.Authoring
+{
+    /// <summary>
+    /// 월드에 떨어진 아이템 Entity. 모든 아이템이 이 프리팹 하나를 공유하고,
+    /// 스폰 시 서버가 아이템 종류와 줍기 충돌체 크기를 채움.
+    /// </summary>
+    [RequireComponent(typeof(SpriteRenderer))]
+    public sealed class ItemAuthoring : MonoBehaviour
+    {
+        [SerializeField]
+        [Tooltip("플레이어를 감지하는 원의 반지름")]
+        [Min(0.0F)]
+        public float AttractionRadius = 6.0F;
+
+        [SerializeField]
+        [Tooltip("감지한 플레이어에게 끌려가는 속력. 플레이어 최고 속력보다 커야 따라잡음.")]
+        [Min(0.0F)]
+        public float FollowSpeed = 40.0F;
+
+        [SerializeField]
+        [Tooltip("스폰 직후 무작위 방향으로 미끄러지는 최대 속력")]
+        [Min(0.0F)]
+        public float SlideSpeed = 6.0F;
+
+        [SerializeField]
+        [Tooltip("최대 속력으로 미끄러질 때 멈추기까지의 시간(초)")]
+        [Min(0.01F)]
+        public float SlideDuration = 0.6F;
+
+        [SerializeField]
+        [Tooltip("스폰 직후 미끄러지는 쪽으로 기울어지는 최대 각도(도)")]
+        [Range(0.0F, 180.0F)]
+        public float BounceAngle = 30.0F;
+
+        [SerializeField]
+        [Tooltip("기울었다가 0도로 돌아오기까지의 시간(초)")]
+        [Min(0.01F)]
+        public float BounceDuration = 0.5F;
+
+        [SerializeField]
+        [Tooltip("아무도 줍지 않으면 사라지기까지의 시간(초)")]
+        [Min(0.0F)]
+        public float Lifetime = 60.0F;
+
+        private void OnDrawGizmosSelected()
+        {
+            Gizmos.color = new Color(1.0F, 0.9F, 0.3F, 0.8F);
+            Gizmos.DrawWireSphere(transform.position, AttractionRadius * transform.lossyScale.x);
+        }
+    }
+
+    public sealed class ItemBaker : Baker<ItemAuthoring>
+    {
+        public override void Bake(ItemAuthoring authoring)
+        {
+            Entity entity = GetEntity(TransformUsageFlags.Dynamic);
+
+            AddComponent(entity, new ItemComponent
+            {
+                Target            = Entity.Null,
+                Attraction        = new ColliderComponent
+                {
+                    Shape   = ColliderShape.Circle,
+                    Center  = float2.zero,
+                    Extents = new float2(authoring.AttractionRadius, 0.0F),
+                },
+                FollowSpeed       = authoring.FollowSpeed,
+                Velocity          = float2.zero,
+                SlideSpeed        = authoring.SlideSpeed,
+                SlideDeceleration = authoring.SlideSpeed / authoring.SlideDuration,
+                BounceAngle       = math.radians(authoring.BounceAngle),
+                BounceDuration    = authoring.BounceDuration,
+                Lifetime          = authoring.Lifetime,
+            });
+
+            // 크기는 스폰 시 아이템 스프라이트에 맞춤.
+            AddComponent(entity, new ColliderComponent { Shape = ColliderShape.Obb });
+
+            AddBuffer<ItemOverlapElement>(entity);
+        }
+    }
+}

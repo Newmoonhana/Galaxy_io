@@ -47,4 +47,16 @@ namespace GalaxyIO.DOTS.Components.Actor
     {
         public CollisionMessage Message;
     }
+
+    /// <summary>
+    /// 아이템 감지 원 - 플레이어 선체 충돌. 아이템 쪽에만 판정 순으로 쌓임.
+    /// </summary>
+    [InternalBufferCapacity(0)]
+    public struct ItemOverlapElement : IBufferElementData
+    {
+        public CollisionMessage Message;
+
+        // 아이템 본체(OBB)까지 닿았는지. 닿으면 주움.
+        public bool Contact;
+    }
 }

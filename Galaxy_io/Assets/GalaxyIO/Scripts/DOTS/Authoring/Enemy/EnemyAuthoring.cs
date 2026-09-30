@@ -108,6 +108,9 @@ namespace GalaxyIO.DOTS.Authoring
             // 점수용 막타. 서버만 채움.
             AddComponent<KillingBlowComponent>(entity);
 
+            // 드랍 조건(플레이어 막타/어시스트) 판정용 피격 기록. 서버만 채움.
+            AddBuffer<DamageRecordElement>(entity);
+
             AddComponent(entity, new EnemyPerceptionComponent
             {
                 CurrentTarget  = Entity.Null,
