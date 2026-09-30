@@ -98,11 +98,10 @@ namespace GalaxyIO.Tools.PopupUI.Window
             _changeWindow?.Invoke("gameStart");
         }
 
-        // [TEMP] 서버 생성 미구현
         private void OnHostBtnPress()
         {
             if (!IsActive()) return;
-            DebugLog.Log("[TEMP] Host Server 미구현");
+            _changeWindow?.Invoke("serverHost");
         }
 
         private void OnSettingsBtnPress()

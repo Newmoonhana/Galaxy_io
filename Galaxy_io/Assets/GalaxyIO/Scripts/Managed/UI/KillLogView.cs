@@ -1,5 +1,6 @@
 using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.Tools;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
@@ -68,9 +69,12 @@ namespace GalaxyIO.Scripts.Managed.UI
         // 표시 중인 줄과 사라질 시각. 오래된 순.
         private readonly Queue<(KillLogRow Row, float ExpireTime)> rows = new Queue<(KillLogRow, float)>();
 
+        // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
+        private World clientWorld;
+
         private void Start()
         {
-            World clientWorld = ClientServerBootstrap.ClientWorld;
+            clientWorld = ClientServerBootstrap.ClientWorld;
 
             if (clientWorld == null)
             {
@@ -88,6 +92,13 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private void LateUpdate()
         {
+            // 세션을 나가면 클라이언트 월드가 Dispose 됨. 캐시한 쿼리를 더 쓰면 안 됨.
+            if (!ClientWorldScope.IsAlive(clientWorld))
+            {
+                enabled = false;
+                return;
+            }
+
             if (!messageQuery.IsEmpty)
             {
                 using var messages = messageQuery.ToComponentDataArray<KillLogMessage>(Allocator.Temp);

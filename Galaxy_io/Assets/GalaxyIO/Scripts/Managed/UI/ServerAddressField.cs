@@ -36,6 +36,14 @@ namespace GalaxyIO.Scripts.Managed.UI
             field.text = Format(address);
         }
 
+        /// <summary>
+        /// 입력 가능 여부를 바꿈.
+        /// </summary>
+        public void SetInteractable(bool value)
+        {
+            field.interactable = value;
+        }
+
         private static char OnValidateInput(string text, int charIndex, char addedChar)
         {
             return Filter(addedChar);

@@ -1,4 +1,5 @@
 ﻿using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.Tools;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Collections;
@@ -31,9 +32,12 @@ namespace GalaxyIO.Scripts.Managed.UI
         // 이름표마다 표시 중인 이름. 바뀔 때만 문자열을 만들어 GC 할당을 막음.
         private readonly List<FixedString64Bytes> shownNames = new List<FixedString64Bytes>();
 
+        // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
+        private World clientWorld;
+
         private void Start()
         {
-            World clientWorld = ClientServerBootstrap.ClientWorld;
+            clientWorld = ClientServerBootstrap.ClientWorld;
 
             if (clientWorld == null)
             {
@@ -50,6 +54,13 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private void LateUpdate()
         {
+            // 세션을 나가면 클라이언트 월드가 Dispose 됨. 캐시한 쿼리를 더 쓰면 안 됨.
+            if (!ClientWorldScope.IsAlive(clientWorld))
+            {
+                enabled = false;
+                return;
+            }
+
             using var spaceships = spaceshipQuery.ToEntityArray(Allocator.Temp);
 
             int shown = 0;

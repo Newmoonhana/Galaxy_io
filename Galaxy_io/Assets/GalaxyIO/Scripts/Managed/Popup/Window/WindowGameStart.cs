@@ -5,9 +5,14 @@ using GalaxyIO.DOTS.Bootstrap;
 using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Networking;
 using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Networking;
 using GalaxyIO.Scripts.Managed.UI;
+using GalaxyIO.Tools;
+using GalaxyIO.Tools.PopupUI.Popup;
 using JWServer.Runtime.Login;
 using Newmoonhana.Runtime.Tools.PopupUI.Window;
+using Newmoonhana.Runtime.Utils;
+using Newmoonhana.Runtime.Utils.DEBUG;
 using TMPro;
 using Unity.Entities;
 using Unity.NetCode;
@@ -35,15 +40,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
     {
         [SerializeField] private ServerAddressField addressField;
         [SerializeField] private TMP_InputField playerName_input;
+        [SerializeField] private Toggle publicServer_tgl;
         [SerializeField] private TMP_Text warning;
-        [SerializeField] private TMP_Text unreachable;
         [SerializeField] private TMP_Text nameWarning;
         [SerializeField] private Button startButton;
         [SerializeField] private Button loopbackButton;
         [SerializeField] private Button exitButton;
-
-        // 직접 입력한 이름. 세션 동안 유지함.
-        private static string sessionName = string.Empty;
 
         // 접속 대상 서버 종류. 창을 열기 전에 로비가 지정함.
         private SERVERTYPE serverType = SERVERTYPE.PRIVATE;
@@ -51,27 +53,14 @@ namespace GalaxyIO.Tools.PopupUI.Window
         // 이름을 직접 입력할 수 있는 상태.
         private bool nameEditable;
 
-        // 접속에 성공해 게임 시작 창을 닫아도 되는 시점을 알림.
-        private UnityEvent _connected;
         private UnityEvent<string> _changeWindow;
 
-        private EntityQuery requestQuery;
-        private EntityQuery failedQuery;
-        private bool hasQueries;
-
-        // 접속 결과를 기다리는 중.
-        private bool connecting;
-
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-        private static void ResetStaticData()
-        {
-            sessionName = string.Empty;
-        }
+        // 주소 해석·씬 로드를 기다리는 중.
+        private bool busy;
 
         protected override void Awake()
         {
             base.Awake();
-            _connected = new UnityEvent();
             _changeWindow = new UnityEvent<string>();
             playerName_input.characterLimit = PlayerNameComponent.MaxLength;
         }
@@ -81,26 +70,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
             base.Start();
 
             warning.gameObject.SetActive(false);
-            unreachable.gameObject.SetActive(false);
             nameWarning.gameObject.SetActive(false);
-
-            World clientWorld = ClientServerBootstrap.ClientWorld;
-            if (clientWorld == null) return;
-
-            requestQuery = clientWorld.EntityManager.CreateEntityQuery(
-                ComponentType.ReadOnly<PlayerSpawnRequest>()
-            );
-            failedQuery = clientWorld.EntityManager.CreateEntityQuery(
-                ComponentType.ReadOnly<PlayerConnectionFailedTag>()
-            );
-            hasQueries = true;
         }
 
         public override void Dispose()
         {
             base.Dispose();
-            _connected?.RemoveAllListeners();
-            _connected = null;
             _changeWindow?.RemoveAllListeners();
             _changeWindow = null;
         }
@@ -109,6 +84,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             base.Open();
             nameWarning.gameObject.SetActive(false);
+            publicServer_tgl.SetIsOnWithoutNotify(serverType == SERVERTYPE.PUBLIC);
+            RefreshServerType();
             RefreshName();
         }
 
@@ -127,6 +104,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             loopbackButton.onClick.AddListener(OnPressLoopback);
             exitButton.onClick.AddListener(OnPressBack);
             playerName_input.onValueChanged.AddListener(OnNameChanged);
+            publicServer_tgl.onValueChanged.AddListener(OnServerToggleChanged);
         }
 
         protected override void OnDisable()
@@ -136,14 +114,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             loopbackButton.onClick.RemoveListener(OnPressLoopback);
             exitButton.onClick.RemoveListener(OnPressBack);
             playerName_input.onValueChanged.RemoveListener(OnNameChanged);
-        }
-
-        /// <summary>
-        /// 서버 접속(플레이어 스폰 요청)에 성공했을 때 알림 받을 리스너 등록.
-        /// </summary>
-        public void AddListener(UnityAction _action)
-        {
-            _connected.AddListener(_action);
+            publicServer_tgl.onValueChanged.RemoveListener(OnServerToggleChanged);
         }
 
         public void AddListener(UnityAction<string> _action)
@@ -151,33 +122,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
             _changeWindow.AddListener(_action);
         }
 
-        private void Update()
-        {
-            if (!hasQueries || !connecting) return;
-
-            // Handshake 전에 끊긴 접속은 접속 실패.
-            if (!failedQuery.IsEmpty)
-            {
-                ClientServerBootstrap.ClientWorld.EntityManager.DestroyEntity(failedQuery);
-                unreachable.gameObject.SetActive(true);
-                SetConnecting(false);
-                return;
-            }
-
-            // 요청이 처리됐고 실패 태그가 없으면 접속 성공.
-            if (requestQuery.IsEmpty)
-            {
-                SetConnecting(false);
-                _connected?.Invoke();
-            }
-        }
-
         /// <summary>
         /// 로비 메인으로 복귀. [TEMP] 버튼 onClick 연결용.
         /// </summary>
         public void OnPressBack()
         {
-            if (!IsActive() || connecting) return;
+            if (!IsActive() || busy) return;
             _changeWindow?.Invoke("main");
         }
 
@@ -190,7 +140,6 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             addressField.Fill(NetcodeBootstrap.LoopbackAddress);
             warning.gameObject.SetActive(false);
-            unreachable.gameObject.SetActive(false);
         }
 
         /// <summary>
@@ -199,8 +148,6 @@ namespace GalaxyIO.Tools.PopupUI.Window
         private void OnPressGameStart()
         {
             if (!IsActive()) return;
-
-            unreachable.gameObject.SetActive(false);
 
             // 공백만 입력한 경우도 빈 이름으로 취급함.
             string requestPlayerName = playerName_input.text.Trim();
@@ -233,14 +180,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             warning.gameObject.SetActive(false);
 
-            if (ClientNetworkRequestManager.RequestPlayerSpawn(endpoint.Value, requestPlayerName))
-            {
-                SetConnecting(true);
-            }
-            else
-            {
-                SetLocked(false);
-            }
+            // 씬 로드·스트리밍·접속 동안 빈 화면이 보이지 않게 가림. 인게임에서 치움.
+            _ = CommonProgress.ShowAcrossScenes();
+
+            // 월드 생성 → 인게임 씬 로드 → 접속까지 `GameSession`이 처리함.
+            // 씬이 바뀌면 이 창은 사라지므로 접속 결과는 인게임 쪽에서 알림.
+            await GameSession.JoinAsClient(endpoint.Value, requestPlayerName);
         }
 
         /// <summary>
@@ -289,19 +234,37 @@ namespace GalaxyIO.Tools.PopupUI.Window
         }
 
         /// <summary>
-        /// 접속 대기 상태 전환. 대기 중에는 버튼을 잠금.
+        /// 대기 중 입력 잠금.
         /// </summary>
-        private void SetConnecting(bool value)
-        {
-            connecting = value;
-            SetLocked(value);
-        }
-
         private void SetLocked(bool value)
         {
+            busy = value;
             startButton.interactable = !value;
             loopbackButton.interactable = !value;
             playerName_input.interactable = !value && nameEditable;
+        }
+
+        // 토글로 서버 종류를 바꿈. 주소/이름 상태가 함께 갱신됨.
+        private void OnServerToggleChanged(bool isPublic)
+        {
+            serverType = isPublic ? SERVERTYPE.PUBLIC : SERVERTYPE.PRIVATE;
+            RefreshServerType();
+            RefreshName();
+        }
+
+        /// <summary>
+        /// 공개 서버는 주소가 고정이라 입력창을 잠그고 서버 호스트를 채움.
+        /// </summary>
+        private void RefreshServerType()
+        {
+            bool isPublic = serverType == SERVERTYPE.PUBLIC;
+
+            if (isPublic)
+            {
+                addressField.Fill(LoginManager.ServerHost);
+            }
+
+            addressField.SetInteractable(!isPublic);
         }
 
         /// <summary>
@@ -310,15 +273,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
         /// </summary>
         private void RefreshName()
         {
-            nameEditable = serverType == SERVERTYPE.PRIVATE && !LoginManager.IsOnline;
+            bool isPrivate = serverType == SERVERTYPE.PRIVATE;
+
+            nameEditable = PlayerNameResolver.IsEditable(isPrivate);
             playerName_input.interactable = nameEditable;
 
-            // 편집 가능하면 세션에 남은 이름을, 없으면 게스트 이름을 제안값으로 채움.
-            string name = nameEditable && !string.IsNullOrWhiteSpace(sessionName)
-                ? sessionName
-                : ResolvePlayerName();
-
-            playerName_input.SetTextWithoutNotify(name);
+            playerName_input.SetTextWithoutNotify(PlayerNameResolver.Suggest(isPrivate));
         }
 
         // 편집 가능한 상태에서 입력한 이름만 세션에 남김.
@@ -326,24 +286,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             if (!nameEditable) return;
 
-            sessionName = value;
+            PlayerNameResolver.Remember(value);
             nameWarning.gameObject.SetActive(false);
-        }
-
-        /// <summary>
-        /// 로그인 유저는 계정 닉네임, 비로그인 유저는 게스트 이름.
-        /// </summary>
-        private string ResolvePlayerName()
-        {
-            string nickName = LoginManager.NickName;
-
-            // 닉네임 조회 실패 시에도 게스트 이름 사용. 창 열 때마다 새 번호.
-            if (!LoginManager.IsOnline || string.IsNullOrEmpty(nickName))
-                return $"Pilot#{Random.Range(0, 10000):D4}";
-
-            return nickName.Length > PlayerNameComponent.MaxLength
-                ? nickName.Substring(0, PlayerNameComponent.MaxLength)
-                : nickName;
         }
     }
 }
