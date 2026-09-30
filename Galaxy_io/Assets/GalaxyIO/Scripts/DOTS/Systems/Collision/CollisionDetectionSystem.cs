@@ -63,7 +63,7 @@ namespace GalaxyIO.DOTS.Systems
                 Tick = networkTime.ServerTick,
             }.ScheduleParallel(state.Dependency);
 
-            // 세 판정은 각자 자기 Entity 의 버퍼에만 쓰므로 함께 돌 수 있음.
+            // 각 판정은 자기 Entity 의 버퍼에만 쓰므로 함께 돌 수 있음.
             JobHandle spaceship = new SpaceshipCollisionDetectionJob
             {
                 Proxies  = proxies,
@@ -89,7 +89,17 @@ namespace GalaxyIO.DOTS.Systems
                 CellSize = config.CellSize,
             }.ScheduleParallel(state.Dependency);
 
-            state.Dependency = JobHandle.CombineDependencies(spaceship, projectile, sight);
+            JobHandle item = new ItemCollisionDetectionJob
+            {
+                Proxies  = proxies,
+                Cells    = cells,
+                CellSize = config.CellSize,
+            }.ScheduleParallel(state.Dependency);
+
+            state.Dependency = JobHandle.CombineDependencies(
+                JobHandle.CombineDependencies(spaceship, projectile, sight),
+                item
+            );
 
             state.Dependency = proxies.Dispose(state.Dependency);
             state.Dependency = cells.Dispose(state.Dependency);
@@ -428,6 +438,70 @@ namespace GalaxyIO.DOTS.Systems
             }
 
             messages[slot] = new SightOverlapElement { Message = message };
+        }
+    }
+
+    /// <summary>
+    /// 아이템 감지 원 - 플레이어 선체 충돌. 원에 겹친 플레이어를 남기고, 본체까지 닿았는지 표시함.
+    /// </summary>
+    [BurstCompile]
+    public partial struct ItemCollisionDetectionJob : IJobEntity
+    {
+        [ReadOnly]
+        public NativeList<ColliderProxy> Proxies;
+
+        [ReadOnly]
+        public NativeParallelMultiHashMap<int2, int> Cells;
+
+        public float CellSize;
+
+        private void Execute(
+            Entity entity,
+            DynamicBuffer<ItemOverlapElement> messages,
+            in LocalTransform transform,
+            in ColliderComponent collider,
+            in ItemComponent item)
+        {
+            messages.Clear();
+
+            ColliderWorld attraction = ColliderOverlap.ToWorld(item.Attraction, transform);
+            ColliderWorld body = ColliderOverlap.ToWorld(collider, transform);
+
+            var receiver = new ColliderProxy
+            {
+                Entity          = entity,
+                Layer           = CollisionLayer.Item,
+                Collider        = attraction,
+                Bounds          = ColliderBounds.ToAabb(attraction),
+                Faction         = FactionID.None,
+                HostileFactions = (uint)FactionID.Player,
+                Ignore          = Entity.Null,
+            };
+
+            var candidates = new SpatialHashCandidates(Cells, Proxies, CellSize, receiver.Bounds);
+
+            while (candidates.Next(out int i))
+            {
+                ColliderProxy target = Proxies[i];
+
+                if (!CollisionFilter.Accepts(receiver, target, CollisionLayer.Spaceship)
+                    || !ColliderOverlap.Test(attraction, target.Collider, out ColliderHit hit))
+                {
+                    continue;
+                }
+
+                messages.Add(new ItemOverlapElement
+                {
+                    Message = new CollisionMessage
+                    {
+                        Other       = target.Entity,
+                        OtherCenter = target.Collider.Center,
+                        Normal      = hit.Normal,
+                        Depth       = hit.Depth,
+                    },
+                    Contact = ColliderOverlap.Test(body, target.Collider, out _),
+                });
+            }
         }
     }
 }

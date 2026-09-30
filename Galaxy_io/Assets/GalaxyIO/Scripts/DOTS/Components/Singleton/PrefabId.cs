@@ -17,5 +17,8 @@
 
         // 5초마다 스폰되는 Strafing AI 적
         EnemyStrafingShip = 3,
+
+        // 월드에 떨어진 아이템. 모든 아이템 종류가 공유함.
+        ItemEntity = 4,
     }
 }
