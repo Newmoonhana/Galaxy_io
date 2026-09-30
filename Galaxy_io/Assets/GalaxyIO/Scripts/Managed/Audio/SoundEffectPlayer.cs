@@ -1,4 +1,5 @@
 using GalaxyIO.DOTS.Client.Components.Message;
+using GalaxyIO.Tools;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
@@ -26,9 +27,12 @@ namespace GalaxyIO.Scripts.Managed.Audio
         private EntityManager entityManager;
         private EntityQuery messageQuery;
 
+        // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
+        private World clientWorld;
+
         private void Start()
         {
-            World clientWorld = ClientServerBootstrap.ClientWorld;
+            clientWorld = ClientServerBootstrap.ClientWorld;
 
             if (clientWorld == null)
             {
@@ -43,6 +47,13 @@ namespace GalaxyIO.Scripts.Managed.Audio
 
         private void LateUpdate()
         {
+            // 세션을 나가면 클라이언트 월드가 Dispose 됨. 캐시한 쿼리를 더 쓰면 안 됨.
+            if (!ClientWorldScope.IsAlive(clientWorld))
+            {
+                enabled = false;
+                return;
+            }
+
             if (messageQuery.IsEmpty)
             {
                 return;

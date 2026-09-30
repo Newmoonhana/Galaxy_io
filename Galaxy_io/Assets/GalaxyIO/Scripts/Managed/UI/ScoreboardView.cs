@@ -1,4 +1,5 @@
 using GalaxyIO.DOTS.Client.Components.Message;
+using GalaxyIO.Tools;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
@@ -50,9 +51,12 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private ScoreboardRow[] rows;
 
+        // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
+        private World clientWorld;
+
         private void Start()
         {
-            World clientWorld = ClientServerBootstrap.ClientWorld;
+            clientWorld = ClientServerBootstrap.ClientWorld;
 
             if (clientWorld == null)
             {
@@ -75,6 +79,13 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private void LateUpdate()
         {
+            // 세션을 나가면 클라이언트 월드가 Dispose 됨. 캐시한 쿼리를 더 쓰면 안 됨.
+            if (!ClientWorldScope.IsAlive(clientWorld))
+            {
+                enabled = false;
+                return;
+            }
+
             // 접속이 끊기면 비움. 다시 입장하면 서버가 전체 점수를 다시 보냄.
             if (connectionQuery.IsEmpty)
             {

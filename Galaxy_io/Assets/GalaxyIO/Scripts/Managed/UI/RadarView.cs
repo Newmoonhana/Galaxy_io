@@ -1,5 +1,6 @@
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Singleton;
+using GalaxyIO.Tools;
 using System.Collections.Generic;
 using TMPro;
 using Unity.Collections;
@@ -74,9 +75,12 @@ namespace GalaxyIO.Scripts.Managed.UI
         private readonly Queue<Blip> blips = new Queue<Blip>();
         private readonly Vector4[] blipBuffer = new Vector4[MaxBlips];
 
+        // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
+        private World clientWorld;
+
         private void Start()
         {
-            World clientWorld = ClientServerBootstrap.ClientWorld;
+            clientWorld = ClientServerBootstrap.ClientWorld;
 
             if (clientWorld == null)
             {
@@ -111,6 +115,13 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private void FixedUpdate()
         {
+            // 세션을 나가면 클라이언트 월드가 Dispose 됨. 캐시한 쿼리를 더 쓰면 안 됨.
+            if (!ClientWorldScope.IsAlive(clientWorld))
+            {
+                enabled = false;
+                return;
+            }
+
             previousAngle = angle;
             angle += sweepSpeed * Time.fixedDeltaTime;
 
@@ -126,6 +137,13 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private void LateUpdate()
         {
+            // 세션을 나가면 클라이언트 월드가 Dispose 됨. 캐시한 쿼리를 더 쓰면 안 됨.
+            if (!ClientWorldScope.IsAlive(clientWorld))
+            {
+                enabled = false;
+                return;
+            }
+
             // 마지막 고정 프레임 이후 흐른 비율만큼 보간.
             float t = Mathf.Clamp01((Time.time - Time.fixedTime) / Time.fixedDeltaTime);
             material.SetFloat(AngleId, Mathf.Repeat(Mathf.Lerp(previousAngle, angle, t), 360.0F));

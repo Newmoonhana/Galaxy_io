@@ -1,3 +1,4 @@
+using GalaxyIO.Tools;
 using Unity.Entities;
 using Unity.NetCode;
 using UnityEngine;
@@ -33,6 +34,8 @@ namespace GalaxyIO.Scripts.Managed.Audio
         // 서버 접속 중(=인게임)인지 판별하는 쿼리.
         private EntityQuery inGameQuery;
         private bool hasQuery;
+        // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
+        private World clientWorld;
         private int clipIndex = -1;
 
         private void Start()
@@ -41,7 +44,7 @@ namespace GalaxyIO.Scripts.Managed.Audio
             audioSource.loop = false;
             audioSource.volume = lobbyVolume;
 
-            World clientWorld = ClientServerBootstrap.ClientWorld;
+            clientWorld = ClientServerBootstrap.ClientWorld;
             if (clientWorld != null)
             {
                 inGameQuery = clientWorld.EntityManager.CreateEntityQuery(
@@ -63,6 +66,9 @@ namespace GalaxyIO.Scripts.Managed.Audio
         // 로비/인게임에 맞춰 음량만 서서히 변경. 재생 중인 곡은 유지.
         private void UpdateVolume()
         {
+            // 세션을 나가면 클라이언트 월드가 Dispose 됨. 그때부터는 로비 음량으로 돌아감.
+            if (hasQuery && !ClientWorldScope.IsAlive(clientWorld)) hasQuery = false;
+
             bool inGame = hasQuery && !inGameQuery.IsEmpty;
             float target = inGame ? inGameVolume : lobbyVolume;
 
