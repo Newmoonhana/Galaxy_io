@@ -34,6 +34,11 @@ namespace JWServer.Runtime.Login
         private const string CONTENT_TYPE_JSON = "application/json"; // HTTP통신 데이터 타입(JSON)
 
         /// <summary>
+        /// 인증 서버 호스트. 공개 게임 서버도 같은 호스트를 사용함.
+        /// </summary>
+        public static string ServerHost => new Uri(AUTH_SERVER).Host;
+
+        /// <summary>
         /// 엑세스 토큰 & 리프레시토큰 — 메모리에서만 존재
         /// </summary>
         private static GameUserTokenDTO sUserTokenData;
