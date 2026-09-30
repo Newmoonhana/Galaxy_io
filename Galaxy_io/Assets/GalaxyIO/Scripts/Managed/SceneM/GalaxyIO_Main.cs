@@ -1,6 +1,9 @@
 using System;
 using GalaxyIO.DOTS.Client.Networking;
 using GalaxyIO.DOTS.Client.Components.Message;
+using GalaxyIO.DOTS.Networking;
+using Unity.Collections;
+using GalaxyIO.Tools;
 using GalaxyIO.Tools.PopupUI.Popup;
 using Newmoonhana.Runtime.Tools.PopupUI;
 using Newmoonhana.Runtime.Utils;
@@ -32,11 +35,16 @@ namespace GalaxyIO.Main
         private EntityQuery inGameQuery;
         // 게임 메뉴 태그. 열린 동안 우주선 조작을 막음.
         private EntityQuery menuOpenQuery;
+        // 끊김 사유. 안내창 본문에 표기함.
+        private EntityQuery disconnectQuery;
+        // 접속 실패(핸드셰이크 전 끊김) 태그.
+        private EntityQuery connectFailedQuery;
         private bool hasQueries;
+        // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
+        private World clientWorld;
         private RespawnUI respawnUI;
         private GameMenuUI gameMenuUI;
         private CommonMessageBox disconnectedMsgBox;
-        private LobbyUI lobbyUI;
         // 옵션 팝업 로드 중 중복 입력 방지.
         private bool isOptionLoading;
         // 안내창 로드 중 중복 생성 방지.
@@ -50,11 +58,10 @@ namespace GalaxyIO.Main
 
         protected void Start()
         {
-            _ = LoadLobbyUI();
             _ = AddressableAssetsManager.gameObject_lst.LoadData(respawnUIKey);
             _ = AddressableAssetsManager.gameObject_lst.LoadData(gameMenuUIKey);
 
-            World clientWorld = ClientServerBootstrap.ClientWorld;
+            clientWorld = ClientServerBootstrap.ClientWorld;
             if (clientWorld != null)
             {
                 deathQuery = clientWorld.EntityManager.CreateEntityQuery(
@@ -66,7 +73,18 @@ namespace GalaxyIO.Main
                 menuOpenQuery = clientWorld.EntityManager.CreateEntityQuery(
                     ComponentType.ReadOnly<GameMenuOpenTag>()
                 );
+                disconnectQuery = clientWorld.EntityManager.CreateEntityQuery(
+                    ComponentType.ReadOnly<ClientDisconnectedMessage>()
+                );
+                connectFailedQuery = clientWorld.EntityManager.CreateEntityQuery(
+                    ComponentType.ReadOnly<PlayerConnectionFailedTag>()
+                );
                 hasQueries = true;
+            }
+            else
+            {
+                // 월드가 없으면 더 기다릴 것이 없음. 로딩 오버레이를 치움.
+                CommonProgress.HideAcrossScenes();
             }
         }
 
@@ -88,6 +106,9 @@ namespace GalaxyIO.Main
 
         private void Update()
         {
+            // 세션을 나가면 클라이언트 월드가 Dispose 됨. 캐시한 쿼리를 더 쓰면 안 됨.
+            if (hasQueries && !ClientWorldScope.IsAlive(clientWorld)) hasQueries = false;
+
             UpdateHUD();
 
             if (!hasQueries) return;
@@ -101,6 +122,10 @@ namespace GalaxyIO.Main
         private void UpdateHUD()
         {
             bool visible = hasQueries && !inGameQuery.IsEmpty;
+
+            // 접속까지 끝났으면 로딩 오버레이를 치움.
+            if (visible) CommonProgress.HideAcrossScenes();
+
             if (hud == null || hud.enabled == visible) return;
 
             hud.enabled = visible;
@@ -145,6 +170,19 @@ namespace GalaxyIO.Main
             wasInGame = inGame;
             if (!inGame) isQuitting = false;
 
+            // 접속 자체가 실패한 경우. 인게임에 들어가 본 적이 없으므로 따로 알림.
+            if (!connectFailedQuery.IsEmpty)
+            {
+                ClientServerBootstrap.ClientWorld.EntityManager.DestroyEntity(connectFailedQuery);
+
+                if (disconnectedMsgBox == null && !isMsgBoxLoading)
+                {
+                    _ = OpenConnectFailedMsgBox();
+                }
+
+                return;
+            }
+
             if (!lost || disconnectedMsgBox != null || isMsgBoxLoading) return;
 
             // 리스폰 창과 대기 중인 요청 정리.
@@ -156,16 +194,33 @@ namespace GalaxyIO.Main
         {
             isMsgBoxLoading = true;
 
+            // 안내창이 오버레이에 가리지 않게 먼저 치움.
+            CommonProgress.HideAcrossScenes();
+
             await AddressableAssetsManager.gameObject_lst.LoadData(msgBoxKey);
             var data = AddressableAssetsManager.gameObject_lst.GetData(msgBoxKey);
             disconnectedMsgBox = Instantiate(data.Data).GetComponent<CommonMessageBox>();
             data.UnLoad();
 
-            disconnectedMsgBox.SetWinText("Disconnected", "You've disconnected from the server. Please rejoin.");
+            disconnectedMsgBox.SetWinText("Disconnected", $"You've disconnected from the server. Please rejoin.\n({TakeDisconnectReason()})");
             disconnectedMsgBox.Refresh();
             disconnectedMsgBox.AddListener(QuitGame);
 
             isMsgBoxLoading = false;
+        }
+
+        // 끊김 사유를 하나 꺼내고 메시지를 정리함. 없으면 UNKNOWN.
+        private string TakeDisconnectReason()
+        {
+            if (!hasQueries || disconnectQuery.IsEmpty) return NetworkMsg.UNKNOWN;
+
+            EntityManager entityManager = ClientServerBootstrap.ClientWorld.EntityManager;
+
+            using NativeArray<Entity> entities = disconnectQuery.ToEntityArray(Allocator.Temp);
+            string reason = entityManager.GetComponentData<ClientDisconnectedMessage>(entities[0]).Reason.ToString();
+
+            entityManager.DestroyEntity(disconnectQuery);
+            return reason;
         }
 
         // ESC로 게임 메뉴 토글. 인게임에서만 열림.
@@ -215,7 +270,8 @@ namespace GalaxyIO.Main
             ClientNetworkRequestManager.RequestQuit();
             CloseGameMenu();
 
-            if (lobbyUI != null) lobbyUI.ChangeState("main");
+            // 월드를 버리고 로비 씬으로 돌아감. 호스트였다면 서버도 함께 닫힘.
+            _ = GameSession.Leave();
         }
 
         public override void Release()
@@ -240,12 +296,24 @@ namespace GalaxyIO.Main
             isOptionLoading = false;
         }
 
-        private async Awaitable LoadLobbyUI()
+        // 접속 실패 안내. 확인을 누르면 로비로 돌아감.
+        private async Awaitable OpenConnectFailedMsgBox()
         {
-            AddressableAssetsData<GameObject> lobbyUIData = new AddressableAssetsData<GameObject>();
-            await lobbyUIData.Load("Lobby_UI", true);
-            lobbyUI = Instantiate(lobbyUIData.Data).GetComponent<LobbyUI>();
-            lobbyUIData.UnLoad();
+            isMsgBoxLoading = true;
+
+            // 안내창이 오버레이에 가리지 않게 먼저 치움.
+            CommonProgress.HideAcrossScenes();
+
+            await AddressableAssetsManager.gameObject_lst.LoadData(msgBoxKey);
+            var data = AddressableAssetsManager.gameObject_lst.GetData(msgBoxKey);
+            disconnectedMsgBox = Instantiate(data.Data).GetComponent<CommonMessageBox>();
+            data.UnLoad();
+
+            disconnectedMsgBox.SetWinText(L10n.Get("GameStart/FailedTitle"), L10n.Get("GameStart/Unreachable"));
+            disconnectedMsgBox.Refresh();
+            disconnectedMsgBox.AddListener(QuitGame);
+
+            isMsgBoxLoading = false;
         }
     }
 
