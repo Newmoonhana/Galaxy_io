@@ -275,6 +275,10 @@ MonoBehaviour:
     m_Key: ServerBranch/Private
     m_Metadata:
       m_Items: []
+  - m_Id: 2107373755424768
+    m_Key: Resume/Button
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
