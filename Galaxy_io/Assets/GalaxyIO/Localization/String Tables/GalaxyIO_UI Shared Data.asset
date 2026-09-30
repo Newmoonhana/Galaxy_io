@@ -247,10 +247,6 @@ MonoBehaviour:
     m_Key: GameStart/InvalidName
     m_Metadata:
       m_Items: []
-  - m_Id: 1607330714939392
-    m_Key: GameStart/PublicServer
-    m_Metadata:
-      m_Items: []
   - m_Id: 1607330895294464
     m_Key: GameStart/FailedTitle
     m_Metadata:
@@ -265,6 +261,18 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 1607330895294467
     m_Key: ServerHost/Failed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1607330895294468
+    m_Key: ServerBranch/Title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1607330895294469
+    m_Key: ServerBranch/Public
+    m_Metadata:
+      m_Items: []
+  - m_Id: 1607330895294470
+    m_Key: ServerBranch/Private
     m_Metadata:
       m_Items: []
   m_Metadata:

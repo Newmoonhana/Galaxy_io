@@ -1,6 +1,7 @@
 using GalaxyIO.DOTS.Bootstrap;
 using GalaxyIO.DOTS.Client.Networking;
 using GalaxyIO.DOTS.Components.Singleton;
+using Newmoonhana.Runtime.Tools.Scene;
 using Newmoonhana.Runtime.Utils.DEBUG;
 using Unity.Entities;
 using Unity.NetCode;
@@ -94,6 +95,13 @@ namespace GalaxyIO.DOTS.Networking
 
             DisposeWorlds();
 
+            // 로비 씬은 스택 아래에 그대로 있음. 떠날 때 창·입력값 그대로 되살아남.
+            await MainSceneStack.Pop();
+
+            // 인게임 씬을 직접 Play 한 디버그 진입은 아래가 로비가 아님. 그때만 새로 로드함.
+            if (SceneManager.GetActiveScene().name == LobbyScene) return;
+
+            MainSceneStack.Clear();
             await SceneManager.LoadSceneAsync(LobbyScene);
         }
 
@@ -102,7 +110,8 @@ namespace GalaxyIO.DOTS.Networking
         /// </summary>
         private static async Awaitable LoadGameScene()
         {
-            await SceneManager.LoadSceneAsync(GameScene);
+            // 로비 씬을 남긴 채 덧씌움. 접속에 실패해도 로비를 다시 만들지 않음.
+            await MainSceneStack.Push(GameScene);
 
             World client = ClientServerBootstrap.ClientWorld;
             if (client == null) return;

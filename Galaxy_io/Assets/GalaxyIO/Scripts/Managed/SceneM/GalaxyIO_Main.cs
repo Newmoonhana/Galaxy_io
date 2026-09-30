@@ -19,7 +19,6 @@ namespace GalaxyIO.Main
     {
         private const string respawnUIKey = "Respawn_UI";
         private const string gameMenuUIKey = "GameMenu_UI";
-        private const string msgBoxKey = "Common_MsgBox";
 
         [SerializeField]
         [Tooltip("게임 메뉴 열기/닫기 (ESC)")]
@@ -175,11 +174,9 @@ namespace GalaxyIO.Main
             {
                 ClientServerBootstrap.ClientWorld.EntityManager.DestroyEntity(connectFailedQuery);
 
-                if (disconnectedMsgBox == null && !isMsgBoxLoading)
-                {
-                    _ = OpenConnectFailedMsgBox();
-                }
-
+                // 안내는 로비로 돌아간 뒤 로비 화면 위에 띄움. 여기서는 바로 내려감.
+                LobbyReturn.SetNotice(L10n.Get("GameStart/FailedTitle"), L10n.Get("GameStart/Unreachable"));
+                QuitGame();
                 return;
             }
 
@@ -197,10 +194,8 @@ namespace GalaxyIO.Main
             // 안내창이 오버레이에 가리지 않게 먼저 치움.
             CommonProgress.HideAcrossScenes();
 
-            await AddressableAssetsManager.gameObject_lst.LoadData(msgBoxKey);
-            var data = AddressableAssetsManager.gameObject_lst.GetData(msgBoxKey);
-            disconnectedMsgBox = Instantiate(data.Data).GetComponent<CommonMessageBox>();
-            data.UnLoad();
+            disconnectedMsgBox = await CommonMessageBox.Open();
+            if (disconnectedMsgBox == null) return;
 
             disconnectedMsgBox.SetWinText("Disconnected", $"You've disconnected from the server. Please rejoin.\n({TakeDisconnectReason()})");
             disconnectedMsgBox.Refresh();
@@ -296,25 +291,6 @@ namespace GalaxyIO.Main
             isOptionLoading = false;
         }
 
-        // 접속 실패 안내. 확인을 누르면 로비로 돌아감.
-        private async Awaitable OpenConnectFailedMsgBox()
-        {
-            isMsgBoxLoading = true;
-
-            // 안내창이 오버레이에 가리지 않게 먼저 치움.
-            CommonProgress.HideAcrossScenes();
-
-            await AddressableAssetsManager.gameObject_lst.LoadData(msgBoxKey);
-            var data = AddressableAssetsManager.gameObject_lst.GetData(msgBoxKey);
-            disconnectedMsgBox = Instantiate(data.Data).GetComponent<CommonMessageBox>();
-            data.UnLoad();
-
-            disconnectedMsgBox.SetWinText(L10n.Get("GameStart/FailedTitle"), L10n.Get("GameStart/Unreachable"));
-            disconnectedMsgBox.Refresh();
-            disconnectedMsgBox.AddListener(QuitGame);
-
-            isMsgBoxLoading = false;
-        }
     }
 
 }
