@@ -7,6 +7,7 @@ using GalaxyIO.Tools;
 using GalaxyIO.Tools.PopupUI.Popup;
 using Newmoonhana.Runtime.Tools.PopupUI;
 using Newmoonhana.Runtime.Utils;
+using Newmoonhana.Runtime.Utils.DEBUG;
 using Newmoonhana.Runtime.Utils.Pattern;
 using Unity.Entities;
 using Unity.NetCode;
@@ -85,6 +86,9 @@ namespace GalaxyIO.Main
                 // 월드가 없으면 더 기다릴 것이 없음. 로딩 오버레이를 치움.
                 CommonProgress.HideAcrossScenes();
             }
+            
+            // 오브젝트가 파괴될 때 자동으로 멈추도록 destroyCancellationToken 전달
+            _ = RunUpdateLoop(this.destroyCancellationToken);
         }
 
         private void OnEnable()
@@ -103,18 +107,41 @@ namespace GalaxyIO.Main
             ClientNetworkRequestManager.DisconnectImmediately();
         }
 
-        private void Update()
+        private async Awaitable RunUpdateLoop(System.Threading.CancellationToken cancellationToken)
         {
-            // 세션을 나가면 클라이언트 월드가 Dispose 됨. 캐시한 쿼리를 더 쓰면 안 됨.
-            if (hasQueries && !ClientWorldScope.IsAlive(clientWorld)) hasQueries = false;
+            // 버려진 Awaitable 은 예외를 삼키고 루프만 조용히 멈춤. 직접 잡아 남김.
+            try
+            {
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    // 세션을 나가면 클라이언트 월드가 Dispose 됨. 캐시한 쿼리를 더 쓰면 안 됨.
+                    if (hasQueries && !ClientWorldScope.IsAlive(clientWorld)) hasQueries = false;
 
-            UpdateHUD();
+                    UpdateHUD();
 
-            if (!hasQueries) return;
+                    if (hasQueries)
+                    {
+                        UpdateDisconnectedUI();
 
-            UpdateDisconnectedUI();
-            UpdateRespawnUI();
-            UpdateGameMenuUI();
+                        // `UpdateDisconnectedUI`가 세션을 끝냈으면 쿼리가 이미 죽어 있음.
+                        if (hasQueries)
+                        {
+                            UpdateRespawnUI();
+                            UpdateGameMenuUI();
+                        }
+                    }
+
+                    await Awaitable.NextFrameAsync(cancellationToken);
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // 오브젝트가 파괴되어 멈춤. 정상 종료.
+            }
+            catch (Exception e)
+            {
+                DebugLog.LogError(e.ToString(), this);
+            }
         }
 
         // 인게임에서만 HUD 표시. 뷰 스크립트는 계속 돌도록 캔버스만 끔.
@@ -264,6 +291,9 @@ namespace GalaxyIO.Main
             isQuitting = true;
             ClientNetworkRequestManager.RequestQuit();
             CloseGameMenu();
+
+            // `Leave`는 첫 await 전에 월드를 버림. 이 줄 뒤로 캐시한 쿼리는 전부 무효.
+            hasQueries = false;
 
             // 월드를 버리고 로비 씬으로 돌아감. 호스트였다면 서버도 함께 닫힘.
             _ = GameSession.Leave();
