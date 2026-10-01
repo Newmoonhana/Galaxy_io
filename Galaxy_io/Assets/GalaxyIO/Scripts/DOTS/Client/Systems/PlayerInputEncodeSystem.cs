@@ -1,5 +1,4 @@
 ﻿using GalaxyIO.DOTS.Client.Authoring;
-using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Actor;
 using Unity.Entities;
@@ -31,14 +30,11 @@ namespace GalaxyIO.DOTS.Client.Systems
 
         private bool initialized;
 
-        private EntityQuery menuOpenQuery;
-
         protected override void OnCreate()
         {
             RequireForUpdate<PlayerInputComponent>();
             RequireForUpdate<GhostOwnerIsLocal>();
-
-            menuOpenQuery = GetEntityQuery(ComponentType.ReadOnly<GameMenuOpenTag>());
+            RequireForUpdate<PlayerStateComponent>();
         }
 
         protected override void OnStartRunning()
@@ -82,11 +78,13 @@ namespace GalaxyIO.DOTS.Client.Systems
 
         protected override void OnUpdate()
         {
-            bool menuOpen = !menuOpenQuery.IsEmpty;
+            // 게임 메뉴, 인벤토리 중 하나라도 열려 있으면 조작을 막음.
+            PlayerStateComponent playerState = SystemAPI.GetSingleton<PlayerStateComponent>();
+            bool menuOpen = playerState.GameMenuOpened || playerState.InventoryOpened;
 
             foreach (var (playerInput, transform) in SystemAPI.Query<RefRW<PlayerInputComponent>, RefRO<LocalTransform>>().WithAll<GhostOwnerIsLocal>())
             {
-                // Unfocused 상태, 게임 메뉴가 열린 동안엔 움직이지 않음.
+                // Unfocused 상태, 메뉴가 열린 동안엔 움직이지 않음.
                 if (!Application.isFocused || menuOpen)
                 {
                     playerInput.ValueRW.MouseCursor = transform.ValueRO.Position.xy;
@@ -106,7 +104,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                     playerInput.ValueRW.MoveArrows = new float2(arrowMovement.x, arrowMovement.y);
                 }
 
-                // 게임 메뉴가 열린 동안엔 발사/가속도 막음.
+                // 메뉴가 열린 동안엔 발사/가속도 막음.
                 bool firePressed = !menuOpen && turretAction.ReadValue<float>() > 0.0F;
                 playerInput.ValueRW.TurretTriggered = firePressed;
 

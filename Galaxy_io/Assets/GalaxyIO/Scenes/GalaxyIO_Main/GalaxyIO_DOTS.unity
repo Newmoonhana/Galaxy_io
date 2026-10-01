@@ -246,6 +246,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.ItemConfigAuthoring
   PickupSound: {fileID: 8300000, guid: 0c872ab64287bf04988f5ec31fbec7ee, type: 3}
+  PlayerSlotDropChance: 0.5
+  PlayerStackDropChance: 0.5
 --- !u!1 &1598268223
 GameObject:
   m_ObjectHideFlags: 0

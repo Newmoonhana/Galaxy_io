@@ -12,6 +12,16 @@ namespace GalaxyIO.DOTS.Authoring.Config
         [SerializeField]
         [Tooltip("아이템을 주웠을 때 재생할 효과음. 비워두면 소리 없음.")]
         public AudioClip PickupSound;
+
+        [SerializeField]
+        [Tooltip("플레이어가 파괴될 때 인벤토리 칸마다 그 칸을 떨어뜨릴 확률")]
+        [Range(0.0F, 1.0F)]
+        public float PlayerSlotDropChance = 0.5F;
+
+        [SerializeField]
+        [Tooltip("떨어뜨릴 칸의 아이템 하나하나가 실제로 떨어질 확률. 나머지는 사라짐.")]
+        [Range(0.0F, 1.0F)]
+        public float PlayerStackDropChance = 0.5F;
     }
 
     public sealed class ItemConfigBaker : Baker<ItemConfigAuthoring>
@@ -22,7 +32,9 @@ namespace GalaxyIO.DOTS.Authoring.Config
 
             AddComponent(entity, new ItemConfigComponent
             {
-                PickupSound = authoring.PickupSound,
+                PickupSound           = authoring.PickupSound,
+                PlayerSlotDropChance  = authoring.PlayerSlotDropChance,
+                PlayerStackDropChance = authoring.PlayerStackDropChance,
             });
         }
     }

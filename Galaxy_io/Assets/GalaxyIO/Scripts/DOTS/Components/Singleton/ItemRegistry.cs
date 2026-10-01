@@ -16,6 +16,11 @@ namespace GalaxyIO.DOTS.Components.Singleton
 
         // 스프라이트에 맞춘 줍기 충돌체 (반너비, 반높이)
         public float2 HalfExtents;
+
+        public ItemType Type;
+
+        // 인벤토리 한 칸에 쌓을 수 있는 최대 개수 (1 ~ 255)
+        public byte MaxStack;
     }
 
     public static class ItemRegistry

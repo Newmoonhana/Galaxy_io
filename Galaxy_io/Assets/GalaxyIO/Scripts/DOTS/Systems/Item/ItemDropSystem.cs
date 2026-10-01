@@ -12,8 +12,9 @@ using Random = Unity.Mathematics.Random;
 namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
-    /// 체력이 0이 된 우주선의 드랍 테이블을 굴려 아이템 Entity 를 스폰하는 시스템.
-    /// 플레이어가 막타나 어시스트를 했을 때만 떨어뜨림.
+    /// 체력이 0이 된 우주선에서 아이템 Entity 를 스폰하는 시스템.
+    /// 적은 드랍 테이블을 굴리고, 플레이어가 막타나 어시스트를 했을 때만 떨어뜨림.
+    /// 플레이어는 인벤토리 일부를 떨어뜨림.
     /// </summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
@@ -21,15 +22,26 @@ namespace GalaxyIO.DOTS.Systems
     [UpdateBefore(typeof(SpaceshipDeathSystem))]
     public partial struct ItemDropSystem : ISystem
     {
+        private struct Drop
+        {
+            public ItemId Id;
+            public int Count;
+            public float3 Position;
+        }
+
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<NetworkTime>();
             state.RequireForUpdate<PrefabRegistryElement>();
             state.RequireForUpdate<ItemRegistryElement>();
-            state.RequireForUpdate(
+            state.RequireForUpdate<ItemConfigComponent>();
+            state.RequireAnyForUpdate(
                 SystemAPI.QueryBuilder()
                     .WithAll<SpaceshipSpecComponent, LocalTransform, DropTableComponent, KillingBlowComponent, DamageRecordElement>()
+                    .Build(),
+                SystemAPI.QueryBuilder()
+                    .WithAll<SpaceshipSpecComponent, LocalTransform, InventorySlotElement>()
                     .Build()
             );
         }
@@ -48,17 +60,13 @@ namespace GalaxyIO.DOTS.Systems
             }
 
             DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetSingletonBuffer<ItemRegistryElement>(true);
-
-            // 프리팹의 설정값과 회전/크기는 그대로 쓰고 아이템 종류, 속도, 튕김, 위치만 바꿈.
-            ItemComponent itemTemplate = SystemAPI.GetComponent<ItemComponent>(itemPrefab);
-            ColliderComponent colliderTemplate = SystemAPI.GetComponent<ColliderComponent>(itemPrefab);
-            LocalTransform transformTemplate = SystemAPI.GetComponent<LocalTransform>(itemPrefab);
+            ItemConfigComponent config = SystemAPI.GetSingleton<ItemConfigComponent>();
 
             double time = SystemAPI.Time.ElapsedTime;
             uint tick = SystemAPI.GetSingleton<NetworkTime>().ServerTick.SerializedData;
             var random = Random.CreateFromIndex(tick & 0x7FFFFFFFu);
 
-            var ecb = new EntityCommandBuffer(Allocator.Temp);
+            var drops = new NativeList<Drop>(Allocator.Temp);
 
             foreach (
                 var (spec, transform, dropTable, blow, records) in
@@ -110,35 +118,88 @@ namespace GalaxyIO.DOTS.Systems
 
                     ref DropEntryBlob entry = ref roll.Entries[index];
 
-                    if (!registry.Contains(entry.ItemId))
+                    drops.Add(new Drop
+                    {
+                        Id       = entry.ItemId,
+                        Count    = random.NextInt(entry.MinCount, entry.MaxCount + 1),
+                        Position = transform.ValueRO.Position,
+                    });
+                }
+            }
+
+            // 플레이어: 칸마다 떨어뜨릴지 굴리고, 떨어뜨릴 칸은 아이템 하나하나 남길지 다시 굴림.
+            foreach (
+                var (spec, transform, slots) in
+                SystemAPI.Query<RefRO<SpaceshipSpecComponent>, RefRO<LocalTransform>, DynamicBuffer<InventorySlotElement>>()
+            ) {
+                if (spec.ValueRO.Health > 0.0F)
+                {
+                    continue;
+                }
+
+                for (int i = 0; i < slots.Length; i++)
+                {
+                    if (slots[i].Id == ItemId.None || random.NextFloat() >= config.PlayerSlotDropChance)
                     {
                         continue;
                     }
 
-                    Entity item = ecb.Instantiate(itemPrefab);
+                    int count = 0;
 
-                    itemTemplate.Id       = entry.ItemId;
-                    itemTemplate.Count    = random.NextInt(entry.MinCount, entry.MaxCount + 1);
-                    itemTemplate.Velocity = random.NextFloat2Direction()
-                                            * random.NextFloat(0.5F, 1.0F) * itemTemplate.SlideSpeed;
+                    for (int n = 0; n < slots[i].Count; n++)
+                    {
+                        if (random.NextFloat() < config.PlayerStackDropChance)
+                        {
+                            count++;
+                        }
+                    }
 
-                    // 미끄러지는 쪽으로 구르듯 기울어짐. 오른쪽이면 시계 방향.
-                    itemTemplate.BounceRemaining = itemTemplate.BounceDuration;
-                    itemTemplate.BounceSide = math.dot(itemTemplate.Velocity, new float2(1.0F, 0.0F)) >= 0.0F
-                        ? -1.0F
-                        : 1.0F;
-                    ecb.SetComponent(item, itemTemplate);
-
-                    colliderTemplate.Extents = registry[(int)entry.ItemId].HalfExtents;
-                    ecb.SetComponent(item, colliderTemplate);
-
-                    transformTemplate.Position = transform.ValueRO.Position;
-                    ecb.SetComponent(item, transformTemplate);
+                    if (count > 0)
+                    {
+                        drops.Add(new Drop
+                        {
+                            Id       = slots[i].Id,
+                            Count    = count,
+                            Position = transform.ValueRO.Position,
+                        });
+                    }
                 }
+            }
+
+            // 프리팹의 설정값과 회전/크기는 그대로 쓰고 아이템 종류, 속도, 튕김, 위치만 바꿈.
+            ItemComponent itemTemplate = SystemAPI.GetComponent<ItemComponent>(itemPrefab);
+            ColliderComponent colliderTemplate = SystemAPI.GetComponent<ColliderComponent>(itemPrefab);
+            LocalTransform transformTemplate = SystemAPI.GetComponent<LocalTransform>(itemPrefab);
+
+            var ecb = new EntityCommandBuffer(Allocator.Temp);
+
+            foreach (Drop drop in drops)
+            {
+                if (!registry.Contains(drop.Id))
+                {
+                    continue;
+                }
+
+                Entity item = ecb.Instantiate(itemPrefab);
+
+                itemTemplate.Id    = drop.Id;
+                itemTemplate.Count = drop.Count;
+                itemTemplate.Launch(
+                    random.NextFloat2Direction() * random.NextFloat(0.5F, 1.0F) * itemTemplate.SlideSpeed,
+                    itemTemplate.DropPickupDelay
+                );
+                ecb.SetComponent(item, itemTemplate);
+
+                colliderTemplate.Extents = registry[(int)drop.Id].HalfExtents;
+                ecb.SetComponent(item, colliderTemplate);
+
+                transformTemplate.Position = drop.Position;
+                ecb.SetComponent(item, transformTemplate);
             }
 
             ecb.Playback(state.EntityManager);
             ecb.Dispose();
+            drops.Dispose();
         }
     }
 }

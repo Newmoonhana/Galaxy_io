@@ -52,5 +52,30 @@ namespace GalaxyIO.DOTS.Components.Actor
 
         // 남은 수명(초). 0 이 되면 사라짐.
         public float Lifetime;
+
+        // 남은 줍기 대기 시간(초). 0 이 될 때까지 끌려가지도, 주워지지도 않음.
+        public float PickupDelay;
+
+        // 우주선이 파괴되며 떨어뜨린 아이템의 줍기 대기 시간(초)
+        public float DropPickupDelay;
+
+        // 플레이어가 버린 아이템을 던지는 속력
+        public float ThrowSpeed;
+
+        // 플레이어가 버린 아이템의 줍기 대기 시간(초)
+        public float ThrowPickupDelay;
+
+        /// <summary>
+        /// 주어진 속도로 미끄러뜨리고 미끄러지는 쪽으로 기울게 함. 줍기 대기 시간도 새로 걺.
+        /// </summary>
+        public void Launch(float2 velocity, float pickupDelay)
+        {
+            Velocity = velocity;
+            PickupDelay = pickupDelay;
+
+            // 미끄러지는 쪽으로 구르듯 기울어짐. 오른쪽이면 시계 방향.
+            BounceRemaining = BounceDuration;
+            BounceSide = velocity.x >= 0.0F ? -1.0F : 1.0F;
+        }
     }
 }

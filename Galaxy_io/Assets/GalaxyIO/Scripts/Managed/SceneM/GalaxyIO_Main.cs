@@ -1,6 +1,7 @@
 using System;
 using GalaxyIO.DOTS.Client.Networking;
 using GalaxyIO.DOTS.Client.Components.Message;
+using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Networking;
 using Unity.Collections;
 using GalaxyIO.Tools;
@@ -26,19 +27,23 @@ namespace GalaxyIO.Main
         private InputActionReference menuAction;
 
         [SerializeField]
+        [Tooltip("인벤토리 열기/닫기 (E)")]
+        private InputActionReference inventoryAction;
+
+        [SerializeField]
         [Tooltip("인게임에서만 보이는 HUD 캔버스")]
         private Canvas hud;
 
-        // 파괴된 동안(=리스폰 대기)인지 판별하는 쿼리.
-        private EntityQuery deathQuery;
+        [SerializeField]
+        [Tooltip("씬에 상주하는 인벤토리 화면. 꺼진 채로 두고 토글로 켜고 끔.")]
+        private InventoryScreen inventoryScreen;
+
+        // 로컬 플레이어 상태. 메뉴/인벤토리 열림, 파괴, 접속 실패.
+        private EntityQuery stateQuery;
         // 서버 접속 중(=인게임)인지 판별하는 쿼리.
         private EntityQuery inGameQuery;
-        // 게임 메뉴 태그. 열린 동안 우주선 조작을 막음.
-        private EntityQuery menuOpenQuery;
         // 끊김 사유. 안내창 본문에 표기함.
         private EntityQuery disconnectQuery;
-        // 접속 실패(핸드셰이크 전 끊김) 태그.
-        private EntityQuery connectFailedQuery;
         private bool hasQueries;
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
@@ -61,23 +66,19 @@ namespace GalaxyIO.Main
             _ = AddressableAssetsManager.gameObject_lst.LoadData(respawnUIKey);
             _ = AddressableAssetsManager.gameObject_lst.LoadData(gameMenuUIKey);
 
+            if (inventoryScreen != null) inventoryScreen.AddListener(CloseInventory);
+
             clientWorld = ClientServerBootstrap.ClientWorld;
             if (clientWorld != null)
             {
-                deathQuery = clientWorld.EntityManager.CreateEntityQuery(
-                    ComponentType.ReadOnly<PlayerDeathTag>()
+                stateQuery = clientWorld.EntityManager.CreateEntityQuery(
+                    ComponentType.ReadWrite<PlayerStateComponent>()
                 );
                 inGameQuery = clientWorld.EntityManager.CreateEntityQuery(
                     ComponentType.ReadOnly<NetworkStreamInGame>()
                 );
-                menuOpenQuery = clientWorld.EntityManager.CreateEntityQuery(
-                    ComponentType.ReadOnly<GameMenuOpenTag>()
-                );
                 disconnectQuery = clientWorld.EntityManager.CreateEntityQuery(
                     ComponentType.ReadOnly<ClientDisconnectedMessage>()
-                );
-                connectFailedQuery = clientWorld.EntityManager.CreateEntityQuery(
-                    ComponentType.ReadOnly<PlayerConnectionFailedTag>()
                 );
                 hasQueries = true;
             }
@@ -94,11 +95,13 @@ namespace GalaxyIO.Main
         private void OnEnable()
         {
             menuAction?.action.Enable();
+            inventoryAction?.action.Enable();
         }
 
         private void OnDisable()
         {
             menuAction?.action.Disable();
+            inventoryAction?.action.Disable();
         }
 
         // 종료 버튼 없이 앱을 꺼도 서버에 접속 종료를 알림.
@@ -128,6 +131,7 @@ namespace GalaxyIO.Main
                         {
                             UpdateRespawnUI();
                             UpdateGameMenuUI();
+                            UpdateInventoryUI();
                         }
                     }
 
@@ -157,10 +161,10 @@ namespace GalaxyIO.Main
             hud.enabled = visible;
         }
 
-        // 게임 오버 / 인게임 재시작 전환 감지. PlayerDeathTag 생성·삭제가 기준.
+        // 게임 오버 / 인게임 재시작 전환 감지. PlayerStateComponent.Dead 가 기준.
         private void UpdateRespawnUI()
         {
-            bool dead = !deathQuery.IsEmpty;
+            bool dead = stateQuery.GetSingleton<PlayerStateComponent>().Dead;
             if (dead == (respawnUI != null)) return;
 
             if (dead) OnGameOver();
@@ -176,6 +180,7 @@ namespace GalaxyIO.Main
 
             isGameOver = true;
             CloseGameMenu();
+            CloseInventory();
         }
 
         // 인게임 재시작. 리스폰 창을 치우고 게임 메뉴를 다시 허용.
@@ -197,9 +202,9 @@ namespace GalaxyIO.Main
             if (!inGame) isQuitting = false;
 
             // 접속 자체가 실패한 경우. 인게임에 들어가 본 적이 없으므로 따로 알림.
-            if (!connectFailedQuery.IsEmpty)
+            if (stateQuery.GetSingleton<PlayerStateComponent>().ConnectionFailed)
             {
-                ClientServerBootstrap.ClientWorld.EntityManager.DestroyEntity(connectFailedQuery);
+                stateQuery.GetSingletonRW<PlayerStateComponent>().ValueRW.ConnectionFailed = false;
 
                 // 안내는 로비로 돌아간 뒤 로비 화면 위에 띄움. 여기서는 바로 내려감.
                 LobbyReturn.SetNotice(L10n.Get("GameStart/FailedTitle"), L10n.Get("GameStart/Unreachable"));
@@ -260,6 +265,13 @@ namespace GalaxyIO.Main
 
             if (menuAction == null || !menuAction.action.WasPressedThisFrame()) return;
 
+            // 인벤토리가 열려 있으면 ESC 는 인벤토리만 닫음.
+            if (inventoryScreen != null && inventoryScreen.gameObject.activeSelf)
+            {
+                CloseInventory();
+                return;
+            }
+
             if (gameMenuUI == null) OpenGameMenu();
             else CloseGameMenu();
         }
@@ -270,7 +282,7 @@ namespace GalaxyIO.Main
             gameMenuUI = Instantiate(prefab).GetComponent<GameMenuUI>();
             gameMenuUI.AddListener(CloseGameMenu, QuitGame);
 
-            ClientServerBootstrap.ClientWorld.EntityManager.CreateEntity(typeof(GameMenuOpenTag));
+            stateQuery.GetSingletonRW<PlayerStateComponent>().ValueRW.GameMenuOpened = true;
         }
 
         private void CloseGameMenu()
@@ -280,7 +292,41 @@ namespace GalaxyIO.Main
             Destroy(gameMenuUI.gameObject);
             gameMenuUI = null;
 
-            ClientServerBootstrap.ClientWorld.EntityManager.DestroyEntity(menuOpenQuery);
+            stateQuery.GetSingletonRW<PlayerStateComponent>().ValueRW.GameMenuOpened = false;
+        }
+
+        // E로 인벤토리 토글. 인게임에서 게임 메뉴가 닫혀 있을 때만 열림.
+        private void UpdateInventoryUI()
+        {
+            // 접속이 끊기면 인벤토리도 닫음.
+            if (inGameQuery.IsEmpty)
+            {
+                CloseInventory();
+                return;
+            }
+
+            if (isGameOver || gameMenuUI != null) return;
+
+            if (inventoryScreen == null || inventoryAction == null || !inventoryAction.action.WasPressedThisFrame()) return;
+
+            if (!inventoryScreen.gameObject.activeSelf) OpenInventory();
+            else CloseInventory();
+        }
+
+        private void OpenInventory()
+        {
+            inventoryScreen.gameObject.SetActive(true);
+
+            stateQuery.GetSingletonRW<PlayerStateComponent>().ValueRW.InventoryOpened = true;
+        }
+
+        private void CloseInventory()
+        {
+            if (inventoryScreen == null || !inventoryScreen.gameObject.activeSelf) return;
+
+            inventoryScreen.gameObject.SetActive(false);
+
+            stateQuery.GetSingletonRW<PlayerStateComponent>().ValueRW.InventoryOpened = false;
         }
 
         /// <summary>
@@ -291,6 +337,7 @@ namespace GalaxyIO.Main
             isQuitting = true;
             ClientNetworkRequestManager.RequestQuit();
             CloseGameMenu();
+            CloseInventory();
 
             // `Leave`는 첫 await 전에 월드를 버림. 이 줄 뒤로 캐시한 쿼리는 전부 무효.
             hasQueries = false;

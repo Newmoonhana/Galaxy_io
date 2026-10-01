@@ -1,4 +1,5 @@
 ﻿using GalaxyIO.DOTS.Client.Components.Message;
+using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.DOTS.Components.Singleton;
@@ -12,7 +13,7 @@ using Unity.Transforms;
 namespace GalaxyIO.DOTS.Client.Systems
 {
     /// <summary>
-    /// 우주선 파괴 알림을 받아 폭발 연출/효과음을 스폰하고 리스폰 창 태그를 남기는 시스템.
+    /// 우주선 파괴 알림을 받아 폭발 연출/효과음을 스폰하고 리스폰 창 상태를 켜는 시스템.
     /// </summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
@@ -24,6 +25,7 @@ namespace GalaxyIO.DOTS.Client.Systems
             state.RequireForUpdate<NetworkId>();
             state.RequireForUpdate<PrefabRegistryElement>();
             state.RequireForUpdate<SpaceshipDestroyedRPC>();
+            state.RequireForUpdate<PlayerStateComponent>();
         }
 
         [BurstCompile]
@@ -73,8 +75,7 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                 if (destroyed.ValueRO.OwnerNetworkId == localNetworkId)
                 {
-                    Entity death = ecb.CreateEntity();
-                    ecb.AddComponent<PlayerDeathTag>(death);
+                    SystemAPI.GetSingletonRW<PlayerStateComponent>().ValueRW.Dead = true;
                 }
 
                 ecb.DestroyEntity(rpcEntity);

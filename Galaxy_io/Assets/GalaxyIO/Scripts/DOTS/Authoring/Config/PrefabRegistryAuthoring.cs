@@ -125,6 +125,8 @@ namespace GalaxyIO.DOTS.Authoring.Config
                 {
                     Sprite      = item.Sprite,
                     HalfExtents = new float2(extents.x, extents.y),
+                    Type        = item.Type,
+                    MaxStack    = (byte)math.clamp(item.Stacking, 1, byte.MaxValue),
                 };
             }
         }

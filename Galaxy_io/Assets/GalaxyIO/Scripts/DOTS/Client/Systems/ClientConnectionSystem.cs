@@ -1,4 +1,5 @@
 ﻿using GalaxyIO.DOTS.Client.Components.Message;
+using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Message;
 using Unity.Collections;
 using Unity.Entities;
@@ -21,6 +22,7 @@ namespace GalaxyIO.DOTS.Client.Systems
             // 게임 시작을 누르기 전에는 동작하지 않음.
             state.RequireForUpdate<PlayerSpawnRequest>();
             state.RequireForUpdate<NetworkStreamDriver>();
+            state.RequireForUpdate<PlayerStateComponent>();
 
             connectionQuery = state.GetEntityQuery(ComponentType.ReadOnly<NetworkStreamConnection>());
             requestQuery = state.GetEntityQuery(ComponentType.ReadOnly<PlayerSpawnRequest>());
@@ -30,7 +32,7 @@ namespace GalaxyIO.DOTS.Client.Systems
         {
             PlayerSpawnRequest request = requestQuery.GetSingleton<PlayerSpawnRequest>();
 
-            // Handshake 전에 끊긴 접속은 접속 실패. 요청을 버리고 실패 태그를 남김.
+            // Handshake 전에 끊긴 접속은 접속 실패. 요청을 버리고 실패 상태를 켬.
             foreach (NetCodeConnectionEvent connectionEvent in SystemAPI.GetSingleton<NetworkStreamDriver>().ConnectionEventsForTick)
             {
                 if (connectionEvent.State != ConnectionState.State.Disconnected || connectionEvent.Id.Value != 0)
@@ -40,8 +42,7 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                 state.EntityManager.DestroyEntity(requestQuery);
 
-                Entity failed = state.EntityManager.CreateEntity();
-                state.EntityManager.AddComponent<PlayerConnectionFailedTag>(failed);
+                SystemAPI.GetSingletonRW<PlayerStateComponent>().ValueRW.ConnectionFailed = true;
 
                 return;
             }

@@ -1,8 +1,10 @@
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Message;
+using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.NetCode;
 using Unity.Transforms;
 
@@ -21,12 +23,14 @@ namespace GalaxyIO.DOTS.Systems
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<ItemComponent>();
+            state.RequireForUpdate<ItemRegistryElement>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             float deltaTime = SystemAPI.Time.DeltaTime;
+            DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetSingletonBuffer<ItemRegistryElement>(true);
 
             // NetworkId -> 접속
             var connections = new NativeHashMap<int, Entity>(4, Allocator.Temp);
@@ -48,43 +52,31 @@ namespace GalaxyIO.DOTS.Systems
                     .WithEntityAccess()
             ) {
                 item.ValueRW.Lifetime -= deltaTime;
+                item.ValueRW.PickupDelay = math.max(item.ValueRO.PickupDelay - deltaTime, 0.0F);
 
-                // 동시에 닿았으면 버퍼 맨 앞 플레이어가 주움.
-                Entity picker = Entity.Null;
-
-                for (int i = 0; i < overlaps.Length; i++)
+                // 동시에 닿았으면 버퍼 앞쪽 플레이어부터 주움. 인벤토리가 차면 다음 플레이어에게 넘어감.
+                for (int i = 0; i < overlaps.Length && item.ValueRO.Count > 0 && item.ValueRO.PickupDelay <= 0.0F; i++)
                 {
-                    if (overlaps[i].Contact && SystemAPI.HasBuffer<InventoryItemElement>(overlaps[i].Message.Other))
-                    {
-                        picker = overlaps[i].Message.Other;
-                        break;
-                    }
-                }
+                    Entity picker = overlaps[i].Message.Other;
 
-                if (picker != Entity.Null)
-                {
-                    DynamicBuffer<InventoryItemElement> inventory = SystemAPI.GetBuffer<InventoryItemElement>(picker);
-                    int slot = -1;
-
-                    for (int i = 0; i < inventory.Length; i++)
+                    if (!overlaps[i].Contact || !SystemAPI.HasBuffer<InventorySlotElement>(picker))
                     {
-                        if (inventory[i].Id == item.ValueRO.Id)
-                        {
-                            slot = i;
-                            break;
-                        }
+                        continue;
                     }
 
-                    if (slot < 0)
+                    int inserted = Inventory.Insert(
+                        SystemAPI.GetBuffer<InventorySlotElement>(picker),
+                        registry,
+                        item.ValueRO.Id,
+                        item.ValueRO.Count
+                    );
+
+                    if (inserted == 0)
                     {
-                        inventory.Add(new InventoryItemElement { Id = item.ValueRO.Id, Count = item.ValueRO.Count });
+                        continue;
                     }
-                    else
-                    {
-                        InventoryItemElement stack = inventory[slot];
-                        stack.Count += item.ValueRO.Count;
-                        inventory[slot] = stack;
-                    }
+
+                    item.ValueRW.Count -= inserted;
 
                     // 줍기 효과음은 주운 본인만 들음.
                     if (SystemAPI.HasComponent<GhostOwner>(picker)
@@ -95,10 +87,10 @@ namespace GalaxyIO.DOTS.Systems
                         ecb.AddComponent(rpcEntity, new ItemPickedUpRPC { Position = transform.ValueRO.Position.xy });
                         ecb.AddComponent(rpcEntity, new SendRpcCommandRequest { TargetConnection = target });
                     }
-
-                    ecb.DestroyEntity(entity);
                 }
-                else if (item.ValueRO.Lifetime <= 0.0F)
+
+                // 다 들어가지 못한 나머지는 월드에 남음.
+                if (item.ValueRO.Count <= 0 || item.ValueRO.Lifetime <= 0.0F)
                 {
                     ecb.DestroyEntity(entity);
                 }
