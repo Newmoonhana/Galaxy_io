@@ -1,4 +1,5 @@
 ﻿using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Singleton;
 using System.Collections.Generic;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -60,8 +61,11 @@ namespace GalaxyIO.DOTS.Authoring
 
         [Header("Turrets")]
 
-        // 터렛 List
-        public List<Transform> Turrets;
+        // 총구 위치. 포탑 사양이 이 순서대로 적용됨.
+        public List<Transform> Muzzles;
+
+        // 장착한 채로 시작하는 포탑. 아이템 레지스트리에 등록된 포탑이어야 함.
+        public TurretItemAsset Turret;
     }
 
     public sealed class SpaceshipBaker : Baker<SpaceshipAuthoring>
@@ -97,11 +101,19 @@ namespace GalaxyIO.DOTS.Authoring
 
             AddComponent<CrashSoundCooldownComponent>(entity);
 
-            // 투사체는 GameObject가 아닌 Entity 참조로 저장됨.
-            foreach (Transform t in authoring.Turrets)
-            {
-                TurretAuthoring turretAuthoring = t.GetComponent<TurretAuthoring>();
+            DependsOn(authoring.Turret);
 
+            ItemId turret = authoring.Turret != null ? authoring.Turret.Id : ItemId.None;
+
+            if (authoring.Turret != null && turret == ItemId.None)
+            {
+                Debug.LogWarning($"Spaceship: 포탑 Id 가 None 이라 장착할 수 없음. ({authoring.Turret})", authoring);
+            }
+
+            AddComponent(entity, new EquippedTurretComponent { Value = turret });
+
+            foreach (Transform t in authoring.Muzzles)
+            {
                 buffer.Add(new TurretElement
                 {
                     MuzzleLocation = LocalTransform.FromPositionRotationScale(
@@ -109,12 +121,7 @@ namespace GalaxyIO.DOTS.Authoring
                         t.localRotation,
                         t.localScale.x
                     ),
-                    FireCooldown     = 0.0F,
-                    MaxFireCooldown  = (turretAuthoring == null || turretAuthoring.Projectile == null) ? 0.0F : 1.0F / turretAuthoring.RPS,
-                    Spread           = (turretAuthoring == null || turretAuthoring.Projectile == null) ? 0.0F : (1.0F - turretAuthoring.Accuracy) * math.TORADIANS * 90.0F,
-                    ProjectilePrefab = (turretAuthoring == null || turretAuthoring.Projectile == null)
-                        ? Entity.Null : GetEntity(turretAuthoring.Projectile, TransformUsageFlags.Dynamic),
-                    ShotSound        = turretAuthoring == null ? default : turretAuthoring.ShotSound,
+                    FireCooldown = 0.0F,
                 });
             }
         }

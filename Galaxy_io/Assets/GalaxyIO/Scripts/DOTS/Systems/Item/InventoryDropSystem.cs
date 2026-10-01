@@ -13,7 +13,7 @@ namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
     /// <see cref="InventoryDropRPC"/>를 받아 요청한 플레이어 인벤토리 한 칸에서 아이템을 꺼내
-    /// 기수 방향으로 던지는 시스템.
+    /// 기수 방향으로 던지는 시스템. 포탑 칸에서 던지면 장착 포탑도 뺌.
     /// </summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
@@ -34,7 +34,9 @@ namespace GalaxyIO.DOTS.Systems
                 .GetSingletonBuffer<PrefabRegistryElement>(true)
                 .Find(PrefabId.ItemEntity);
 
-            DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetSingletonBuffer<ItemRegistryElement>(true);
+            Entity registryEntity = SystemAPI.GetSingletonEntity<ItemRegistryElement>();
+            DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetBuffer<ItemRegistryElement>(registryEntity);
+            DynamicBuffer<TurretSpecElement> specs = SystemAPI.GetBuffer<TurretSpecElement>(registryEntity);
 
             // NetworkId -> 우주선
             var ships = new NativeHashMap<int, Entity>(4, Allocator.Temp);
@@ -102,6 +104,17 @@ namespace GalaxyIO.DOTS.Systems
                 }
 
                 slots[index] = slot;
+
+                if (slot.Type == SlotType.Turret)
+                {
+                    TurretEquip.Refresh(
+                        slots,
+                        registry,
+                        specs,
+                        ref SystemAPI.GetComponentRW<EquippedTurretComponent>(ship).ValueRW,
+                        SystemAPI.GetBuffer<TurretElement>(ship)
+                    );
+                }
             }
 
             ecb.Playback(state.EntityManager);

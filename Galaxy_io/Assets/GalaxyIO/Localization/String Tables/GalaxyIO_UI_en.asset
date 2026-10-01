@@ -287,6 +287,62 @@ MonoBehaviour:
     m_Localized: Resume
     m_Metadata:
       m_Items: []
+  - m_Id: 2300000000000001
+    m_Localized: Upgrade Module
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000002
+    m_Localized: Bore Blueprint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000003
+    m_Localized: Brakkar Blueprint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000004
+    m_Localized: Pyron Blueprint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000005
+    m_Localized: Raptor Blueprint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000006
+    m_Localized: Veylance Blueprint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000007
+    m_Localized: Vraxx Blueprint
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000008
+    m_Localized: Bore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000009
+    m_Localized: Brakkar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000010
+    m_Localized: Pyron
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000011
+    m_Localized: Raptor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000012
+    m_Localized: Veylance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000013
+    m_Localized: Vraxx
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000014
+    m_Localized: Corsair Turret
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

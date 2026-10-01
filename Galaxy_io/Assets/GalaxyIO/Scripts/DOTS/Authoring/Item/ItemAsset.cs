@@ -7,7 +7,7 @@ namespace GalaxyIO.DOTS.Authoring
     /// 아이템 정의. <see cref="Config.ItemRegistryAsset"/>에 등록해야 게임에 나타남.
     /// </summary>
     [CreateAssetMenu(fileName = "SO_Item", menuName = "GalaxyIO/Item")]
-    public sealed class ItemAsset : ScriptableObject
+    public class ItemAsset : ScriptableObject
     {
         [SerializeField]
         [Tooltip("코드와 네트워크가 이 아이템을 가리키는 키")]

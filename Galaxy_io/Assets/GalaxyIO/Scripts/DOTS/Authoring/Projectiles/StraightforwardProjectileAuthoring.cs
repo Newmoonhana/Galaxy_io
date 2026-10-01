@@ -31,7 +31,6 @@ namespace GalaxyIO.DOTS.Authoring
             AddComponent(entity, new SharedProjectileComponent
             {
                 Lifetime = authoring.Lifetime,
-                Damage = authoring.Damage,
             });
 
             AddComponent(entity, new StraightforwardProjectileComponent

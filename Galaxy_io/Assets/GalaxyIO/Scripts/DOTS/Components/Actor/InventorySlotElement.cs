@@ -58,6 +58,55 @@ namespace GalaxyIO.DOTS.Components.Actor
         }
 
         /// <summary>
+        /// 모든 칸에 든 같은 아이템 개수의 합.
+        /// </summary>
+        public static int Count(DynamicBuffer<InventorySlotElement> slots, ItemId id)
+        {
+            int count = 0;
+
+            for (int i = 0; i < slots.Length; i++)
+            {
+                if (slots[i].Id == id)
+                {
+                    count += slots[i].Count;
+                }
+            }
+
+            return count;
+        }
+
+        /// <summary>
+        /// 앞 칸부터 같은 아이템을 최대 count 개 꺼냄. 꺼낸 개수를 반환.
+        /// </summary>
+        public static int Remove(DynamicBuffer<InventorySlotElement> slots, ItemId id, int count)
+        {
+            int remaining = count;
+
+            for (int i = 0; i < slots.Length && remaining > 0; i++)
+            {
+                InventorySlotElement slot = slots[i];
+
+                if (slot.Id != id)
+                {
+                    continue;
+                }
+
+                int removed = math.min(remaining, slot.Count);
+                slot.Count -= (byte)removed;
+
+                if (slot.Count == 0)
+                {
+                    slot.Id = ItemId.None;
+                }
+
+                slots[i] = slot;
+                remaining -= removed;
+            }
+
+            return count - remaining;
+        }
+
+        /// <summary>
         /// 같은 아이템 칸을 먼저 채우고 남으면 빈 일반 칸에 넣음. 넣은 개수를 반환.
         /// </summary>
         public static int Insert(

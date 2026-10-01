@@ -13,7 +13,7 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 남은 생명 주기
         public float Lifetime;
 
-        // 공격력
+        // 공격력. 발사할 때 포탑 사양에서 채움.
         public float Damage;
 
         // 이 투사체를 발사한 우주선. 자기가 쏜 탄에 맞지 않도록 판정에서 건너뜀.
@@ -21,7 +21,7 @@ namespace GalaxyIO.DOTS.Components.Actor
         [GhostField]
         public Entity Owner;
 
-        // 발사한 터렛의 Owner 버퍼 인덱스. 클라이언트가 발사음을 찾는 데 씀.
+        // 발사한 총구 번호. 클라이언트가 Owner 의 장착 포탑에서 발사음을 찾는 데 씀.
         [GhostField]
         public byte TurretIndex;
 

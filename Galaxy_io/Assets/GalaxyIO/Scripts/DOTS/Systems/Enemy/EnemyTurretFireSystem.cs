@@ -1,4 +1,5 @@
 ﻿using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.DOTS.Spaceship;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -11,6 +12,7 @@ namespace GalaxyIO.DOTS.Systems
     /// <summary>
     /// AI 의 대상을 향해 터렛 투사체를 생성하는 시스템.
     /// 터렛 RPS 위에 <see cref="EnemyTurretComponent"/>의 사격/휴식 주기를 얹음.
+    /// 총구 사양은 <see cref="EquippedTurretComponent"/>의 포탑에서 찾음.
     /// </summary>
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(SpawnSystemGroup))]
@@ -20,11 +22,16 @@ namespace GalaxyIO.DOTS.Systems
         {
             state.RequireForUpdate<NetworkTime>();
             state.RequireForUpdate<EnemyTurretComponent>();
+            state.RequireForUpdate<ItemRegistryElement>();
             state.RequireForUpdate<EndPredictedSimulationEntityCommandBufferSystem.Singleton>();
         }
 
         public void OnUpdate(ref SystemState state)
         {
+            Entity registryEntity = SystemAPI.GetSingletonEntity<ItemRegistryElement>();
+            DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetBuffer<ItemRegistryElement>(registryEntity);
+            DynamicBuffer<TurretSpecElement> specs = SystemAPI.GetBuffer<TurretSpecElement>(registryEntity);
+
             float deltaTime = SystemAPI.Time.DeltaTime;
             uint tick = SystemAPI.GetSingleton<NetworkTime>().ServerTick.SerializedData;
 
@@ -32,12 +39,13 @@ namespace GalaxyIO.DOTS.Systems
             var commandBuffer = new EntityCommandBuffer();
 
             foreach (
-                var (transform, movement, perception, enemyTurret, turrets, spaceship) in
+                var (transform, movement, perception, enemyTurret, equipped, turrets, spaceship) in
                     SystemAPI.Query<
                         RefRO<LocalTransform>,
                         RefRO<SpaceshipMovementComponent>,
                         RefRO<EnemyPerceptionComponent>,
                         RefRW<EnemyTurretComponent>,
+                        RefRO<EquippedTurretComponent>,
                         DynamicBuffer<TurretElement>
                     >().WithAll<Simulate>().WithEntityAccess()
             ) {
@@ -59,9 +67,10 @@ namespace GalaxyIO.DOTS.Systems
                 for (int i = 0; i < turrets.Length; i++)
                 {
                     ref TurretElement turret = ref turrets.ElementAt(i);
+                    TurretSpecElement spec = registry.GetTurretSpec(specs, equipped.ValueRO.Value, i);
 
                     // 투사체가 없는 터렛
-                    if (turret.ProjectilePrefab == Entity.Null)
+                    if (spec.ProjectilePrefab == Entity.Null)
                     {
                         continue;
                     }
@@ -88,16 +97,16 @@ namespace GalaxyIO.DOTS.Systems
                     LocalTransform muzzleTransform = transform.ValueRO.TransformTransform(turret.MuzzleLocation);
 
                     // 탄퍼짐
-                    if (turret.Spread > 0.0F)
+                    if (spec.Spread > 0.0F)
                     {
-                        float halfSpread = turret.Spread * 0.5F;
+                        float halfSpread = spec.Spread * 0.5F;
                         var random = Random.CreateFromIndex(
                             math.hash(new uint3((uint)spaceship.Index, tick, (uint)i)) & 0x7FFFFFFFu
                         );
                         muzzleTransform = muzzleTransform.RotateZ(random.NextFloat(-halfSpread, halfSpread));
                     }
 
-                    Entity projectile = commandBuffer.Instantiate(turret.ProjectilePrefab);
+                    Entity projectile = commandBuffer.Instantiate(spec.ProjectilePrefab);
                     commandBuffer.SetComponent(projectile, muzzleTransform);
 
                     // 적 우주선과 같은 소유자 -1. 플레이어 NetworkId(1부터)와 겹치지 않음.
@@ -108,17 +117,18 @@ namespace GalaxyIO.DOTS.Systems
                     commandBuffer.SetComponent(projectile, SystemAPI.GetComponent<FactionComponent>(spaceship));
 
                     // 서버가 직접 쏘므로 되감을 보간 지연이 없음.
-                    var shared = SystemAPI.GetComponent<SharedProjectileComponent>(turret.ProjectilePrefab);
+                    var shared = SystemAPI.GetComponent<SharedProjectileComponent>(spec.ProjectilePrefab);
                     shared.Owner = spaceship;
                     shared.TurretIndex = (byte)i;
+                    shared.Damage = spec.Damage;
                     shared.InterpolationDelay = 0;
                     commandBuffer.SetComponent(projectile, shared);
 
                     // 기수 방향으로 나가는 직진 투사체는 우주선의 속력을 물려받음.
-                    if (SystemAPI.HasComponent<StraightforwardProjectileComponent>(turret.ProjectilePrefab))
+                    if (SystemAPI.HasComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab))
                     {
                         var straightforward =
-                            SystemAPI.GetComponent<StraightforwardProjectileComponent>(turret.ProjectilePrefab);
+                            SystemAPI.GetComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab);
 
                         if (straightforward.ReflectOwnerVelocity)
                         {
@@ -127,7 +137,7 @@ namespace GalaxyIO.DOTS.Systems
                         }
                     }
 
-                    turret.FireCooldown = turret.MaxFireCooldown;
+                    turret.FireCooldown = spec.MaxFireCooldown;
                 }
             }
         }

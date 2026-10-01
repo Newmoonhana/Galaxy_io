@@ -128,6 +128,7 @@ namespace GalaxyIO.DOTS.Systems
             }
 
             // 플레이어: 칸마다 떨어뜨릴지 굴리고, 떨어뜨릴 칸은 아이템 하나하나 남길지 다시 굴림.
+            // 장착한 포탑(포탑 칸)은 떨어뜨리지 않음.
             foreach (
                 var (spec, transform, slots) in
                 SystemAPI.Query<RefRO<SpaceshipSpecComponent>, RefRO<LocalTransform>, DynamicBuffer<InventorySlotElement>>()
@@ -139,7 +140,9 @@ namespace GalaxyIO.DOTS.Systems
 
                 for (int i = 0; i < slots.Length; i++)
                 {
-                    if (slots[i].Id == ItemId.None || random.NextFloat() >= config.PlayerSlotDropChance)
+                    if (slots[i].Id == ItemId.None
+                        || slots[i].Type == SlotType.Turret
+                        || random.NextFloat() >= config.PlayerSlotDropChance)
                     {
                         continue;
                     }
