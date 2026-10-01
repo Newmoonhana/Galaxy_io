@@ -11,5 +11,11 @@ namespace GalaxyIO.DOTS.Components.Singleton
     {
         // 아이템을 주웠을 때 재생할 효과음. 클라이언트만 씀.
         public UnityObjectRef<AudioClip> PickupSound;
+
+        // 플레이어가 파괴될 때 인벤토리 칸마다 그 칸을 떨어뜨릴 확률. 서버만 씀.
+        public float PlayerSlotDropChance;
+
+        // 떨어뜨릴 칸의 아이템 하나하나가 실제로 떨어질 확률. 서버만 씀.
+        public float PlayerStackDropChance;
     }
 }

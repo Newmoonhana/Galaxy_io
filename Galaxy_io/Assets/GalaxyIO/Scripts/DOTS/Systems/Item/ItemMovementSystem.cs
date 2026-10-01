@@ -56,7 +56,8 @@ namespace GalaxyIO.DOTS.Systems
 
             int index = -1;
 
-            for (int i = 0; i < overlaps.Length; i++)
+            // 줍기 대기 중에는 끌려가지 않고 미끄러지기만 함.
+            for (int i = 0; i < overlaps.Length && item.PickupDelay <= 0.0F; i++)
             {
                 if (overlaps[i].Message.Other == item.Target)
                 {
@@ -65,7 +66,7 @@ namespace GalaxyIO.DOTS.Systems
                 }
             }
 
-            if (index < 0 && overlaps.Length > 0)
+            if (index < 0 && overlaps.Length > 0 && item.PickupDelay <= 0.0F)
             {
                 index = 0;
             }

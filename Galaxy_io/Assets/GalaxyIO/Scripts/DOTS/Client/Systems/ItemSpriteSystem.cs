@@ -3,6 +3,7 @@ using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace GalaxyIO.DOTS.Client.Systems
 {
@@ -16,8 +17,8 @@ namespace GalaxyIO.DOTS.Client.Systems
     {
         private const int MaxLayers = 4;
 
-        // 뒷장이 앞장에서 비껴나는 정도. 스프라이트 크기 대비 비율.
-        private static readonly Vector2 LayerOffset = new Vector2(0.12F, 0.12F);
+        // 뒷장이 앞장에서 비껴나는 정도. 스프라이트 크기 대비 비율. 오른쪽 아래로 쌓임.
+        private static readonly Vector2 LayerOffset = new Vector2(0.125F, -0.125F);
 
         // 뒷장으로 갈수록 한 장마다 곱하는 밝기
         private const float LayerShade = 0.8F;
@@ -49,13 +50,24 @@ namespace GalaxyIO.DOTS.Client.Systems
                     front.sprite = sprite;
                 }
 
-                // 아이템 종류와 개수는 스폰 후 바뀌지 않으므로 뒷장은 한 번만 만듦.
+                // 일부만 주워지면 개수가 줄어듦. 장 수가 달라질 때만 뒷장을 다시 만듦.
                 int backLayers = math.clamp(item.ValueRO.Count, 1, MaxLayers) - 1;
                 Transform root = front.transform;
 
-                if (backLayers == 0 || root.childCount > 0)
+                if (root.childCount == backLayers)
                 {
                     continue;
+                }
+
+                for (int i = root.childCount - 1; i >= 0; i--)
+                {
+                    Object.Destroy(root.GetChild(i).gameObject);
+                }
+
+                // 뒷장 정렬 순서가 배경보다 낮아져도 묶음 전체는 앞장 순서로 그려지게 함.
+                if (!root.TryGetComponent(out SortingGroup _))
+                {
+                    root.gameObject.AddComponent<SortingGroup>();
                 }
 
                 Vector2 offset = Vector2.Scale(sprite.bounds.size, LayerOffset);

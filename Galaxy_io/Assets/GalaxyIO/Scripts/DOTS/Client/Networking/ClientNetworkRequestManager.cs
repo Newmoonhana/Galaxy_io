@@ -1,4 +1,5 @@
 ﻿using GalaxyIO.DOTS.Client.Components.Message;
+using GalaxyIO.DOTS.Client.Components.Singleton;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
@@ -42,12 +43,12 @@ namespace GalaxyIO.DOTS.Client.Networking
                 return false;
             }
 
-            // 태그가 사라지면 리스폰 창이 닫힘.
-            using var deathQuery = clientWorld.EntityManager.CreateEntityQuery(
-                ComponentType.ReadOnly<PlayerDeathTag>()
+            // Dead 가 꺼지면 리스폰 창이 닫힘.
+            using var stateQuery = clientWorld.EntityManager.CreateEntityQuery(
+                ComponentType.ReadWrite<PlayerStateComponent>()
             );
 
-            clientWorld.EntityManager.DestroyEntity(deathQuery);
+            stateQuery.GetSingletonRW<PlayerStateComponent>().ValueRW.Dead = false;
 
             return true;
         }
@@ -74,13 +75,13 @@ namespace GalaxyIO.DOTS.Client.Networking
             using var requestQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<PlayerSpawnRequest>()
             );
-            using var deathQuery = entityManager.CreateEntityQuery(
-                ComponentType.ReadOnly<PlayerDeathTag>()
+            using var stateQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadWrite<PlayerStateComponent>()
             );
 
-            // 대기 중인 리스폰 요청 취소. 태그가 사라지면 리스폰 창이 닫힘.
+            // 대기 중인 리스폰 요청 취소. Dead 가 꺼지면 리스폰 창이 닫힘.
             entityManager.DestroyEntity(requestQuery);
-            entityManager.DestroyEntity(deathQuery);
+            stateQuery.GetSingletonRW<PlayerStateComponent>().ValueRW.Dead = false;
 
             entityManager.AddComponent<NetworkStreamRequestDisconnect>(connectionQuery);
 
