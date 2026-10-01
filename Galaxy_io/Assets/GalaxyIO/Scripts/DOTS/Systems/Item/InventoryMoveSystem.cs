@@ -10,6 +10,7 @@ namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
     /// <see cref="InventoryMoveRPC"/>를 받아 요청한 플레이어의 인벤토리 칸을 옮기는 시스템.
+    /// 포탑 칸이 바뀌면 장착 포탑도 바꿈.
     /// </summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
@@ -25,7 +26,9 @@ namespace GalaxyIO.DOTS.Systems
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetSingletonBuffer<ItemRegistryElement>(true);
+            Entity registryEntity = SystemAPI.GetSingletonEntity<ItemRegistryElement>();
+            DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetBuffer<ItemRegistryElement>(registryEntity);
+            DynamicBuffer<TurretSpecElement> specs = SystemAPI.GetBuffer<TurretSpecElement>(registryEntity);
 
             // NetworkId -> 우주선
             var ships = new NativeHashMap<int, Entity>(4, Allocator.Temp);
@@ -51,13 +54,21 @@ namespace GalaxyIO.DOTS.Systems
                 // 파괴된 뒤 도착한 요청은 버림.
                 if (ships.TryGetValue(networkId, out Entity ship))
                 {
-                    Inventory.Move(
-                        SystemAPI.GetBuffer<InventorySlotElement>(ship),
-                        registry,
-                        rpc.ValueRO.From,
-                        rpc.ValueRO.To,
-                        rpc.ValueRO.Count
-                    );
+                    DynamicBuffer<InventorySlotElement> slots = SystemAPI.GetBuffer<InventorySlotElement>(ship);
+                    int from = rpc.ValueRO.From;
+                    int to = rpc.ValueRO.To;
+
+                    if (Inventory.Move(slots, registry, from, to, rpc.ValueRO.Count)
+                        && (slots[from].Type == SlotType.Turret || slots[to].Type == SlotType.Turret))
+                    {
+                        TurretEquip.Refresh(
+                            slots,
+                            registry,
+                            specs,
+                            ref SystemAPI.GetComponentRW<EquippedTurretComponent>(ship).ValueRW,
+                            SystemAPI.GetBuffer<TurretElement>(ship)
+                        );
+                    }
                 }
 
                 ecb.DestroyEntity(rpcEntity);

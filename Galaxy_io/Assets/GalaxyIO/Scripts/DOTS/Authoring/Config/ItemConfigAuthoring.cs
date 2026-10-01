@@ -14,7 +14,7 @@ namespace GalaxyIO.DOTS.Authoring.Config
         public AudioClip PickupSound;
 
         [SerializeField]
-        [Tooltip("플레이어가 파괴될 때 인벤토리 칸마다 그 칸을 떨어뜨릴 확률")]
+        [Tooltip("플레이어가 파괴될 때 인벤토리 칸마다 그 칸을 떨어뜨릴 확률. 포탑 칸은 떨어뜨리지 않음.")]
         [Range(0.0F, 1.0F)]
         public float PlayerSlotDropChance = 0.5F;
 

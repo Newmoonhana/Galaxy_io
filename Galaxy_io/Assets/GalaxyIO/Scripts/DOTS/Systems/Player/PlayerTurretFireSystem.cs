@@ -1,5 +1,6 @@
 ﻿using GalaxyIO.DOTS.Client.Systems;
 using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.DOTS.Spaceship;
 using Unity.Collections;
 using Unity.Entities;
@@ -12,6 +13,7 @@ namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
     /// <see cref="PlayerInputComponent"/>를 읽어들여 터렛의 투사체를 생성하는 시스템.
+    /// 총구 사양은 <see cref="EquippedTurretComponent"/>의 포탑에서 찾음.
     /// 클라이언트와 서버가 같은 틱에 각자 투사체를 만들고
     /// <see cref="ProjectileSpawnClassificationSystem"/>이 둘을 짝지음.
     /// </summary>
@@ -21,6 +23,7 @@ namespace GalaxyIO.DOTS.Systems
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<PlayerInputComponent>();
+            state.RequireForUpdate<ItemRegistryElement>();
             state.RequireForUpdate<NetworkTime>();
 
             // Ghost Prefab 등록 전이거나 InGame 이전에 예측 스폰하면 초기화에 실패하거나
@@ -45,6 +48,10 @@ namespace GalaxyIO.DOTS.Systems
             NativeHashMap<GhostType, int>.ReadOnly registeredGhosts =
                 SystemAPI.GetSingleton<GhostCollection>().GhostTypeToColletionIndex;
 
+            Entity registryEntity = SystemAPI.GetSingletonEntity<ItemRegistryElement>();
+            DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetBuffer<ItemRegistryElement>(registryEntity);
+            DynamicBuffer<TurretSpecElement> specs = SystemAPI.GetBuffer<TurretSpecElement>(registryEntity);
+
             float deltaTime = SystemAPI.Time.DeltaTime;
             uint spawnTick = networkTime.ServerTick.SerializedData;
 
@@ -52,13 +59,14 @@ namespace GalaxyIO.DOTS.Systems
             var commandBuffer = new EntityCommandBuffer();
 
             foreach (
-                var (transform, inputRequest, movement, owner, delay, turrets, spaceship) in
+                var (transform, inputRequest, movement, owner, delay, equipped, turrets, spaceship) in
                     SystemAPI.Query<
                         RefRO<LocalTransform>,
                         RefRO<PlayerInputComponent>,
                         RefRO<SpaceshipMovementComponent>,
                         RefRO<GhostOwner>,
                         RefRO<CommandDataInterpolationDelay>,
+                        RefRO<EquippedTurretComponent>,
                         DynamicBuffer<TurretElement>
                     >().WithAll<Simulate>().WithEntityAccess()
             ) {
@@ -73,9 +81,10 @@ namespace GalaxyIO.DOTS.Systems
                 for (int i = 0; i < turrets.Length; i++)
                 {
                     ref TurretElement turret = ref turrets.ElementAt(i);
+                    TurretSpecElement spec = registry.GetTurretSpec(specs, equipped.ValueRO.Value, i);
 
                     // 투사체가 없는 터렛
-                    if (turret.ProjectilePrefab == Entity.Null)
+                    if (spec.ProjectilePrefab == Entity.Null)
                     {
                         continue;
                     }
@@ -95,7 +104,7 @@ namespace GalaxyIO.DOTS.Systems
                     }
 
                     // Ghost Prefab이 등록되기 전에는 예측 스폰한 투사체를 초기화할 수 없음.
-                    if (!registeredGhosts.ContainsKey(SystemAPI.GetComponent<GhostType>(turret.ProjectilePrefab)))
+                    if (!registeredGhosts.ContainsKey(SystemAPI.GetComponent<GhostType>(spec.ProjectilePrefab)))
                     {
                         continue;
                     }
@@ -116,14 +125,14 @@ namespace GalaxyIO.DOTS.Systems
                     LocalTransform muzzleTransform = spaceshipTransform.TransformTransform(turret.MuzzleLocation);
 
                     // 탄퍼짐
-                    if (turret.Spread > 0.0F)
+                    if (spec.Spread > 0.0F)
                     {
-                        float halfSpread = turret.Spread * 0.5F;
+                        float halfSpread = spec.Spread * 0.5F;
                         var random = Random.CreateFromIndex(spawnId & 0x7FFFFFFFu);
                         muzzleTransform = muzzleTransform.RotateZ(random.NextFloat(-halfSpread, halfSpread));
                     }
 
-                    Entity projectile = commandBuffer.Instantiate(turret.ProjectilePrefab);
+                    Entity projectile = commandBuffer.Instantiate(spec.ProjectilePrefab);
                     commandBuffer.SetComponent(projectile, muzzleTransform);
 
                     // 투사체가 쏜 우주선과 같은 타임라인에 머물게 함. (OwnerPredicted)
@@ -135,17 +144,18 @@ namespace GalaxyIO.DOTS.Systems
 
                     // 발사한 우주선과 그 시점의 보간 지연을 기록.
                     // 나머지 값은 프리팹 베이킹 결과를 그대로 씀.
-                    var shared = SystemAPI.GetComponent<SharedProjectileComponent>(turret.ProjectilePrefab);
+                    var shared = SystemAPI.GetComponent<SharedProjectileComponent>(spec.ProjectilePrefab);
                     shared.Owner = spaceship;
                     shared.TurretIndex = (byte)i;
+                    shared.Damage = spec.Damage;
                     shared.InterpolationDelay = delay.ValueRO.Delay;
                     commandBuffer.SetComponent(projectile, shared);
 
                     // 기수 방향으로 나가는 직진 투사체는 우주선의 속력을 물려받음.
-                    if (SystemAPI.HasComponent<StraightforwardProjectileComponent>(turret.ProjectilePrefab))
+                    if (SystemAPI.HasComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab))
                     {
                         var straightforward =
-                            SystemAPI.GetComponent<StraightforwardProjectileComponent>(turret.ProjectilePrefab);
+                            SystemAPI.GetComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab);
 
                         if (straightforward.ReflectOwnerVelocity)
                         {
@@ -154,7 +164,7 @@ namespace GalaxyIO.DOTS.Systems
                         }
                     }
 
-                    turret.FireCooldown = turret.MaxFireCooldown;
+                    turret.FireCooldown = spec.MaxFireCooldown;
                 }
             }
         }

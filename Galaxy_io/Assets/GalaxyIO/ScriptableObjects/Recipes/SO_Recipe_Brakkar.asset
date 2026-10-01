@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c3e5a7b4dae4e8f9b2c3d4e5f607182, type: 3}
+  m_Name: SO_Recipe_Brakkar
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.RecipeAsset
+  Ingredients:
+  - Item: {fileID: 11400000, guid: a12592c859254e13b0b09fe57c6e0454, type: 2}
+    Count: 10
+  Result: {fileID: 11400000, guid: 52ddbe9c5873d36434f6db223d1d2007, type: 2}

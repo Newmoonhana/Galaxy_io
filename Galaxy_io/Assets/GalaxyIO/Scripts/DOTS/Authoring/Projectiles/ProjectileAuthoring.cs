@@ -13,9 +13,5 @@ namespace GalaxyIO.DOTS.Authoring
         [SerializeField]
         [Tooltip("투사체 지속시간")]
         public float Lifetime;
-
-        [SerializeField]
-        [Tooltip("투사체 공격력")]
-        public float Damage;
     }
 }

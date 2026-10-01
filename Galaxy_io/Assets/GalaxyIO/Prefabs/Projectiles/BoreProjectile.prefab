@@ -105,10 +105,9 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 9868991a90114dd0a355fd93f54ffdd2, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.StraightforwardProjectileAuthoring
   Lifetime: 0.8
-  Damage: 6
   Speed: 60
   Acceleration: 0
   ReflectOwnerVelocity: 1
@@ -122,7 +121,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.Entities.Hybrid::Unity.Entities.Hybrid.Baking.LinkedEntityGroupAuthoring
 --- !u!114 &3206834579711104181
 MonoBehaviour:
@@ -134,7 +133,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7c79d771cedb4794bf100ce60df5f764, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.NetCode.Authoring.Hybrid::Unity.NetCode.GhostAuthoringComponent
   HasOwner: 1
   SupportAutoCommandTarget: 1
@@ -160,7 +159,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3b81e4e8540b4e94dbc07f7b0499c275, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.BoxColliderAuthoring
   Center: {x: 0, y: 0}
   Size: {x: 0.041666668, y: 0.25}

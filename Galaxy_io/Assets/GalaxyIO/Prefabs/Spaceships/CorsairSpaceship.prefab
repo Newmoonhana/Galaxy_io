@@ -122,8 +122,9 @@ MonoBehaviour:
   Repair: 5
   RepairDelay: 3
   Faction: 2
-  Turrets:
+  Muzzles:
   - {fileID: 5673647741542274187}
+  Turret: {fileID: 11400000, guid: 2baf083577296fe201ee47322dca5e73, type: 2}
 --- !u!114 &8720260215851392172
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -210,7 +211,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 5673647741542274187}
-  - component: {fileID: 2791201945324923335}
   m_Layer: 0
   m_Name: Muzzle
   m_TagString: MuzzleCenter
@@ -233,22 +233,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4637611985717382505}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2791201945324923335
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8919795018499728394}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e59049c3573c476bb9db784646c81b0b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.TurretAuthoring
-  Projectile: {fileID: 3898896724990523705, guid: c36f47c0d656b6b4a8bd8213db63a2e2, type: 3}
-  RPS: 4
-  Accuracy: 0.95
-  ShotSound: {fileID: 8300000, guid: 8f2159ab85736df4bb50ddfff148331f, type: 3}
 --- !u!114 &1535958598976819572
 MonoBehaviour:
   m_ObjectHideFlags: 0

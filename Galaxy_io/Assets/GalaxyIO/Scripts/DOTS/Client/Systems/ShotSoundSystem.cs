@@ -1,6 +1,7 @@
 using System;
 using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -26,6 +27,7 @@ namespace GalaxyIO.DOTS.Client.Systems
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<NetworkTime>();
+            state.RequireForUpdate<ItemRegistryElement>();
             state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<ShotSoundPendingTag>().Build());
         }
 
@@ -33,7 +35,11 @@ namespace GalaxyIO.DOTS.Client.Systems
         public void OnUpdate(ref SystemState state)
         {
             NetworkTick interpolationTick = SystemAPI.GetSingleton<NetworkTime>().InterpolationTick;
-            BufferLookup<TurretElement> turretLookup = SystemAPI.GetBufferLookup<TurretElement>(true);
+            ComponentLookup<EquippedTurretComponent> equippedLookup = SystemAPI.GetComponentLookup<EquippedTurretComponent>(true);
+
+            Entity registryEntity = SystemAPI.GetSingletonEntity<ItemRegistryElement>();
+            DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetBuffer<ItemRegistryElement>(registryEntity);
+            DynamicBuffer<TurretSpecElement> specs = SystemAPI.GetBuffer<TurretSpecElement>(registryEntity);
 
             var played = new NativeHashSet<ShotSoundKey>(16, Allocator.Temp);
             var ecb = new EntityCommandBuffer(Allocator.Temp);
@@ -61,13 +67,13 @@ namespace GalaxyIO.DOTS.Client.Systems
                 // 쏜 우주선이 복제 범위 밖이거나 이미 사라짐.
                 Entity owner = shared.ValueRO.Owner;
 
-                if (!turretLookup.TryGetBuffer(owner, out DynamicBuffer<TurretElement> turrets)
-                    || shared.ValueRO.TurretIndex >= turrets.Length)
+                if (!equippedLookup.TryGetComponent(owner, out EquippedTurretComponent equipped))
                 {
                     continue;
                 }
 
-                UnityObjectRef<AudioClip> clip = turrets[shared.ValueRO.TurretIndex].ShotSound;
+                UnityObjectRef<AudioClip> clip =
+                    registry.GetTurretSpec(specs, equipped.Value, shared.ValueRO.TurretIndex).ShotSound;
 
                 if (clip == default || !played.Add(new ShotSoundKey { Owner = owner, Clip = clip }))
                 {

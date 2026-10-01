@@ -105,6 +105,9 @@ namespace GalaxyIO.DOTS.Authoring.Config
 
             registry.Resize(maxId + 1, NativeArrayOptions.ClearMemory);
 
+            DynamicBuffer<TurretSpecElement> turretSpecs = AddBuffer<TurretSpecElement>(entity);
+            DynamicBuffer<RecipeIngredientElement> ingredients = AddBuffer<RecipeIngredientElement>(entity);
+
             foreach (ItemAsset item in itemRegistry.Items)
             {
                 if (item == null || item.Id == ItemId.None || item.Sprite == null)
@@ -121,13 +124,53 @@ namespace GalaxyIO.DOTS.Authoring.Config
 
                 Vector3 extents = item.Sprite.bounds.extents;
 
-                registry[(int)item.Id] = new ItemRegistryElement
+                var element = new ItemRegistryElement
                 {
-                    Sprite      = item.Sprite,
-                    HalfExtents = new float2(extents.x, extents.y),
-                    Type        = item.Type,
-                    MaxStack    = (byte)math.clamp(item.Stacking, 1, byte.MaxValue),
+                    Sprite          = item.Sprite,
+                    HalfExtents     = new float2(extents.x, extents.y),
+                    Type            = item.Type,
+                    MaxStack        = (byte)math.clamp(item.Stacking, 1, byte.MaxValue),
+                    TurretSpecStart = (ushort)turretSpecs.Length,
+                    IngredientStart = (ushort)ingredients.Length,
                 };
+
+                if (item is TurretItemAsset turret)
+                {
+                    foreach (TurretItemAsset.TurretSpec spec in turret.TurretSpecs)
+                    {
+                        turretSpecs.Add(new TurretSpecElement
+                        {
+                            ProjectilePrefab = spec.Armed ? GetEntity(spec.Projectile, TransformUsageFlags.Dynamic) : Entity.Null,
+                            MaxFireCooldown  = spec.FireCooldown,
+                            Spread           = spec.Spread,
+                            Damage           = spec.Damage,
+                            ShotSound        = spec.ShotSound,
+                        });
+                    }
+
+                    element.TurretSpecCount = (byte)turret.TurretSpecs.Count;
+                }
+
+                if (item is BlueprintItemAsset blueprint && blueprint.Recipe != null && blueprint.Recipe.Result != null)
+                {
+                    DependsOn(blueprint.Recipe);
+
+                    foreach (RecipeAsset.Ingredient ingredient in blueprint.Recipe.Ingredients)
+                    {
+                        if (ingredient.Item == null || ingredient.Count <= 0)
+                        {
+                            Debug.LogWarning($"ItemRegistry: 비어 있는 재료를 건너뜀. ({blueprint.Recipe})", blueprint.Recipe);
+                            continue;
+                        }
+
+                        ingredients.Add(new RecipeIngredientElement { Id = ingredient.Item.Id, Count = ingredient.Count });
+                        element.IngredientCount++;
+                    }
+
+                    element.CraftResult = blueprint.Recipe.Result.Id;
+                }
+
+                registry[(int)item.Id] = element;
             }
         }
     }
