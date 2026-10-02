@@ -21,7 +21,8 @@ namespace GalaxyIO.DOTS.Components.Actor
     public static class TurretEquip
     {
         /// <summary>
-        /// 모든 총구가 새 포탑의 발사 간격 + 첫 발 대기만큼 기다리게 함. 바꿔 끼우자마자 쏘는 것 방지.
+        /// 모든 총구가 새 포탑의 발사 간격만큼 기다리게 함. 바꿔 끼우자마자 쏘는 것 방지.
+        /// 따라 쏘는 총구는 앞 총구가 쏠 때까지 기다림.
         /// </summary>
         public static void ResetCooldown(
             DynamicBuffer<TurretCooldownElement> cooldowns,
@@ -32,7 +33,10 @@ namespace GalaxyIO.DOTS.Components.Actor
             for (int i = 0; i < cooldowns.Length; i++)
             {
                 TurretSpecElement spec = registry.GetTurretSpec(specs, turret, i);
-                cooldowns[i] = new TurretCooldownElement { Value = spec.MaxFireCooldown + spec.FirstShotCooldown };
+                cooldowns[i] = new TurretCooldownElement
+                {
+                    Value = spec.FollowMuzzle >= 0 ? TurretCycle.Waiting : spec.MaxFireCooldown,
+                };
             }
         }
 

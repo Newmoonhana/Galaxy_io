@@ -42,7 +42,7 @@ namespace GalaxyIO.DOTS.Authoring.Config
         [Header("Turret")]
 
         [SerializeField]
-        [Tooltip("이 시간(초) 동안 쏘지 않으면 모든 총구가 첫 발 대기로 돌아감.")]
+        [Tooltip("마지막 발사 후 지난 시간을 이 값(초)까지만 셈. 과열 시스템이 쓸 값.")]
         [Min(0.0F)]
         public float NoFireStandbyTime = 3.0F;
     }

@@ -35,6 +35,7 @@ namespace GalaxyIO.DOTS.Systems
     /// </summary>
     [BurstCompile]
     [WithAll(typeof(StraightforwardProjectileComponent), typeof(Simulate))]
+    [WithNone(typeof(LocalProjectileTag))]
     public partial struct StraightforwardProjectileJob : IJobEntity
     {
         public float DeltaTime;

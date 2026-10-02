@@ -63,6 +63,7 @@ namespace GalaxyIO.DOTS.Systems
                 Cells      = cells,
                 CellSize   = config.CellSize,
                 Specs      = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
+                Locals     = SystemAPI.GetComponentLookup<LocalProjectileTag>(true),
             }.ScheduleParallel(state.Dependency);
 
             state.Dependency = proxies.Dispose(state.Dependency);
@@ -74,6 +75,7 @@ namespace GalaxyIO.DOTS.Systems
     /// 명중한 투사체의 관통력을 깎고, 다하면 Hidden 으로 표시함. 렌더러는 <see cref="ProjectileVisualSystem"/>이 끔.
     /// Entity 는 끄지 않음. 꺼진 Ghost 는 스냅샷을 받지 못해 명중 수(HitCount)를 놓침.
     /// 한 번 감춘 투사체는 서버가 despawn 할 때까지 다시 보이지 않음.
+    /// 클라이언트가 직접 쏜 투사체는 서버 명중 수가 오지 않으므로 여기서 명중 수를 올려 명중 연출을 띄움.
     /// </summary>
     [BurstCompile]
     public partial struct ProjectileHidingJob : IJobEntity
@@ -88,6 +90,9 @@ namespace GalaxyIO.DOTS.Systems
 
         [ReadOnly]
         public ComponentLookup<SpaceshipSpecComponent> Specs;
+
+        [ReadOnly]
+        public ComponentLookup<LocalProjectileTag> Locals;
 
         private void Execute(
             Entity entity,
@@ -154,6 +159,13 @@ namespace GalaxyIO.DOTS.Systems
                 if (!ColliderOverlap.Test(world, target.Collider, out _))
                 {
                     continue;
+                }
+
+                // 클라이언트가 직접 쏜 투사체. 예측한 명중으로 연출을 띄움(ProjectileHitEffectSystem).
+                if (Locals.HasComponent(entity))
+                {
+                    shared.HitCount++;
+                    shared.HitPosition = ColliderOverlap.ClosestOnPath(position - travelled, travelled, target.Collider.Center);
                 }
 
                 // 서버와 같은 규칙으로 관통력을 깎음. 남아 있으면 계속 날아감.

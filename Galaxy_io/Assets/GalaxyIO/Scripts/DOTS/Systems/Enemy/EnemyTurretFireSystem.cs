@@ -1,6 +1,7 @@
 ﻿using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.DOTS.Spaceship;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.NetCode;
@@ -40,6 +41,9 @@ namespace GalaxyIO.DOTS.Systems
             // 첫 투사체를 만들 때 한 번만 생성. 모든 우주선이 같은 버퍼를 씀.
             var commandBuffer = new EntityCommandBuffer();
 
+            // 우주선마다 비워서 다시 씀.
+            var shots = new NativeList<TurretShotRequest>(8, Allocator.Temp);
+
             foreach (
                 var (transform, movement, perception, enemyTurret, equipped, standby, cooldowns, spaceship) in
                     SystemAPI.Query<
@@ -76,111 +80,76 @@ namespace GalaxyIO.DOTS.Systems
                     deltaTime
                 );
 
-                bool held = TurretStandby.ShouldHold(
-                    shooting,
-                    cooldowns,
+                shots.Clear();
+                TurretCycle.Advance(
+                    cooldowns.Reinterpret<float>().AsNativeArray(),
                     registry,
                     specs,
-                    equipped.ValueRO.Value
+                    equipped.ValueRO.Value,
+                    shooting,
+                    deltaTime,
+                    ref shots
                 );
-
-                bool fired = false;
 
                 // 총구 위치. 쿨다운과 같은 순서.
                 DynamicBuffer<TurretElement> muzzles = SystemAPI.GetBuffer<TurretElement>(spaceship);
 
-                // ref 참조를 위해 foreach가 아닌 for로 접근
-                for (int i = 0; i < cooldowns.Length; i++)
+                foreach (TurretShotRequest request in shots)
                 {
-                    ref TurretCooldownElement cooldown = ref cooldowns.ElementAt(i);
+                    int i = request.Muzzle;
                     TurretSpecElement spec = registry.GetTurretSpec(specs, equipped.ValueRO.Value, i);
 
-                    // 투사체가 없는 터렛
-                    if (spec.ProjectilePrefab == Entity.Null)
+                    if (!commandBuffer.IsCreated)
                     {
-                        continue;
+                        commandBuffer = SystemAPI
+                            .GetSingleton<EndPredictedSimulationEntityCommandBufferSystem.Singleton>()
+                            .CreateCommandBuffer(state.WorldUnmanaged);
                     }
 
-                    if (!held)
-                    {
-                        cooldown.Value -= deltaTime;
-                    }
+                    LocalTransform muzzleTransform = transform.ValueRO.TransformTransform(muzzles[i].MuzzleLocation);
 
-                    // 쏘지 않는 동안은 0 아래로 쌓아 두지 않음. 다시 쏠 때 몰아 쏘는 것 방지.
-                    if (!shooting)
-                    {
-                        cooldown.Value = math.max(cooldown.Value, 0.0F);
-                        continue;
-                    }
+                    // 서버가 직접 쏘므로 되감을 보간 지연이 없음.
+                    var shared = SystemAPI.GetComponent<SharedProjectileComponent>(spec.ProjectilePrefab);
+                    shared.Owner = spaceship;
+                    shared.TurretIndex = (byte)i;
+                    shared.Damage = spec.Damage;
+                    shared.InterpolationDelay = 0;
 
-                    // 발사 간격이 한 틱보다 짧으면 한 틱에 여러 번 쏨.
-                    for (uint shot = 0; cooldown.Value <= 0.0F; shot++)
-                    {
-                        cooldown.Value += spec.MaxFireCooldown;
-                        fired = true;
+                    bool straight = SystemAPI.HasComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab);
+                    StraightforwardProjectileComponent straightforward = straight
+                        ? SystemAPI.GetComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab)
+                        : default;
 
-                        if (!commandBuffer.IsCreated)
+                    for (uint j = 0; j < spec.ProjectileCount; j++)
+                    {
+                        uint seed = math.hash(new uint4((uint)spaceship.Index, tick, (uint)i, request.Shot * 64 + j));
+
+                        Entity projectile = commandBuffer.Instantiate(spec.ProjectilePrefab);
+                        commandBuffer.SetComponent(
+                            projectile,
+                            TurretShot.Aim(muzzleTransform, spec, seed, out float speedScale)
+                        );
+
+                        // 적 우주선과 같은 소유자 -1. 플레이어 NetworkId(1부터)와 겹치지 않음.
+                        // 0 은 "소유자 미지정"으로 취급돼 OwnerPredicted 투사체에 쓸 수 없음.
+                        commandBuffer.SetComponent(projectile, new GhostOwner { NetworkId = -1 });
+
+                        // 쏜 우주선의 진영을 물려받음.
+                        commandBuffer.SetComponent(projectile, SystemAPI.GetComponent<FactionComponent>(spaceship));
+                        commandBuffer.SetComponent(projectile, shared);
+
+                        // 기수 방향으로 나가는 직진 투사체는 우주선의 속력을 물려받음.
+                        if (straight)
                         {
-                            commandBuffer = SystemAPI
-                                .GetSingleton<EndPredictedSimulationEntityCommandBufferSystem.Singleton>()
-                                .CreateCommandBuffer(state.WorldUnmanaged);
-                        }
-
-                        LocalTransform muzzleTransform = transform.ValueRO.TransformTransform(muzzles[i].MuzzleLocation);
-
-                        // 서버가 직접 쏘므로 되감을 보간 지연이 없음.
-                        var shared = SystemAPI.GetComponent<SharedProjectileComponent>(spec.ProjectilePrefab);
-                        shared.Owner = spaceship;
-                        shared.TurretIndex = (byte)i;
-                        shared.Damage = spec.Damage;
-                        shared.InterpolationDelay = 0;
-
-                        bool straight = SystemAPI.HasComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab);
-                        StraightforwardProjectileComponent straightforward = straight
-                            ? SystemAPI.GetComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab)
-                            : default;
-
-                        for (uint j = 0; j < spec.ProjectileCount; j++)
-                        {
-                            uint seed = math.hash(new uint4((uint)spaceship.Index, tick, (uint)i, shot * 64 + j));
-
-                            Entity projectile = commandBuffer.Instantiate(spec.ProjectilePrefab);
-                            commandBuffer.SetComponent(
-                                projectile,
-                                TurretShot.Aim(muzzleTransform, spec, seed, out float speedScale)
-                            );
-
-                            // 적 우주선과 같은 소유자 -1. 플레이어 NetworkId(1부터)와 겹치지 않음.
-                            // 0 은 "소유자 미지정"으로 취급돼 OwnerPredicted 투사체에 쓸 수 없음.
-                            commandBuffer.SetComponent(projectile, new GhostOwner { NetworkId = -1 });
-
-                            // 쏜 우주선의 진영을 물려받음.
-                            commandBuffer.SetComponent(projectile, SystemAPI.GetComponent<FactionComponent>(spaceship));
-                            commandBuffer.SetComponent(projectile, shared);
-
-                            // 기수 방향으로 나가는 직진 투사체는 우주선의 속력을 물려받음.
-                            if (straight)
-                            {
-                                StraightforwardProjectileComponent launched = straightforward;
-                                launched.Speed = straightforward.Speed * speedScale
-                                                 + (straightforward.ReflectOwnerVelocity ? forwardSpeed : 0.0F);
-                                commandBuffer.SetComponent(projectile, launched);
-                            }
+                            StraightforwardProjectileComponent launched = straightforward;
+                            launched.Speed = straightforward.Speed * speedScale
+                                             + (straightforward.ReflectOwnerVelocity ? forwardSpeed : 0.0F);
+                            commandBuffer.SetComponent(projectile, launched);
                         }
                     }
                 }
 
-                TurretStandby.Update(
-                    ref standby.ValueRW,
-                    fired,
-                    held,
-                    deltaTime,
-                    standbyTime,
-                    cooldowns,
-                    registry,
-                    specs,
-                    equipped.ValueRO.Value
-                );
+                TurretStandby.Update(ref standby.ValueRW, !shots.IsEmpty, deltaTime, standbyTime);
             }
         }
 
