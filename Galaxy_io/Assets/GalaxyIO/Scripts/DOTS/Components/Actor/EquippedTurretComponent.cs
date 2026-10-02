@@ -21,19 +21,18 @@ namespace GalaxyIO.DOTS.Components.Actor
     public static class TurretEquip
     {
         /// <summary>
-        /// 모든 총구가 새 포탑의 발사 간격만큼 기다리게 함. 바꿔 끼우자마자 쏘는 것 방지.
+        /// 모든 총구가 새 포탑의 발사 간격 + 첫 발 대기만큼 기다리게 함. 바꿔 끼우자마자 쏘는 것 방지.
         /// </summary>
         public static void ResetCooldown(
-            DynamicBuffer<TurretElement> turrets,
+            DynamicBuffer<TurretCooldownElement> cooldowns,
             DynamicBuffer<ItemRegistryElement> registry,
             DynamicBuffer<TurretSpecElement> specs,
             ItemId turret)
         {
-            for (int i = 0; i < turrets.Length; i++)
+            for (int i = 0; i < cooldowns.Length; i++)
             {
-                TurretElement muzzle = turrets[i];
-                muzzle.FireCooldown = registry.GetTurretSpec(specs, turret, i).MaxFireCooldown;
-                turrets[i] = muzzle;
+                TurretSpecElement spec = registry.GetTurretSpec(specs, turret, i);
+                cooldowns[i] = new TurretCooldownElement { Value = spec.MaxFireCooldown + spec.FirstShotCooldown };
             }
         }
 
@@ -45,7 +44,7 @@ namespace GalaxyIO.DOTS.Components.Actor
             DynamicBuffer<ItemRegistryElement> registry,
             DynamicBuffer<TurretSpecElement> specs,
             ref EquippedTurretComponent equipped,
-            DynamicBuffer<TurretElement> turrets)
+            DynamicBuffer<TurretCooldownElement> cooldowns)
         {
             if (equipped.Value == turret)
             {
@@ -53,7 +52,7 @@ namespace GalaxyIO.DOTS.Components.Actor
             }
 
             equipped.Value = turret;
-            ResetCooldown(turrets, registry, specs, turret);
+            ResetCooldown(cooldowns, registry, specs, turret);
         }
     }
 }

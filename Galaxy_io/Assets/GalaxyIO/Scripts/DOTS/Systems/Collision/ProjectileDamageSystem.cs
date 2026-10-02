@@ -32,7 +32,25 @@ namespace GalaxyIO.DOTS.Systems
     }
 
     /// <summary>
-    /// 명중한 투사체의 데미지를 우주선에 반영하는 시스템.
+    /// 명중으로 사라진 폭발 투사체 하나. 반경 안의 우주선에 거리 비례 데미지를 줌.
+    /// </summary>
+    public struct ProjectileExplosion
+    {
+        public float2 Center;
+        public float Radius;
+
+        // 투사체 진영. 동맹은 맞지 않음.
+        public FactionID Faction;
+
+        // 직격당한 우주선. 이미 직격 데미지를 받았으므로 폭발 데미지에서 뺌.
+        public Entity DirectHit;
+
+        // 폭발 중심에서 줄 데미지와 가해자 정보. Spaceship 은 비어 있음.
+        public SpaceshipDamage Damage;
+    }
+
+    /// <summary>
+    /// 명중한 투사체의 직격, 관통, 폭발 데미지를 우주선에 반영하는 시스템.
     /// 투사체 제거는 <see cref="SharedProjectileSystem"/>이 담당하므로 Lifetime만 만료시킴.
     /// </summary>
     [BurstCompile]
@@ -41,12 +59,16 @@ namespace GalaxyIO.DOTS.Systems
     [UpdateAfter(typeof(CollisionDetectionSystem))]
     public partial struct ProjectileDamageSystem : ISystem
     {
+        private EntityQuery projectileQuery;
+
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate(
-                SystemAPI.QueryBuilder().WithAll<ProjectileHitElement, SharedProjectileComponent>().Build()
-            );
+            projectileQuery = SystemAPI.QueryBuilder()
+                .WithAll<ProjectileHitElement, SharedProjectileComponent>()
+                .Build();
+
+            state.RequireForUpdate(projectileQuery);
         }
 
         [BurstCompile]
@@ -54,11 +76,25 @@ namespace GalaxyIO.DOTS.Systems
         {
             var damages = new NativeQueue<SpaceshipDamage>(Allocator.TempJob);
 
+            // 투사체 하나가 폭발 하나까지만 냄.
+            var explosions = new NativeList<ProjectileExplosion>(
+                projectileQuery.CalculateEntityCount(),
+                Allocator.TempJob
+            );
+
             state.Dependency = new ProjectileDamageJob
             {
                 Transforms = SystemAPI.GetComponentLookup<LocalTransform>(true),
                 Colliders  = SystemAPI.GetComponentLookup<ColliderComponent>(true),
                 EnemyNames = SystemAPI.GetComponentLookup<EnemyNameComponent>(true),
+                Specs      = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
+                Damages    = damages.AsParallelWriter(),
+                Explosions = explosions.AsParallelWriter(),
+            }.ScheduleParallel(state.Dependency);
+
+            state.Dependency = new ExplosionDamageJob
+            {
+                Explosions = explosions,
                 Damages    = damages.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
 
@@ -73,16 +109,20 @@ namespace GalaxyIO.DOTS.Systems
             }.Schedule(state.Dependency);
 
             state.Dependency = damages.Dispose(state.Dependency);
+            state.Dependency = explosions.Dispose(state.Dependency);
         }
     }
 
     /// <summary>
-    /// 명중 메시지를 데미지로 바꾸고 투사체를 만료시킴.
+    /// 명중 메시지를 먼저 닿은 순으로 데미지로 바꿈. 관통력이 다하면 투사체를 Dead 로 바꾸고 폭발을 남김.
     /// </summary>
     [BurstCompile]
     [WithAll(typeof(Simulate))]
     public partial struct ProjectileDamageJob : IJobEntity
     {
+        // 명중으로 끝난 투사체를 남겨 두는 시간(초). 마지막 명중이 스냅샷에 실릴 여유.
+        private const float DeadLinger = 0.25F;
+
         [ReadOnly]
         public ComponentLookup<LocalTransform> Transforms;
 
@@ -92,11 +132,19 @@ namespace GalaxyIO.DOTS.Systems
         [ReadOnly]
         public ComponentLookup<EnemyNameComponent> EnemyNames;
 
+        [ReadOnly]
+        public ComponentLookup<SpaceshipSpecComponent> Specs;
+
         public NativeQueue<SpaceshipDamage>.ParallelWriter Damages;
+
+        public NativeList<ProjectileExplosion>.ParallelWriter Explosions;
 
         private void Execute(
             in DynamicBuffer<ProjectileHitElement> messages,
+            DynamicBuffer<ProjectilePiercedElement> pierced,
             ref SharedProjectileComponent projectile,
+            in LocalTransform transform,
+            in FactionComponent faction,
             in GhostOwner owner)
         {
             if (messages.IsEmpty)
@@ -108,17 +156,54 @@ namespace GalaxyIO.DOTS.Systems
 
             EnemyNames.TryGetComponent(projectile.Owner, out EnemyNameComponent enemyName);
 
-            Damages.Enqueue(new SpaceshipDamage
+            var damage = new SpaceshipDamage
             {
-                Spaceship           = messages[0].Message.Other,
                 Amount              = projectile.Damage,
                 Instigator          = instigator,
                 InstigatorPosition  = instigatorPosition,
                 InstigatorNetworkId = owner.NetworkId,
                 InstigatorEnemyName = enemyName.Value,
-            });
+            };
 
-            projectile.Lifetime = 0.0F;
+            float2 start = transform.Position.xy - projectile.Displacement;
+
+            for (int i = 0; i < messages.Length; i++)
+            {
+                CollisionMessage message = messages[i].Message;
+
+                damage.Spaceship = message.Other;
+                Damages.Enqueue(damage);
+
+                // 이동 경로 위에서 맞은 우주선에 가장 가까운 점. 명중 연출과 폭발 중심.
+                projectile.HitCount++;
+                projectile.HitPosition = ColliderOverlap.ClosestOnPath(start, projectile.Displacement, message.OtherCenter);
+
+                Specs.TryGetComponent(message.Other, out SpaceshipSpecComponent spec);
+                projectile.Pierce -= spec.Thickness;
+
+                if (projectile.Pierce > 0.0F)
+                {
+                    pierced.Add(new ProjectilePiercedElement { Spaceship = message.Other });
+                    continue;
+                }
+
+                projectile.Dead = true;
+                projectile.Lifetime = DeadLinger;
+
+                if (projectile.ExplosionRadius > 0.0F)
+                {
+                    Explosions.AddNoResize(new ProjectileExplosion
+                    {
+                        Center    = projectile.HitPosition,
+                        Radius    = projectile.ExplosionRadius,
+                        Faction   = faction.Value,
+                        DirectHit = message.Other,
+                        Damage    = damage,
+                    });
+                }
+
+                return;
+            }
         }
 
         /// <summary>
@@ -137,6 +222,65 @@ namespace GalaxyIO.DOTS.Systems
 
             instigator = Entity.Null;
             position = float2.zero;
+        }
+    }
+
+    /// <summary>
+    /// 폭발 반경에 걸린 우주선마다 데미지를 쌓음. 선체가 폭발 중심에 가까울수록 세게 맞음.
+    /// 우주선은 되감지 않고 현재 위치로 판정함.
+    /// </summary>
+    [BurstCompile]
+    [WithAll(typeof(SpaceshipSpecComponent))]
+    public partial struct ExplosionDamageJob : IJobEntity
+    {
+        [ReadOnly]
+        public NativeList<ProjectileExplosion> Explosions;
+
+        public NativeQueue<SpaceshipDamage>.ParallelWriter Damages;
+
+        private void Execute(
+            Entity entity,
+            in LocalTransform transform,
+            in ColliderComponent collider,
+            in FactionComponent faction)
+        {
+            if (Explosions.IsEmpty)
+            {
+                return;
+            }
+
+            ColliderWorld hull = ColliderOverlap.ToWorld(collider, transform);
+
+            for (int i = 0; i < Explosions.Length; i++)
+            {
+                ProjectileExplosion explosion = Explosions[i];
+
+                // 직격당한 우주선, 쏜 우주선, 동맹은 제외.
+                if (entity == explosion.DirectHit
+                    || entity == explosion.Damage.Instigator
+                    || Faction.IsAllied(explosion.Faction, faction.Value))
+                {
+                    continue;
+                }
+
+                var area = new ColliderWorld
+                {
+                    Shape   = ColliderShape.Circle,
+                    Center  = explosion.Center,
+                    Extents = new float2(explosion.Radius, 0.0F),
+                };
+
+                // 원 판정의 깊이 = 반경 - 선체까지 거리. 중심이 선체 안이면 반경 이상.
+                if (!ColliderOverlap.Test(area, hull, out ColliderHit hit))
+                {
+                    continue;
+                }
+
+                SpaceshipDamage damage = explosion.Damage;
+                damage.Spaceship = entity;
+                damage.Amount *= math.saturate(hit.Depth / explosion.Radius);
+                Damages.Enqueue(damage);
+            }
         }
     }
 

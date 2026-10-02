@@ -228,7 +228,8 @@ namespace GalaxyIO.DOTS.Systems
     }
 
     /// <summary>
-    /// 투사체 - 선체 충돌. 가장 먼저 맞은 우주선 하나만 남김.
+    /// 투사체 - 선체 충돌. 이번 틱 이동 경로에 걸린 우주선을 먼저 닿은 순으로 남김.
+    /// 관통 투사체가 이미 지나간 우주선은 건너뜀.
     /// 지연이 있는 클라이언트의 명중은 우주선을 그 시점 위치로 되감아 판정함.
     /// </summary>
     [BurstCompile]
@@ -258,9 +259,19 @@ namespace GalaxyIO.DOTS.Systems
             in LocalTransform transform,
             in ColliderComponent collider,
             in FactionComponent faction,
-            in SharedProjectileComponent projectile)
+            in SharedProjectileComponent projectile,
+            in DynamicBuffer<ProjectilePiercedElement> pierced)
         {
             messages.Clear();
+
+            // 명중으로 끝나 지워지기만 기다리는 투사체.
+            if (projectile.Dead)
+            {
+                return;
+            }
+
+            // 이번 틱 이동 시작점. 먼저 닿은 순서를 이 점에서의 거리로 정함.
+            float2 start = transform.Position.xy - projectile.Displacement;
 
             // 한 틱 이동량만큼 늘린 충돌체로 판정. 탄속이 표적보다 커도 통과하지 않음.
             ColliderWorld world = ColliderOverlap.Sweep(
@@ -286,7 +297,8 @@ namespace GalaxyIO.DOTS.Systems
             {
                 ColliderProxy target = Proxies[i];
 
-                if (!CollisionFilter.Accepts(receiver, target, CollisionLayer.Spaceship))
+                if (!CollisionFilter.Accepts(receiver, target, CollisionLayer.Spaceship)
+                    || pierced.Contains(target.Entity))
                 {
                     continue;
                 }
@@ -300,7 +312,7 @@ namespace GalaxyIO.DOTS.Systems
                     continue;
                 }
 
-                messages.Add(new ProjectileHitElement
+                var element = new ProjectileHitElement
                 {
                     Message = new CollisionMessage
                     {
@@ -309,9 +321,18 @@ namespace GalaxyIO.DOTS.Systems
                         Normal      = hit.Normal,
                         Depth       = hit.Depth,
                     },
-                });
+                };
 
-                return;
+                // 시작점에서 가까운 순으로 끼워 넣음.
+                float distanceSq = math.distancesq(start, rewound.Center);
+                int slot = messages.Length;
+
+                while (slot > 0 && math.distancesq(start, messages[slot - 1].Message.OtherCenter) > distanceSq)
+                {
+                    slot--;
+                }
+
+                messages.Insert(slot, element);
             }
         }
 

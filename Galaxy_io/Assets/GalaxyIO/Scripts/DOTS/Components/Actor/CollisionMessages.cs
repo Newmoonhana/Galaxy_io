@@ -31,12 +31,37 @@ namespace GalaxyIO.DOTS.Components.Actor
     }
 
     /// <summary>
-    /// 투사체 - 선체 충돌. 투사체 쪽에만, 가장 먼저 맞은 하나만 쌓임.
+    /// 투사체 - 선체 충돌. 투사체 쪽에만, 이동 경로상 먼저 닿은 순으로 쌓임.
     /// </summary>
     [InternalBufferCapacity(0)]
     public struct ProjectileHitElement : IBufferElementData
     {
         public CollisionMessage Message;
+    }
+
+    /// <summary>
+    /// 관통 투사체가 이미 지나간 우주선. 같은 우주선을 다시 맞히지 않음.
+    /// </summary>
+    [InternalBufferCapacity(0)]
+    public struct ProjectilePiercedElement : IBufferElementData
+    {
+        public Entity Spaceship;
+    }
+
+    public static class ProjectilePierced
+    {
+        public static bool Contains(this DynamicBuffer<ProjectilePiercedElement> pierced, Entity spaceship)
+        {
+            for (int i = 0; i < pierced.Length; i++)
+            {
+                if (pierced[i].Spaceship == spaceship)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 
     /// <summary>

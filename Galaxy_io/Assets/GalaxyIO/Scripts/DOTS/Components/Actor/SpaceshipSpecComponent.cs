@@ -21,6 +21,9 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 남은 수리 대기 시간. 피격할 때마다 RepairDelay로 다시 채워짐.
         public float RepairCooldown;
 
+        // 선체 두께. 관통 투사체의 관통력을 이만큼 깎음.
+        public float Thickness;
+
         // 현재 체력. 예측 롤백 시 서버 값으로 되감아야 하므로 복제함.
         [GhostField]
         public float Health;

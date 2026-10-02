@@ -19,7 +19,20 @@ namespace GalaxyIO.DOTS.Authoring
             public GameObject Projectile;
 
             [Tooltip("초당 발사 수")]
-            public uint RPS;
+            [Min(0.0F)]
+            public float RPS;
+
+            [Tooltip("첫 발 대기 시간. 총구마다 다르게 주면 번갈아 쏨. 쉬다 다시 쏠 때도 이 값부터 기다림.")]
+            [Min(0.0F)]
+            public float FirstShotCooldown;
+
+            [Tooltip("한 번에 쏘는 투사체 수. 각자 탄퍼짐, 속력 분포를 따로 받음. 0 은 1 로 취급.")]
+            [Range(0, 32)]
+            public int ProjectileCount;
+
+            [Tooltip("투사체 속력 분포. 발사 속력에 1 ± 이 값 사이의 배율을 곱함.")]
+            [Range(0.0F, 1.0F)]
+            public float SpeedSpread;
 
             [Tooltip("정확도 (0 -> 90 deg, 1 -> 0 deg)")]
             [Range(0.0F, 1.0F)]
@@ -31,7 +44,7 @@ namespace GalaxyIO.DOTS.Authoring
             [Tooltip("발사음")]
             public AudioClip ShotSound;
 
-            public bool Armed => Projectile != null && RPS > 0;
+            public bool Armed => Projectile != null && RPS > 0.0F;
 
             public float FireCooldown => Armed ? 1.0F / RPS : 0.0F;
 
@@ -42,6 +55,19 @@ namespace GalaxyIO.DOTS.Authoring
         [SerializeField]
         [Tooltip("우주선 총구 순서대로 적용. 우주선 총구보다 많은 항목은 무시함.")]
         public List<TurretSpec> TurretSpecs = new List<TurretSpec>();
+
+        [SerializeField]
+        [Tooltip("사격 시작/중지 전환 시간(초). 우주선 단위. 전환 중에는 쏠 수 없음.")]
+        [Min(0.0F)]
+        public float SwitchTime;
+
+        [SerializeField]
+        [Tooltip("사격을 시작할 때 한 번 재생. 비우면 없음.")]
+        public AudioClip LaunchSound;
+
+        [SerializeField]
+        [Tooltip("사격 중 반복 재생. 지정하면 투사체마다의 발사음(ShotSound)은 재생하지 않음.")]
+        public AudioClip LoopSound;
 
         private void Reset()
         {

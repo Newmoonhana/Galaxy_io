@@ -254,7 +254,7 @@ namespace GalaxyIO.DOTS.Inventory
                 entityManager.GetBuffer<ItemRegistryElement>(registryEntity),
                 entityManager.GetBuffer<TurretSpecElement>(registryEntity),
                 ref equipped,
-                entityManager.GetBuffer<TurretElement>(ship)
+                entityManager.GetBuffer<TurretCooldownElement>(ship)
             );
 
             entityManager.SetComponentData(ship, equipped);
