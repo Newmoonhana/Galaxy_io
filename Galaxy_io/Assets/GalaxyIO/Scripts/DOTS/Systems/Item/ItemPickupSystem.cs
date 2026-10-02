@@ -1,7 +1,7 @@
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.DOTS.Components.Singleton;
-using Unity.Burst;
+using GalaxyIO.DOTS.Inventory;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -14,23 +14,20 @@ namespace GalaxyIO.DOTS.Systems
     /// 플레이어에 닿은 아이템을 인벤토리에 넣고 주운 플레이어에게 알리는 시스템.
     /// 수명이 다한 아이템도 제거함.
     /// </summary>
-    [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(DespawnSystemGroup))]
     public partial struct ItemPickupSystem : ISystem
     {
-        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<ItemComponent>();
-            state.RequireForUpdate<ItemRegistryElement>();
+            state.RequireForUpdate<InventoryServiceComponent>();
         }
 
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             float deltaTime = SystemAPI.Time.DeltaTime;
-            DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetSingletonBuffer<ItemRegistryElement>(true);
+            InventoryService inventories = SystemAPI.ManagedAPI.GetSingleton<InventoryServiceComponent>().Value;
 
             // NetworkId -> 접속
             var connections = new NativeHashMap<int, Entity>(4, Allocator.Temp);
@@ -59,14 +56,13 @@ namespace GalaxyIO.DOTS.Systems
                 {
                     Entity picker = overlaps[i].Message.Other;
 
-                    if (!overlaps[i].Contact || !SystemAPI.HasBuffer<InventorySlotElement>(picker))
+                    if (!overlaps[i].Contact || !SystemAPI.HasComponent<PlayerNameComponent>(picker))
                     {
                         continue;
                     }
 
-                    int inserted = Inventory.Insert(
-                        SystemAPI.GetBuffer<InventorySlotElement>(picker),
-                        registry,
+                    int inserted = inventories.Insert(
+                        SystemAPI.GetComponent<GhostOwner>(picker).NetworkId,
                         item.ValueRO.Id,
                         item.ValueRO.Count
                     );
@@ -79,8 +75,7 @@ namespace GalaxyIO.DOTS.Systems
                     item.ValueRW.Count -= inserted;
 
                     // 줍기 효과음은 주운 본인만 들음.
-                    if (SystemAPI.HasComponent<GhostOwner>(picker)
-                        && connections.TryGetValue(SystemAPI.GetComponent<GhostOwner>(picker).NetworkId, out Entity target))
+                    if (connections.TryGetValue(SystemAPI.GetComponent<GhostOwner>(picker).NetworkId, out Entity target))
                     {
                         Entity rpcEntity = ecb.CreateEntity();
 

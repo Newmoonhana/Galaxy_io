@@ -18,12 +18,12 @@ MonoBehaviour:
   Stacking: 1
   TurretSpecs:
   - Projectile: {fileID: 3898896724990523705, guid: a8e22ae2209f261498f8ee2521040c67, type: 3}
-    RPS: 24
-    Accuracy: 0.865
-    Damage: 7
+    RPS: 28
+    Accuracy: 0.896
+    Damage: 3
     ShotSound: {fileID: 8300000, guid: 01d0ce3688cc2fb4f9559767b8b578b0, type: 3}
   - Projectile: {fileID: 3898896724990523705, guid: a8e22ae2209f261498f8ee2521040c67, type: 3}
-    RPS: 24
-    Accuracy: 0.865
-    Damage: 7
-    ShotSound: {fileID: 8300000, guid: 8f2159ab85736df4bb50ddfff148331f, type: 3}
+    RPS: 28
+    Accuracy: 0.896
+    Damage: 3
+    ShotSound: {fileID: 8300000, guid: 01d0ce3688cc2fb4f9559767b8b578b0, type: 3}

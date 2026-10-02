@@ -1,10 +1,12 @@
-using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Authoring;
+using GalaxyIO.DOTS.Authoring.Config;
+using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.DOTS.Components.Singleton;
+using GalaxyIO.DOTS.Inventory;
 using GalaxyIO.Scripts.Managed.UI;
 using Newmoonhana.Runtime.Tools.PopupUI.Popup;
 using TMPro;
-using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
 using UnityEngine;
@@ -26,7 +28,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
     public class InventoryScreen : PopupBase, IPointerDownHandler
     {
         [SerializeField]
-        [Tooltip("칸 번호 순. 우주선의 InventoryAuthoring 칸 구성과 같아야 함.")]
+        [Tooltip("칸 번호 순. ItemConfigAuthoring 의 인벤토리 칸 구성과 같아야 함.")]
         private InventorySlot[] slots;
 
         [SerializeField]
@@ -77,11 +79,8 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             }
 
             entityManager = clientWorld.EntityManager;
-            inventoryQuery = entityManager.CreateEntityQuery(
-                ComponentType.ReadOnly<GhostOwnerIsLocal>(),
-                ComponentType.ReadOnly<InventorySlotElement>()
-            );
-            registryQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<ItemRegistryElement>());
+            inventoryQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<LocalInventoryComponent>());
+            registryQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<ItemRegistryAssetComponent>());
         }
 
         // 제작 화면은 인벤토리를 열 때마다 닫힌 채로 시작함.
@@ -108,47 +107,40 @@ namespace GalaxyIO.Tools.PopupUI.Popup
                 return;
             }
 
-            if (inventoryQuery.IsEmpty || registryQuery.IsEmpty)
+            if (registryQuery.IsEmpty)
             {
                 return;
             }
 
-            using NativeArray<Entity> ships = inventoryQuery.ToEntityArray(Allocator.Temp);
-            DynamicBuffer<InventorySlotElement> buffer = entityManager.GetBuffer<InventorySlotElement>(ships[0], true);
-            Entity registryEntity = registryQuery.GetSingletonEntity();
-            DynamicBuffer<ItemRegistryElement> registry = entityManager.GetBuffer<ItemRegistryElement>(registryEntity, true);
+            PlayerInventory inventory = inventoryQuery.GetSingleton<LocalInventoryComponent>().Value;
+            ItemRegistryAsset registry = registryQuery.GetSingleton<ItemRegistryAssetComponent>().Value;
+
+            if (inventory == null)
+            {
+                return;
+            }
 
             // 집어 든 칸이 비면 손도 비움. 전부 내려놓았거나 버린 경우.
-            if (heldSlot >= buffer.Length || (heldSlot >= 0 && !registry.Contains(buffer[heldSlot].Id)))
+            if (heldSlot >= inventory.Length || (heldSlot >= 0 && registry.Find(inventory[heldSlot].Id) == null))
             {
                 heldSlot = -1;
             }
 
-            for (int i = 0; i < slots.Length && i < buffer.Length; i++)
+            for (int i = 0; i < slots.Length && i < inventory.Length; i++)
             {
-                ItemId id = buffer[i].Id;
-                Sprite sprite = null;
-                Sprite badge = null;
+                ItemAsset item = registry.Find(inventory[i].Id);
 
-                if (registry.Contains(id))
-                {
-                    sprite = registry[(int)id].Sprite.Value;
+                // 설계도는 결과물 아이콘을 덧붙여 구분함.
+                Sprite badge = item is BlueprintItemAsset blueprint && blueprint.Recipe != null && blueprint.Recipe.Result != null
+                    ? blueprint.Recipe.Result.Sprite
+                    : null;
 
-                    // 설계도는 결과물 아이콘을 덧붙여 구분함.
-                    ItemId result = registry[(int)id].CraftResult;
-                    badge = registry.Contains(result) ? registry[(int)result].Sprite.Value : null;
-                }
-
-                slots[i].Set(sprite, badge, buffer[i].Count, i == heldSlot);
+                slots[i].Set(item != null ? item.Sprite : null, badge, inventory[i].Count, i == heldSlot);
             }
 
             if (craftingScreen.gameObject.activeSelf)
             {
-                craftingScreen.Refresh(
-                    buffer,
-                    registry,
-                    entityManager.GetBuffer<RecipeIngredientElement>(registryEntity, true)
-                );
+                craftingScreen.Refresh(inventory, registry);
             }
 
             heldIcon.gameObject.SetActive(heldSlot >= 0);
@@ -158,8 +150,8 @@ namespace GalaxyIO.Tools.PopupUI.Popup
                 return;
             }
 
-            InventorySlotElement held = buffer[heldSlot];
-            heldIcon.sprite = registry[(int)held.Id].Sprite.Value;
+            ItemSlot held = inventory[heldSlot];
+            heldIcon.sprite = registry.Find(held.Id).Sprite;
             heldCount.text = held.Count > 1 ? held.Count.ToString() : string.Empty;
 
             if (RectTransformUtility.ScreenPointToWorldPointInRectangle(

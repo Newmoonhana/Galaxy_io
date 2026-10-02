@@ -22,6 +22,22 @@ namespace GalaxyIO.DOTS.Authoring.Config
         [Tooltip("떨어뜨릴 칸의 아이템 하나하나가 실제로 떨어질 확률. 나머지는 사라짐.")]
         [Range(0.0F, 1.0F)]
         public float PlayerStackDropChance = 0.5F;
+
+        [Header("Inventory")]
+
+        [SerializeField]
+        [Tooltip("플레이어 인벤토리 일반 칸 수. 칸 번호는 일반 -> 포탑 -> 폭탄 순.")]
+        [Min(0)]
+        public int CommonSlots = 36;
+
+        [SerializeField]
+        [Tooltip("포탑 칸 수. 첫 포탑 칸은 우주선의 SpaceshipAuthoring.Turret 을 넣은 채로 시작함.")]
+        [Min(0)]
+        public int TurretSlots = 1;
+
+        [SerializeField]
+        [Min(0)]
+        public int BombSlots = 3;
     }
 
     public sealed class ItemConfigBaker : Baker<ItemConfigAuthoring>
@@ -35,6 +51,9 @@ namespace GalaxyIO.DOTS.Authoring.Config
                 PickupSound           = authoring.PickupSound,
                 PlayerSlotDropChance  = authoring.PlayerSlotDropChance,
                 PlayerStackDropChance = authoring.PlayerStackDropChance,
+                CommonSlots           = authoring.CommonSlots,
+                TurretSlots           = authoring.TurretSlots,
+                BombSlots             = authoring.BombSlots,
             });
         }
     }

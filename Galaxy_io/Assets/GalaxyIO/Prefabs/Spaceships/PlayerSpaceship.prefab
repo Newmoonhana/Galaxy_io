@@ -15,7 +15,6 @@ GameObject:
   - component: {fileID: 5889587866788096847}
   - component: {fileID: 3345718978926545676}
   - component: {fileID: 6412773190475893041}
-  - component: {fileID: 6956811219579814081}
   m_Layer: 0
   m_Name: PlayerSpaceship
   m_TagString: Untagged
@@ -128,7 +127,7 @@ MonoBehaviour:
   - {fileID: 1279712499970898616}
   - {fileID: 3305843298488137801}
   - {fileID: 8240234519857750097}
-  Turret: {fileID: 11400000, guid: 52ddbe9c5873d36434f6db223d1d2007, type: 2}
+  Turret: {fileID: 11400000, guid: 2e7494f6410a0a4a1c0a258320c5fd2c, type: 2}
 --- !u!114 &8909345426696020667
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -193,21 +192,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.BoxColliderAuthoring
   Center: {x: 0, y: 0}
   Size: {x: 0.9912537, y: 1}
---- !u!114 &6956811219579814081
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1177794197835979121}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d50829841bcf571429f678fc5a4fa049, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.InventoryAuthoring
-  CommonSlots: 36
-  TurretSlots: 1
-  BombSlots: 3
 --- !u!1 &2225960894660375326
 GameObject:
   m_ObjectHideFlags: 0
