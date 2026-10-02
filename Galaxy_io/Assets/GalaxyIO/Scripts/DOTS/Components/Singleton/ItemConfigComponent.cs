@@ -17,5 +17,10 @@ namespace GalaxyIO.DOTS.Components.Singleton
 
         // 떨어뜨릴 칸의 아이템 하나하나가 실제로 떨어질 확률. 서버만 씀.
         public float PlayerStackDropChance;
+
+        // 플레이어 인벤토리 칸 수
+        public int CommonSlots;
+        public int TurretSlots;
+        public int BombSlots;
     }
 }

@@ -12,9 +12,8 @@ using Random = Unity.Mathematics.Random;
 namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
-    /// 체력이 0이 된 우주선에서 아이템 Entity 를 스폰하는 시스템.
-    /// 적은 드랍 테이블을 굴리고, 플레이어가 막타나 어시스트를 했을 때만 떨어뜨림.
-    /// 플레이어는 인벤토리 일부를 떨어뜨림.
+    /// 체력이 0이 된 적 우주선에서 드랍 테이블을 굴려 아이템 Entity 를 스폰하는 시스템.
+    /// 플레이어가 막타나 어시스트를 했을 때만 떨어뜨림. 플레이어 사망 드랍은 InventoryService 가 처리함.
     /// </summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
@@ -35,13 +34,9 @@ namespace GalaxyIO.DOTS.Systems
             state.RequireForUpdate<NetworkTime>();
             state.RequireForUpdate<PrefabRegistryElement>();
             state.RequireForUpdate<ItemRegistryElement>();
-            state.RequireForUpdate<ItemConfigComponent>();
-            state.RequireAnyForUpdate(
+            state.RequireForUpdate(
                 SystemAPI.QueryBuilder()
                     .WithAll<SpaceshipSpecComponent, LocalTransform, DropTableComponent, KillingBlowComponent, DamageRecordElement>()
-                    .Build(),
-                SystemAPI.QueryBuilder()
-                    .WithAll<SpaceshipSpecComponent, LocalTransform, InventorySlotElement>()
                     .Build()
             );
         }
@@ -60,7 +55,6 @@ namespace GalaxyIO.DOTS.Systems
             }
 
             DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetSingletonBuffer<ItemRegistryElement>(true);
-            ItemConfigComponent config = SystemAPI.GetSingleton<ItemConfigComponent>();
 
             double time = SystemAPI.Time.ElapsedTime;
             uint tick = SystemAPI.GetSingleton<NetworkTime>().ServerTick.SerializedData;
@@ -124,48 +118,6 @@ namespace GalaxyIO.DOTS.Systems
                         Count    = random.NextInt(entry.MinCount, entry.MaxCount + 1),
                         Position = transform.ValueRO.Position,
                     });
-                }
-            }
-
-            // 플레이어: 칸마다 떨어뜨릴지 굴리고, 떨어뜨릴 칸은 아이템 하나하나 남길지 다시 굴림.
-            // 장착한 포탑(포탑 칸)은 떨어뜨리지 않음.
-            foreach (
-                var (spec, transform, slots) in
-                SystemAPI.Query<RefRO<SpaceshipSpecComponent>, RefRO<LocalTransform>, DynamicBuffer<InventorySlotElement>>()
-            ) {
-                if (spec.ValueRO.Health > 0.0F)
-                {
-                    continue;
-                }
-
-                for (int i = 0; i < slots.Length; i++)
-                {
-                    if (slots[i].Id == ItemId.None
-                        || slots[i].Type == SlotType.Turret
-                        || random.NextFloat() >= config.PlayerSlotDropChance)
-                    {
-                        continue;
-                    }
-
-                    int count = 0;
-
-                    for (int n = 0; n < slots[i].Count; n++)
-                    {
-                        if (random.NextFloat() < config.PlayerStackDropChance)
-                        {
-                            count++;
-                        }
-                    }
-
-                    if (count > 0)
-                    {
-                        drops.Add(new Drop
-                        {
-                            Id       = slots[i].Id,
-                            Count    = count,
-                            Position = transform.ValueRO.Position,
-                        });
-                    }
                 }
             }
 

@@ -1,4 +1,4 @@
-using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Inventory;
 using GalaxyIO.Tools.PopupUI.Popup;
 using TMPro;
 using UnityEngine;

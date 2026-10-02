@@ -1,10 +1,11 @@
 using System.Collections.Generic;
-using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Authoring;
+using GalaxyIO.DOTS.Authoring.Config;
 using GalaxyIO.DOTS.Components.Singleton;
+using GalaxyIO.DOTS.Inventory;
 using GalaxyIO.Tools;
 using GalaxyIO.Tools.PopupUI.Popup;
 using TMPro;
-using Unity.Entities;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -64,60 +65,60 @@ namespace GalaxyIO.Scripts.Managed.UI
         /// <summary>
         /// 화면이 열려 있는 동안 <see cref="InventoryScreen"/>이 매 프레임 호출함.
         /// </summary>
-        public void Refresh(
-            DynamicBuffer<InventorySlotElement> slots,
-            DynamicBuffer<ItemRegistryElement> registry,
-            DynamicBuffer<RecipeIngredientElement> ingredients)
+        public void Refresh(PlayerInventory inventory, ItemRegistryAsset registry)
         {
-            ItemId blueprintId = slot < slots.Length ? slots[slot].Id : ItemId.None;
+            ItemId blueprintId = slot < inventory.Length ? inventory[slot].Id : ItemId.None;
 
             // 설계도를 다 썼거나 다른 칸으로 옮겼으면 닫음.
-            if (!registry.Contains(blueprintId) || !registry.Contains(registry[(int)blueprintId].CraftResult))
+            if (!(registry.Find(blueprintId) is BlueprintItemAsset blueprint)
+                || blueprint.Recipe == null
+                || blueprint.Recipe.Result == null)
             {
                 gameObject.SetActive(false);
                 return;
             }
 
-            ItemRegistryElement blueprint = registry[(int)blueprintId];
+            List<RecipeAsset.Ingredient> ingredients = blueprint.Recipe.Ingredients;
 
             if (shownBlueprint != blueprintId)
             {
                 shownBlueprint = blueprintId;
-                nameLabel.text = L10n.Get($"Item/{blueprint.CraftResult}");
-                resultIcon.sprite = registry[(int)blueprint.CraftResult].Sprite.Value;
+                nameLabel.text = L10n.Get($"Item/{blueprint.Recipe.Result.Id}");
+                resultIcon.sprite = blueprint.Recipe.Result.Sprite;
 
-                for (int i = 0; i < blueprint.IngredientCount; i++)
+                for (int i = 0; i < ingredients.Count; i++)
                 {
                     if (i >= rows.Count)
                     {
                         rows.Add(Instantiate(rowPrefab, container));
                     }
 
-                    ItemId id = ingredients[blueprint.IngredientStart + i].Id;
-                    Sprite sprite = registry.Contains(id) ? registry[(int)id].Sprite.Value : null;
+                    ItemAsset item = ingredients[i].Item;
 
-                    rows[i].gameObject.SetActive(true);
-                    rows[i].SetItem(sprite, L10n.Get($"Item/{id}"));
+                    // 비어 있는 재료는 제작 조건에서도 빠지므로 숨김.
+                    rows[i].gameObject.SetActive(item != null);
+
+                    if (item != null)
+                    {
+                        rows[i].SetItem(item.Sprite, L10n.Get($"Item/{item.Id}"));
+                    }
                 }
 
-                for (int i = blueprint.IngredientCount; i < rows.Count; i++)
+                for (int i = ingredients.Count; i < rows.Count; i++)
                 {
                     rows[i].gameObject.SetActive(false);
                 }
             }
 
-            bool craftable = true;
-
-            for (int i = 0; i < blueprint.IngredientCount; i++)
+            for (int i = 0; i < ingredients.Count; i++)
             {
-                RecipeIngredientElement ingredient = ingredients[blueprint.IngredientStart + i];
-                int have = Inventory.Count(slots, ingredient.Id);
-
-                rows[i].SetCount(have, ingredient.Count);
-                craftable &= have >= ingredient.Count;
+                if (ingredients[i].Item != null)
+                {
+                    rows[i].SetCount(inventory.Count(ingredients[i].Item.Id), ingredients[i].Count);
+                }
             }
 
-            craftButton.interactable = craftable;
+            craftButton.interactable = inventory.HasIngredients(blueprint.Recipe);
         }
 
         // 버튼이 아닌 곳을 누름. 패널 밖이면 닫음.

@@ -21,26 +21,6 @@ namespace GalaxyIO.DOTS.Components.Actor
     public static class TurretEquip
     {
         /// <summary>
-        /// 첫 포탑 칸의 포탑 아이템. 없으면 None.
-        /// </summary>
-        public static ItemId Find(DynamicBuffer<InventorySlotElement> slots, DynamicBuffer<ItemRegistryElement> registry)
-        {
-            for (int i = 0; i < slots.Length; i++)
-            {
-                if (slots[i].Type != SlotType.Turret)
-                {
-                    continue;
-                }
-
-                return registry.Contains(slots[i].Id) && registry[(int)slots[i].Id].Type == ItemType.Turret
-                    ? slots[i].Id
-                    : ItemId.None;
-            }
-
-            return ItemId.None;
-        }
-
-        /// <summary>
         /// 모든 총구가 새 포탑의 발사 간격만큼 기다리게 함. 바꿔 끼우자마자 쏘는 것 방지.
         /// </summary>
         public static void ResetCooldown(
@@ -61,14 +41,12 @@ namespace GalaxyIO.DOTS.Components.Actor
         /// 포탑 칸이 바뀐 뒤 서버가 호출. 장착 포탑이 달라졌으면 바꾸고 쿨다운을 채움.
         /// </summary>
         public static void Refresh(
-            DynamicBuffer<InventorySlotElement> slots,
+            ItemId turret,
             DynamicBuffer<ItemRegistryElement> registry,
             DynamicBuffer<TurretSpecElement> specs,
             ref EquippedTurretComponent equipped,
             DynamicBuffer<TurretElement> turrets)
         {
-            ItemId turret = Find(slots, registry);
-
             if (equipped.Value == turret)
             {
                 return;

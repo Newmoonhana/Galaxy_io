@@ -106,7 +106,9 @@ namespace GalaxyIO.DOTS.Authoring.Config
             registry.Resize(maxId + 1, NativeArrayOptions.ClearMemory);
 
             DynamicBuffer<TurretSpecElement> turretSpecs = AddBuffer<TurretSpecElement>(entity);
-            DynamicBuffer<RecipeIngredientElement> ingredients = AddBuffer<RecipeIngredientElement>(entity);
+
+            // 인벤토리, 제작은 에셋을 직접 읽음.
+            AddComponentObject(entity, new ItemRegistryAssetComponent { Value = itemRegistry });
 
             foreach (ItemAsset item in itemRegistry.Items)
             {
@@ -128,10 +130,7 @@ namespace GalaxyIO.DOTS.Authoring.Config
                 {
                     Sprite          = item.Sprite,
                     HalfExtents     = new float2(extents.x, extents.y),
-                    Type            = item.Type,
-                    MaxStack        = (byte)math.clamp(item.Stacking, 1, byte.MaxValue),
                     TurretSpecStart = (ushort)turretSpecs.Length,
-                    IngredientStart = (ushort)ingredients.Length,
                 };
 
                 if (item is TurretItemAsset turret)
@@ -149,25 +148,6 @@ namespace GalaxyIO.DOTS.Authoring.Config
                     }
 
                     element.TurretSpecCount = (byte)turret.TurretSpecs.Count;
-                }
-
-                if (item is BlueprintItemAsset blueprint && blueprint.Recipe != null && blueprint.Recipe.Result != null)
-                {
-                    DependsOn(blueprint.Recipe);
-
-                    foreach (RecipeAsset.Ingredient ingredient in blueprint.Recipe.Ingredients)
-                    {
-                        if (ingredient.Item == null || ingredient.Count <= 0)
-                        {
-                            Debug.LogWarning($"ItemRegistry: 비어 있는 재료를 건너뜀. ({blueprint.Recipe})", blueprint.Recipe);
-                            continue;
-                        }
-
-                        ingredients.Add(new RecipeIngredientElement { Id = ingredient.Item.Id, Count = ingredient.Count });
-                        element.IngredientCount++;
-                    }
-
-                    element.CraftResult = blueprint.Recipe.Result.Id;
                 }
 
                 registry[(int)item.Id] = element;
