@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace GalaxyIO.DOTS.Authoring
 {
@@ -18,13 +19,19 @@ namespace GalaxyIO.DOTS.Authoring
             [Tooltip("발사체. 비우면 이 총구는 쏘지 않음.")]
             public GameObject Projectile;
 
-            [Tooltip("초당 발사 수")]
+            [Tooltip("초당 발사 수. 따라 쏘는 총구는 쓰지 않음.")]
             [Min(0.0F)]
             public float RPS;
 
-            [Tooltip("첫 발 대기 시간. 총구마다 다르게 주면 번갈아 쏨. 쉬다 다시 쏠 때도 이 값부터 기다림.")]
+            [Tooltip("따라 쏠 총구 번호(1부터). 0 이면 혼자 RPS 대로 쏨. 따라 쏘는 총구는 앞 총구가 쏠 때마다 " +
+                     "FollowDelay 뒤에 한 번 쏨(방아쇠를 떼도 쏨). 앞 총구는 따라 쏘는 총구가 아니어야 함.")]
+            [Min(0)]
+            public int FollowMuzzle;
+
+            [Tooltip("따라 쏘는 총구만. 앞 총구가 쏜 뒤 이 총구가 쏘기까지의 시간(초).")]
             [Min(0.0F)]
-            public float FirstShotCooldown;
+            [FormerlySerializedAs("FirstShotCooldown")]
+            public float FollowDelay;
 
             [Tooltip("한 번에 쏘는 투사체 수. 각자 탄퍼짐, 속력 분포를 따로 받음. 0 은 1 로 취급.")]
             [Range(0, 32)]
@@ -44,9 +51,9 @@ namespace GalaxyIO.DOTS.Authoring
             [Tooltip("발사음")]
             public AudioClip ShotSound;
 
-            public bool Armed => Projectile != null && RPS > 0.0F;
+            public bool Armed => Projectile != null && (RPS > 0.0F || FollowMuzzle > 0);
 
-            public float FireCooldown => Armed ? 1.0F / RPS : 0.0F;
+            public float FireCooldown => Armed && RPS > 0.0F ? 1.0F / RPS : 0.0F;
 
             // 탄 퍼짐 정도(Radian)
             public float Spread => Armed ? (1.0F - Accuracy) * math.TORADIANS * 90.0F : 0.0F;

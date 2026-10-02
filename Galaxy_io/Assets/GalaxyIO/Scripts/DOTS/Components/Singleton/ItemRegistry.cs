@@ -38,10 +38,18 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 없으면 이 총구는 쏘지 않음.
         public Entity ProjectilePrefab;
 
+        // 투사체가 Ghost 가 아님. 서버는 복제 없이 데미지 판정용으로만 쏘고,
+        // 클라이언트는 사격 전환 상태를 보고 연출용으로 따로 쏨.
+        public bool LocalLaunch;
+
+        // 따라 쏘는 총구는 쓰지 않음.
         public float MaxFireCooldown;
 
-        // 첫 발 대기 시간. 장착, 사격 대기 복귀 시 적용.
-        public float FirstShotCooldown;
+        // 따라 쏠 총구 번호(0부터). 없으면 -1. 따라 쏘는 총구는 앞 총구가 쏠 때마다 FollowDelay 뒤에 한 번 쏨.
+        public sbyte FollowMuzzle;
+
+        // 따라 쏘는 총구만. 앞 총구가 쏜 뒤 쏘기까지의 시간(초).
+        public float FollowDelay;
 
         // 한 번에 쏘는 투사체 수. 1 이상.
         public byte ProjectileCount;

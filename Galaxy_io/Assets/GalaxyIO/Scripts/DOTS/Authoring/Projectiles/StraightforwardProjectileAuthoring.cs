@@ -1,5 +1,6 @@
 ﻿using GalaxyIO.DOTS.Components.Actor;
 using Unity.Entities;
+using Unity.NetCode;
 using UnityEngine;
 
 namespace GalaxyIO.DOTS.Authoring
@@ -53,6 +54,12 @@ namespace GalaxyIO.DOTS.Authoring
             });
 
             AddBuffer<ProjectileHitElement>(entity);
+
+            // Ghost 가 아닌 투사체(각자 발사)도 쏜 플레이어를 기록함. Ghost 는 GhostAuthoring 이 붙임.
+            if (GetComponent<GhostAuthoringComponent>() == null)
+            {
+                AddComponent<GhostOwner>(entity);
+            }
             AddBuffer<ProjectilePiercedElement>(entity);
 
             // Companion(파티클)은 Ghost 에 직접 붙이지 않고 클라이언트가 따로 스폰해 따라붙임.

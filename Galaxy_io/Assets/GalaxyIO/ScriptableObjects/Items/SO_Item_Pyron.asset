@@ -19,7 +19,8 @@ MonoBehaviour:
   TurretSpecs:
   - Projectile: {fileID: 0}
     RPS: 60
-    FirstShotCooldown: 0
+    FollowMuzzle: 0
+    FollowDelay: 0
     ProjectileCount: 0
     SpeedSpread: 0
     Accuracy: 0.663
@@ -27,7 +28,8 @@ MonoBehaviour:
     ShotSound: {fileID: 0}
   - Projectile: {fileID: 0}
     RPS: 0
-    FirstShotCooldown: 0
+    FollowMuzzle: 0
+    FollowDelay: 0
     ProjectileCount: 0
     SpeedSpread: 0
     Accuracy: 0
@@ -35,11 +37,12 @@ MonoBehaviour:
     ShotSound: {fileID: 0}
   - Projectile: {fileID: 3898896724990523705, guid: 5b3f34bddc974db79112c65da9c8589b, type: 3}
     RPS: 40
-    FirstShotCooldown: 0
+    FollowMuzzle: 0
+    FollowDelay: 0
     ProjectileCount: 8
     SpeedSpread: 0.318
     Accuracy: 0.689
-    Damage: 1.4
+    Damage: 0.8
     ShotSound: {fileID: 8300000, guid: 8f2159ab85736df4bb50ddfff148331f, type: 3}
   SwitchTime: 0.3
   LaunchSound: {fileID: 8300000, guid: a3835cf5ebbcf0c469fc5b2693428825, type: 3}

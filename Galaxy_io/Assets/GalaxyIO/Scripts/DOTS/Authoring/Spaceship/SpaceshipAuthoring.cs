@@ -118,10 +118,13 @@ namespace GalaxyIO.DOTS.Authoring
 
             AddComponent(entity, new EquippedTurretComponent { Value = turret });
 
-            // 첫 발 대기 상태로 시작함.
-            AddComponent(entity, new TurretStandbyComponent { Standby = true });
+            AddComponent<TurretStandbyComponent>(entity);
 
             AddComponent<TurretSwitchComponent>(entity);
+
+            // 클라이언트가 Ghost 가 아닌 투사체를 직접 쏠 때 씀.
+            AddComponent<LocalLaunchComponent>(entity);
+            AddBuffer<LocalLaunchCooldownElement>(entity);
 
             for (int i = 0; i < authoring.Muzzles.Count; i++)
             {
@@ -136,10 +139,13 @@ namespace GalaxyIO.DOTS.Authoring
                     ),
                 });
 
+                // 혼자 쏘는 총구는 바로 쏠 수 있고, 따라 쏘는 총구는 앞 총구를 기다림.
                 cooldowns.Add(new TurretCooldownElement
                 {
-                    Value = authoring.Turret != null && i < authoring.Turret.TurretSpecs.Count
-                        ? authoring.Turret.TurretSpecs[i].FirstShotCooldown
+                    Value = authoring.Turret != null
+                            && i < authoring.Turret.TurretSpecs.Count
+                            && authoring.Turret.TurretSpecs[i].FollowMuzzle > 0
+                        ? TurretCycle.Waiting
                         : 0.0F,
                 });
             }

@@ -32,7 +32,7 @@ namespace GalaxyIO.DOTS.Systems
     }
 
     /// <summary>
-    /// 명중으로 사라진 폭발 투사체 하나. 반경 안의 우주선에 거리 비례 데미지를 줌.
+    /// AoE 폭발 데미지. 반경 안의 우주선에 거리 비례 데미지를 줌.
     /// </summary>
     public struct ProjectileExplosion
     {
@@ -42,7 +42,7 @@ namespace GalaxyIO.DOTS.Systems
         // 투사체 진영. 동맹은 맞지 않음.
         public FactionID Faction;
 
-        // 직격당한 우주선. 이미 직격 데미지를 받았으므로 폭발 데미지에서 뺌.
+        // 직격 피해를 입은 우주선. 폭발 데미지에서 제외.
         public Entity DirectHit;
 
         // 폭발 중심에서 줄 데미지와 가해자 정보. Spaceship 은 비어 있음.

@@ -3,6 +3,7 @@ using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.NetCode;
 using UnityEngine;
 
 namespace GalaxyIO.DOTS.Authoring.Config
@@ -135,13 +136,30 @@ namespace GalaxyIO.DOTS.Authoring.Config
 
                 if (item is TurretItemAsset turret)
                 {
-                    foreach (TurretItemAsset.TurretSpec spec in turret.TurretSpecs)
+                    for (int i = 0; i < turret.TurretSpecs.Count; i++)
                     {
+                        TurretItemAsset.TurretSpec spec = turret.TurretSpecs[i];
+
+                        // 앞 총구는 혼자 쏘는 총구여야 함. 잘못 지정하면 혼자 쏘는 총구로 취급.
+                        int follow = spec.FollowMuzzle - 1;
+
+                        if (follow >= 0
+                            && (follow == i
+                                || follow >= turret.TurretSpecs.Count
+                                || turret.TurretSpecs[follow].FollowMuzzle > 0
+                                || !turret.TurretSpecs[follow].Armed))
+                        {
+                            Debug.LogWarning($"ItemRegistry: {turret.name} 총구 {i + 1} 의 FollowMuzzle 이 잘못됨. 혼자 쏘는 총구로 취급.", turret);
+                            follow = -1;
+                        }
+
                         turretSpecs.Add(new TurretSpecElement
                         {
                             ProjectilePrefab  = spec.Armed ? GetEntity(spec.Projectile, TransformUsageFlags.Dynamic) : Entity.Null,
+                            LocalLaunch       = spec.Armed && spec.Projectile.GetComponent<GhostAuthoringComponent>() == null,
                             MaxFireCooldown   = spec.FireCooldown,
-                            FirstShotCooldown = spec.FirstShotCooldown,
+                            FollowMuzzle      = (sbyte)follow,
+                            FollowDelay       = spec.FollowDelay,
                             ProjectileCount   = (byte)Math.Max(spec.ProjectileCount, 1),
                             Spread            = spec.Spread,
                             SpeedSpread       = spec.SpeedSpread,

@@ -50,6 +50,7 @@ namespace GalaxyIO.DOTS.Systems
     /// </summary>
     [BurstCompile]
     [WithAll(typeof(SharedProjectileComponent), typeof(Simulate))]
+    [WithNone(typeof(LocalProjectileTag))]
     public partial struct SharedProjectileJob : IJobEntity
     {
         public float DeltaTime;
