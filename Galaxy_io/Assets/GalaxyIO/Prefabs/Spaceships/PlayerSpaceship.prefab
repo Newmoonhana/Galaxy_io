@@ -122,6 +122,7 @@ MonoBehaviour:
   MaxHealth: 100
   Repair: 5
   RepairDelay: 3
+  Thickness: 1
   Faction: 1
   Muzzles:
   - {fileID: 1279712499970898616}

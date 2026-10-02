@@ -7,13 +7,13 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.NetCode;
 using Unity.Transforms;
-using Random = Unity.Mathematics.Random;
 
 namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
     /// <see cref="PlayerInputComponent"/>를 읽어들여 터렛의 투사체를 생성하는 시스템.
     /// 총구 사양은 <see cref="EquippedTurretComponent"/>의 포탑에서 찾음.
+    /// 쿨다운은 롤백 재시뮬레이션까지 매 틱 진행해 서버와 같은 틱에 쏨.
     /// 클라이언트와 서버가 같은 틱에 각자 투사체를 만들고
     /// <see cref="ProjectileSpawnClassificationSystem"/>이 둘을 짝지음.
     /// </summary>
@@ -24,6 +24,7 @@ namespace GalaxyIO.DOTS.Systems
         {
             state.RequireForUpdate<PlayerInputComponent>();
             state.RequireForUpdate<ItemRegistryElement>();
+            state.RequireForUpdate<ItemConfigComponent>();
             state.RequireForUpdate<NetworkTime>();
 
             // Ghost Prefab 등록 전이거나 InGame 이전에 예측 스폰하면 초기화에 실패하거나
@@ -38,12 +39,9 @@ namespace GalaxyIO.DOTS.Systems
         {
             NetworkTime networkTime = SystemAPI.GetSingleton<NetworkTime>();
 
-            // 롤백 재시뮬레이션에서 같은 발사를 반복하지 않도록 틱당 한 번만 실행.
+            // 롤백 재시뮬레이션에서는 쿨다운만 진행하고 같은 발사를 다시 스폰하지 않음.
             // 서버에서는 이 플래그가 항상 켜져 있음.
-            if (!networkTime.IsFirstTimeFullyPredictingTick)
-            {
-                return;
-            }
+            bool spawn = networkTime.IsFirstTimeFullyPredictingTick;
 
             NativeHashMap<GhostType, int>.ReadOnly registeredGhosts =
                 SystemAPI.GetSingleton<GhostCollection>().GhostTypeToColletionIndex;
@@ -53,13 +51,14 @@ namespace GalaxyIO.DOTS.Systems
             DynamicBuffer<TurretSpecElement> specs = SystemAPI.GetBuffer<TurretSpecElement>(registryEntity);
 
             float deltaTime = SystemAPI.Time.DeltaTime;
+            float standbyTime = SystemAPI.GetSingleton<ItemConfigComponent>().NoFireStandbyTime;
             uint spawnTick = networkTime.ServerTick.SerializedData;
 
             // 첫 투사체를 만들 때 한 번만 생성. 모든 우주선이 같은 버퍼를 씀.
             var commandBuffer = new EntityCommandBuffer();
 
             foreach (
-                var (transform, inputRequest, movement, owner, delay, equipped, turrets, spaceship) in
+                var (transform, inputRequest, movement, owner, delay, equipped, cooldowns, spaceship) in
                     SystemAPI.Query<
                         RefRO<LocalTransform>,
                         RefRO<PlayerInputComponent>,
@@ -67,7 +66,7 @@ namespace GalaxyIO.DOTS.Systems
                         RefRO<GhostOwner>,
                         RefRO<CommandDataInterpolationDelay>,
                         RefRO<EquippedTurretComponent>,
-                        DynamicBuffer<TurretElement>
+                        DynamicBuffer<TurretCooldownElement>
                     >().WithAll<Simulate>().WithEntityAccess()
             ) {
                 // 기수 방향으로 나아가는 성분만 투사체에 물려줌.
@@ -77,10 +76,35 @@ namespace GalaxyIO.DOTS.Systems
                     math.normalizesafe(SpaceshipHeading.FromRotation(transform.ValueRO.Rotation), float2.zero)
                 );
 
+                // 쿼리 타입 인자 수 제한(7개)으로 따로 가져옴.
+                RefRW<TurretSwitchComponent> turretSwitch = SystemAPI.GetComponentRW<TurretSwitchComponent>(spaceship);
+                RefRW<TurretStandbyComponent> standby = SystemAPI.GetComponentRW<TurretStandbyComponent>(spaceship);
+
+                // 사격 시작/중지 전환. 전환 중에는 쏠 수 없음.
+                bool firing = TurretSwitch.Update(
+                    ref turretSwitch.ValueRW,
+                    inputRequest.ValueRO.TurretTriggered,
+                    registry.Get(equipped.ValueRO.Value).SwitchTime,
+                    deltaTime
+                );
+
+                bool held = TurretStandby.ShouldHold(
+                    firing,
+                    cooldowns,
+                    registry,
+                    specs,
+                    equipped.ValueRO.Value
+                );
+
+                bool fired = false;
+
+                // 총구 위치. 쿨다운과 같은 순서.
+                DynamicBuffer<TurretElement> muzzles = SystemAPI.GetBuffer<TurretElement>(spaceship);
+
                 // ref 참조를 위해 foreach가 아닌 for로 접근
-                for (int i = 0; i < turrets.Length; i++)
+                for (int i = 0; i < cooldowns.Length; i++)
                 {
-                    ref TurretElement turret = ref turrets.ElementAt(i);
+                    ref TurretCooldownElement cooldown = ref cooldowns.ElementAt(i);
                     TurretSpecElement spec = registry.GetTurretSpec(specs, equipped.ValueRO.Value, i);
 
                     // 투사체가 없는 터렛
@@ -89,83 +113,100 @@ namespace GalaxyIO.DOTS.Systems
                         continue;
                     }
 
-                    // 발사 재사용 대기중인 터렛
-                    if (turret.FireCooldown > 0.0F)
+                    if (!held)
                     {
-                        turret.FireCooldown -= deltaTime;
-                        continue;
+                        cooldown.Value -= deltaTime;
                     }
 
-                    // 발사 누를시에만 투사체를 발사함.
-                    // FireCooldown때문에 Early-exit 불가.
-                    if (!inputRequest.ValueRO.TurretTriggered)
+                    // 쏘지 않는 동안은 0 아래로 쌓아 두지 않음. 다시 쏠 때 몰아 쏘는 것 방지.
+                    if (!firing)
                     {
+                        cooldown.Value = math.max(cooldown.Value, 0.0F);
                         continue;
                     }
 
                     // Ghost Prefab이 등록되기 전에는 예측 스폰한 투사체를 초기화할 수 없음.
-                    if (!registeredGhosts.ContainsKey(SystemAPI.GetComponent<GhostType>(spec.ProjectilePrefab)))
+                    // 스폰 여부와 관계없이 쿨다운은 서버와 같게 진행함.
+                    bool canSpawn = spawn
+                                    && registeredGhosts.ContainsKey(SystemAPI.GetComponent<GhostType>(spec.ProjectilePrefab));
+
+                    // 발사 간격이 한 틱보다 짧으면 한 틱에 여러 번 쏨.
+                    for (uint shot = 0; cooldown.Value <= 0.0F; shot++)
                     {
-                        continue;
-                    }
+                        cooldown.Value += spec.MaxFireCooldown;
+                        fired = true;
 
-                    if (!commandBuffer.IsCreated)
-                    {
-                        commandBuffer = SystemAPI
-                            .GetSingleton<EndPredictedSimulationEntityCommandBufferSystem.Singleton>()
-                            .CreateCommandBuffer(state.WorldUnmanaged);
-                    }
-
-                    // 클라이언트와 서버가 같은 값을 내는 식별자.
-                    // 탄퍼짐 시드와 스폰 분류 키를 겸함.
-                    uint spawnId = math.hash(new uint3((uint)owner.ValueRO.NetworkId, spawnTick, (uint)i));
-
-                    // 터렛의 로컬 좌표를 월드 좌표로 합성. 원본 Transform은 수정하지 않음.
-                    LocalTransform spaceshipTransform = transform.ValueRO;
-                    LocalTransform muzzleTransform = spaceshipTransform.TransformTransform(turret.MuzzleLocation);
-
-                    // 탄퍼짐
-                    if (spec.Spread > 0.0F)
-                    {
-                        float halfSpread = spec.Spread * 0.5F;
-                        var random = Random.CreateFromIndex(spawnId & 0x7FFFFFFFu);
-                        muzzleTransform = muzzleTransform.RotateZ(random.NextFloat(-halfSpread, halfSpread));
-                    }
-
-                    Entity projectile = commandBuffer.Instantiate(spec.ProjectilePrefab);
-                    commandBuffer.SetComponent(projectile, muzzleTransform);
-
-                    // 투사체가 쏜 우주선과 같은 타임라인에 머물게 함. (OwnerPredicted)
-                    commandBuffer.SetComponent(projectile, new GhostOwner { NetworkId = owner.ValueRO.NetworkId });
-                    commandBuffer.SetComponent(projectile, new ProjectileSpawnIdComponent { Value = spawnId });
-
-                    // 쏜 우주선의 진영을 물려받음.
-                    commandBuffer.SetComponent(projectile, SystemAPI.GetComponent<FactionComponent>(spaceship));
-
-                    // 발사한 우주선과 그 시점의 보간 지연을 기록.
-                    // 나머지 값은 프리팹 베이킹 결과를 그대로 씀.
-                    var shared = SystemAPI.GetComponent<SharedProjectileComponent>(spec.ProjectilePrefab);
-                    shared.Owner = spaceship;
-                    shared.TurretIndex = (byte)i;
-                    shared.Damage = spec.Damage;
-                    shared.InterpolationDelay = delay.ValueRO.Delay;
-                    commandBuffer.SetComponent(projectile, shared);
-
-                    // 기수 방향으로 나가는 직진 투사체는 우주선의 속력을 물려받음.
-                    if (SystemAPI.HasComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab))
-                    {
-                        var straightforward =
-                            SystemAPI.GetComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab);
-
-                        if (straightforward.ReflectOwnerVelocity)
+                        if (!canSpawn)
                         {
-                            straightforward.Speed += forwardSpeed;
-                            commandBuffer.SetComponent(projectile, straightforward);
+                            continue;
+                        }
+
+                        if (!commandBuffer.IsCreated)
+                        {
+                            commandBuffer = SystemAPI
+                                .GetSingleton<EndPredictedSimulationEntityCommandBufferSystem.Singleton>()
+                                .CreateCommandBuffer(state.WorldUnmanaged);
+                        }
+
+                        // 터렛의 로컬 좌표를 월드 좌표로 합성. 원본 Transform은 수정하지 않음.
+                        LocalTransform muzzleTransform = transform.ValueRO.TransformTransform(muzzles[i].MuzzleLocation);
+
+                        // 발사한 우주선과 그 시점의 보간 지연을 기록.
+                        // 나머지 값은 프리팹 베이킹 결과를 그대로 씀.
+                        var shared = SystemAPI.GetComponent<SharedProjectileComponent>(spec.ProjectilePrefab);
+                        shared.Owner = spaceship;
+                        shared.TurretIndex = (byte)i;
+                        shared.Damage = spec.Damage;
+                        shared.InterpolationDelay = delay.ValueRO.Delay;
+
+                        bool straight = SystemAPI.HasComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab);
+                        StraightforwardProjectileComponent straightforward = straight
+                            ? SystemAPI.GetComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab)
+                            : default;
+
+                        for (uint j = 0; j < spec.ProjectileCount; j++)
+                        {
+                            // 클라이언트와 서버가 같은 값을 내는 식별자.
+                            // 탄퍼짐 시드와 스폰 분류 키를 겸함.
+                            uint spawnId = math.hash(new uint4((uint)owner.ValueRO.NetworkId, spawnTick, (uint)i, shot * 64 + j));
+
+                            Entity projectile = commandBuffer.Instantiate(spec.ProjectilePrefab);
+                            commandBuffer.SetComponent(
+                                projectile,
+                                TurretShot.Aim(muzzleTransform, spec, spawnId, out float speedScale)
+                            );
+
+                            // 투사체가 쏜 우주선과 같은 타임라인에 머물게 함. (OwnerPredicted)
+                            commandBuffer.SetComponent(projectile, new GhostOwner { NetworkId = owner.ValueRO.NetworkId });
+                            commandBuffer.SetComponent(projectile, new ProjectileSpawnIdComponent { Value = spawnId });
+
+                            // 쏜 우주선의 진영을 물려받음.
+                            commandBuffer.SetComponent(projectile, SystemAPI.GetComponent<FactionComponent>(spaceship));
+                            commandBuffer.SetComponent(projectile, shared);
+
+                            // 기수 방향으로 나가는 직진 투사체는 우주선의 속력을 물려받음.
+                            if (straight)
+                            {
+                                StraightforwardProjectileComponent launched = straightforward;
+                                launched.Speed = straightforward.Speed * speedScale
+                                                 + (straightforward.ReflectOwnerVelocity ? forwardSpeed : 0.0F);
+                                commandBuffer.SetComponent(projectile, launched);
+                            }
                         }
                     }
-
-                    turret.FireCooldown = spec.MaxFireCooldown;
                 }
+
+                TurretStandby.Update(
+                    ref standby.ValueRW,
+                    fired,
+                    held,
+                    deltaTime,
+                    standbyTime,
+                    cooldowns,
+                    registry,
+                    specs,
+                    equipped.ValueRO.Value
+                );
             }
         }
     }

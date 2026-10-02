@@ -1,4 +1,5 @@
-﻿using GalaxyIO.DOTS.Collision;
+﻿using GalaxyIO.DOTS.Client.Systems;
+using GalaxyIO.DOTS.Collision;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Burst;
@@ -28,7 +29,6 @@ namespace GalaxyIO.DOTS.Systems
                 .WithAll<SpaceshipSpecComponent, ColliderComponent, FactionComponent, LocalTransform>()
                 .Build();
 
-            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate<CollisionConfigComponent>();
             state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<SharedProjectileComponent>().Build());
         }
@@ -59,12 +59,10 @@ namespace GalaxyIO.DOTS.Systems
 
             state.Dependency = new ProjectileHidingJob
             {
-                Proxies  = proxies,
-                Cells    = cells,
-                CellSize = config.CellSize,
-                CommandBuffer = SystemAPI
-                    .GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>()
-                    .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
+                Proxies    = proxies,
+                Cells      = cells,
+                CellSize   = config.CellSize,
+                Specs      = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
             }.ScheduleParallel(state.Dependency);
 
             state.Dependency = proxies.Dispose(state.Dependency);
@@ -73,9 +71,9 @@ namespace GalaxyIO.DOTS.Systems
     }
 
     /// <summary>
-    /// 명중한 투사체를 화면에서 지움.
-    /// <see cref="Disabled"/>가 붙으면 Entities가 스프라이트를 들고 있는 GameObject를 꺼 줌.
-    /// 한 번 지운 투사체는 서버가 despawn 할 때까지 다시 보이지 않음.
+    /// 명중한 투사체의 관통력을 깎고, 다하면 Hidden 으로 표시함. 렌더러는 <see cref="ProjectileVisualSystem"/>이 끔.
+    /// Entity 는 끄지 않음. 꺼진 Ghost 는 스냅샷을 받지 못해 명중 수(HitCount)를 놓침.
+    /// 한 번 감춘 투사체는 서버가 despawn 할 때까지 다시 보이지 않음.
     /// </summary>
     [BurstCompile]
     public partial struct ProjectileHidingJob : IJobEntity
@@ -88,18 +86,26 @@ namespace GalaxyIO.DOTS.Systems
 
         public float CellSize;
 
-        public EntityCommandBuffer.ParallelWriter CommandBuffer;
+        [ReadOnly]
+        public ComponentLookup<SpaceshipSpecComponent> Specs;
 
         private void Execute(
             Entity entity,
-            [ChunkIndexInQuery] int chunkIndex,
             in LocalTransform transform,
             ref SharedProjectileComponent shared,
             in ColliderComponent collider,
-            in FactionComponent faction)
+            in FactionComponent faction,
+            DynamicBuffer<ProjectilePiercedElement> pierced)
         {
             if (shared.Hidden)
             {
+                return;
+            }
+
+            // 서버가 명중으로 끝낸 투사체. 클라이언트가 명중을 못 봤어도 감춤.
+            if (shared.Dead)
+            {
+                shared.Hidden = true;
                 return;
             }
 
@@ -137,18 +143,31 @@ namespace GalaxyIO.DOTS.Systems
             while (candidates.Next(out int i))
             {
                 // 서버 판정과 같은 규칙. 자기가 쏜 탄은 발사 즉시 사라지지 않음.
-                if (!CollisionFilter.Accepts(receiver, Proxies[i], CollisionLayer.Spaceship))
+                ColliderProxy target = Proxies[i];
+
+                if (!CollisionFilter.Accepts(receiver, target, CollisionLayer.Spaceship)
+                    || pierced.Contains(target.Entity))
                 {
                     continue;
                 }
 
-                if (!ColliderOverlap.Test(world, Proxies[i].Collider, out _))
+                if (!ColliderOverlap.Test(world, target.Collider, out _))
                 {
+                    continue;
+                }
+
+                // 서버와 같은 규칙으로 관통력을 깎음. 남아 있으면 계속 날아감.
+                shared.Pierce -= Specs.TryGetComponent(target.Entity, out SpaceshipSpecComponent spec)
+                    ? spec.Thickness
+                    : 0.0F;
+
+                if (shared.Pierce > 0.0F)
+                {
+                    pierced.Add(new ProjectilePiercedElement { Spaceship = target.Entity });
                     continue;
                 }
 
                 shared.Hidden = true;
-                CommandBuffer.AddComponent<Disabled>(chunkIndex, entity);
 
                 return;
             }

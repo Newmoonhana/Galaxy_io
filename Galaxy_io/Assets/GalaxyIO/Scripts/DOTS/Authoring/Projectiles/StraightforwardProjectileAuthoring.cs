@@ -30,7 +30,10 @@ namespace GalaxyIO.DOTS.Authoring
 
             AddComponent(entity, new SharedProjectileComponent
             {
-                Lifetime = authoring.Lifetime,
+                Lifetime        = authoring.Lifetime,
+                Pierce          = authoring.Pierce,
+                ExplosionRadius = authoring.ExplosionRadius,
+                SpawnOnHit      = authoring.SpawnOnHit,
             });
 
             AddComponent(entity, new StraightforwardProjectileComponent
@@ -50,6 +53,16 @@ namespace GalaxyIO.DOTS.Authoring
             });
 
             AddBuffer<ProjectileHitElement>(entity);
+            AddBuffer<ProjectilePiercedElement>(entity);
+
+            // Companion(파티클)은 Ghost 에 직접 붙이지 않고 클라이언트가 따로 스폰해 따라붙임.
+            if (authoring.Visual != null)
+            {
+                AddComponent(entity, new ProjectileVisualComponent
+                {
+                    Prefab = GetEntity(authoring.Visual, TransformUsageFlags.Dynamic),
+                });
+            }
 
             // 켜진 채로 스폰됨. 클라이언트가 발사음 재생 후 끔.
             AddComponent<ShotSoundPendingTag>(entity);

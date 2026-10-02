@@ -139,15 +139,21 @@ namespace GalaxyIO.DOTS.Authoring.Config
                     {
                         turretSpecs.Add(new TurretSpecElement
                         {
-                            ProjectilePrefab = spec.Armed ? GetEntity(spec.Projectile, TransformUsageFlags.Dynamic) : Entity.Null,
-                            MaxFireCooldown  = spec.FireCooldown,
-                            Spread           = spec.Spread,
-                            Damage           = spec.Damage,
-                            ShotSound        = spec.ShotSound,
+                            ProjectilePrefab  = spec.Armed ? GetEntity(spec.Projectile, TransformUsageFlags.Dynamic) : Entity.Null,
+                            MaxFireCooldown   = spec.FireCooldown,
+                            FirstShotCooldown = spec.FirstShotCooldown,
+                            ProjectileCount   = (byte)Math.Max(spec.ProjectileCount, 1),
+                            Spread            = spec.Spread,
+                            SpeedSpread       = spec.SpeedSpread,
+                            Damage            = spec.Damage,
+                            ShotSound         = spec.ShotSound,
                         });
                     }
 
                     element.TurretSpecCount = (byte)turret.TurretSpecs.Count;
+                    element.SwitchTime      = turret.SwitchTime;
+                    element.LaunchSound     = turret.LaunchSound;
+                    element.LoopSound       = turret.LoopSound;
                 }
 
                 registry[(int)item.Id] = element;

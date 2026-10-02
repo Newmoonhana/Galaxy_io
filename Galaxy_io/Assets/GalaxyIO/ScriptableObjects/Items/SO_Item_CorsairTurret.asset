@@ -19,6 +19,9 @@ MonoBehaviour:
   TurretSpecs:
   - Projectile: {fileID: 3898896724990523705, guid: c36f47c0d656b6b4a8bd8213db63a2e2, type: 3}
     RPS: 4
-    Accuracy: 0.95
+    FirstShotCooldown: 0
+    ProjectileCount: 0
+    SpeedSpread: 0
+    Accuracy: 0.94
     Damage: 7
     ShotSound: {fileID: 8300000, guid: 8f2159ab85736df4bb50ddfff148331f, type: 3}

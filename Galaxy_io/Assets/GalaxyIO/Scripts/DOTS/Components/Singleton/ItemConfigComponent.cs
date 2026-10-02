@@ -22,5 +22,8 @@ namespace GalaxyIO.DOTS.Components.Singleton
         public int CommonSlots;
         public int TurretSlots;
         public int BombSlots;
+
+        // 이 시간(초) 동안 쏘지 않으면 모든 총구가 첫 발 대기로 돌아감.
+        public float NoFireStandbyTime;
     }
 }

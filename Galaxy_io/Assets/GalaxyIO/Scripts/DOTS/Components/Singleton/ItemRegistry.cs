@@ -20,6 +20,13 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 포탑만. 총구 순서대로 놓인 TurretSpecElement 범위.
         public ushort TurretSpecStart;
         public byte TurretSpecCount;
+
+        // 포탑만. 사격 시작/중지 전환 시간(초).
+        public float SwitchTime;
+
+        // 포탑만. 사격 시작음, 사격 중 반복음. 클라이언트만 씀.
+        public UnityObjectRef<AudioClip> LaunchSound;
+        public UnityObjectRef<AudioClip> LoopSound;
     }
 
     /// <summary>
@@ -33,8 +40,17 @@ namespace GalaxyIO.DOTS.Components.Singleton
 
         public float MaxFireCooldown;
 
+        // 첫 발 대기 시간. 장착, 사격 대기 복귀 시 적용.
+        public float FirstShotCooldown;
+
+        // 한 번에 쏘는 투사체 수. 1 이상.
+        public byte ProjectileCount;
+
         // 탄 퍼짐 정도(Radian)
         public float Spread;
+
+        // 속력 분포. 발사 속력에 1 ± 이 값 사이의 배율을 곱함.
+        public float SpeedSpread;
 
         // 투사체 공격력
         public float Damage;
@@ -44,6 +60,14 @@ namespace GalaxyIO.DOTS.Components.Singleton
 
     public static class ItemRegistry
     {
+        /// <summary>
+        /// 등록된 아이템 항목. 없으면 default (포탑 사양, 전환 시간, 소리 없음).
+        /// </summary>
+        public static ItemRegistryElement Get(this DynamicBuffer<ItemRegistryElement> registry, ItemId id)
+        {
+            return registry.Contains(id) ? registry[(int)id] : default;
+        }
+
         public static bool Contains(this DynamicBuffer<ItemRegistryElement> registry, ItemId id)
         {
             return id != ItemId.None

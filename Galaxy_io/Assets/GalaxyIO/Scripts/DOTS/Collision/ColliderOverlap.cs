@@ -85,6 +85,22 @@ namespace GalaxyIO.DOTS.Collision
         }
 
         /// <summary>
+        /// 한 틱 이동 경로(start -> start + displacement) 위에서 point 와 가장 가까운 점.
+        /// 투사체의 명중 지점을 구하는 데 씀.
+        /// </summary>
+        public static float2 ClosestOnPath(float2 start, float2 displacement, float2 point)
+        {
+            float lengthSq = math.lengthsq(displacement);
+
+            if (lengthSq <= 0.0F)
+            {
+                return start;
+            }
+
+            return start + displacement * math.saturate(math.dot(point - start, displacement) / lengthSq);
+        }
+
+        /// <summary>
         /// 두 충돌체가 겹치는지 판정함. 셰이프 조합은 순서를 정규화해 처리함.
         /// <paramref name="hit"/>의 방향은 <paramref name="a"/>를 떼어내는 쪽임.
         /// </summary>

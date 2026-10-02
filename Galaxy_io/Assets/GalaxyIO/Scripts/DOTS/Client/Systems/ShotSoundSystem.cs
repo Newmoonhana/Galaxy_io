@@ -72,6 +72,12 @@ namespace GalaxyIO.DOTS.Client.Systems
                     continue;
                 }
 
+                // 반복음이 있는 포탑은 투사체마다 소리를 내지 않음. 반복음은 SoundEffectPlayer 가 냄.
+                if (registry.Get(equipped.Value).LoopSound != default)
+                {
+                    continue;
+                }
+
                 UnityObjectRef<AudioClip> clip =
                     registry.GetTurretSpec(specs, equipped.Value, shared.ValueRO.TurretIndex).ShotSound;
 

@@ -54,6 +54,10 @@ namespace GalaxyIO.DOTS.Authoring
         [Min(0.0F)]
         public float RepairDelay = 3.0F;
 
+        // 선체 두께. 관통 투사체가 이 우주선을 지날 때 관통력이 이만큼 줄어듦.
+        [Min(0.0F)]
+        public float Thickness = 1.0F;
+
         [Header("Faction")]
 
         // 소속 진영
@@ -79,6 +83,7 @@ namespace GalaxyIO.DOTS.Authoring
                 MaxHealth   = authoring.MaxHealth,
                 Repair      = authoring.Repair,
                 RepairDelay = authoring.RepairDelay,
+                Thickness   = authoring.Thickness,
                 Health      = authoring.MaxHealth,
             });
 
@@ -93,6 +98,7 @@ namespace GalaxyIO.DOTS.Authoring
             });
 
             var buffer = AddBuffer<TurretElement>(entity);
+            var cooldowns = AddBuffer<TurretCooldownElement>(entity);
 
             // 서버 되감기용 충돌체 기록. 클라이언트에서는 비어 있음.
             AddBuffer<SpaceshipColliderHistory>(entity);
@@ -112,8 +118,15 @@ namespace GalaxyIO.DOTS.Authoring
 
             AddComponent(entity, new EquippedTurretComponent { Value = turret });
 
-            foreach (Transform t in authoring.Muzzles)
+            // 첫 발 대기 상태로 시작함.
+            AddComponent(entity, new TurretStandbyComponent { Standby = true });
+
+            AddComponent<TurretSwitchComponent>(entity);
+
+            for (int i = 0; i < authoring.Muzzles.Count; i++)
             {
+                Transform t = authoring.Muzzles[i];
+
                 buffer.Add(new TurretElement
                 {
                     MuzzleLocation = LocalTransform.FromPositionRotationScale(
@@ -121,7 +134,13 @@ namespace GalaxyIO.DOTS.Authoring
                         t.localRotation,
                         t.localScale.x
                     ),
-                    FireCooldown = 0.0F,
+                });
+
+                cooldowns.Add(new TurretCooldownElement
+                {
+                    Value = authoring.Turret != null && i < authoring.Turret.TurretSpecs.Count
+                        ? authoring.Turret.TurretSpecs[i].FirstShotCooldown
+                        : 0.0F,
                 });
             }
         }

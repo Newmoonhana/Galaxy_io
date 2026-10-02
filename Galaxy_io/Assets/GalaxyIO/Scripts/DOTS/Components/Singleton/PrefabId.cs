@@ -20,5 +20,8 @@
 
         // 월드에 떨어진 아이템. 모든 아이템 종류가 공유함.
         ItemEntity = 4,
+
+        // 폭발 투사체 명중 연출
+        ProjectileExplosionEffect = 5,
     }
 }

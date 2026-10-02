@@ -44,6 +44,13 @@ namespace GalaxyIO.DOTS.Systems
             ref StraightforwardProjectileComponent projectile,
             ref SharedProjectileComponent shared)
         {
+            // 명중으로 끝난 투사체는 맞은 자리에 멈춤.
+            if (shared.Dead)
+            {
+                shared.Displacement = float2.zero;
+                return;
+            }
+
             // 진행 방향
             float2 direction = transform.Up().xy;
 
