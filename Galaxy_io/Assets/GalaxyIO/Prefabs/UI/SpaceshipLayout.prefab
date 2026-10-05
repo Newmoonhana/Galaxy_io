@@ -10,6 +10,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1743803520049407185}
   - component: {fileID: 2366002914936475605}
+  - component: {fileID: 7187294320225866152}
+  - component: {fileID: 552553207117884037}
+  - component: {fileID: 5610791966874640915}
   m_Layer: 5
   m_Name: TurretSlots
   m_TagString: Untagged
@@ -63,6 +66,60 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!222 &7187294320225866152
+CanvasRenderer:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2530778686762050566}
+  m_CullTransparentMesh: 1
+--- !u!114 &552553207117884037
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2530778686762050566}
+  m_Enabled: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
+  m_Material: {fileID: 0}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_RaycastTarget: 1
+  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_Maskable: 1
+  m_OnCullStateChanged:
+    m_PersistentCalls:
+      m_Calls: []
+  m_Sprite: {fileID: 0}
+  m_Type: 0
+  m_PreserveAspect: 0
+  m_FillCenter: 1
+  m_FillMethod: 4
+  m_FillAmount: 1
+  m_FillClockwise: 1
+  m_FillOrigin: 0
+  m_UseSpriteMesh: 0
+  m_PixelsPerUnitMultiplier: 1
+--- !u!114 &5610791966874640915
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2530778686762050566}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6a7b22f7a2dbc5345a34ee32e42ab41d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Newmoonhana.Runtime::Newmoonhana.Runtime.Tools.PopupUI.Window.WindowSlotList
+  padding: 18
+  lineHeight: 36
+  content_tns: {fileID: 1743803520049407185}
+  template: {fileID: 8309313919391552286}
 --- !u!1 &3195506991185626243
 GameObject:
   m_ObjectHideFlags: 0
@@ -321,3 +378,14 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 7594967035059017792, guid: 62982930f7f15e9428248743be7086e1, type: 3}
   m_PrefabInstance: {fileID: 423939681661514896}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &8309313919391552286 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8553107656362600334, guid: 62982930f7f15e9428248743be7086e1, type: 3}
+  m_PrefabInstance: {fileID: 423939681661514896}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e9ad897b7e4c6c74f84faa511c11d7c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Tools.PopupUI.Window.InventorySlotElement
