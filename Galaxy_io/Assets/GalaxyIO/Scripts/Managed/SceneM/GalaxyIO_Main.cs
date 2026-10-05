@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using GalaxyIO.DOTS.Client.Networking;
 using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Components.Singleton;
@@ -21,6 +21,7 @@ namespace GalaxyIO.Main
     {
         private const string respawnUIKey = "Respawn_UI";
         private const string gameMenuUIKey = "GameMenu_UI";
+        private const string inventoryUIKey = "Inventory_UI";
 
         [SerializeField]
         [Tooltip("게임 메뉴 열기/닫기 (ESC)")]
@@ -34,10 +35,6 @@ namespace GalaxyIO.Main
         [Tooltip("인게임에서만 보이는 HUD 캔버스")]
         private Canvas hud;
 
-        [SerializeField]
-        [Tooltip("씬에 상주하는 인벤토리 화면. 꺼진 채로 두고 토글로 켜고 끔.")]
-        private InventoryScreen inventoryScreen;
-
         // 로컬 플레이어 상태. 메뉴/인벤토리 열림, 파괴, 접속 실패.
         private EntityQuery stateQuery;
         // 서버 접속 중(=인게임)인지 판별하는 쿼리.
@@ -49,6 +46,7 @@ namespace GalaxyIO.Main
         private World clientWorld;
         private RespawnUI respawnUI;
         private GameMenuUI gameMenuUI;
+        private InventoryUI inventoryUI;
         private CommonMessageBox disconnectedMsgBox;
         // 옵션 팝업 로드 중 중복 입력 방지.
         private bool isOptionLoading;
@@ -65,8 +63,7 @@ namespace GalaxyIO.Main
         {
             _ = AddressableAssetsManager.gameObject_lst.LoadData(respawnUIKey);
             _ = AddressableAssetsManager.gameObject_lst.LoadData(gameMenuUIKey);
-
-            if (inventoryScreen != null) inventoryScreen.AddListener(CloseInventory);
+            _ = AddressableAssetsManager.gameObject_lst.LoadData(inventoryUIKey);
 
             clientWorld = ClientServerBootstrap.ClientWorld;
             if (clientWorld != null)
@@ -266,7 +263,7 @@ namespace GalaxyIO.Main
             if (menuAction == null || !menuAction.action.WasPressedThisFrame()) return;
 
             // 인벤토리가 열려 있으면 ESC 는 인벤토리만 닫음.
-            if (inventoryScreen != null && inventoryScreen.gameObject.activeSelf)
+            if (inventoryUI != null)
             {
                 CloseInventory();
                 return;
@@ -307,24 +304,27 @@ namespace GalaxyIO.Main
 
             if (isGameOver || gameMenuUI != null) return;
 
-            if (inventoryScreen == null || inventoryAction == null || !inventoryAction.action.WasPressedThisFrame()) return;
+            if (inventoryAction == null || !inventoryAction.action.WasPressedThisFrame()) return;
 
-            if (!inventoryScreen.gameObject.activeSelf) OpenInventory();
+            if (inventoryUI == null) OpenInventory();
             else CloseInventory();
         }
 
         private void OpenInventory()
         {
-            inventoryScreen.gameObject.SetActive(true);
+            GameObject prefab = AddressableAssetsManager.gameObject_lst.GetData(inventoryUIKey).Data;
+            inventoryUI = Instantiate(prefab).GetComponent<InventoryUI>();
+            inventoryUI.AddListener(CloseInventory);
 
             stateQuery.GetSingletonRW<PlayerStateComponent>().ValueRW.InventoryOpened = true;
         }
 
         private void CloseInventory()
         {
-            if (inventoryScreen == null || !inventoryScreen.gameObject.activeSelf) return;
+            if (inventoryUI == null) return;
 
-            inventoryScreen.gameObject.SetActive(false);
+            Destroy(inventoryUI.gameObject);
+            inventoryUI = null;
 
             stateQuery.GetSingletonRW<PlayerStateComponent>().ValueRW.InventoryOpened = false;
         }
@@ -351,6 +351,7 @@ namespace GalaxyIO.Main
             base.Release();
             AddressableAssetsManager.gameObject_lst.RemoveData(respawnUIKey);
             AddressableAssetsManager.gameObject_lst.RemoveData(gameMenuUIKey);
+            AddressableAssetsManager.gameObject_lst.RemoveData(inventoryUIKey);
         }
 
         /// <summary>
