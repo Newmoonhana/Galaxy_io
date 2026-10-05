@@ -1,4 +1,4 @@
-using GalaxyIO.DOTS.Client.Components.Message;
+﻿using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Burst;
@@ -59,7 +59,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                 {
                     ecb.AddComponent(ecb.CreateEntity(), new SoundMessage
                     {
-                        Clip     = SystemAPI.GetComponent<EffectSoundComponent>(prefab).Clip,
+                        SoundKey = SystemAPI.GetComponent<EffectSoundComponent>(prefab).SoundKey,
                         Position = position,
                     });
                 }

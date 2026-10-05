@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Singleton;
@@ -73,22 +73,22 @@ namespace GalaxyIO.DOTS.Client.Systems
                 }
 
                 // 반복음이 있는 포탑은 투사체마다 소리를 내지 않음. 반복음은 SoundEffectPlayer 가 냄.
-                if (registry.Get(equipped.Value).LoopSound != default)
+                if (!registry.Get(equipped.Value).LoopSound.IsEmpty)
                 {
                     continue;
                 }
 
-                UnityObjectRef<AudioClip> clip =
+                FixedString64Bytes clip =
                     registry.GetTurretSpec(specs, equipped.Value, shared.ValueRO.TurretIndex).ShotSound;
 
-                if (clip == default || !played.Add(new ShotSoundKey { Owner = owner, Clip = clip }))
+                if (clip.IsEmpty || !played.Add(new ShotSoundKey { Owner = owner, Clip = clip }))
                 {
                     continue;
                 }
 
                 ecb.AddComponent(ecb.CreateEntity(), new SoundMessage
                 {
-                    Clip     = clip,
+                    SoundKey = clip,
                     Position = transform.ValueRO.Position.xy,
                 });
             }
@@ -101,7 +101,7 @@ namespace GalaxyIO.DOTS.Client.Systems
         private struct ShotSoundKey : IEquatable<ShotSoundKey>
         {
             public Entity Owner;
-            public UnityObjectRef<AudioClip> Clip;
+            public FixedString64Bytes Clip;
 
             public bool Equals(ShotSoundKey other) => Owner == other.Owner && Clip == other.Clip;
 

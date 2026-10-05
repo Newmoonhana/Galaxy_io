@@ -1,4 +1,4 @@
-using GalaxyIO.DOTS.Components.Singleton;
+﻿using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Entities;
 using UnityEngine;
 
@@ -31,7 +31,7 @@ namespace GalaxyIO.DOTS.Authoring.Config
 
         [SerializeField]
         [Tooltip("우주선끼리 부딪혔을 때 재생할 효과음")]
-        public AudioClip CrashSound;
+        public string CrashSound;
     }
 
     public sealed class CollisionConfigBaker : Baker<CollisionConfigAuthoring>

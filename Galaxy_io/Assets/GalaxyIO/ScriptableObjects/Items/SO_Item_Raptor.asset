@@ -19,20 +19,22 @@ MonoBehaviour:
   TurretSpecs:
   - Projectile: {fileID: 3898896724990523705, guid: a8e22ae2209f261498f8ee2521040c67, type: 3}
     RPS: 24
-    FirstShotCooldown: 0
+    FollowMuzzle: 0
+    FollowDelay: 0
     ProjectileCount: 0
     SpeedSpread: 0
     Accuracy: 0.896
     Damage: 3
-    ShotSound: {fileID: 8300000, guid: 01d0ce3688cc2fb4f9559767b8b578b0, type: 3}
+    ShotSound: Shot_Raptor
   - Projectile: {fileID: 3898896724990523705, guid: a8e22ae2209f261498f8ee2521040c67, type: 3}
     RPS: 24
-    FirstShotCooldown: 0
+    FollowMuzzle: 0
+    FollowDelay: 0
     ProjectileCount: 0
     SpeedSpread: 0
     Accuracy: 0.896
     Damage: 3
-    ShotSound: {fileID: 8300000, guid: 01d0ce3688cc2fb4f9559767b8b578b0, type: 3}
+    ShotSound: Shot_Raptor
   SwitchTime: 0
-  LaunchSound: {fileID: 0}
-  LoopSound: {fileID: 0}
+  LaunchSound: 
+  LoopSound: 

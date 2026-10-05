@@ -1,4 +1,4 @@
-using GalaxyIO.DOTS.Components.Singleton;
+﻿using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Entities;
 using UnityEngine;
 
@@ -11,7 +11,7 @@ namespace GalaxyIO.DOTS.Authoring.Config
     {
         [SerializeField]
         [Tooltip("아이템을 주웠을 때 재생할 효과음. 비워두면 소리 없음.")]
-        public AudioClip PickupSound;
+        public string PickupSound;
 
         [SerializeField]
         [Tooltip("플레이어가 파괴될 때 인벤토리 칸마다 그 칸을 떨어뜨릴 확률. 포탑 칸은 떨어뜨리지 않음.")]

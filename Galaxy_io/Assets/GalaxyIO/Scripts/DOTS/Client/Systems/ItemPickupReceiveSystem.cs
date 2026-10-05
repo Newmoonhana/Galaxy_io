@@ -1,4 +1,4 @@
-using GalaxyIO.DOTS.Client.Components.Message;
+﻿using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Burst;
@@ -39,7 +39,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                 {
                     ecb.AddComponent(ecb.CreateEntity(), new SoundMessage
                     {
-                        Clip     = config.PickupSound,
+                        SoundKey = config.PickupSound,
                         Position = pickup.ValueRO.Position,
                     });
                 }

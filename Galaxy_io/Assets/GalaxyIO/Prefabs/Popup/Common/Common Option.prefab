@@ -2502,9 +2502,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 4930627432863240382}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Script: {fileID: 11500000, guid: f6c5b2de933f46d46ae2611b03fa5563, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
+  m_EditorClassIdentifier: Newmoonhana.Runtime::Newmoonhana.Runtime.Tools.UI.CustomButton
   m_Navigation:
     m_Mode: 3
     m_WrapAround: 0
@@ -2549,6 +2549,17 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+  useTween: 0
+  hover_anim: {fileID: 0}
+  press_anim: {fileID: 0}
+  tween_tns: {fileID: 6668949613995531125}
+  scaleAroundCenter: 1
+  hoverScale: 1.06
+  pressScale: 0.94
+  tweenDuration: 0.12
+  tweenEase: 27
+  pressSfx: UI_Press
+  disable_effect: {fileID: 0}
 --- !u!1 &5154378071314758197
 GameObject:
   m_ObjectHideFlags: 0

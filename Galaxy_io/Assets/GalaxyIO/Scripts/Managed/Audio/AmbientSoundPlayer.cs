@@ -1,4 +1,5 @@
 using GalaxyIO.Tools;
+using Newmoonhana.Runtime.Core;
 using Unity.Entities;
 using Unity.NetCode;
 using UnityEngine;
@@ -6,14 +7,15 @@ using UnityEngine;
 namespace GalaxyIO.Scripts.Managed.Audio
 {
     /// <summary>
-    /// 배경음을 무작위 순서로 반복 재생하는 클라이언트 전용 플레이어.
+    /// 배경음을 재생하는 클라이언트 전용 플레이어.
+    /// 곡 목록과 무작위 순서는 Master Audio Playlist 가 담당하고,
+    /// 여기서는 로비 / 인게임 음량 전환만 처리함.
     /// </summary>
-    [RequireComponent(typeof(AudioSource))]
     public sealed class AmbientSoundPlayer : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("무작위로 반복 재생할 배경음")]
-        private AudioClip[] clips;
+        [Tooltip("재생할 Master Audio Playlist 이름")]
+        private string playlist = "Ambient";
 
         [SerializeField]
         [Tooltip("로비 음량")]
@@ -30,20 +32,17 @@ namespace GalaxyIO.Scripts.Managed.Audio
         [Min(0.0F)]
         private float fadeTime = 1.0F;
 
-        private AudioSource audioSource;
         // 서버 접속 중(=인게임)인지 판별하는 쿼리.
         private EntityQuery inGameQuery;
         private bool hasQuery;
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
-        private int clipIndex = -1;
+
+        // 직전에 요청한 음량. 같은 값을 반복해서 FadeBGM 하지 않도록 들고 있음.
+        private float requested = -1.0F;
 
         private void Start()
         {
-            audioSource = GetComponent<AudioSource>();
-            audioSource.loop = false;
-            audioSource.volume = lobbyVolume;
-
             clientWorld = ClientServerBootstrap.ClientWorld;
             if (clientWorld != null)
             {
@@ -53,18 +52,12 @@ namespace GalaxyIO.Scripts.Managed.Audio
                 hasQuery = true;
             }
 
-            PlayNext();
+            if (SoundManager.Instance == null || string.IsNullOrEmpty(playlist)) return;
+
+            SoundManager.Instance.PlayBGM(playlist);
         }
 
         private void Update()
-        {
-            UpdateVolume();
-
-            if (!audioSource.isPlaying) PlayNext();
-        }
-
-        // 로비/인게임에 맞춰 음량만 서서히 변경. 재생 중인 곡은 유지.
-        private void UpdateVolume()
         {
             // 세션을 나가면 클라이언트 월드가 Dispose 됨. 그때부터는 로비 음량으로 돌아감.
             if (hasQuery && !ClientWorldScope.IsAlive(clientWorld)) hasQuery = false;
@@ -72,27 +65,15 @@ namespace GalaxyIO.Scripts.Managed.Audio
             bool inGame = hasQuery && !inGameQuery.IsEmpty;
             float target = inGame ? inGameVolume : lobbyVolume;
 
-            float step = fadeTime <= 0.0F ? 1.0F : Time.unscaledDeltaTime / fadeTime;
-            audioSource.volume = Mathf.MoveTowards(audioSource.volume, target, step);
-        }
+            // 목표가 바뀐 순간에만 페이드를 걸음. Master Audio 가 보간을 돌림.
+            if (Mathf.Approximately(requested, target)) return;
+            if (SoundManager.Instance == null) return;
 
-        private void PlayNext()
-        {
-            if (clips == null || clips.Length == 0) return;
+            requested = target;
 
-            // 직전 곡은 제외하고 선택.
-            if (clipIndex < 0 || clips.Length == 1)
-            {
-                clipIndex = Random.Range(0, clips.Length);
-            }
-            else
-            {
-                int next = Random.Range(0, clips.Length - 1);
-                clipIndex = next >= clipIndex ? next + 1 : next;
-            }
-
-            audioSource.clip = clips[clipIndex];
-            audioSource.Play();
+            // 인자 있는 FadeBGM 은 Playlist 가 아니라 PlaylistController 이름을 받음.
+            // 컨트롤러가 하나뿐이라 전체 대상 오버로드를 씀
+            SoundManager.Instance.FadeBGM(target, fadeTime);
         }
     }
 }
