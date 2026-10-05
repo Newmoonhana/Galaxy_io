@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Mathematics;
@@ -49,7 +49,7 @@ namespace GalaxyIO.DOTS.Authoring
             public float Damage;
 
             [Tooltip("발사음")]
-            public AudioClip ShotSound;
+            public string ShotSound;
 
             public bool Armed => Projectile != null && (RPS > 0.0F || FollowMuzzle > 0);
 
@@ -70,11 +70,11 @@ namespace GalaxyIO.DOTS.Authoring
 
         [SerializeField]
         [Tooltip("사격을 시작할 때 한 번 재생. 비우면 없음.")]
-        public AudioClip LaunchSound;
+        public string LaunchSound;
 
         [SerializeField]
         [Tooltip("사격 중 반복 재생. 지정하면 투사체마다의 발사음(ShotSound)은 재생하지 않음.")]
-        public AudioClip LoopSound;
+        public string LoopSound;
 
         private void Reset()
         {

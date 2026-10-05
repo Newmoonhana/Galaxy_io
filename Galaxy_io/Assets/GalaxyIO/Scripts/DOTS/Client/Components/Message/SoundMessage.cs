@@ -1,6 +1,6 @@
+﻿using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
-using UnityEngine;
 
 namespace GalaxyIO.DOTS.Client.Components.Message
 {
@@ -9,7 +9,8 @@ namespace GalaxyIO.DOTS.Client.Components.Message
     /// </summary>
     public struct SoundMessage : IComponentData
     {
-        public UnityObjectRef<AudioClip> Clip;
+        //Master Audio Sound Group 이름
+        public FixedString64Bytes SoundKey;
 
         // 소리가 난 위치. 카메라에서 멀수록 작게 들림.
         public float2 Position;

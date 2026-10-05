@@ -25,7 +25,7 @@ MonoBehaviour:
     SpeedSpread: 0
     Accuracy: 0.663
     Damage: 0
-    ShotSound: {fileID: 0}
+    ShotSound: 
   - Projectile: {fileID: 0}
     RPS: 0
     FollowMuzzle: 0
@@ -34,7 +34,7 @@ MonoBehaviour:
     SpeedSpread: 0
     Accuracy: 0
     Damage: 0
-    ShotSound: {fileID: 0}
+    ShotSound: 
   - Projectile: {fileID: 3898896724990523705, guid: 5b3f34bddc974db79112c65da9c8589b, type: 3}
     RPS: 40
     FollowMuzzle: 0
@@ -43,7 +43,7 @@ MonoBehaviour:
     SpeedSpread: 0.318
     Accuracy: 0.689
     Damage: 0.8
-    ShotSound: {fileID: 8300000, guid: 8f2159ab85736df4bb50ddfff148331f, type: 3}
+    ShotSound: Shot_Bore
   SwitchTime: 0.3
-  LaunchSound: {fileID: 8300000, guid: a3835cf5ebbcf0c469fc5b2693428825, type: 3}
-  LoopSound: {fileID: 8300000, guid: a0127d68c8dc0fe40b3a6be6b281c264, type: 3}
+  LaunchSound: Launch_Pyron
+  LoopSound: Loop_Pyron

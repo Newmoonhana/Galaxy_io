@@ -1,6 +1,6 @@
+﻿using Unity.Collections;
 using GalaxyIO.DOTS.Authoring;
 using Unity.Entities;
-using UnityEngine;
 
 namespace GalaxyIO.DOTS.Components.Actor
 {
@@ -9,6 +9,7 @@ namespace GalaxyIO.DOTS.Components.Actor
     /// </summary>
     public struct EffectSoundComponent : IComponentData
     {
-        public UnityObjectRef<AudioClip> Clip;
+        //Master Audio Sound Group 이름
+        public FixedString64Bytes SoundKey;
     }
 }

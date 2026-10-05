@@ -218,7 +218,7 @@ MonoBehaviour:
   RewindSpeed: 16
   Restitution: 1
   RamDamage: 2
-  CrashSound: {fileID: 8300000, guid: 4378f2fdcdd062c4ea9a2e27c62d6bae, type: 3}
+  CrashSound: Crash
 --- !u!114 &163557128
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -245,9 +245,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d8139ca626964f238fbdcba088c13a53, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.ItemConfigAuthoring
-  PickupSound: {fileID: 8300000, guid: 0c872ab64287bf04988f5ec31fbec7ee, type: 3}
+  PickupSound: Item_Pickup
   PlayerSlotDropChance: 0.5
   PlayerStackDropChance: 0.5
+  CommonSlots: 36
+  TurretSlots: 1
+  BombSlots: 3
+  NoFireStandbyTime: 3
 --- !u!1 &1598268223
 GameObject:
   m_ObjectHideFlags: 0

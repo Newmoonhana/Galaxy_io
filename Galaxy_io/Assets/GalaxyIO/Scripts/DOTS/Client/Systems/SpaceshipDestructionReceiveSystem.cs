@@ -68,7 +68,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                 {
                     ecb.AddComponent(ecb.CreateEntity(), new SoundMessage
                     {
-                        Clip     = explosionSound.Clip,
+                        SoundKey = explosionSound.SoundKey,
                         Position = destroyed.ValueRO.Position,
                     });
                 }

@@ -1,3 +1,4 @@
+﻿using Unity.Collections;
 using GalaxyIO.DOTS.Authoring.Config;
 using Unity.Entities;
 using UnityEngine;
@@ -10,7 +11,7 @@ namespace GalaxyIO.DOTS.Components.Singleton
     public struct ItemConfigComponent : IComponentData
     {
         // 아이템을 주웠을 때 재생할 효과음. 클라이언트만 씀.
-        public UnityObjectRef<AudioClip> PickupSound;
+        public FixedString64Bytes PickupSound;
 
         // 플레이어가 파괴될 때 인벤토리 칸마다 그 칸을 떨어뜨릴 확률. 서버만 씀.
         public float PlayerSlotDropChance;

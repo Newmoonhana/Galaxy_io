@@ -1,3 +1,4 @@
+﻿using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
@@ -25,8 +26,8 @@ namespace GalaxyIO.DOTS.Components.Singleton
         public float SwitchTime;
 
         // 포탑만. 사격 시작음, 사격 중 반복음. 클라이언트만 씀.
-        public UnityObjectRef<AudioClip> LaunchSound;
-        public UnityObjectRef<AudioClip> LoopSound;
+        public FixedString64Bytes LaunchSound;
+        public FixedString64Bytes LoopSound;
     }
 
     /// <summary>
@@ -63,7 +64,7 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 투사체 공격력
         public float Damage;
 
-        public UnityObjectRef<AudioClip> ShotSound;
+        public FixedString64Bytes ShotSound;
     }
 
     public static class ItemRegistry

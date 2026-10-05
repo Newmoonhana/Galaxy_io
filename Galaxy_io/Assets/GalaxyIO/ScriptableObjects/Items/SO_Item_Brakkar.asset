@@ -21,13 +21,20 @@ MonoBehaviour:
     RPS: 1
     FollowMuzzle: 0
     FollowDelay: 0
+    ProjectileCount: 0
+    SpeedSpread: 0
     Accuracy: 0.95
     Damage: 45
-    ShotSound: {fileID: 8300000, guid: e3a73ef7789f20e41822006a60131648, type: 3}
+    ShotSound: Shot_Brakkar
   - Projectile: {fileID: 3898896724990523705, guid: 481a1a2f5c8566043bc9f7018df0f1a9, type: 3}
     RPS: 1
     FollowMuzzle: 1
     FollowDelay: 0.4
+    ProjectileCount: 0
+    SpeedSpread: 0
     Accuracy: 0.95
     Damage: 45
-    ShotSound: {fileID: 8300000, guid: e3a73ef7789f20e41822006a60131648, type: 3}
+    ShotSound: Shot_Brakkar
+  SwitchTime: 0
+  LaunchSound: 
+  LoopSound: 

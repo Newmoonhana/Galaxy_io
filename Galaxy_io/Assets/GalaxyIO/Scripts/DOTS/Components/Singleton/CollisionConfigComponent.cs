@@ -1,3 +1,4 @@
+﻿using Unity.Collections;
 using GalaxyIO.DOTS.Authoring.Config;
 using Unity.Entities;
 using UnityEngine;
@@ -22,6 +23,6 @@ namespace GalaxyIO.DOTS.Components.Singleton
         public float RamDamage;
 
         // 선체끼리 부딪혔을 때 재생할 효과음. 클라이언트만 씀.
-        public UnityObjectRef<AudioClip> CrashSound;
+        public FixedString64Bytes CrashSound;
     }
 }

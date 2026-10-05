@@ -12,7 +12,7 @@ namespace GalaxyIO.DOTS.Authoring
     {
         [SerializeField]
         [Tooltip("연출과 함께 재생할 효과음. 비워두면 소리 없음.")]
-        public AudioClip Sound;
+        public string Sound;
     }
 
     public sealed class EffectBaker : Baker<EffectAuthoring>
@@ -29,9 +29,9 @@ namespace GalaxyIO.DOTS.Authoring
                 Remaining = main.duration + main.startLifetime.constantMax,
             });
 
-            if (authoring.Sound != null)
+            if (!string.IsNullOrEmpty(authoring.Sound))
             {
-                AddComponent(entity, new EffectSoundComponent { Clip = authoring.Sound });
+                AddComponent(entity, new EffectSoundComponent { SoundKey = authoring.Sound });
             }
         }
     }
