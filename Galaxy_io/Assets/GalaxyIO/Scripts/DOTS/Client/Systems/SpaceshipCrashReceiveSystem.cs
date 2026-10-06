@@ -60,7 +60,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                     .WithAll<ReceiveRpcCommandRequest>()
                     .WithEntityAccess()
             ) {
-                if (config.CrashSound != default
+                if (!config.CrashSound.IsEmpty
                     && SoundAudibleRange.IsAudible(hasListener, listener, crash.ValueRO.Position))
                 {
                     ecb.AddComponent(ecb.CreateEntity(), new SoundMessage
