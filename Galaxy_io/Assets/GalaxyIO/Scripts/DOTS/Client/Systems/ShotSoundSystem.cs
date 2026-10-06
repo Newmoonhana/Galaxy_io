@@ -1,5 +1,6 @@
 ﻿using System;
 using GalaxyIO.DOTS.Client.Components.Message;
+using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Burst;
@@ -23,17 +24,40 @@ namespace GalaxyIO.DOTS.Client.Systems
         // 이보다 오래된 투사체는 발사가 아니라 복제 범위에 새로 들어온 것으로 봄.
         private const int MaxShotAgeTicks = 6;
 
+        private EntityQuery localShipQuery;
+
+        // 마지막 리스너 위치. 파괴되는 순간의 자기 폭발음을 살리는 데 씀.
+        // 리스폰 대기 중(Dead)에는 이 캐시를 쓰지 않음 - 사망 지점 주변 소리까지 들리면 안 됨.
+        private float2 lastListener;
+        private bool hasLastListener;
+
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<NetworkTime>();
             state.RequireForUpdate<ItemRegistryElement>();
             state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<ShotSoundPendingTag>().Build());
+
+            localShipQuery = SystemAPI.QueryBuilder().WithAll<GhostOwnerIsLocal, LocalTransform>().Build();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            // 리스너는 로컬 우주선. 살아 있으면 위치를 갱신하고, 사라지면 마지막 위치를 계속 씀.
+            if (!localShipQuery.IsEmpty)
+            {
+                lastListener = localShipQuery.GetSingleton<LocalTransform>().Position.xy;
+                hasLastListener = true;
+            }
+
+            // 리스폰 대기 중에는 리스너가 없는 것으로 다뤄 전부 컬링함.
+            // 자기 폭발음은 Dead 가 켜지기 전 프레임에 만들어지므로 이 분기에 걸리지 않음.
+            SystemAPI.TryGetSingleton(out PlayerStateComponent playerState);
+
+            bool hasListener = hasLastListener && !playerState.Dead;
+            float2 listener = lastListener;
+
             NetworkTick interpolationTick = SystemAPI.GetSingleton<NetworkTime>().InterpolationTick;
             ComponentLookup<EquippedTurretComponent> equippedLookup = SystemAPI.GetComponentLookup<EquippedTurretComponent>(true);
 
@@ -74,6 +98,12 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                 // 반복음이 있는 포탑은 투사체마다 소리를 내지 않음. 반복음은 SoundEffectPlayer 가 냄.
                 if (!registry.Get(equipped.Value).LoopSound.IsEmpty)
+                {
+                    continue;
+                }
+
+                // 들릴 수 없는 거리면 메시지를 만들지 않음.
+                if (!SoundAudibleRange.IsAudible(hasListener, listener, transform.ValueRO.Position.xy))
                 {
                     continue;
                 }

@@ -53,7 +53,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 100
+  retriggerPercentage: 60
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -79,9 +79,9 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 0
+  limitMode: 2
   limitPerXFrames: 1
-  minimumTimeBetween: 0.1
+  minimumTimeBetween: 0.05
   useClipAgePriority: 0
   limitPolyphony: 0
   voiceLimitCount: 1
@@ -398,7 +398,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 100
+  retriggerPercentage: 60
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -424,9 +424,9 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 0
+  limitMode: 2
   limitPerXFrames: 1
-  minimumTimeBetween: 0.1
+  minimumTimeBetween: 0.05
   useClipAgePriority: 0
   limitPolyphony: 0
   voiceLimitCount: 1
@@ -699,7 +699,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 100
+  retriggerPercentage: 60
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -725,9 +725,9 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 0
+  limitMode: 2
   limitPerXFrames: 1
-  minimumTimeBetween: 0.1
+  minimumTimeBetween: 0.05
   useClipAgePriority: 0
   limitPolyphony: 0
   voiceLimitCount: 1
@@ -934,7 +934,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 1
+  weight: 3
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -1179,7 +1179,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 1
+  weight: 3
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -1424,7 +1424,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 5
+  weight: 2
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -1534,7 +1534,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 100
+  retriggerPercentage: 60
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -1560,9 +1560,9 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 0
+  limitMode: 2
   limitPerXFrames: 1
-  minimumTimeBetween: 0.1
+  minimumTimeBetween: 0.05
   useClipAgePriority: 0
   limitPolyphony: 0
   voiceLimitCount: 1
@@ -1769,7 +1769,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 1
+  weight: 3
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -2014,7 +2014,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 1
+  weight: 3
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -2259,7 +2259,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 1
+  weight: 3
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -2504,7 +2504,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 1
+  weight: 3
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -2614,7 +2614,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 100
+  retriggerPercentage: 60
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -2640,9 +2640,9 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 0
+  limitMode: 2
   limitPerXFrames: 1
-  minimumTimeBetween: 0.1
+  minimumTimeBetween: 0.05
   useClipAgePriority: 0
   limitPolyphony: 0
   voiceLimitCount: 1
@@ -2714,7 +2714,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 100
+  retriggerPercentage: 60
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -2740,9 +2740,9 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 0
+  limitMode: 2
   limitPerXFrames: 1
-  minimumTimeBetween: 0.1
+  minimumTimeBetween: 0.05
   useClipAgePriority: 0
   limitPolyphony: 0
   voiceLimitCount: 1
@@ -2949,7 +2949,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 1
+  weight: 3
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -3059,7 +3059,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 100
+  retriggerPercentage: 60
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -3085,9 +3085,9 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 0
+  limitMode: 2
   limitPerXFrames: 1
-  minimumTimeBetween: 0.1
+  minimumTimeBetween: 0.05
   useClipAgePriority: 0
   limitPolyphony: 0
   voiceLimitCount: 1
@@ -3117,6 +3117,10 @@ PrefabInstance:
     - target: {fileID: 143489512938200004, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: m_Name
       value: PF_Core
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: logOutOfVoices
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: groupBuses.Array.size
@@ -3164,7 +3168,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: groupBuses.Array.data[0].voiceLimit
-      value: -1
+      value: 24
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: groupBuses.Array.data[1].busColor.a
@@ -3217,6 +3221,10 @@ PrefabInstance:
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].newMetadataPropType
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: groupBuses.Array.data[0].busVoiceLimitExceededMode
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].newMetadataPropRequired
