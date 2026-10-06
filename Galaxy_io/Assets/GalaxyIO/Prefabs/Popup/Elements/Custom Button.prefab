@@ -235,6 +235,7 @@ MonoBehaviour:
   pressScale: 0.94
   tweenDuration: 0.12
   tweenEase: 27
+  pressSfx: UI_Press
   disable_effect: {fileID: 5447370858583850083}
 --- !u!1 &6970099669933290388
 GameObject:
@@ -303,7 +304,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: 21300000, guid: 4384995ee8e03d443b96c601e3a87158, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -548,7 +549,7 @@ MonoBehaviour:
   isValid: 1
   target: {fileID: 3389642648161541016}
   animationType: 5
-  targetType: 5
+  targetType: 11
   forcedTargetType: 0
   autoPlay: 0
   useTargetAsV3: 0
