@@ -35,7 +35,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                     .WithAll<ReceiveRpcCommandRequest>()
                     .WithEntityAccess()
             ) {
-                if (config.PickupSound != default)
+                if (!config.PickupSound.IsEmpty)
                 {
                     ecb.AddComponent(ecb.CreateEntity(), new SoundMessage
                     {
