@@ -645,7 +645,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 1346
+  frames: 1555
 --- !u!1 &3941037054169278610
 GameObject:
   m_ObjectHideFlags: 0
@@ -715,7 +715,8 @@ MonoBehaviour:
   useNoRepeatRefill: 1
   useInactivePeriodPoolRefill: 0
   inactivePeriodSeconds: 5
-  groupVariations: []
+  groupVariations:
+  - {fileID: 4734570029216293103}
   bulkVariationMode: 0
   comments: 
   logSound: 0
@@ -745,7 +746,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 316
+  frames: 803
 --- !u!1 &4152777156386802529
 GameObject:
   m_ObjectHideFlags: 0
@@ -793,7 +794,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: a3835cf5ebbcf0c469fc5b2693428825, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.466
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -1283,7 +1284,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 0c872ab64287bf04988f5ec31fbec7ee, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.5
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -2808,7 +2809,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: a0127d68c8dc0fe40b3a6be6b281c264, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.3
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -3075,7 +3076,8 @@ MonoBehaviour:
   useNoRepeatRefill: 1
   useInactivePeriodPoolRefill: 0
   inactivePeriodSeconds: 5
-  groupVariations: []
+  groupVariations:
+  - {fileID: 3889806320738653193}
   bulkVariationMode: 0
   comments: 
   logSound: 0
@@ -3105,7 +3107,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 316
+  frames: 843
 --- !u!1001 &1346475385440773938
 PrefabInstance:
   m_ObjectHideFlags: 0
