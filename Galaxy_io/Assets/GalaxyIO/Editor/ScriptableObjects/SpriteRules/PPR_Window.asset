@@ -1,0 +1,67 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca217576e13370546be32f7986862a31, type: 3}
+  m_Name: PPR_Window
+  m_EditorClassIdentifier: Newmoonhana.Editor::Newmoonhana.Editor.SpritePostprocessorRules
+  pathContains: UI/Windows
+  spriteMode: 1
+  pixelsPerUnit: 24
+  meshType: 0
+  alphaSource: 1
+  alphaIsTransparency: 1
+  readWriteEnabled: 0
+  generateMipMaps: 0
+  sRGB: 1
+  filterMode: 0
+  isAutoDefaultMaxTextureSize: 1
+  defaultMaxTextureSize: 2048
+  defaultResizeAlgorithm: 0
+  defaultCompression: 0
+  defaultUseCrunchCompression: 0
+  defaultCompressorQuality: 50
+  platformOverrides:
+  - platformName: Standalone
+    overridden: 0
+    isAutoMaxTextureSize: 1
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    format: -1
+    compression: 1
+    useCrunchCompression: 0
+    compressorQuality: 50
+  - platformName: Android
+    overridden: 0
+    isAutoMaxTextureSize: 1
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    format: -1
+    compression: 1
+    useCrunchCompression: 0
+    compressorQuality: 50
+  - platformName: iPhone
+    overridden: 0
+    isAutoMaxTextureSize: 1
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    format: -1
+    compression: 1
+    useCrunchCompression: 0
+    compressorQuality: 50
+  - platformName: WebGL
+    overridden: 0
+    isAutoMaxTextureSize: 1
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    format: -1
+    compression: 1
+    useCrunchCompression: 0
+    compressorQuality: 50
