@@ -11,6 +11,9 @@ namespace GalaxyIO.Tools.PopupUI.Popup
     {
         private WindowGameMenu menu_win;
 
+        // 재개 처리. ESC 도 같은 경로를 씀.
+        private UnityAction resume;
+
         protected override void Awake()
         {
             base.Awake();
@@ -30,6 +33,14 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         public void AddListener(UnityAction _onResume, UnityAction _onOption, UnityAction _onQuit)
         {
             menu_win.AddListener(_onResume, _onOption, _onQuit);
+            resume = _onResume;
+        }
+
+        /// <summary>ESC. 재개 버튼과 동일.</summary>
+        public override void TryCancel()
+        {
+            if (isClosing) return;
+            resume?.Invoke();
         }
     }
 }

@@ -293,6 +293,7 @@ MonoBehaviour:
   orderType: 1
   popup_anim: {fileID: 213215781421509027}
   replayInOnStateChange: 1
+  isCancelable: 1
 --- !u!223 &8409547152920330984
 Canvas:
   m_ObjectHideFlags: 0

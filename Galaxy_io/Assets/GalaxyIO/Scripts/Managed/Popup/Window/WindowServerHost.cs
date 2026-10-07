@@ -72,6 +72,9 @@ namespace GalaxyIO.Tools.PopupUI.Window
             hostButton.onClick.AddListener(OnPressHost);
             exitButton.onClick.AddListener(OnPressBack);
             playerName_input.onValueChanged.AddListener(OnNameChanged);
+
+            // 로비 씬은 인게임 아래에 남아 있다가 되살아남. 떠날 때 건 잠금을 품
+            SetLocked(false);
         }
 
         protected override void OnDisable()
@@ -95,6 +98,9 @@ namespace GalaxyIO.Tools.PopupUI.Window
             if (!IsActive() || busy) return;
             _changeWindow?.Invoke("main");
         }
+
+        /// <summary>나가기 버튼과 같은 처리. ESC 용.</summary>
+        public void Cancel() => OnPressBack();
 
         /// <summary>
         /// 서버를 열고 루프백으로 접속 요청.

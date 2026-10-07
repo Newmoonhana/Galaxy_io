@@ -349,6 +349,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Newmoonhana.Runtime::Newmoonhana.Runtime.Tools.PopupUI.Window.WindowSlotList
   padding: 18
   lineHeight: 36
+  window_anim: {fileID: 0}
   content_tns: {fileID: 6890498256182008823}
   template: {fileID: 4695416948985036991}
 --- !u!1 &7659749634080758500
@@ -500,6 +501,7 @@ GameObject:
   - component: {fileID: 3004806971958558108}
   - component: {fileID: 3308906364773598816}
   - component: {fileID: 6363391034200250542}
+  - component: {fileID: 1216766917820001947}
   m_Layer: 5
   m_Name: Window_Craft
   m_TagString: Untagged
@@ -579,12 +581,29 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Scripts.Managed.UI.CraftingScreen
   padding: 18
   lineHeight: 36
+  window_anim: {fileID: 1216766917820001947}
   panel_rt: {fileID: 2961171444066777168}
   name_tmp: {fileID: 7141298911283743057}
   result_img: {fileID: 948286708163745233}
   ingredient_list: {fileID: 4705649023866484805}
   craft_btn: {fileID: 5306845555681963651}
   exit_btn: {fileID: 3355503721147313521}
+--- !u!114 &1216766917820001947
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7905698180581133921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e25bc26c68bb2b141a85be2a4bf97d5a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Newmoonhana.Runtime::Newmoonhana.Runtime.Tools.PopupUI.Popup.PopupAnimator
+  in_anims:
+  - {fileID: 7560425035431077751}
+  out_anims: []
+  isInstant: 0
 --- !u!1 &8416642698715278389
 GameObject:
   m_ObjectHideFlags: 0
@@ -809,6 +828,7 @@ GameObject:
   - component: {fileID: 2961171444066777168}
   - component: {fileID: 5049797985874567714}
   - component: {fileID: 7792380499645253283}
+  - component: {fileID: 7560425035431077751}
   m_Layer: 5
   m_Name: Panel
   m_TagString: Untagged
@@ -879,6 +899,114 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &7560425035431077751
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8819643415866508439}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d0390bd8b8ffd640b34fe25065ff1df, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: DOTweenPro.Scripts::DG.Tweening.DOTweenAnimation
+  updateType: 0
+  isSpeedBased: 0
+  hasOnStart: 0
+  hasOnPlay: 0
+  hasOnUpdate: 0
+  hasOnStepComplete: 0
+  hasOnComplete: 0
+  hasOnTweenCreated: 0
+  hasOnRewind: 0
+  onStart:
+    m_PersistentCalls:
+      m_Calls: []
+  onPlay:
+    m_PersistentCalls:
+      m_Calls: []
+  onUpdate:
+    m_PersistentCalls:
+      m_Calls: []
+  onStepComplete:
+    m_PersistentCalls:
+      m_Calls: []
+  onComplete:
+    m_PersistentCalls:
+      m_Calls: []
+  onTweenCreated:
+    m_PersistentCalls:
+      m_Calls: []
+  onRewind:
+    m_PersistentCalls:
+      m_Calls: []
+  targetIsSelf: 1
+  targetGO: {fileID: 8819643415866508439}
+  tweenTargetIsTargetGO: 1
+  delay: 0
+  duration: 0.2
+  easeType: 27
+  easeCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 1
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  loopType: 0
+  loops: 1
+  id: 
+  isRelative: 0
+  isFrom: 1
+  isIndependentUpdate: 1
+  autoKill: 0
+  autoGenerate: 1
+  isActive: 1
+  isValid: 1
+  target: {fileID: 2961171444066777168}
+  animationType: 5
+  targetType: 5
+  forcedTargetType: 0
+  autoPlay: 0
+  useTargetAsV3: 0
+  endValueFloat: 0.9
+  endValueV3: {x: 0.9, y: 0.9, z: 0.9}
+  endValueV2: {x: 0, y: 0}
+  endValueColor: {r: 1, g: 1, b: 1, a: 1}
+  endValueString: 
+  endValueRect:
+    serializedVersion: 2
+    x: 0
+    y: 0
+    width: 0
+    height: 0
+  endValueTransform: {fileID: 0}
+  optionalBool0: 1
+  optionalBool1: 0
+  optionalFloat0: 0
+  optionalInt0: 0
+  optionalRotationMode: 0
+  optionalScrambleMode: 0
+  optionalShakeRandomnessMode: 0
+  optionalString: 
 --- !u!1001 &3139908216177020163
 PrefabInstance:
   m_ObjectHideFlags: 0

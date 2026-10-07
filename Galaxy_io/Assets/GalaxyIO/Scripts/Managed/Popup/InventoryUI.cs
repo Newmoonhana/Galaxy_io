@@ -51,8 +51,8 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             }
             public void OnExit()
             {
+                //칸 창은 제작 창 밑에 그대로 남음. 입력만 막음
                 win.Deactivate();
-                win.Close();
             }
             public void Dispose()
             {
@@ -79,8 +79,6 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             public void Render() {}
             public void OnEnter(object p_data)
             {
-                // 직전 상태가 칸 창을 닫고 나가므로 다시 열어 둠. 입력만 막음
-                inv_win.Open();
                 inv_win.Deactivate();
 
                 win.SetSlot((int)p_data);
@@ -113,6 +111,12 @@ namespace GalaxyIO.Tools.PopupUI.Popup
 
         // 칸을 만들어 둔 인벤토리 길이. 바뀌면 다시 만듦.
         private int builtLength = -1;
+
+        // 인벤토리 전체 닫기. 띄운 쪽이 상태 플래그까지 정리함.
+        private UnityAction exit;
+
+        // 설계도 칸 툴팁에 덧붙이는 안내. 테이블 조회가 매 프레임 돌지 않게 캐시함.
+        private string blueprintHint;
 
         // 아이템 이름 조회 캐시. 칸 툴팁이 매 프레임 테이블을 뒤지지 않게 함.
         private readonly Dictionary<ItemId, string> names = new Dictionary<ItemId, string>();
@@ -171,7 +175,25 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         public void AddListener(UnityAction _onExit)
         {
             inventory_win.AddListener(_onExit);
-            craft_win.AddListener(_onExit);
+            //제작 창의 나가기는 제작 창만 닫음. 인벤토리 전체는 칸 창의 나가기가 담당
+            craft_win.AddListener(OnCraftClosed);
+            exit = _onExit;
+        }
+
+        /// <summary>
+        /// ESC / E. 제작 창이 열려 있으면 그것만 닫고, 아니면 인벤토리를 닫음.
+        /// </summary>
+        public override void TryCancel()
+        {
+            if (isClosing) return;
+
+            if (stateM != null && stateM.CurrentToString == stateCraft)
+            {
+                OnCraftClosed();
+                return;
+            }
+
+            exit?.Invoke();
         }
 
         private void LateUpdate()
@@ -224,7 +246,8 @@ namespace GalaxyIO.Tools.PopupUI.Popup
                     {
                         Icon      = item != null ? item.Sprite : null,
                         Name      = name,
-                        Tooltip   = name,
+                        //설계도는 우클릭으로 제작 창을 엶. 칸에 표기할 자리가 없어 툴팁에 붙임
+                        Tooltip   = badge != null ? $"{name}\n{BlueprintHint}" : name,
                         IsEmpty   = item == null,
                         IsEnabled = true,
                     },
@@ -257,7 +280,15 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             return name;
         }
 
-        private void OnLocaleChanged(Locale _locale) => names.Clear();
+        private void OnLocaleChanged(Locale _locale)
+        {
+            names.Clear();
+            blueprintHint = null;
+        }
+
+        //색 태그는 번역 테이블에 넣지 않고 여기서 감쌈
+        private string BlueprintHint =>
+            blueprintHint ??= $"<color=red>({L10n.Get("Inventory/BlueprintHint")})</color>";
 
         /// <summary>
         /// <see cref="WindowInventory"/>의 칸을 눌렀을 때 호출됨.

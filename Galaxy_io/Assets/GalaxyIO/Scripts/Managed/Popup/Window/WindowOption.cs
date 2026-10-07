@@ -144,6 +144,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             language_ddl.RefreshItems(items);
             language_ddl.SelectItemIndex(selected);
+            RestoreDropDownSkin(language_ddl, selected);
         }
 
         // 각 언어를 그 언어로 표기. CultureInfo가 없으면 Locale 이름으로 대체.
@@ -151,6 +152,32 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             System.Globalization.CultureInfo culture = _locale.Identifier.CultureInfo;
             return culture != null ? culture.NativeName : _locale.LocaleName;
+        }
+
+        // DropDownList 가 생성 항목의 배경 스프라이트를 지움. ItemTemplate 값으로 되돌리고
+        // 고른 항목만 강조색으로 둠. 강조색은 MainButton 의 Highlighted 값을 따라감
+        private static void RestoreDropDownSkin(DropDownList _ddl, int _selected)
+        {
+            Transform template = _ddl.transform.Find("ItemTemplate");
+            Transform items = _ddl.transform.Find("Overlay/ScrollPanel/Items");
+            if (template == null || items == null) return;
+
+            Image skin = template.GetComponent<Image>();
+            if (skin == null) return;
+
+            Button main = _ddl.transform.Find("MainButton")?.GetComponent<Button>();
+            Color selectedColor = main != null ? main.colors.highlightedColor : skin.color;
+
+            for (int i = 0; i < items.childCount; i++)
+            {
+                Image img = items.GetChild(i).GetComponent<Image>();
+                if (img == null) continue;
+
+                img.sprite = skin.sprite;
+                img.type = skin.type;
+                img.pixelsPerUnitMultiplier = skin.pixelsPerUnitMultiplier;
+                img.color = i == _selected ? selectedColor : skin.color;
+            }
         }
 
         #endregion
@@ -215,6 +242,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             if (_index < 0 || _index >= locales.Count) return;
 
             LocalizationSettings.SelectedLocale = locales[_index];
+            RestoreDropDownSkin(language_ddl, _index);
         }
 
         #endregion
@@ -248,6 +276,9 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             closeOption?.Invoke();
         }
+
+        /// <summary>나가기 버튼과 같은 처리. ESC 용.</summary>
+        public void Cancel() => OnExitBtnPress();
 
         #endregion
     }

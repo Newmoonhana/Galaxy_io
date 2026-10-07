@@ -335,6 +335,10 @@ MonoBehaviour:
     m_Key: Item/CorsairTurret
     m_Metadata:
       m_Items: []
+  - m_Id: 2300000000000015
+    m_Key: Inventory/BlueprintHint
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

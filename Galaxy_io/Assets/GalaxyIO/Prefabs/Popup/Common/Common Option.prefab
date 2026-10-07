@@ -589,6 +589,8 @@ MonoBehaviour:
   orderType: 0
   popup_anim: {fileID: 8873697812903132391}
   replayInOnStateChange: 1
+  isCancelable: 1
+  isAlwaysTop: 1
 --- !u!223 &891735440248044627
 Canvas:
   m_ObjectHideFlags: 0
@@ -2728,7 +2730,7 @@ MonoBehaviour:
   disabledTextColor: {r: 0, g: 0, b: 0, a: 0}
   Items: []
   isActive: 1
-  OverrideHighlighted: 1
+  OverrideHighlighted: 0
   _scrollBarWidth: 20
   _itemsToDisplay: 0
   dropdownOffset: 0
@@ -3123,6 +3125,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Tools.PopupUI.Window.WindowOption
   padding: 18
   lineHeight: 36
+  window_anim: {fileID: 0}
   master_sld: {fileID: 2034279509989790591}
   background_sld: {fileID: 7941813686150420473}
   ingame_sld: {fileID: 4402840637502026422}
