@@ -27,9 +27,9 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         /// <summary>
         /// 생성 직후 호출. 재개/나가기 처리는 생성한 쪽이 담당.
         /// </summary>
-        public void AddListener(UnityAction _onResume, UnityAction _onQuit)
+        public void AddListener(UnityAction _onResume, UnityAction _onOption, UnityAction _onQuit)
         {
-            menu_win.AddListener(_onResume, _onQuit);
+            menu_win.AddListener(_onResume, _onOption, _onQuit);
         }
     }
 }

@@ -277,7 +277,7 @@ namespace GalaxyIO.Main
         {
             GameObject prefab = AddressableAssetsManager.gameObject_lst.GetData(gameMenuUIKey).Data;
             gameMenuUI = Instantiate(prefab).GetComponent<GameMenuUI>();
-            gameMenuUI.AddListener(CloseGameMenu, QuitGame);
+            gameMenuUI.AddListener(CloseGameMenu, Instance.OnPressOption, QuitGame);
 
             stateQuery.GetSingletonRW<PlayerStateComponent>().ValueRW.GameMenuOpened = true;
         }

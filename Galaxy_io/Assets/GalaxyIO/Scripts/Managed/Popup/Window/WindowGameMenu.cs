@@ -11,15 +11,18 @@ namespace GalaxyIO.Tools.PopupUI.Window
     public class WindowGameMenu : WindowBase
     {
         [SerializeField] private Button resume_btn;
+        [SerializeField] private Button option_btn;
         [SerializeField] private Button quit_btn;
 
         private UnityEvent _resume;
+        private UnityEvent _option;
         private UnityEvent _quit;
 
         protected override void Awake()
         {
             base.Awake();
             _resume = new UnityEvent();
+            _option = new UnityEvent();
             _quit = new UnityEvent();
         }
 
@@ -28,6 +31,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
             base.Dispose();
             _resume?.RemoveAllListeners();
             _resume = null;
+            _option?.RemoveAllListeners();
+            _option = null;
             _quit?.RemoveAllListeners();
             _quit = null;
         }
@@ -36,6 +41,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             base.OnEnable();
             resume_btn.onClick.AddListener(OnResumeBtnPress);
+            option_btn.onClick.AddListener(OnOptionBtnPress);
             quit_btn.onClick.AddListener(OnQuitBtnPress);
         }
 
@@ -43,12 +49,14 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             base.OnDisable();
             resume_btn.onClick.RemoveListener(OnResumeBtnPress);
+            option_btn.onClick.RemoveListener(OnOptionBtnPress);
             quit_btn.onClick.RemoveListener(OnQuitBtnPress);
         }
 
-        public void AddListener(UnityAction _onResume, UnityAction _onQuit)
+        public void AddListener(UnityAction _onResume, UnityAction _onOption, UnityAction _onQuit)
         {
             _resume.AddListener(_onResume);
+            _option.AddListener(_onOption);
             _quit.AddListener(_onQuit);
         }
 
@@ -56,6 +64,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             if (!IsActive()) return;
             _resume?.Invoke();
+        }
+
+        private void OnOptionBtnPress()
+        {
+            if (!IsActive()) return;
+            _option?.Invoke();
         }
 
         private void OnQuitBtnPress()
