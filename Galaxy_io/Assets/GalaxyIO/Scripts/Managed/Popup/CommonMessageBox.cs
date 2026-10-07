@@ -42,6 +42,13 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             msgBox_win.AddListener(Close);
         }
 
+        /// <summary>ESC. 닫기 버튼과 동일.</summary>
+        public override void TryCancel()
+        {
+            if (isClosing) return;
+            msgBox_win.Cancel();
+        }
+
         protected override void OnDestroy()
         {
             base.OnDestroy();

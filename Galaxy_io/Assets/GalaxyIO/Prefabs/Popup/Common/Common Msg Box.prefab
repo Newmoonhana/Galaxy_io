@@ -340,6 +340,7 @@ MonoBehaviour:
   orderType: 0
   popup_anim: {fileID: 1867904251707498735}
   replayInOnStateChange: 1
+  isCancelable: 1
 --- !u!223 &7364217086791592531
 Canvas:
   m_ObjectHideFlags: 0
@@ -612,6 +613,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Tools.PopupUI.Window.WindowMsgBox
   padding: 18
   lineHeight: 36
+  window_anim: {fileID: 0}
   label_txt: {fileID: 8805349437603641268}
   msg_txt: {fileID: 9116847972984004383}
   exit_btn: {fileID: 886984724591484417}

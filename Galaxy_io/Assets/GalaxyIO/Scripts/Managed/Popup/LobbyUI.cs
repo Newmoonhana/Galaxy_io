@@ -16,6 +16,12 @@ namespace GalaxyIO.Tools.PopupUI.Popup
     /// </summary>
     public class LobbyUI : PopupBase
     {
+        //ESC 처리를 가진 상태. 구현하지 않은 상태는 ESC 무반응
+        private interface ICancelState
+        {
+            void Cancel();
+        }
+
         #region IState
         /// <summary>
         /// 로비 메인 메뉴 창
@@ -48,7 +54,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
                 win = null;
             }
         }
-        private class SignInState : IState
+        private class SignInState : IState, ICancelState
         {
             private WindowSignIn win;
             public SignInState(WindowSignIn _win, UnityAction<string> _changeWindow, UnityAction _onLoginSuccess)
@@ -76,8 +82,10 @@ namespace GalaxyIO.Tools.PopupUI.Popup
                 win?.Dispose();
                 win = null;
             }
+
+            public void Cancel() => win.Cancel();
         }
-        private class SignUpState : IState
+        private class SignUpState : IState, ICancelState
         {
             private WindowSignUp win;
             public SignUpState(WindowSignUp _win, UnityAction<string> _changeWindow,
@@ -106,11 +114,13 @@ namespace GalaxyIO.Tools.PopupUI.Popup
                 win?.Dispose();
                 win = null;
             }
+
+            public void Cancel() => win.Cancel();
         }
         /// <summary>
         /// 통합 ID로 이 게임의 계정을 추가하는 창
         /// </summary>
-        private class SignUpJWServerState : IState
+        private class SignUpJWServerState : IState, ICancelState
         {
             private WindowSignUpJWServer win;
             public SignUpJWServerState(WindowSignUpJWServer _win, UnityAction<string> _changeWindow)
@@ -139,11 +149,13 @@ namespace GalaxyIO.Tools.PopupUI.Popup
                 win?.Dispose();
                 win = null;
             }
+
+            public void Cancel() => win.Cancel();
         }
         /// <summary>
         /// 공개/사설 서버를 고르는 분기 창
         /// </summary>
-        private class ServerBranchState : IState
+        private class ServerBranchState : IState, ICancelState
         {
             private WindowServerBranch win;
 
@@ -171,11 +183,13 @@ namespace GalaxyIO.Tools.PopupUI.Popup
                 win?.Dispose();
                 win = null;
             }
+
+            public void Cancel() => win.Cancel();
         }
         /// <summary>
         /// 게임 시작(서버 접속) 창. 공개/사설 창이 같은 형태라 하나로 씀.
         /// </summary>
-        private class GameStartState : IState
+        private class GameStartState : IState, ICancelState
         {
             private WindowGameStartBase win;
 
@@ -203,11 +217,13 @@ namespace GalaxyIO.Tools.PopupUI.Popup
                 win?.Dispose();
                 win = null;
             }
+
+            public void Cancel() => win.Cancel();
         }
         /// <summary>
         /// 사설 서버를 직접 여는 창
         /// </summary>
-        private class ServerHostState : IState
+        private class ServerHostState : IState, ICancelState
         {
             private WindowServerHost win;
 
@@ -235,6 +251,8 @@ namespace GalaxyIO.Tools.PopupUI.Popup
                 win?.Dispose();
                 win = null;
             }
+
+            public void Cancel() => win.Cancel();
         }
         #endregion
 
@@ -289,6 +307,16 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         {
             base.Dispose();
             stateM?.Dispose();
+        }
+
+        /// <summary>
+        /// ESC. 현재 창의 나가기 버튼과 같은 곳으로 보냄. 갈 곳이 없는 창은 무반응.
+        /// </summary>
+        public override void TryCancel()
+        {
+            if (isClosing) return;
+
+            if (stateM?.Current is ICancelState cancelable) cancelable.Cancel();
         }
 
         /// <summary>

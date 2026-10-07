@@ -7,6 +7,7 @@ using Unity.Collections;
 using GalaxyIO.Tools;
 using GalaxyIO.Tools.PopupUI.Popup;
 using Newmoonhana.Runtime.Tools.PopupUI;
+using Newmoonhana.Runtime.Tools.PopupUI.Popup;
 using Newmoonhana.Runtime.Utils;
 using Newmoonhana.Runtime.Utils.DEBUG;
 using Newmoonhana.Runtime.Utils.Pattern;
@@ -247,7 +248,7 @@ namespace GalaxyIO.Main
             return reason;
         }
 
-        // ESC로 게임 메뉴 토글. 인게임에서만 열림.
+        // ESC로 게임 메뉴 열기. 닫기는 떠 있는 팝업이 직접 처리함.
         private void UpdateGameMenuUI()
         {
             // 접속이 끊기면 메뉴도 닫음.
@@ -262,15 +263,12 @@ namespace GalaxyIO.Main
 
             if (menuAction == null || !menuAction.action.WasPressedThisFrame()) return;
 
-            // 인벤토리가 열려 있으면 ESC 는 인벤토리만 닫음.
-            if (inventoryUI != null)
-            {
-                CloseInventory();
-                return;
-            }
+            if (gameMenuUI != null) return;
 
-            if (gameMenuUI == null) OpenGameMenu();
-            else CloseGameMenu();
+            // 떠 있는 팝업이 ESC 를 먹음. 여기서는 여는 것만 담당함
+            if (PopupOrderStack.IsTopCancelable) return;
+
+            OpenGameMenu();
         }
 
         private void OpenGameMenu()
@@ -306,8 +304,17 @@ namespace GalaxyIO.Main
 
             if (inventoryAction == null || !inventoryAction.action.WasPressedThisFrame()) return;
 
-            if (inventoryUI == null) OpenInventory();
-            else CloseInventory();
+            if (inventoryUI == null)
+            {
+                OpenInventory();
+                return;
+            }
+
+            // 다른 팝업이 위에 떠 있으면 그 팝업이 입력을 가짐
+            if (!PopupOrderStack.IsTop(inventoryUI)) return;
+
+            // 인벤토리 안에서는 E 를 ESC 와 같게 씀. 제작 창이 열려 있으면 그것만 닫음
+            inventoryUI.TryCancel();
         }
 
         private void OpenInventory()

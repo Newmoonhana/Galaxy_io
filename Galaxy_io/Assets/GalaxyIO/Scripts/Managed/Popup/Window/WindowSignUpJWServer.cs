@@ -222,5 +222,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
             if (!IsActive()) return;
             changeWindow?.Invoke("signUp");
         }
+
+        /// <summary>취소 버튼과 같은 처리. ESC 용.</summary>
+        public void Cancel() => OnCancelBtnPress();
     }
 }

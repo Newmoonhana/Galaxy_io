@@ -288,6 +288,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Tools.PopupUI.Window.WindowGameMenu
   padding: 18
   lineHeight: 36
+  window_anim: {fileID: 0}
   resume_btn: {fileID: 184598927520496115}
   option_btn: {fileID: 2938145108198339180}
   quit_btn: {fileID: 847132458674110813}
@@ -1175,6 +1176,7 @@ MonoBehaviour:
   orderType: 0
   popup_anim: {fileID: 9062827857081185105}
   replayInOnStateChange: 1
+  isCancelable: 1
 --- !u!114 &9062827857081185105
 MonoBehaviour:
   m_ObjectHideFlags: 0

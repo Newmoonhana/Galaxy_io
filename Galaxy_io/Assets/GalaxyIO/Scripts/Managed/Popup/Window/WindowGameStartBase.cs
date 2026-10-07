@@ -83,6 +83,9 @@ namespace GalaxyIO.Tools.PopupUI.Window
             _changeWindow?.Invoke("serverBranch");
         }
 
+        /// <summary>나가기 버튼과 같은 처리. ESC 용.</summary>
+        public void Cancel() => OnPressBack();
+
         /// <summary>
         /// 접속에 쓸 이름. 입력이 잘못되면 창이 직접 안내를 띄우고 null 을 돌려줌.
         /// </summary>

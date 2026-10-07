@@ -343,6 +343,10 @@ MonoBehaviour:
     m_Localized: Corsair Turret
     m_Metadata:
       m_Items: []
+  - m_Id: 2300000000000015
+    m_Localized: Right-click to craft
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

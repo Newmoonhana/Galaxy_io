@@ -234,6 +234,9 @@ namespace GalaxyIO.Tools.PopupUI.Window
             if (!IsActive()) return;
             changeWindow?.Invoke("signIn");
         }
+
+        /// <summary>취소 버튼과 같은 처리. ESC 용.</summary>
+        public void Cancel() => OnCancelBtnPress();
         
         /// <summary>
         /// 통합 ID 회원가입 창으로 이동. 입력 검증과 통합 회원 확인은 그 창이 담당하므로

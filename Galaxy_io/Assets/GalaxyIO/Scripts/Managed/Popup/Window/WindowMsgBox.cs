@@ -68,6 +68,9 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             closeMsgBox?.Invoke();
         }
+
+        /// <summary>닫기 버튼과 같은 처리. ESC 용.</summary>
+        public void Cancel() => OnExitBtnPress();
     }
 
 }
