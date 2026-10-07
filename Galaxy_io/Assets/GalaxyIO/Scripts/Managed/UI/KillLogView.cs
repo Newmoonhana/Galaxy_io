@@ -35,14 +35,11 @@ namespace GalaxyIO.Scripts.Managed.UI
         private int maxRows = 5;
 
         [Header("Icons")]
-
-        [SerializeField]
-        [Tooltip("투사체 격추 아이콘의 스프라이트 이름")]
-        private string indirectSprite = "indirect_0";
-
-        [SerializeField]
-        [Tooltip("충돌 격추 아이콘의 스프라이트 이름")]
-        private string ramSprite = "ram_0";
+        
+        // 투사체 격추 아이콘의 스프라이트 이름
+        private const string IndirectSprite = "IconSet_killLog_0";
+        // 충돌 격추 아이콘의 스프라이트 이름
+        private const string RamSprite = "IconSet_killLog_1";
 
         [Header("Colors")]
 
@@ -147,7 +144,7 @@ namespace GalaxyIO.Scripts.Managed.UI
                 text += $"<color=#{playerHex}> + <noparse>{message.Assistant}</noparse></color>";
             }
 
-            string icon = message.Type == KillType.Ram ? ramSprite : indirectSprite;
+            string icon = message.Type == KillType.Ram ? RamSprite : IndirectSprite;
 
             return text + $" <sprite name=\"{icon}\"> <color=#{victimHex}><noparse>{message.Victim}</noparse></color>";
         }
