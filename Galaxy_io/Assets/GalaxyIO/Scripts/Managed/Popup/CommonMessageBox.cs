@@ -67,10 +67,5 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         {
             msgBox_win.Refresh();
         }
-
-        public void Close()
-        {
-            Destroy(gameObject);    //자주 호출되는 윈도우가 아니라서 단순 삭제로 처리
-        }
-    }
+    }
 }

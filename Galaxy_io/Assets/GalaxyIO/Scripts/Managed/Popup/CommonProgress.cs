@@ -79,11 +79,6 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             acrossScenes = null;
         }
 
-        public void Close()
-        {
-            Destroy(gameObject);
-        }
-
         // 프리팹을 불러 인스턴스를 만듦.
         private static async Awaitable<CommonProgress> Create(Transform _parent)
         {
