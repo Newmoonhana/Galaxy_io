@@ -45,10 +45,5 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             option_win?.Dispose();
             option_win = null;
         }
-
-        public void Close()
-        {
-            Destroy(gameObject);    //자주 호출되는 팝업이 아니라서 단순 삭제로 처리
-        }
-    }
+    }
 }

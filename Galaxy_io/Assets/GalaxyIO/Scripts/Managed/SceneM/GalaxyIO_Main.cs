@@ -183,7 +183,7 @@ namespace GalaxyIO.Main
         // 인게임 재시작. 리스폰 창을 치우고 게임 메뉴를 다시 허용.
         private void OnGameRestart()
         {
-            Destroy(respawnUI.gameObject);
+            respawnUI.Close();
             respawnUI = null;
 
             isGameOver = false;
@@ -286,7 +286,7 @@ namespace GalaxyIO.Main
         {
             if (gameMenuUI == null) return;
 
-            Destroy(gameMenuUI.gameObject);
+            gameMenuUI.Close();
             gameMenuUI = null;
 
             stateQuery.GetSingletonRW<PlayerStateComponent>().ValueRW.GameMenuOpened = false;
@@ -323,7 +323,7 @@ namespace GalaxyIO.Main
         {
             if (inventoryUI == null) return;
 
-            Destroy(inventoryUI.gameObject);
+            inventoryUI.Close();
             inventoryUI = null;
 
             stateQuery.GetSingletonRW<PlayerStateComponent>().ValueRW.InventoryOpened = false;
