@@ -8,6 +8,7 @@ using GalaxyIO.Tools;
 using Newmoonhana.Runtime.Tools.PopupUI.Window;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
@@ -32,37 +33,55 @@ namespace GalaxyIO.Tools.PopupUI.Window
         [SerializeField] private WindowSlotList ingredient_list;
 
         [SerializeField] private Button craft_btn;
+        [SerializeField] private Button exit_btn;
 
         /// <summary>제작 버튼. 인자는 설계도가 든 칸 번호.</summary>
         public event Action<int> OnCraft;
 
         /// <summary>패널 밖 누름, 또는 설계도가 사라져 닫아야 함.</summary>
         public event Action OnClosed;
+        private UnityEvent _exit;
 
         // 설계도가 든 칸 번호
         private int slot = -1;
 
         // 이름 / 아이콘 / 재료 줄을 채워 둔 설계도. 바뀔 때만 다시 채움
         private ItemId shownBlueprint = ItemId.None;
+        
+        protected override void Awake()
+        {
+            base.Awake();
+
+            _exit = new UnityEvent();
+        }
 
         public override void Dispose()
         {
             base.Dispose();
 
+            _exit?.RemoveAllListeners();
+            _exit = null;
             OnCraft = null;
             OnClosed = null;
         }
+        
+        /// <summary>
+        /// 생성 직후 호출. 닫기 처리는 생성한 쪽이 담당.
+        /// </summary>
+        public void AddListener(UnityAction _onExit) => _exit.AddListener(_onExit);
 
         protected override void OnEnable()
         {
             base.OnEnable();
             craft_btn.onClick.AddListener(OnCraftBtnPress);
+            exit_btn.onClick.AddListener(OnExitBtnPress);
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
             craft_btn.onClick.RemoveListener(OnCraftBtnPress);
+            exit_btn.onClick.RemoveListener(OnExitBtnPress);
         }
 
         /// <summary>
@@ -126,6 +145,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             if (!IsActive()) return;
             OnCraft?.Invoke(slot);
+        }
+        
+        private void OnExitBtnPress()
+        {
+            if (!IsActive()) return;
+            _exit?.Invoke();
         }
 
         // 버튼이 아닌 곳을 누름. 패널 밖이면 닫음
