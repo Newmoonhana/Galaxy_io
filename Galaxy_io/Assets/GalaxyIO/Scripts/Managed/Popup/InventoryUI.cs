@@ -171,6 +171,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         public void AddListener(UnityAction _onExit)
         {
             inventory_win.AddListener(_onExit);
+            craft_win.AddListener(_onExit);
         }
 
         private void LateUpdate()
