@@ -5,7 +5,6 @@ using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.DOTS.Inventory;
-using GalaxyIO.Tools;
 using GalaxyIO.Tools.PopupUI.Window;
 using Newmoonhana.Runtime.Tools.PopupUI.Popup;
 using Newmoonhana.Runtime.Tools.PopupUI.Window;
