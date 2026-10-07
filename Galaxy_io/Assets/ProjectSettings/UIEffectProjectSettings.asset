@@ -24,6 +24,7 @@ MonoBehaviour:
     m_Asset: {fileID: 181588677393518624}
     m_RegisteredShaders:
     - {fileID: 4800000, guid: 96246b1ead49a4c5a996fd477bc5a117, type: 3}
+    - {fileID: 4800000, guid: 935b7be1c88464d2eb87204fdfab5a38, type: 3}
     m_ErrorOnUnregisteredVariant: 0
     m_UnregisteredVariants: []
 --- !u!200 &181588677393518624
