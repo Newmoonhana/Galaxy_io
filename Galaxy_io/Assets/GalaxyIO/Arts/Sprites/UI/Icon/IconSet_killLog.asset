@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 84a92b25f83d49b9bc132d206b370281, type: 3}
-  m_Name: indirect
+  m_Name: IconSet_killLog
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TMP_SpriteAsset
   m_Version: 1.1.0
   m_FaceInfo:
@@ -35,42 +35,104 @@ MonoBehaviour:
     m_StrikethroughOffset: 0
     m_StrikethroughThickness: 0
     m_TabWidth: 0
-  m_Material: {fileID: 1433529691555964206}
-  spriteSheet: {fileID: 2800000, guid: be54bced208387847b0609c60733f881, type: 3}
+  m_Material: {fileID: 4418447598330691758}
+  spriteSheet: {fileID: 2800000, guid: f0e9e237df4c33342bcaa48c512613a3, type: 3}
   m_SpriteCharacterTable:
   - m_ElementType: 2
     m_Unicode: 65534
     m_GlyphIndex: 0
     m_Scale: 1
-    m_Name: indirect_0
+    m_Name: IconSet_killLog_0
+  - m_ElementType: 2
+    m_Unicode: 65534
+    m_GlyphIndex: 1
+    m_Scale: 1
+    m_Name: IconSet_killLog_1
+  - m_ElementType: 2
+    m_Unicode: 65534
+    m_GlyphIndex: 2
+    m_Scale: 1
+    m_Name: IconSet_killLog_2
+  - m_ElementType: 2
+    m_Unicode: 65534
+    m_GlyphIndex: 3
+    m_Scale: 1
+    m_Name: IconSet_killLog_3
   m_GlyphTable:
   - m_Index: 0
     m_Metrics:
-      m_Width: 50
-      m_Height: 25
-      m_HorizontalBearingX: 0
-      m_HorizontalBearingY: 20
-      m_HorizontalAdvance: 50
+      m_Width: 48
+      m_Height: 48
+      m_HorizontalBearingX: -24
+      m_HorizontalBearingY: 24
+      m_HorizontalAdvance: 48
     m_GlyphRect:
       m_X: 0
-      m_Y: 15
-      m_Width: 50
-      m_Height: 25
+      m_Y: 48
+      m_Width: 48
+      m_Height: 48
     m_Scale: 1
     m_AtlasIndex: 0
     m_ClassDefinitionType: 0
-    sprite: {fileID: -8313022875110429765, guid: be54bced208387847b0609c60733f881, type: 3}
+    sprite: {fileID: -3075125184829296633, guid: f0e9e237df4c33342bcaa48c512613a3, type: 3}
+  - m_Index: 1
+    m_Metrics:
+      m_Width: 48
+      m_Height: 48
+      m_HorizontalBearingX: -24
+      m_HorizontalBearingY: 24
+      m_HorizontalAdvance: 48
+    m_GlyphRect:
+      m_X: 48
+      m_Y: 48
+      m_Width: 48
+      m_Height: 48
+    m_Scale: 1
+    m_AtlasIndex: 0
+    m_ClassDefinitionType: 0
+    sprite: {fileID: -5044187352286780266, guid: f0e9e237df4c33342bcaa48c512613a3, type: 3}
+  - m_Index: 2
+    m_Metrics:
+      m_Width: 48
+      m_Height: 48
+      m_HorizontalBearingX: -24
+      m_HorizontalBearingY: 24
+      m_HorizontalAdvance: 48
+    m_GlyphRect:
+      m_X: 0
+      m_Y: 0
+      m_Width: 48
+      m_Height: 48
+    m_Scale: 1
+    m_AtlasIndex: 0
+    m_ClassDefinitionType: 0
+    sprite: {fileID: -1777977113, guid: f0e9e237df4c33342bcaa48c512613a3, type: 3}
+  - m_Index: 3
+    m_Metrics:
+      m_Width: 48
+      m_Height: 48
+      m_HorizontalBearingX: -24
+      m_HorizontalBearingY: 24
+      m_HorizontalAdvance: 48
+    m_GlyphRect:
+      m_X: 48
+      m_Y: 0
+      m_Width: 48
+      m_Height: 48
+    m_Scale: 1
+    m_AtlasIndex: 0
+    m_ClassDefinitionType: 0
+    sprite: {fileID: -1637013191, guid: f0e9e237df4c33342bcaa48c512613a3, type: 3}
   spriteInfoList: []
-  fallbackSpriteAssets:
-  - {fileID: 11400000, guid: bd1e8e5ed98b18642a1f40ccde92c6bf, type: 2}
---- !u!21 &1433529691555964206
+  fallbackSpriteAssets: []
+--- !u!21 &4418447598330691758
 Material:
   serializedVersion: 8
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: indirect Material
+  m_Name: IconSet_killLog Material
   m_Shader: {fileID: 4800000, guid: cf81c85f95fe47e1a27f6ae460cf182c, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -87,7 +149,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _MainTex:
-        m_Texture: {fileID: 2800000, guid: be54bced208387847b0609c60733f881, type: 3}
+        m_Texture: {fileID: 2800000, guid: f0e9e237df4c33342bcaa48c512613a3, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Ints: []
