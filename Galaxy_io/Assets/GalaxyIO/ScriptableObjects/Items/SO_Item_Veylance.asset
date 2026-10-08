@@ -25,7 +25,7 @@ MonoBehaviour:
     SpeedSpread: 0
     Accuracy: 0
     Damage: 0
-    ShotSound: 
+    ShotSound: {fileID: 0}
   - Projectile: {fileID: 0}
     RPS: 0
     FollowMuzzle: 0
@@ -34,16 +34,17 @@ MonoBehaviour:
     SpeedSpread: 0
     Accuracy: 0
     Damage: 0
-    ShotSound: 
-  - Projectile: {fileID: 3898896724990523705, guid: c36f47c0d656b6b4a8bd8213db63a2e2, type: 3}
-    RPS: 4
+    ShotSound: {fileID: 0}
+  - Projectile: {fileID: 6294447569313648705, guid: c33c9092081d0424ca736fe24f332cd6, type: 3}
+    RPS: 20
     FollowMuzzle: 0
     FollowDelay: 0
-    ProjectileCount: 0
+    ProjectileCount: 1
     SpeedSpread: 0
     Accuracy: 1
-    Damage: 7
-    ShotSound: Shot_Bore
-  SwitchTime: 0
-  LaunchSound: 
-  LoopSound: 
+    Damage: 10
+    ShotSound: {fileID: 0}
+  SwitchTime: 0.3
+  ManeuverPenalty: 0.6
+  LaunchSound: {fileID: 0}
+  LoopSound: {fileID: 8300000, guid: 49441abe60a3162448ff88eb0714e155, type: 3}

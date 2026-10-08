@@ -4,7 +4,7 @@ using Unity.Entities;
 namespace GalaxyIO.DOTS.Components.Actor
 {
     /// <summary>
-    /// <see cref="ProjectileAuthoring.Visual"/>의 DOTS 구조체. 투사체를 따라다니는 파티클 연출. 클라이언트만 씀.
+    /// <see cref="ProjectileAuthoring.Visual"/>의 DOTS 구조체. 투사체를 따라다니는 파티클/트레일 연출. 클라이언트만 씀.
     /// </summary>
     public struct ProjectileVisualComponent : IComponentData
     {
