@@ -610,7 +610,7 @@ GameObject:
   - component: {fileID: 2071547770}
   - component: {fileID: 2071547768}
   m_Layer: 0
-  m_Name: AmbientSoundPlayer
+  m_Name: SoundPlayer
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -628,9 +628,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4833da6b1dcf40d4b862c9e3a396728f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Scripts.Managed.Audio.AmbientSoundPlayer
-  playlist: Ambient
-  lobbyVolume: 1
-  inGameVolume: 0.5
+  playlist: Lobby
+  volume: 1
   fadeTime: 1
 --- !u!4 &2071547770
 Transform:
