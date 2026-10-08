@@ -25,7 +25,7 @@ namespace GalaxyIO.Scripts.Managed.Audio
         [SerializeField]
         [Tooltip("인게임 음량")]
         [Range(0.0F, 1.0F)]
-        private float inGameVolume = 0.5F;
+        private float inGameVolume = 1.0F;
 
         [SerializeField]
         [Tooltip("로비/인게임 전환 시 음량이 바뀌는 시간 (초)")]
