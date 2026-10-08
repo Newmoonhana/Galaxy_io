@@ -245,6 +245,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Tools.PopupUI.Window.WindowGameStartPrivate
   padding: 18
   lineHeight: 36
+  window_anim: {fileID: 0}
   warning: {fileID: 8061396676049349909}
   startButton: {fileID: 8257122495816265827}
   exitButton: {fileID: 8151852056107555226}
