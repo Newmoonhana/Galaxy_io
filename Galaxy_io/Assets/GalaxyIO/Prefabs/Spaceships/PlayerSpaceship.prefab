@@ -119,10 +119,11 @@ MonoBehaviour:
   Deceleration: 20
   Maneuver: 360
   ManeuverPenalty: 0.9
-  MaxHealth: 300
+  MaxHealth: 100
   Repair: 5
   RepairDelay: 3
   Thickness: 1
+  MaxHeat: 100
   Faction: 1
   Muzzles:
   - {fileID: 1279712499970898616}

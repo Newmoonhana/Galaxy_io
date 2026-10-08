@@ -14,6 +14,7 @@ namespace GalaxyIO.DOTS.Systems
     /// <see cref="PlayerInputComponent"/>를 읽어들여 터렛의 투사체를 생성하는 시스템.
     /// 총구 사양은 <see cref="EquippedTurretComponent"/>의 포탑에서 찾음.
     /// 쿨다운은 롤백 재시뮬레이션까지 매 틱 진행해 서버와 같은 틱에 쏨.
+    /// 포탑 열(<see cref="TurretHeatComponent"/>)도 같이 계산함. 과열 중에는 방아쇠를 뗀 것으로 다룸.
     /// 클라이언트와 서버가 같은 틱에 각자 투사체를 만들고
     /// <see cref="ProjectileSpawnClassificationSystem"/>이 둘을 짝지음.
     /// </summary>
@@ -55,7 +56,7 @@ namespace GalaxyIO.DOTS.Systems
             DynamicBuffer<TurretSpecElement> specs = SystemAPI.GetBuffer<TurretSpecElement>(registryEntity);
 
             float deltaTime = SystemAPI.Time.DeltaTime;
-            float standbyTime = SystemAPI.GetSingleton<ItemConfigComponent>().NoFireStandbyTime;
+            ItemConfigComponent config = SystemAPI.GetSingleton<ItemConfigComponent>();
             uint spawnTick = networkTime.ServerTick.SerializedData;
 
             // 첫 투사체를 만들 때 한 번만 생성. 모든 우주선이 같은 버퍼를 씀.
@@ -86,12 +87,15 @@ namespace GalaxyIO.DOTS.Systems
                 // 쿼리 타입 인자 수 제한(7개)으로 따로 가져옴.
                 RefRW<TurretSwitchComponent> turretSwitch = SystemAPI.GetComponentRW<TurretSwitchComponent>(spaceship);
                 RefRW<TurretStandbyComponent> standby = SystemAPI.GetComponentRW<TurretStandbyComponent>(spaceship);
+                RefRW<TurretHeatComponent> heat = SystemAPI.GetComponentRW<TurretHeatComponent>(spaceship);
+                ItemRegistryElement turret = registry.Get(equipped.ValueRO.Value);
 
                 // 사격 시작/중지 전환. 전환 중에는 쏠 수 없음.
+                // 과열 중에는 방아쇠를 뗀 것으로 넘김. 복제된 전환 상태로 다른 클라이언트의 연출, 반복음도 멈춤.
                 bool firing = TurretSwitch.Update(
                     ref turretSwitch.ValueRW,
-                    inputRequest.ValueRO.TurretTriggered,
-                    registry.Get(equipped.ValueRO.Value).SwitchTime,
+                    inputRequest.ValueRO.TurretTriggered && !heat.ValueRO.Overheated,
+                    turret.SwitchTime,
                     deltaTime
                 );
 
@@ -180,7 +184,36 @@ namespace GalaxyIO.DOTS.Systems
                     }
                 }
 
-                TurretStandby.Update(ref standby.ValueRW, !shots.IsEmpty, deltaTime, standbyTime);
+                // 채널링 무기는 방아쇠를 당긴 순간(시작 전환)부터 쏜 것으로 침.
+                bool channeling = turret.HeatMode == TurretHeatMode.PerSecond
+                                  && (turretSwitch.ValueRO.State == TurretSwitchState.SpinningUp
+                                      || turretSwitch.ValueRO.State == TurretSwitchState.Firing);
+
+                TurretStandby.Update(ref standby.ValueRW, channeling || !shots.IsEmpty, deltaTime, config.NoFireStandbyTime);
+
+                // 한 번 사격에 열 한 번. 총구 수와 따라 쏘는 총구는 세지 않고, 한 틱에 여러 번 쏘면 그만큼 셈.
+                uint firings = 0;
+
+                foreach (TurretShotRequest request in shots)
+                {
+                    if (registry.GetTurretSpec(specs, equipped.ValueRO.Value, request.Muzzle).FollowMuzzle < 0)
+                    {
+                        firings = math.max(firings, request.Shot + 1);
+                    }
+                }
+
+                float gain = turret.HeatMode == TurretHeatMode.PerSecond
+                    ? channeling ? turret.Heat * deltaTime : 0.0F
+                    : turret.Heat * firings;
+
+                TurretHeat.Update(
+                    ref heat.ValueRW,
+                    gain,
+                    standby.ValueRO.NoFireTime >= config.NoFireStandbyTime,
+                    config.CoolingTime,
+                    config.OverheatCoolingTime,
+                    deltaTime
+                );
             }
         }
     }

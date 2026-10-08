@@ -58,6 +58,10 @@ namespace GalaxyIO.DOTS.Authoring
         [Min(0.0F)]
         public float Thickness = 1.0F;
 
+        // 포탑 최대 열. 플레이어만. 0 이면 과열하지 않음.
+        [Min(0.0F)]
+        public float MaxHeat = 20.0F;
+
         [Header("Faction")]
 
         // 소속 진영

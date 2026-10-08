@@ -42,9 +42,19 @@ namespace GalaxyIO.DOTS.Authoring.Config
         [Header("Turret")]
 
         [SerializeField]
-        [Tooltip("마지막 발사 후 지난 시간을 이 값(초)까지만 셈. 과열 시스템이 쓸 값.")]
+        [Tooltip("마지막 발사 후 이 시간(초)이 지나면 포탑 열이 식기 시작함.")]
         [Min(0.0F)]
         public float NoFireStandbyTime = 3.0F;
+
+        [SerializeField]
+        [Tooltip("최대 열에서 0 까지 식는 시간(초). 무사격 대기가 끝난 뒤.")]
+        [Min(0.01F)]
+        public float CoolingTime = 1.5F;
+
+        [SerializeField]
+        [Tooltip("과열 시 최대 열에서 0 까지 식는 시간(초). 무사격 대기가 끝난 뒤. 0 이 될 때까지 쏠 수 없음.")]
+        [Min(0.01F)]
+        public float OverheatCoolingTime = 4.0F;
     }
 
     public sealed class ItemConfigBaker : Baker<ItemConfigAuthoring>
@@ -62,6 +72,8 @@ namespace GalaxyIO.DOTS.Authoring.Config
                 TurretSlots           = authoring.TurretSlots,
                 BombSlots             = authoring.BombSlots,
                 NoFireStandbyTime     = authoring.NoFireStandbyTime,
+                CoolingTime           = authoring.CoolingTime,
+                OverheatCoolingTime   = authoring.OverheatCoolingTime,
             });
         }
     }

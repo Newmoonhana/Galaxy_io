@@ -27,5 +27,7 @@ MonoBehaviour:
     Damage: 7
     ShotSound: Shot_Bore
   SwitchTime: 0
+  Heat: 1
+  HeatMode: 0
   LaunchSound: 
   LoopSound: 

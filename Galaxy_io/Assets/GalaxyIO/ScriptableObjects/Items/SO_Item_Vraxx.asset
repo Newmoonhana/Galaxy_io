@@ -45,5 +45,8 @@ MonoBehaviour:
     Damage: 80
     ShotSound: Shot_Vraxx
   SwitchTime: 0
+  ManeuverPenalty: 0
+  Heat: 25.1
+  HeatMode: 0
   LaunchSound: 
   LoopSound: 

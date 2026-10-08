@@ -251,7 +251,9 @@ MonoBehaviour:
   CommonSlots: 36
   TurretSlots: 1
   BombSlots: 3
-  NoFireStandbyTime: 3
+  NoFireStandbyTime: 1.7
+  CoolingTime: 1.5
+  OverheatCoolingTime: 3
 --- !u!1 &1598268223
 GameObject:
   m_ObjectHideFlags: 0

@@ -45,5 +45,8 @@ MonoBehaviour:
     Damage: 0.8
     ShotSound: Shot_Bore
   SwitchTime: 0.3
+  ManeuverPenalty: 0
+  Heat: 21
+  HeatMode: 1
   LaunchSound: Launch_Pyron
   LoopSound: Loop_Pyron
