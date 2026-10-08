@@ -25,6 +25,9 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 포탑만. 사격 시작/중지 전환 시간(초).
         public float SwitchTime;
 
+        // 포탑만. 사격 중 우주선 회전속도가 줄어드는 비율(0 ~ 1).
+        public float ManeuverPenalty;
+
         // 포탑만. 사격 시작음, 사격 중 반복음. 클라이언트만 씀.
         public FixedString64Bytes LaunchSound;
         public FixedString64Bytes LoopSound;

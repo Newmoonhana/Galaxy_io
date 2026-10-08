@@ -3,7 +3,10 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 3
-  tags: []
+  tags:
+  - MuzzleCenter
+  - MuzzleLeft
+  - MuzzleRight
   layers:
   - Default
   - TransparentFX
@@ -40,6 +43,12 @@ TagManager:
   m_SortingLayers:
   - name: Default
     uniqueID: 0
+    locked: 0
+  - name: Distortion
+    uniqueID: 1578255473
+    locked: 0
+  - name: Projectile
+    uniqueID: 606477985
     locked: 0
   m_RenderingLayers:
   - Default

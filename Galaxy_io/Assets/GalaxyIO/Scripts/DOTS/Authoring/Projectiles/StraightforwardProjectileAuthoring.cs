@@ -71,6 +71,16 @@ namespace GalaxyIO.DOTS.Authoring
                 });
             }
 
+            if (authoring.Beam != null)
+            {
+                AddComponent(entity, new ProjectileBeamComponent
+                {
+                    Prefab = GetEntity(authoring.Beam, TransformUsageFlags.Dynamic),
+                    Range  = authoring.Speed * authoring.Lifetime
+                             + 0.5F * authoring.Acceleration * authoring.Lifetime * authoring.Lifetime,
+                });
+            }
+
             // 켜진 채로 스폰됨. 클라이언트가 발사음 재생 후 끔.
             AddComponent<ShotSoundPendingTag>(entity);
         }

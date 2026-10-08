@@ -1,4 +1,6 @@
+using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.NetCode;
 
 namespace GalaxyIO.DOTS.Components.Actor
@@ -36,7 +38,7 @@ namespace GalaxyIO.DOTS.Components.Actor
     }
 
     /// <summary>
-    /// 사격 전환 규칙. 플레이어, AI 발사 시스템이 같이 씀.
+    /// 사격 전환 규칙. 플레이어, AI 의 발사/조종 시스템이 같이 씀.
     /// </summary>
     public static class TurretSwitch
     {
@@ -90,6 +92,14 @@ namespace GalaxyIO.DOTS.Components.Actor
             }
 
             return turretSwitch.State == TurretSwitchState.Firing;
+        }
+
+        /// <summary>
+        /// 우주선 회전속도에 곱할 배율. 사격 중이면 장착 포탑의 ManeuverPenalty 만큼 줄어듦.
+        /// </summary>
+        public static float ManeuverScale(in TurretSwitchComponent turretSwitch, in ItemRegistryElement turret)
+        {
+            return turretSwitch.State == TurretSwitchState.Firing ? 1.0F - math.saturate(turret.ManeuverPenalty) : 1.0F;
         }
     }
 }

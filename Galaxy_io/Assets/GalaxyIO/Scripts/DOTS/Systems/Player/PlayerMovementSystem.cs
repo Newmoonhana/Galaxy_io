@@ -1,4 +1,5 @@
 ﻿using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.DOTS.Spaceship;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -22,19 +23,24 @@ namespace GalaxyIO.DOTS.Systems
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<PlayerInputComponent>();
+            state.RequireForUpdate<ItemRegistryElement>();
         }
 
         // 플레이어 입력 > 우주선의 기수 회전, DeltaMovement 수정
         public void OnUpdate(ref SystemState state)
         {
+            DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetSingletonBuffer<ItemRegistryElement>(true);
+
             foreach (
-                var (transform, inputRequest, movement, playerMovement) in
+                var (transform, inputRequest, movement, playerMovement, turretSwitch, equipped) in
                 SystemAPI
                     .Query<
                         RefRW<LocalTransform>,
                         RefRO<PlayerInputComponent>,
                         RefRW<SpaceshipMovementComponent>,
-                        RefRW<PlayerSpaceshipMovementComponent>
+                        RefRW<PlayerSpaceshipMovementComponent>,
+                        RefRO<TurretSwitchComponent>,
+                        RefRO<EquippedTurretComponent>
                     >()
                     .WithAll<Simulate>()
             )
@@ -76,6 +82,12 @@ namespace GalaxyIO.DOTS.Systems
                     1.0F,
                     1.0F - math.saturate(playerMovement.ValueRO.ManeuverPenalty),
                     speedRatio
+                );
+
+                // 사격 중이면 장착 포탑에 따라 회전이 둔해짐. 속력 감쇄와 겹치지 않고 더 큰 감소 하나만 적용함.
+                maneuverScale = math.min(
+                    maneuverScale,
+                    TurretSwitch.ManeuverScale(turretSwitch.ValueRO, registry.Get(equipped.ValueRO.Value))
                 );
 
                 float maxAngleDelta = math.radians(playerMovement.ValueRO.Maneuver) * maneuverScale * deltaTime;

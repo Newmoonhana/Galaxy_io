@@ -1,6 +1,7 @@
 using GalaxyIO.DOTS.Components.Actor;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 
@@ -8,8 +9,9 @@ namespace GalaxyIO.DOTS.Client.Systems
 {
     /// <summary>
     /// 투사체 모습을 맡는 시스템. 감춰진(Hidden) 투사체의 스프라이트를 끄고,
-    /// 파티클 연출을 붙여 따라다니게 함. 투사체가 사라지거나 감춰지면 연출도 지움.
+    /// 파티클/트레일 연출을 붙여 따라다니게 함. 투사체가 사라지거나 감춰지면 연출도 지움.
     /// 연출 재생 속도를 투사체 수명에 맞춰 파티클 한 번의 수명이 투사체 수명 전체에 걸치게 함.
+    /// 트레일이 있는 연출은 투사체가 사라지면 파티클만 지우고 그 자리에 남아 꼬리가 줄어든 뒤 지워짐.
     /// </summary>
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
@@ -69,18 +71,40 @@ namespace GalaxyIO.DOTS.Client.Systems
                 entityManager.AddComponentData(visual.Instance, new ProjectileVisualOwnerComponent { Projectile = projectile });
                 entityManager.SetComponentData(projectile, visual);
 
-                if (lifetime <= 0.0F || !entityManager.HasComponent<ParticleSystem>(visual.Instance))
+                bool hasTrail = false;
+                NativeArray<EffectPartElement> parts = entityManager.GetBuffer<EffectPartElement>(visual.Instance).ToNativeArray(Allocator.Temp);
+
+                foreach (EffectPartElement part in parts)
                 {
-                    continue;
+                    if (entityManager.HasComponent<TrailRenderer>(part.Value))
+                    {
+                        // 꼬리가 프리팹 위치에서 시작하지 않도록 바로 옮기고 비움. 자식은 한 단계까지만 위치를 맞춤.
+                        float3 position = part.Value == visual.Instance
+                            ? visualTransform.Position
+                            : visualTransform.TransformPoint(entityManager.GetComponentData<LocalTransform>(part.Value).Position);
+
+                        TrailRenderer trail = entityManager.GetComponentObject<TrailRenderer>(part.Value);
+                        trail.transform.SetPositionAndRotation(position, visualTransform.Rotation);
+                        trail.Clear();
+                        hasTrail = true;
+                    }
+                    else if (lifetime > 0.0F)
+                    {
+                        // 파티클 수명 / 재생 속도 = 투사체 수명.
+                        ParticleSystem.MainModule main = entityManager.GetComponentObject<ParticleSystem>(part.Value).main;
+                        main.simulationSpeed = main.startLifetime.constantMax / lifetime;
+                    }
                 }
 
-                // 파티클 수명 / 재생 속도 = 투사체 수명.
-                ParticleSystem.MainModule main = entityManager.GetComponentObject<ParticleSystem>(visual.Instance).main;
-                main.simulationSpeed = main.startLifetime.constantMax / lifetime;
+                parts.Dispose();
 
-                if (entityManager.HasComponent<EffectLifetimeComponent>(visual.Instance))
+                // 트레일이 있으면 따라다니는 동안은 제거하지 않음. 투사체가 사라지면 꼬리가 줄어들 시간만큼 남김.
+                if (hasTrail || lifetime > 0.0F)
                 {
-                    entityManager.SetComponentData(visual.Instance, new EffectLifetimeComponent { Remaining = lifetime });
+                    entityManager.SetComponentData(visual.Instance, new EffectLifetimeComponent
+                    {
+                        Remaining = hasTrail ? float.MaxValue : lifetime,
+                    });
                 }
             }
 
@@ -91,6 +115,7 @@ namespace GalaxyIO.DOTS.Client.Systems
 
             ComponentLookup<LocalTransform> transforms = SystemAPI.GetComponentLookup<LocalTransform>();
             ComponentLookup<SharedProjectileComponent> shareds = SystemAPI.GetComponentLookup<SharedProjectileComponent>(true);
+            BufferLookup<EffectPartElement> partBuffers = SystemAPI.GetBufferLookup<EffectPartElement>(true);
 
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
@@ -104,7 +129,35 @@ namespace GalaxyIO.DOTS.Client.Systems
                     || shared.Hidden
                     || shared.Dead)
                 {
-                    ecb.DestroyEntity(entity);
+                    // 파티클은 투사체와 함께 바로 지우고, 트레일은 꼬리가 줄어들 때까지 남김.
+                    float trailTime = 0.0F;
+                    bool hasTrail = false;
+
+                    foreach (EffectPartElement part in partBuffers[entity])
+                    {
+                        if (entityManager.HasComponent<TrailRenderer>(part.Value))
+                        {
+                            TrailRenderer trail = entityManager.GetComponentObject<TrailRenderer>(part.Value);
+                            trail.emitting = false;
+                            trailTime = math.max(trailTime, trail.time);
+                            hasTrail = true;
+                        }
+                        else
+                        {
+                            entityManager.GetComponentObject<ParticleSystem>(part.Value)
+                                .Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                        }
+                    }
+
+                    if (hasTrail)
+                    {
+                        ecb.RemoveComponent<ProjectileVisualOwnerComponent>(entity);
+                        ecb.SetComponent(entity, new EffectLifetimeComponent { Remaining = trailTime });
+                    }
+                    else
+                    {
+                        ecb.DestroyEntity(entity);
+                    }
                     continue;
                 }
 

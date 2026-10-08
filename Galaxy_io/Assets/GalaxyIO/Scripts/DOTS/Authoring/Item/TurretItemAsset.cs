@@ -69,6 +69,11 @@ namespace GalaxyIO.DOTS.Authoring
         public float SwitchTime;
 
         [SerializeField]
+        [Tooltip("사격 중 우주선 회전속도가 줄어드는 비율. 0 이면 그대로, 1 이면 회전 불가.")]
+        [Range(0.0F, 1.0F)]
+        public float ManeuverPenalty;
+
+        [SerializeField]
         [Tooltip("사격을 시작할 때 한 번 재생. 비우면 없음.")]
         public string LaunchSound;
 

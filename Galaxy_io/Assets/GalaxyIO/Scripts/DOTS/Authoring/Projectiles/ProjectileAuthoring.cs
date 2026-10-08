@@ -30,7 +30,11 @@ namespace GalaxyIO.DOTS.Authoring
         public PrefabId SpawnOnHit = PrefabId.None;
 
         [SerializeField]
-        [Tooltip("클라이언트가 투사체에 붙여 재생할 파티클 연출(EffectAuthoring). 재생 속도를 투사체 수명에 맞춤. 비우면 없음.")]
+        [Tooltip("클라이언트가 투사체에 붙여 재생할 연출(EffectAuthoring). 파티클은 재생 속도를 투사체 수명에 맞추고, 트레일은 투사체가 사라진 뒤 꼬리가 줄어들고 사라짐. 비우면 없음.")]
         public GameObject Visual;
+
+        [SerializeField]
+        [Tooltip("이 투사체를 쏘는 동안 클라이언트가 총구에서 뻗어 그릴 광선(BeamAuthoring). 길이는 사거리까지, 첫 우주선에서 멈춤. 비우면 없음.")]
+        public GameObject Beam;
     }
 }

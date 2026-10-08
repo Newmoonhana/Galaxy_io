@@ -1,6 +1,8 @@
 ﻿using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.DOTS.Spaceship;
 using Unity.Burst;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.NetCode;
@@ -23,6 +25,7 @@ namespace GalaxyIO.DOTS.Systems
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<NetworkTime>();
+            state.RequireForUpdate<ItemRegistryElement>();
             state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<StrafingBehaviorComponent>().Build());
         }
 
@@ -33,6 +36,7 @@ namespace GalaxyIO.DOTS.Systems
             {
                 DeltaTime = SystemAPI.Time.DeltaTime,
                 Tick      = SystemAPI.GetSingleton<NetworkTime>().ServerTick.SerializedData,
+                Registry  = SystemAPI.GetSingletonBuffer<ItemRegistryElement>(true),
             }.ScheduleParallel(state.Dependency);
         }
     }
@@ -56,6 +60,9 @@ namespace GalaxyIO.DOTS.Systems
         public float DeltaTime;
         public uint Tick;
 
+        [ReadOnly]
+        public DynamicBuffer<ItemRegistryElement> Registry;
+
         private void Execute(
             Entity entity,
             ref LocalTransform transform,
@@ -63,6 +70,8 @@ namespace GalaxyIO.DOTS.Systems
             ref StrafingBehaviorComponent strafing,
             ref EnemySpaceshipMovementComponent enemyMovement,
             ref SpaceshipMovementComponent movement,
+            in TurretSwitchComponent turretSwitch,
+            in EquippedTurretComponent equipped,
             DynamicBuffer<EnemyEventElement> events)
         {
             float2 position = transform.Position.xy;
@@ -120,11 +129,13 @@ namespace GalaxyIO.DOTS.Systems
                     break;
             }
 
-            // 가감속/회전 한계는 플레이어와 같은 헬퍼를 씀.
+            // 가감속/회전 한계는 플레이어와 같은 헬퍼를 씀. 사격 중이면 장착 포탑에 따라 회전이 더 둔해짐.
             float2 nextForward = SpaceshipHeading.RotateTowards(
                 forward,
                 math.normalizesafe(desiredForward, forward),
-                math.radians(enemyMovement.Maneuver) * DeltaTime
+                math.radians(enemyMovement.Maneuver)
+                * TurretSwitch.ManeuverScale(turretSwitch, Registry.Get(equipped.Value))
+                * DeltaTime
             );
 
             float2 nextVelocity = SpaceshipHovering.Approach(
