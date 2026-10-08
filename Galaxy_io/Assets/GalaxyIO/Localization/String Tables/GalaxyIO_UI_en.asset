@@ -111,7 +111,9 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 7374434325
-    m_Localized: Start Game
+    m_Localized: 'Start
+
+      Game'
     m_Metadata:
       m_Items: []
   - m_Id: 7374434326
@@ -260,7 +262,9 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 1607330895294465
-    m_Localized: Open Server
+    m_Localized: 'Open
+
+      Server'
     m_Metadata:
       m_Items: []
   - m_Id: 1607330895294466
