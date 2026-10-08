@@ -1,0 +1,14 @@
+- SFMusicPack_SND
+[Copyright](C) 2014 DEGICA, LLC
+Musician: Joel Steudler
+```
+Field_-_Ecumenopolis: 적당히 박자감 - 로비
+
+Battle_-_Disruptor_Ray: 빠르게 신남
+Field_-_Exploring_The_Rim: 시네마틱 어두움, 적당히 박자감
+Field_-_Nexus_Six: 긴장감, 적당히 박자감
+Menu_-_Binary_Suns: 매우 조용함, 잔잔한 박자감
+Menu_-_Mission_Briefing: 조용함, 분위기
+Menu_-_Serious_Decisions: 어두움, 분위기
+```
+
