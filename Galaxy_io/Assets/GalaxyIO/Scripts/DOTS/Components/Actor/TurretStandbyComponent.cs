@@ -6,7 +6,7 @@ namespace GalaxyIO.DOTS.Components.Actor
 {
     /// <summary>
     /// 우주선이 마지막으로 쏜 뒤 지난 시간. 서버와 예측하는 클라이언트가 같은 규칙으로 계산함.
-    /// 주인에게만 복제하며 예측 롤백 시 서버 값으로 되감음. 과열 시스템이 쓸 값.
+    /// 주인에게만 복제하며 예측 롤백 시 서버 값으로 되감음. 포탑 열이 식기 시작하는 시점을 정함.
     /// </summary>
     [GhostComponent(OwnerSendType = SendToOwnerType.SendToOwner)]
     public struct TurretStandbyComponent : IComponentData

@@ -171,6 +171,8 @@ namespace GalaxyIO.DOTS.Authoring.Config
                     element.TurretSpecCount = (byte)turret.TurretSpecs.Count;
                     element.SwitchTime      = turret.SwitchTime;
                     element.ManeuverPenalty = turret.ManeuverPenalty;
+                    element.Heat            = turret.Heat;
+                    element.HeatMode        = turret.HeatMode;
                     element.LaunchSound     = turret.LaunchSound;
                     element.LoopSound       = turret.LoopSound;
                 }

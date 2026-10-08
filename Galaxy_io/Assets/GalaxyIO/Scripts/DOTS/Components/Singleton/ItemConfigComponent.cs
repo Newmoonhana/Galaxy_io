@@ -24,7 +24,11 @@ namespace GalaxyIO.DOTS.Components.Singleton
         public int TurretSlots;
         public int BombSlots;
 
-        // 마지막 발사 후 지난 시간을 이 값(초)까지만 셈.
+        // 마지막 발사 후 이 시간(초)이 지나면 포탑 열이 식기 시작함.
         public float NoFireStandbyTime;
+
+        // 최대 열에서 0 까지 식는 시간(초). 평소, 과열 시.
+        public float CoolingTime;
+        public float OverheatCoolingTime;
     }
 }

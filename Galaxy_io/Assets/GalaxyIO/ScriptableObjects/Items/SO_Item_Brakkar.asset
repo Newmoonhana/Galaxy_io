@@ -36,5 +36,8 @@ MonoBehaviour:
     Damage: 45
     ShotSound: Shot_Brakkar
   SwitchTime: 0
+  ManeuverPenalty: 0
+  Heat: 12
+  HeatMode: 0
   LaunchSound: 
   LoopSound: 

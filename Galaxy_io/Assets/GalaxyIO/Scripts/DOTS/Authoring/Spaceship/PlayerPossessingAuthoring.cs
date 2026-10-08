@@ -47,6 +47,11 @@ namespace GalaxyIO.DOTS.Authoring
                 Maneuver             = spaceship.Maneuver,
                 ManeuverPenalty      = spaceship.ManeuverPenalty,
             });
+
+            AddComponent(entity, new TurretHeatComponent
+            {
+                MaxHeat = spaceship.MaxHeat,
+            });
         }
     }
 }
