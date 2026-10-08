@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ca217576e13370546be32f7986862a31, type: 3}
   m_Name: PPR_VFX
   m_EditorClassIdentifier: Newmoonhana.Editor::Newmoonhana.Editor.SpritePostprocessorRules
-  pathContains: 
+  pathContains: /VFX
   spriteMode: 2
   pixelsPerUnit: 24
   meshType: 0
