@@ -25,7 +25,7 @@ MonoBehaviour:
     SpeedSpread: 0
     Accuracy: 0
     Damage: 0
-    ShotSound: {fileID: 0}
+    ShotSound: 
   - Projectile: {fileID: 0}
     RPS: 0
     FollowMuzzle: 0
@@ -34,7 +34,7 @@ MonoBehaviour:
     SpeedSpread: 0
     Accuracy: 0
     Damage: 0
-    ShotSound: {fileID: 0}
+    ShotSound: 
   - Projectile: {fileID: 6294447569313648705, guid: c33c9092081d0424ca736fe24f332cd6, type: 3}
     RPS: 20
     FollowMuzzle: 0
@@ -43,8 +43,8 @@ MonoBehaviour:
     SpeedSpread: 0
     Accuracy: 1
     Damage: 10
-    ShotSound: {fileID: 0}
+    ShotSound: 
   SwitchTime: 0.3
   ManeuverPenalty: 0.6
-  LaunchSound: {fileID: 0}
-  LoopSound: {fileID: 8300000, guid: 49441abe60a3162448ff88eb0714e155, type: 3}
+  LaunchSound: 
+  LoopSound: Loop_Veylance

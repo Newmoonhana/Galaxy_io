@@ -30,7 +30,10 @@ namespace GalaxyIO.DOTS.Client.Systems
             state.RequireForUpdate<PrefabRegistryElement>();
             state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<SharedProjectileComponent>().Build());
 
-            localShipQuery = SystemAPI.QueryBuilder().WithAll<GhostOwnerIsLocal, LocalTransform>().Build();
+            // 로컬 투사체도 GhostOwnerIsLocal 을 가지므로 우주선만 고름.
+            localShipQuery = SystemAPI.QueryBuilder()
+                .WithAll<GhostOwnerIsLocal, PlayerSpaceshipMovementComponent, LocalTransform>()
+                .Build();
         }
 
         [BurstCompile]
