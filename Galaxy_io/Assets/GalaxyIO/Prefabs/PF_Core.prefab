@@ -53,7 +53,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 60
+  retriggerPercentage: 0
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -80,7 +80,7 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 2
+  limitMode: 0
   limitPerXFrames: 1
   minimumTimeBetween: 0.05
   useClipAgePriority: 0
@@ -1639,7 +1639,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 60
+  retriggerPercentage: 0
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -1666,7 +1666,7 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 2
+  limitMode: 0
   limitPerXFrames: 1
   minimumTimeBetween: 0.05
   useClipAgePriority: 0
@@ -2965,7 +2965,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 60
+  retriggerPercentage: 0
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -2992,7 +2992,7 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 2
+  limitMode: 0
   limitPerXFrames: 1
   minimumTimeBetween: 0.05
   useClipAgePriority: 0
@@ -3066,7 +3066,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 60
+  retriggerPercentage: 0
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -3093,7 +3093,7 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 2
+  limitMode: 0
   limitPerXFrames: 1
   minimumTimeBetween: 0.05
   useClipAgePriority: 0

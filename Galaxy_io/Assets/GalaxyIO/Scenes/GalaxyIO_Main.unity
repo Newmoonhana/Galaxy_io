@@ -327,6 +327,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Scripts.Managed.Audio.SoundEffectPlayer
   loopFadeOut: 0.3
+  maxPerKeyPerFrame: 3
 --- !u!1 &377180121
 GameObject:
   m_ObjectHideFlags: 0
@@ -1461,7 +1462,7 @@ MonoBehaviour:
     serializedVersion: 2
     key0: {r: 0, g: 0.6392157, b: 0.9098039, a: 1}
     key1: {r: 1, g: 0.9490196, b: 0, a: 1}
-    key2: {r: 1, g: 0.56078434, b: 0.10980392, a: 1}
+    key2: {r: 1, g: 0.56078434, b: 0.10980392, a: 0}
     key3: {r: 0, g: 0, b: 0, a: 0}
     key4: {r: 0, g: 0, b: 0, a: 0}
     key5: {r: 0, g: 0, b: 0, a: 0}
@@ -1701,8 +1702,6 @@ MonoBehaviour:
   container: {fileID: 169097488}
   lifetime: 8
   maxRows: 5
-  indirectSprite: indirect_0
-  ramSprite: ram_0
   playerColor: {r: 0.35, g: 0.9, b: 0.45, a: 1}
   enemyColor: {r: 1, g: 0.6, b: 0.2, a: 1}
   victimColor: {r: 0.95, g: 0.3, b: 0.3, a: 1}
