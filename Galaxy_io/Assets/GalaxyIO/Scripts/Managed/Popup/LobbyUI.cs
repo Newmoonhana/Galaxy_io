@@ -1,3 +1,4 @@
+using DG.Tweening;
 using GalaxyIO.Tools.PopupUI.Window;
 using JWServer.Runtime.DTO;
 using JWServer.Runtime.Login;
@@ -259,6 +260,8 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         protected override void Awake()
         {
             base.Awake();
+            
+            DOTween.Init(true, true, LogBehaviour.ErrorsOnly).SetCapacity(128, 32);
         }
 
         protected override void Start()
