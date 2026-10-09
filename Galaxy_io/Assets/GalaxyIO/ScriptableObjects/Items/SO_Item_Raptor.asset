@@ -37,7 +37,7 @@ MonoBehaviour:
     ShotSound: Shot_Raptor
   SwitchTime: 0
   ManeuverPenalty: 0
-  Heat: 1
+  Heat: 1.2
   HeatMode: 0
   LaunchSound: 
   LoopSound: 
