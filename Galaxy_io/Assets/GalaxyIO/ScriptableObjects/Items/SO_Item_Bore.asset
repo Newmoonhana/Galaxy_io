@@ -37,7 +37,7 @@ MonoBehaviour:
     ShotSound: Shot_Bore
   SwitchTime: 0
   ManeuverPenalty: 0
-  Heat: 0.9
+  Heat: 1
   HeatMode: 0
   LaunchSound: 
   LoopSound: 
