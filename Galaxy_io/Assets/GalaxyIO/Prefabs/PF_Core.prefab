@@ -43,8 +43,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db10a6d491569a8419b6f5e1bffc5243, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   busIndex: 2
   spatialBlendType: 1
   spatialBlend: 1
@@ -53,7 +53,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 0
+  retriggerPercentage: 60
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -72,7 +72,7 @@ MonoBehaviour:
   groupVariations:
   - {fileID: 4280656532980149588}
   bulkVariationMode: 0
-  comments: 
+  comments:
   logSound: 0
   copySettingsExpanded: 0
   expandLinkedGroups: 0
@@ -80,7 +80,7 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 0
+  limitMode: 2
   limitPerXFrames: 1
   minimumTimeBetween: 0.05
   useClipAgePriority: 0
@@ -97,7 +97,7 @@ MonoBehaviour:
   isSoloed: 0
   isMuted: 0
   soundPlayedEventActive: 0
-  soundPlayedCustomEvent: 
+  soundPlayedCustomEvent:
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
   frames: 327
@@ -144,8 +144,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db10a6d491569a8419b6f5e1bffc5243, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   busIndex: 2
   spatialBlendType: 1
   spatialBlend: 1
@@ -173,7 +173,7 @@ MonoBehaviour:
   groupVariations:
   - {fileID: 7977202940648034266}
   bulkVariationMode: 0
-  comments: 
+  comments:
   logSound: 0
   copySettingsExpanded: 0
   expandLinkedGroups: 0
@@ -198,7 +198,7 @@ MonoBehaviour:
   isSoloed: 0
   isMuted: 0
   soundPlayedEventActive: 0
-  soundPlayedCustomEvent: 
+  soundPlayedCustomEvent:
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
   frames: 873
@@ -388,8 +388,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   weight: 1
   probabilityToPlay: 100
   importance: 5
@@ -404,14 +404,14 @@ MonoBehaviour:
   randomVolumeMode: 0
   randomVolumeMin: 0
   randomVolumeMax: 0
-  clipAlias: 
+  clipAlias:
   audLocation: 0
-  resourceFileName: 
+  resourceFileName:
   audioClipAddressable:
-    m_AssetGUID: 
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_SubObjectGUID: 
+    m_AssetGUID:
+    m_SubObjectName:
+    m_SubObjectType:
+    m_SubObjectGUID:
     m_EditorAssetChanged: 0
   original_pitch: 0
   original_volume: 0
@@ -445,8 +445,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1b7eb7dcef8b0e48a8572747ca7c64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1 &3515910586126117474
 GameObject:
   m_ObjectHideFlags: 0
@@ -490,8 +490,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db10a6d491569a8419b6f5e1bffc5243, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   busIndex: 2
   spatialBlendType: 1
   spatialBlend: 1
@@ -519,7 +519,7 @@ MonoBehaviour:
   groupVariations:
   - {fileID: 1618986199877855255}
   bulkVariationMode: 0
-  comments: 
+  comments:
   logSound: 0
   copySettingsExpanded: 0
   expandLinkedGroups: 0
@@ -544,7 +544,7 @@ MonoBehaviour:
   isSoloed: 0
   isMuted: 0
   soundPlayedEventActive: 0
-  soundPlayedCustomEvent: 
+  soundPlayedCustomEvent:
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
   frames: 326
@@ -591,8 +591,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db10a6d491569a8419b6f5e1bffc5243, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   busIndex: 2
   spatialBlendType: 0
   spatialBlend: 0
@@ -620,7 +620,7 @@ MonoBehaviour:
   groupVariations:
   - {fileID: 504606162653507720}
   bulkVariationMode: 0
-  comments: 
+  comments:
   logSound: 0
   copySettingsExpanded: 0
   expandLinkedGroups: 0
@@ -645,7 +645,7 @@ MonoBehaviour:
   isSoloed: 0
   isMuted: 0
   soundPlayedEventActive: 0
-  soundPlayedCustomEvent: 
+  soundPlayedCustomEvent:
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
   frames: 332
@@ -692,8 +692,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db10a6d491569a8419b6f5e1bffc5243, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   busIndex: 2
   spatialBlendType: 0
   spatialBlend: 0
@@ -721,7 +721,7 @@ MonoBehaviour:
   groupVariations:
   - {fileID: 58436463865367870}
   bulkVariationMode: 0
-  comments: 
+  comments:
   logSound: 0
   copySettingsExpanded: 0
   expandLinkedGroups: 0
@@ -746,7 +746,7 @@ MonoBehaviour:
   isSoloed: 0
   isMuted: 0
   soundPlayedEventActive: 0
-  soundPlayedCustomEvent: 
+  soundPlayedCustomEvent:
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
   frames: 1555
@@ -793,8 +793,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db10a6d491569a8419b6f5e1bffc5243, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   busIndex: 2
   spatialBlendType: 1
   spatialBlend: 1
@@ -822,7 +822,7 @@ MonoBehaviour:
   groupVariations:
   - {fileID: 4734570029216293103}
   bulkVariationMode: 0
-  comments: 
+  comments:
   logSound: 0
   copySettingsExpanded: 0
   expandLinkedGroups: 0
@@ -847,7 +847,7 @@ MonoBehaviour:
   isSoloed: 0
   isMuted: 0
   soundPlayedEventActive: 0
-  soundPlayedCustomEvent: 
+  soundPlayedCustomEvent:
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
   frames: 803
@@ -1037,8 +1037,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   weight: 3
   probabilityToPlay: 100
   importance: 5
@@ -1053,14 +1053,14 @@ MonoBehaviour:
   randomVolumeMode: 0
   randomVolumeMin: 0
   randomVolumeMax: 0
-  clipAlias: 
+  clipAlias:
   audLocation: 0
-  resourceFileName: 
+  resourceFileName:
   audioClipAddressable:
-    m_AssetGUID: 
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_SubObjectGUID: 
+    m_AssetGUID:
+    m_SubObjectName:
+    m_SubObjectType:
+    m_SubObjectGUID:
     m_EditorAssetChanged: 0
   original_pitch: 0
   original_volume: 0
@@ -1094,8 +1094,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1b7eb7dcef8b0e48a8572747ca7c64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1 &4449729924648268275
 GameObject:
   m_ObjectHideFlags: 0
@@ -1282,8 +1282,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   weight: 3
   probabilityToPlay: 100
   importance: 5
@@ -1298,14 +1298,14 @@ MonoBehaviour:
   randomVolumeMode: 0
   randomVolumeMin: 0
   randomVolumeMax: 0
-  clipAlias: 
+  clipAlias:
   audLocation: 0
-  resourceFileName: 
+  resourceFileName:
   audioClipAddressable:
-    m_AssetGUID: 
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_SubObjectGUID: 
+    m_AssetGUID:
+    m_SubObjectName:
+    m_SubObjectType:
+    m_SubObjectGUID:
     m_EditorAssetChanged: 0
   original_pitch: 0
   original_volume: 0
@@ -1339,8 +1339,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1b7eb7dcef8b0e48a8572747ca7c64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1 &4884919280900882387
 GameObject:
   m_ObjectHideFlags: 0
@@ -1527,8 +1527,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   weight: 2
   probabilityToPlay: 100
   importance: 5
@@ -1543,14 +1543,14 @@ MonoBehaviour:
   randomVolumeMode: 0
   randomVolumeMin: 0
   randomVolumeMax: 0
-  clipAlias: 
+  clipAlias:
   audLocation: 0
-  resourceFileName: 
+  resourceFileName:
   audioClipAddressable:
-    m_AssetGUID: 
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_SubObjectGUID: 
+    m_AssetGUID:
+    m_SubObjectName:
+    m_SubObjectType:
+    m_SubObjectGUID:
     m_EditorAssetChanged: 0
   original_pitch: 0
   original_volume: 0
@@ -1584,8 +1584,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1b7eb7dcef8b0e48a8572747ca7c64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1 &5136519054483015564
 GameObject:
   m_ObjectHideFlags: 0
@@ -1629,8 +1629,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db10a6d491569a8419b6f5e1bffc5243, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   busIndex: 2
   spatialBlendType: 1
   spatialBlend: 1
@@ -1639,7 +1639,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 0
+  retriggerPercentage: 60
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -1658,7 +1658,7 @@ MonoBehaviour:
   groupVariations:
   - {fileID: 3990372903217513472}
   bulkVariationMode: 0
-  comments: 
+  comments:
   logSound: 0
   copySettingsExpanded: 0
   expandLinkedGroups: 0
@@ -1666,7 +1666,7 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 0
+  limitMode: 2
   limitPerXFrames: 1
   minimumTimeBetween: 0.05
   useClipAgePriority: 0
@@ -1683,7 +1683,7 @@ MonoBehaviour:
   isSoloed: 0
   isMuted: 0
   soundPlayedEventActive: 0
-  soundPlayedCustomEvent: 
+  soundPlayedCustomEvent:
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
   frames: 328
@@ -1873,8 +1873,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   weight: 3
   probabilityToPlay: 100
   importance: 5
@@ -1889,14 +1889,14 @@ MonoBehaviour:
   randomVolumeMode: 0
   randomVolumeMin: 0
   randomVolumeMax: 0
-  clipAlias: 
+  clipAlias:
   audLocation: 0
-  resourceFileName: 
+  resourceFileName:
   audioClipAddressable:
-    m_AssetGUID: 
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_SubObjectGUID: 
+    m_AssetGUID:
+    m_SubObjectName:
+    m_SubObjectType:
+    m_SubObjectGUID:
     m_EditorAssetChanged: 0
   original_pitch: 0
   original_volume: 0
@@ -1930,8 +1930,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1b7eb7dcef8b0e48a8572747ca7c64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1 &5721304693746871691
 GameObject:
   m_ObjectHideFlags: 0
@@ -2118,8 +2118,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   weight: 3
   probabilityToPlay: 100
   importance: 5
@@ -2134,14 +2134,14 @@ MonoBehaviour:
   randomVolumeMode: 0
   randomVolumeMin: 0
   randomVolumeMax: 0
-  clipAlias: 
+  clipAlias:
   audLocation: 0
-  resourceFileName: 
+  resourceFileName:
   audioClipAddressable:
-    m_AssetGUID: 
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_SubObjectGUID: 
+    m_AssetGUID:
+    m_SubObjectName:
+    m_SubObjectType:
+    m_SubObjectGUID:
     m_EditorAssetChanged: 0
   original_pitch: 0
   original_volume: 0
@@ -2175,8 +2175,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1b7eb7dcef8b0e48a8572747ca7c64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1 &6279249633201931524
 GameObject:
   m_ObjectHideFlags: 0
@@ -2363,8 +2363,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   weight: 3
   probabilityToPlay: 100
   importance: 5
@@ -2379,14 +2379,14 @@ MonoBehaviour:
   randomVolumeMode: 0
   randomVolumeMin: 0
   randomVolumeMax: 0
-  clipAlias: 
+  clipAlias:
   audLocation: 0
-  resourceFileName: 
+  resourceFileName:
   audioClipAddressable:
-    m_AssetGUID: 
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_SubObjectGUID: 
+    m_AssetGUID:
+    m_SubObjectName:
+    m_SubObjectType:
+    m_SubObjectGUID:
     m_EditorAssetChanged: 0
   original_pitch: 0
   original_volume: 0
@@ -2420,8 +2420,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1b7eb7dcef8b0e48a8572747ca7c64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1 &6721185086375146968
 GameObject:
   m_ObjectHideFlags: 0
@@ -2608,8 +2608,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   weight: 3
   probabilityToPlay: 100
   importance: 5
@@ -2624,14 +2624,14 @@ MonoBehaviour:
   randomVolumeMode: 0
   randomVolumeMin: 0
   randomVolumeMax: 0
-  clipAlias: 
+  clipAlias:
   audLocation: 0
-  resourceFileName: 
+  resourceFileName:
   audioClipAddressable:
-    m_AssetGUID: 
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_SubObjectGUID: 
+    m_AssetGUID:
+    m_SubObjectName:
+    m_SubObjectType:
+    m_SubObjectGUID:
     m_EditorAssetChanged: 0
   original_pitch: 0
   original_volume: 0
@@ -2665,8 +2665,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1b7eb7dcef8b0e48a8572747ca7c64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1 &6829246877650113188
 GameObject:
   m_ObjectHideFlags: 0
@@ -2853,8 +2853,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   weight: 3
   probabilityToPlay: 100
   importance: 5
@@ -2869,14 +2869,14 @@ MonoBehaviour:
   randomVolumeMode: 0
   randomVolumeMin: 0
   randomVolumeMax: 0
-  clipAlias: 
+  clipAlias:
   audLocation: 0
-  resourceFileName: 
+  resourceFileName:
   audioClipAddressable:
-    m_AssetGUID: 
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_SubObjectGUID: 
+    m_AssetGUID:
+    m_SubObjectName:
+    m_SubObjectType:
+    m_SubObjectGUID:
     m_EditorAssetChanged: 0
   original_pitch: 0
   original_volume: 0
@@ -2910,8 +2910,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1b7eb7dcef8b0e48a8572747ca7c64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1 &7851555525448006879
 GameObject:
   m_ObjectHideFlags: 0
@@ -2955,8 +2955,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db10a6d491569a8419b6f5e1bffc5243, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   busIndex: 2
   spatialBlendType: 1
   spatialBlend: 1
@@ -2965,7 +2965,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 0
+  retriggerPercentage: 60
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -2984,7 +2984,7 @@ MonoBehaviour:
   groupVariations:
   - {fileID: 7373751282952922458}
   bulkVariationMode: 0
-  comments: 
+  comments:
   logSound: 0
   copySettingsExpanded: 0
   expandLinkedGroups: 0
@@ -2992,7 +2992,7 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 0
+  limitMode: 2
   limitPerXFrames: 1
   minimumTimeBetween: 0.05
   useClipAgePriority: 0
@@ -3009,7 +3009,7 @@ MonoBehaviour:
   isSoloed: 0
   isMuted: 0
   soundPlayedEventActive: 0
-  soundPlayedCustomEvent: 
+  soundPlayedCustomEvent:
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
   frames: 514
@@ -3056,8 +3056,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db10a6d491569a8419b6f5e1bffc5243, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   busIndex: 2
   spatialBlendType: 1
   spatialBlend: 1
@@ -3066,7 +3066,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 0
+  retriggerPercentage: 60
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -3085,7 +3085,7 @@ MonoBehaviour:
   groupVariations:
   - {fileID: 5565055156572540246}
   bulkVariationMode: 0
-  comments: 
+  comments:
   logSound: 0
   copySettingsExpanded: 0
   expandLinkedGroups: 0
@@ -3093,7 +3093,7 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 0
+  limitMode: 2
   limitPerXFrames: 1
   minimumTimeBetween: 0.05
   useClipAgePriority: 0
@@ -3110,7 +3110,7 @@ MonoBehaviour:
   isSoloed: 0
   isMuted: 0
   soundPlayedEventActive: 0
-  soundPlayedCustomEvent: 
+  soundPlayedCustomEvent:
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
   frames: 328
@@ -3300,8 +3300,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   weight: 3
   probabilityToPlay: 100
   importance: 5
@@ -3316,14 +3316,14 @@ MonoBehaviour:
   randomVolumeMode: 0
   randomVolumeMin: 0
   randomVolumeMax: 0
-  clipAlias: 
+  clipAlias:
   audLocation: 0
-  resourceFileName: 
+  resourceFileName:
   audioClipAddressable:
-    m_AssetGUID: 
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_SubObjectGUID: 
+    m_AssetGUID:
+    m_SubObjectName:
+    m_SubObjectType:
+    m_SubObjectGUID:
     m_EditorAssetChanged: 0
   original_pitch: 0
   original_volume: 0
@@ -3357,8 +3357,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1b7eb7dcef8b0e48a8572747ca7c64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1 &8594698528281994281
 GameObject:
   m_ObjectHideFlags: 0
@@ -3402,8 +3402,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db10a6d491569a8419b6f5e1bffc5243, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   busIndex: 2
   spatialBlendType: 1
   spatialBlend: 1
@@ -3431,7 +3431,7 @@ MonoBehaviour:
   groupVariations:
   - {fileID: 4713993093876010529}
   bulkVariationMode: 0
-  comments: 
+  comments:
   logSound: 0
   copySettingsExpanded: 0
   expandLinkedGroups: 0
@@ -3456,7 +3456,7 @@ MonoBehaviour:
   isSoloed: 0
   isMuted: 0
   soundPlayedEventActive: 0
-  soundPlayedCustomEvent: 
+  soundPlayedCustomEvent:
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
   frames: 340
@@ -3646,8 +3646,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   weight: 3
   probabilityToPlay: 100
   importance: 5
@@ -3662,14 +3662,14 @@ MonoBehaviour:
   randomVolumeMode: 0
   randomVolumeMin: 0
   randomVolumeMax: 0
-  clipAlias: 
+  clipAlias:
   audLocation: 0
-  resourceFileName: 
+  resourceFileName:
   audioClipAddressable:
-    m_AssetGUID: 
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_SubObjectGUID: 
+    m_AssetGUID:
+    m_SubObjectName:
+    m_SubObjectType:
+    m_SubObjectGUID:
     m_EditorAssetChanged: 0
   original_pitch: 0
   original_volume: 0
@@ -3703,8 +3703,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1b7eb7dcef8b0e48a8572747ca7c64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!1 &9145114592544134962
 GameObject:
   m_ObjectHideFlags: 0
@@ -3748,8 +3748,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db10a6d491569a8419b6f5e1bffc5243, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   busIndex: 2
   spatialBlendType: 1
   spatialBlend: 1
@@ -3777,7 +3777,7 @@ MonoBehaviour:
   groupVariations:
   - {fileID: 3889806320738653193}
   bulkVariationMode: 0
-  comments: 
+  comments:
   logSound: 0
   copySettingsExpanded: 0
   expandLinkedGroups: 0
@@ -3802,7 +3802,7 @@ MonoBehaviour:
   isSoloed: 0
   isMuted: 0
   soundPlayedEventActive: 0
-  soundPlayedCustomEvent: 
+  soundPlayedCustomEvent:
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
   frames: 843
@@ -3892,11 +3892,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: groupBuses.Array.data[0].mixerChannel
-      value: 
+      value:
       objectReference: {fileID: -8014077137058332026, guid: 15e71c7a7a5c51d4b906936e900d03e5, type: 2}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: groupBuses.Array.data[1].mixerChannel
-      value: 
+      value:
       objectReference: {fileID: -7883975745619563254, guid: 15e71c7a7a5c51d4b906936e900d03e5, type: 2}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].isExpanded
@@ -3936,11 +3936,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[0].clip
-      value: 
+      value:
       objectReference: {fileID: 8300000, guid: 4ae2bfbdd5f08f84aa067bb56c87f3a5, type: 3}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[1].clip
-      value: 
+      value:
       objectReference: {fileID: 8300000, guid: 4ae084334db8c374da4748e8b1e6480e, type: 3}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[0].alias
@@ -4024,7 +4024,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7640880782638385940, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: mixerChannel
-      value: 
+      value:
       objectReference: {fileID: -3692124028134072481, guid: 15e71c7a7a5c51d4b906936e900d03e5, type: 2}
     - target: {fileID: 8576237685870290170, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: m_IsActive
@@ -4299,8 +4299,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   weight: 2
   probabilityToPlay: 100
   importance: 5
@@ -4315,14 +4315,14 @@ MonoBehaviour:
   randomVolumeMode: 0
   randomVolumeMin: 0
   randomVolumeMax: 0
-  clipAlias: 
+  clipAlias:
   audLocation: 0
-  resourceFileName: 
+  resourceFileName:
   audioClipAddressable:
-    m_AssetGUID: 
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_SubObjectGUID: 
+    m_AssetGUID:
+    m_SubObjectName:
+    m_SubObjectType:
+    m_SubObjectGUID:
     m_EditorAssetChanged: 0
   original_pitch: 0
   original_volume: 0
@@ -4356,8 +4356,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1b7eb7dcef8b0e48a8572747ca7c64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!114 &1862834418585259191
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4368,8 +4368,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db10a6d491569a8419b6f5e1bffc5243, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   busIndex: 2
   spatialBlendType: 0
   spatialBlend: 0
@@ -4397,7 +4397,7 @@ MonoBehaviour:
   groupVariations:
   - {fileID: 4852937834863692982}
   bulkVariationMode: 0
-  comments: 
+  comments:
   logSound: 0
   copySettingsExpanded: 0
   expandLinkedGroups: 0
@@ -4422,7 +4422,7 @@ MonoBehaviour:
   isSoloed: 0
   isMuted: 0
   soundPlayedEventActive: 0
-  soundPlayedCustomEvent: 
+  soundPlayedCustomEvent:
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
   frames: 1555
@@ -4645,8 +4645,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   weight: 2
   probabilityToPlay: 100
   importance: 5
@@ -4661,14 +4661,14 @@ MonoBehaviour:
   randomVolumeMode: 0
   randomVolumeMin: 0
   randomVolumeMax: 0
-  clipAlias: 
+  clipAlias:
   audLocation: 0
-  resourceFileName: 
+  resourceFileName:
   audioClipAddressable:
-    m_AssetGUID: 
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_SubObjectGUID: 
+    m_AssetGUID:
+    m_SubObjectName:
+    m_SubObjectType:
+    m_SubObjectGUID:
     m_EditorAssetChanged: 0
   original_pitch: 0
   original_volume: 0
@@ -4702,8 +4702,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: e1b7eb7dcef8b0e48a8572747ca7c64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
 --- !u!114 &9118451572626720457
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4714,8 +4714,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: db10a6d491569a8419b6f5e1bffc5243, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  m_Name:
+  m_EditorClassIdentifier:
   busIndex: 2
   spatialBlendType: 0
   spatialBlend: 0
@@ -4743,7 +4743,7 @@ MonoBehaviour:
   groupVariations:
   - {fileID: 7779558207926394718}
   bulkVariationMode: 0
-  comments: 
+  comments:
   logSound: 0
   copySettingsExpanded: 0
   expandLinkedGroups: 0
@@ -4768,7 +4768,7 @@ MonoBehaviour:
   isSoloed: 0
   isMuted: 0
   soundPlayedEventActive: 0
-  soundPlayedCustomEvent: 
+  soundPlayedCustomEvent:
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
   frames: 1555
