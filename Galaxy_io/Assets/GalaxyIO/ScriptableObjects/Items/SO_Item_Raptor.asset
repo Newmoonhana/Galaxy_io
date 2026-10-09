@@ -18,7 +18,7 @@ MonoBehaviour:
   Stacking: 1
   TurretSpecs:
   - Projectile: {fileID: 3898896724990523705, guid: a8e22ae2209f261498f8ee2521040c67, type: 3}
-    RPS: 24
+    RPS: 18
     FollowMuzzle: 0
     FollowDelay: 0
     ProjectileCount: 0
@@ -27,7 +27,7 @@ MonoBehaviour:
     Damage: 3
     ShotSound: Shot_Raptor
   - Projectile: {fileID: 3898896724990523705, guid: a8e22ae2209f261498f8ee2521040c67, type: 3}
-    RPS: 24
+    RPS: 18
     FollowMuzzle: 0
     FollowDelay: 0
     ProjectileCount: 0
@@ -36,6 +36,7 @@ MonoBehaviour:
     Damage: 3
     ShotSound: Shot_Raptor
   SwitchTime: 0
+  ManeuverPenalty: 0
   Heat: 1
   HeatMode: 0
   LaunchSound: 

@@ -44,7 +44,7 @@ MonoBehaviour:
     Accuracy: 1
     Damage: 10
     ShotSound: 
-  SwitchTime: 0.3
+  SwitchTime: 0.4
   ManeuverPenalty: 0.6
   Heat: 28
   HeatMode: 1
