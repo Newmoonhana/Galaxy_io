@@ -351,6 +351,26 @@ MonoBehaviour:
     m_Localized: Right-click to craft
     m_Metadata:
       m_Items: []
+  - m_Id: 2400000000000001
+    m_Localized: Public
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2400000000000002
+    m_Localized: Press Enter to chat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2400000000000003
+    m_Localized: Unknown command
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2400000000000004
+    m_Localized: "Usage: /w {Username} {Message}"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2400000000000005
+    m_Localized: "Unable to find a user named {0}."
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

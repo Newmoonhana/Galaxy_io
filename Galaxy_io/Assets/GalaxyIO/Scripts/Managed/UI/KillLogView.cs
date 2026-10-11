@@ -1,5 +1,5 @@
-using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.Tools;
 using System.Collections.Generic;
 using Unity.Collections;
@@ -58,6 +58,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private EntityManager entityManager;
         private EntityQuery messageQuery;
+        private EntityQuery connectionQuery;
 
         private string playerHex;
         private string enemyHex;
@@ -80,7 +81,11 @@ namespace GalaxyIO.Scripts.Managed.UI
             }
 
             entityManager = clientWorld.EntityManager;
-            messageQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<KillLogMessage>());
+            messageQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<KillLogRPC>(),
+                ComponentType.ReadOnly<ReceiveRpcCommandRequest>()
+            );
+            connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
 
             playerHex = ColorUtility.ToHtmlStringRGB(playerColor);
             enemyHex  = ColorUtility.ToHtmlStringRGB(enemyColor);
@@ -96,13 +101,14 @@ namespace GalaxyIO.Scripts.Managed.UI
                 return;
             }
 
-            if (!messageQuery.IsEmpty)
+            if (!messageQuery.IsEmpty && !connectionQuery.IsEmpty)
             {
-                using var messages = messageQuery.ToComponentDataArray<KillLogMessage>(Allocator.Temp);
+                using var messages = messageQuery.ToComponentDataArray<KillLogRPC>(Allocator.Temp);
+                int localNetworkId = connectionQuery.GetSingleton<NetworkId>().Value;
 
-                foreach (KillLogMessage message in messages)
+                foreach (KillLogRPC message in messages)
                 {
-                    Push(message);
+                    Push(message, localNetworkId);
                 }
 
                 entityManager.DestroyEntity(messageQuery);
@@ -114,7 +120,7 @@ namespace GalaxyIO.Scripts.Managed.UI
             }
         }
 
-        private void Push(in KillLogMessage message)
+        private void Push(in KillLogRPC message, int localNetworkId)
         {
             if (rows.Count >= maxRows)
             {
@@ -122,20 +128,26 @@ namespace GalaxyIO.Scripts.Managed.UI
             }
 
             KillLogRow row = Instantiate(rowPrefab, container);
-            row.Set(Format(message), message.IsLocal, localBackground);
+            // 로컬 플레이어가 막타/어시스트/격추 대상 중 하나면 배경을 칠함.
+            bool isLocal = message.KillerNetworkId == localNetworkId
+                           || message.AssistantNetworkId == localNetworkId
+                           || message.VictimNetworkId == localNetworkId;
+
+            row.Set(Format(message), isLocal, localBackground);
 
             rows.Enqueue((row, Time.time + lifetime));
         }
 
         // [Killer( + Assistant) 아이콘 Victim]. 막타를 알 수 없으면 [ + Assistant 아이콘 Victim].
         // 이름은 noparse 로 감싸 리치 텍스트 태그 삽입 방지.
-        private string Format(in KillLogMessage message)
+        private string Format(in KillLogRPC message)
         {
             string text = "";
 
             if (!message.Killer.IsEmpty)
             {
-                string killerHex = message.KillerIsEnemy ? enemyHex : playerHex;
+                // NetworkId 가 0 인 막타는 AI.
+                string killerHex = message.KillerNetworkId == 0 ? enemyHex : playerHex;
                 text = $"<color=#{killerHex}><noparse>{message.Killer}</noparse></color>";
             }
 
