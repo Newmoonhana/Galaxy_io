@@ -289,7 +289,7 @@ namespace GalaxyIO.DOTS.Inventory
                 return false;
             }
 
-            // 프리팹의 설정값과 회전/크기는 그대로 쓰고 아이템 종류, 속도, 튕김, 위치만 바꿈.
+            // 프리팹의 설정값과 회전/크기는 그대로 쓰고 아이템 종류, 속도, 위치만 바꿈.
             ItemComponent item = entityManager.GetComponentData<ItemComponent>(prefab);
             item.Id = id;
             item.Count = count;

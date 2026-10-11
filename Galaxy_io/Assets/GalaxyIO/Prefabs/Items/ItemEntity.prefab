@@ -108,7 +108,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.ItemAuthoring
   AttractionRadius: 6
   FollowSpeed: 40
+  SlideSpeed: 14
+  SlideDuration: 0.6
+  FloatSpeed: 1
+  SpinSpeed: 15
   Lifetime: 60
+  DropPickupDelay: 0.5
+  ThrowSpeed: 15
+  ThrowPickupDelay: 1.5
 --- !u!114 &2875581884597062574
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -119,7 +126,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.Entities.Hybrid::Unity.Entities.Hybrid.Baking.LinkedEntityGroupAuthoring
 --- !u!114 &6555033717325089395
 MonoBehaviour:
@@ -131,7 +138,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7c79d771cedb4794bf100ce60df5f764, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.NetCode.Authoring.Hybrid::Unity.NetCode.GhostAuthoringComponent
   HasOwner: 0
   SupportAutoCommandTarget: 0

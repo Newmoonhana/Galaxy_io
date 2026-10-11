@@ -25,22 +25,22 @@ namespace GalaxyIO.DOTS.Authoring
         [SerializeField]
         [Tooltip("스폰 직후 무작위 방향으로 미끄러지는 최대 속력")]
         [Min(0.0F)]
-        public float SlideSpeed = 6.0F;
+        public float SlideSpeed = 14.0F;
 
         [SerializeField]
-        [Tooltip("최대 속력으로 미끄러질 때 멈추기까지의 시간(초)")]
+        [Tooltip("최대 속력으로 미끄러질 때 떠다니는 속력까지 느려지는 시간(초)")]
         [Min(0.01F)]
         public float SlideDuration = 0.6F;
 
         [SerializeField]
-        [Tooltip("스폰 직후 미끄러지는 쪽으로 기울어지는 최대 각도(도)")]
-        [Range(0.0F, 180.0F)]
-        public float BounceAngle = 30.0F;
+        [Tooltip("미끄러짐이 끝난 뒤 계속 떠다니는 속력. 플레이어 우주선의 HoveringSpeed 보다 조금 느리게.")]
+        [Min(0.0F)]
+        public float FloatSpeed = 7.0F;
 
         [SerializeField]
-        [Tooltip("기울었다가 0도로 돌아오기까지의 시간(초)")]
-        [Min(0.01F)]
-        public float BounceDuration = 0.5F;
+        [Tooltip("떠다니며 도는 각속도(도/초). 오른쪽으로 가면 시계 방향, 왼쪽이면 반시계 방향.")]
+        [Min(0.0F)]
+        public float SpinSpeed = 30.0F;
 
         [SerializeField]
         [Tooltip("아무도 줍지 않으면 사라지기까지의 시간(초)")]
@@ -87,9 +87,9 @@ namespace GalaxyIO.DOTS.Authoring
                 FollowSpeed       = authoring.FollowSpeed,
                 Velocity          = float2.zero,
                 SlideSpeed        = authoring.SlideSpeed,
-                SlideDeceleration = authoring.SlideSpeed / authoring.SlideDuration,
-                BounceAngle       = math.radians(authoring.BounceAngle),
-                BounceDuration    = authoring.BounceDuration,
+                SlideDeceleration = math.max(authoring.SlideSpeed - authoring.FloatSpeed, 0.0F) / authoring.SlideDuration,
+                FloatSpeed        = authoring.FloatSpeed,
+                SpinSpeed         = math.radians(authoring.SpinSpeed),
                 Lifetime          = authoring.Lifetime,
                 DropPickupDelay   = authoring.DropPickupDelay,
                 ThrowSpeed        = authoring.ThrowSpeed,
