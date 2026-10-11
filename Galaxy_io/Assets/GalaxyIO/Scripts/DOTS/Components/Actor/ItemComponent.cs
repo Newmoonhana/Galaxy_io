@@ -29,7 +29,7 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 대상에게 끌려가는 속력
         public float FollowSpeed;
 
-        // 스폰 직후 미끄러지는 속도. 대상이 생기면 0.
+        // 떠다니는 속도. 스폰 직후엔 미끄러지는 속도로 시작해 떠다니는 속력까지 느려짐.
         public float2 Velocity;
 
         // 스폰 시 미끄러지는 최대 속력
@@ -38,17 +38,11 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 미끄러지는 속력의 감속도
         public float SlideDeceleration;
 
-        // 튕길 때 기울어지는 최대 각도(라디안)
-        public float BounceAngle;
+        // 미끄러짐이 끝난 뒤 계속 떠다니는 속력
+        public float FloatSpeed;
 
-        // 기울었다가 0도로 돌아오기까지의 시간(초)
-        public float BounceDuration;
-
-        // 남은 튕김 시간(초). 0 이면 튕김 없음.
-        public float BounceRemaining;
-
-        // 기울어지는 방향. 오른쪽으로 미끄러지면 -1(시계 방향), 왼쪽이면 +1.
-        public float BounceSide;
+        // 떠다니며 도는 각속도(라디안/초). 오른쪽으로 가면 시계 방향, 왼쪽이면 반시계 방향.
+        public float SpinSpeed;
 
         // 남은 수명(초). 0 이 되면 사라짐.
         public float Lifetime;
@@ -66,16 +60,12 @@ namespace GalaxyIO.DOTS.Components.Actor
         public float ThrowPickupDelay;
 
         /// <summary>
-        /// 주어진 속도로 미끄러뜨리고 미끄러지는 쪽으로 기울게 함. 줍기 대기 시간도 새로 걺.
+        /// 주어진 속도로 미끄러뜨림. 줍기 대기 시간도 새로 걺.
         /// </summary>
         public void Launch(float2 velocity, float pickupDelay)
         {
             Velocity = velocity;
             PickupDelay = pickupDelay;
-
-            // 미끄러지는 쪽으로 구르듯 기울어짐. 오른쪽이면 시계 방향.
-            BounceRemaining = BounceDuration;
-            BounceSide = velocity.x >= 0.0F ? -1.0F : 1.0F;
         }
     }
 }

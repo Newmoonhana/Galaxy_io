@@ -121,7 +121,7 @@ namespace GalaxyIO.DOTS.Systems
                 }
             }
 
-            // 프리팹의 설정값과 회전/크기는 그대로 쓰고 아이템 종류, 속도, 튕김, 위치만 바꿈.
+            // 프리팹의 설정값과 회전/크기는 그대로 쓰고 아이템 종류, 속도, 위치만 바꿈.
             ItemComponent itemTemplate = SystemAPI.GetComponent<ItemComponent>(itemPrefab);
             ColliderComponent colliderTemplate = SystemAPI.GetComponent<ColliderComponent>(itemPrefab);
             LocalTransform transformTemplate = SystemAPI.GetComponent<LocalTransform>(itemPrefab);
