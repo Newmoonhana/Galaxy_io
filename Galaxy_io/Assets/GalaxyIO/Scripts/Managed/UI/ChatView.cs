@@ -56,6 +56,18 @@ namespace GalaxyIO.Scripts.Managed.UI
         private TMP_InputField input;
 
         [SerializeField]
+        [Tooltip("커서를 올린 닉네임을 덮는 강조 상자. 본문 글자의 자식이어야 함.")]
+        private RectTransform nameHighlight;
+
+        [SerializeField]
+        [Tooltip("닉네임을 누르면 커서 위치에 뜨는 메뉴")]
+        private RectTransform nameMenu;
+
+        [SerializeField]
+        [Tooltip("메뉴의 귓속말 항목. 고른 플레이어의 귓속말 탭을 엶.")]
+        private Button whisperOption;
+
+        [SerializeField]
         [Tooltip("입력창 열기 (Enter)")]
         private InputActionReference chatAction;
 
@@ -110,6 +122,7 @@ namespace GalaxyIO.Scripts.Managed.UI
         private EntityQuery messageQuery;
         private EntityQuery stateQuery;
         private EntityQuery inGameQuery;
+        private EntityQuery connectionQuery;
 
         private string publicHex;
         private string whisperHex;
@@ -131,6 +144,9 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         // 본문이 마지막으로 바뀐 시각. 열려 있는 동안엔 계속 갱신됨.
         private float bodyUpdateTime;
+
+        // 메뉴를 띄운 닉네임
+        private string menuName;
 
         private Channel publicChannel;
 
@@ -168,6 +184,7 @@ namespace GalaxyIO.Scripts.Managed.UI
             );
             stateQuery = entityManager.CreateEntityQuery(ComponentType.ReadWrite<PlayerStateComponent>());
             inGameQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkStreamInGame>());
+            connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
 
             publicHex  = ColorUtility.ToHtmlStringRGB(publicColor);
             whisperHex = ColorUtility.ToHtmlStringRGB(whisperColor);
@@ -179,6 +196,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             input.characterLimit = ChatRPC.MaxLength;
             input.onSubmit.AddListener(Submit);
+            whisperOption.onClick.AddListener(() => Select(GetWhisper(menuName)));
 
             publicChannel = AddChannel(string.Empty, false);
             Select(publicChannel);
@@ -212,31 +230,29 @@ namespace GalaxyIO.Scripts.Managed.UI
                 return;
             }
 
-            if (!messageQuery.IsEmpty)
+            if (!messageQuery.IsEmpty && !connectionQuery.IsEmpty)
             {
                 using var messages = messageQuery.ToComponentDataArray<ChatRPC>(Allocator.Temp);
+                int localNetworkId = connectionQuery.GetSingleton<NetworkId>().Value;
 
                 entityManager.DestroyEntity(messageQuery);
 
                 foreach (ChatRPC message in messages)
                 {
+                    // 자신의 닉네임은 누를 수 없음.
+                    bool mine = message.SenderNetworkId == localNetworkId;
+
                     switch (message.Channel)
                     {
                         case ChatChannel.Public:
-                            Push(publicChannel, Format(publicHex, message));
+                            Push(publicChannel, Format(publicHex, message, mine));
                             break;
 
                         case ChatChannel.Whisper:
                             // 내가 보낸 귓속말의 사본은 받는 쪽 이름의 탭에 쌓음.
-                            string peer = (message.Echo ? message.Target : message.Sender).ToString();
+                            Channel channel = GetWhisper((message.Echo ? message.Target : message.Sender).ToString());
 
-                            if (!whispers.TryGetValue(peer, out Channel channel))
-                            {
-                                channel = AddChannel(peer, true);
-                                whispers[peer] = channel;
-                            }
-
-                            Push(channel, Format(whisperHex, message));
+                            Push(channel, Format(whisperHex, message, mine));
 
                             if (message.Echo)
                             {
@@ -272,8 +288,8 @@ namespace GalaxyIO.Scripts.Managed.UI
                 Mouse mouse = Mouse.current;
                 bool pressedOutside = mouse != null
                     && mouse.leftButton.wasPressedThisFrame
-                    && !RectTransformUtility.RectangleContainsScreenPoint(
-                        (RectTransform)transform, mouse.position.ReadValue(), canvas.worldCamera);
+                    && !Contains((RectTransform)transform, mouse.position.ReadValue())
+                    && !(nameMenu.gameObject.activeSelf && Contains(nameMenu, mouse.position.ReadValue()));
 
                 // 전송(Enter), 취소(ESC), 채팅창 밖 클릭으로 닫음.
                 if (submitted || pressedOutside || (inputFocused && !input.isFocused && input.wasCanceled))
@@ -346,8 +362,52 @@ namespace GalaxyIO.Scripts.Managed.UI
 
                 foreach (Channel channel in channels)
                 {
-                    hovered |= channel.Unread && RectTransformUtility.RectangleContainsScreenPoint(
-                        (RectTransform)channel.Tab.transform, cursor, canvas.worldCamera);
+                    hovered |= channel.Unread && Contains((RectTransform)channel.Tab.transform, cursor);
+                }
+            }
+
+            // 열려 있는 동안 본문의 닉네임에 커서를 올리면 강조하고, 누르면 메뉴를 띄움.
+            if (opened && Mouse.current != null)
+            {
+                Vector2 cursor = Mouse.current.position.ReadValue();
+                bool pressed = Mouse.current.leftButton.wasPressedThisFrame
+                               || Mouse.current.rightButton.wasPressedThisFrame;
+                bool overMenu = nameMenu.gameObject.activeSelf && Contains(nameMenu, cursor);
+
+                // 본문 밖으로 밀려나 가려진 줄은 제외.
+                int link = overMenu || !Contains((RectTransform)body.transform.parent, cursor)
+                    ? -1
+                    : TMP_TextUtilities.FindIntersectingLink(body, cursor, canvas.worldCamera);
+
+                nameHighlight.gameObject.SetActive(link >= 0);
+
+                // 메뉴 밖을 누르면 메뉴를 닫음. 닉네임을 눌렀으면 그 자리에 다시 띄움.
+                if (pressed && !overMenu)
+                {
+                    nameMenu.gameObject.SetActive(link >= 0);
+                }
+
+                if (link >= 0)
+                {
+                    TMP_LinkInfo info = body.textInfo.linkInfo[link];
+                    TMP_CharacterInfo first = body.textInfo.characterInfo[info.linkTextfirstCharacterIndex];
+                    TMP_CharacterInfo last = body.textInfo.characterInfo[
+                        info.linkTextfirstCharacterIndex + info.linkTextLength - 1];
+
+                    var min = new Vector3(first.bottomLeft.x, first.descender);
+                    var max = new Vector3(last.topRight.x, first.ascender);
+
+                    nameHighlight.position = body.transform.TransformPoint((min + max) * 0.5F);
+                    nameHighlight.sizeDelta = max - min;
+
+                    if (pressed)
+                    {
+                        menuName = info.GetLinkText();
+
+                        RectTransformUtility.ScreenPointToWorldPointInRectangle(
+                            (RectTransform)transform, cursor, canvas.worldCamera, out Vector3 position);
+                        nameMenu.position = position;
+                    }
                 }
             }
 
@@ -369,6 +429,9 @@ namespace GalaxyIO.Scripts.Managed.UI
         {
             opened = value;
             historyIndex = history.Count;
+
+            nameHighlight.gameObject.SetActive(false);
+            nameMenu.gameObject.SetActive(false);
 
             bodyBackground.enabled = value;
             bodyOutline.SetActive(value);
@@ -416,7 +479,25 @@ namespace GalaxyIO.Scripts.Managed.UI
             publicChannel.Tab.SetTitle(publicChannel.Name);
 
             ((TMP_Text)input.placeholder).text = L10n.Get("Chat/Placeholder");
+            whisperOption.GetComponentInChildren<TMP_Text>().text = L10n.Get("Chat/Whisper");
             channelLabel.text = $"[{current.Name}]:";
+        }
+
+        private bool Contains(RectTransform rect, Vector2 cursor)
+        {
+            return RectTransformUtility.RectangleContainsScreenPoint(rect, cursor, canvas.worldCamera);
+        }
+
+        // 상대 이름의 귓속말 채널. 없으면 탭을 새로 만듦.
+        private Channel GetWhisper(string peer)
+        {
+            if (!whispers.TryGetValue(peer, out Channel channel))
+            {
+                channel = AddChannel(peer, true);
+                whispers[peer] = channel;
+            }
+
+            return channel;
         }
 
         private Channel AddChannel(string name, bool closable)
@@ -466,6 +547,7 @@ namespace GalaxyIO.Scripts.Managed.UI
             channelLabel.text = $"[{channel.Name}]:";
             body.text = string.Join("\n", channel.Lines);
             bodyUpdateTime = Time.time;
+            nameMenu.gameObject.SetActive(false);
 
             // 맨 아래 줄로 되돌림.
             body.rectTransform.anchoredPosition = Vector2.zero;
@@ -493,10 +575,17 @@ namespace GalaxyIO.Scripts.Managed.UI
             Push(current, $"<color=#{systemHex}>{Escape(text)}</color>");
         }
 
-        // {Nickname}: {Message}
-        private static string Format(string nameHex, in ChatRPC message)
+        // {Nickname}: {Message}. 다른 플레이어의 닉네임은 누를 수 있게 link 로 감쌈.
+        private static string Format(string nameHex, in ChatRPC message, bool mine)
         {
-            return $"<color=#{nameHex}>{Escape(message.Sender.ToString())}</color>: {Escape(message.Text.ToString())}";
+            string name = $"<color=#{nameHex}>{Escape(message.Sender.ToString())}</color>";
+
+            if (!mine)
+            {
+                name = $"<link=\"name\">{name}</link>";
+            }
+
+            return $"{name}: {Escape(message.Text.ToString())}";
         }
 
         // 유저가 친 글자가 리치 텍스트 태그로 읽히지 않게 함.

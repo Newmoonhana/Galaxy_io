@@ -76,6 +76,7 @@ namespace GalaxyIO.Scripts.Managed.Chat
                 }
 
                 chat.Sender = entityManager.GetComponentData<PlayerNameComponent>(sender).Value;
+                chat.SenderNetworkId = entityManager.GetComponentData<NetworkId>(sender).Value;
 
                 if (chat.Channel == ChatChannel.Public)
                 {
@@ -89,6 +90,7 @@ namespace GalaxyIO.Scripts.Managed.Chat
                 }
 
                 // "{받는 이름} {본문}". 이름에 공백이 들어갈 수 있어 가장 길게 맞는 이름을 고름.
+                // 보낸 사람은 후보에서 뺌. 이름이 같은 다른 플레이어에게는 보낼 수 있음.
                 string text = chat.Text.ToString();
                 int target = -1;
                 int nameLength = 0;
@@ -97,7 +99,8 @@ namespace GalaxyIO.Scripts.Managed.Chat
                 {
                     string name = names[j].Value.ToString();
 
-                    if (name.Length > nameLength && text.StartsWith(name + " ", StringComparison.Ordinal))
+                    if (players[j] != sender
+                        && name.Length > nameLength && text.StartsWith(name + " ", StringComparison.Ordinal))
                     {
                         target = j;
                         nameLength = name.Length;
@@ -106,8 +109,13 @@ namespace GalaxyIO.Scripts.Managed.Chat
 
                 if (target < 0)
                 {
-                    // 서버는 언어를 모르므로 번역 키와 입력한 이름만 보냄.
-                    var notice = new ChatRPC { Channel = ChatChannel.System, Text = "Chat/UserNotFound" };
+                    // 서버는 언어를 모르므로 번역 키와 입력한 이름만 보냄. 자신에게 보낸 귓속말은 따로 안내함.
+                    bool self = text.StartsWith(chat.Sender.ToString() + " ", StringComparison.Ordinal);
+                    var notice = new ChatRPC
+                    {
+                        Channel = ChatChannel.System,
+                        Text    = self ? "Chat/SelfWhisper" : "Chat/UserNotFound",
+                    };
                     notice.Target.CopyFromTruncated(text.Split(' ')[0]);
 
                     Send(notice, sender);
@@ -117,11 +125,7 @@ namespace GalaxyIO.Scripts.Managed.Chat
                 chat.Target = names[target].Value;
                 chat.Text = text.Substring(nameLength + 1);
 
-                // 자신에게 보낸 귓속말은 사본만 돌려줌.
-                if (players[target] != sender)
-                {
-                    Send(chat, players[target]);
-                }
+                Send(chat, players[target]);
 
                 chat.Echo = true;
                 Send(chat, sender);
