@@ -25,6 +25,9 @@ namespace GalaxyIO.DOTS.Components.Message
         // 보낸 플레이어. 서버가 채움.
         public FixedString64Bytes Sender;
 
+        // 보낸 플레이어의 NetworkId. 서버가 채움. 받은 쪽이 자신의 글인지 가리는 데 씀.
+        public int SenderNetworkId;
+
         // 귓속말을 받는 플레이어. 서버가 채움. 안내문에서는 번역문의 {0} 에 들어갈 값.
         public FixedString64Bytes Target;
 
