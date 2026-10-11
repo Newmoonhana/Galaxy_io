@@ -1,4 +1,5 @@
-﻿using GalaxyIO.DOTS.Components.Actor;
+﻿using GalaxyIO.DOTS.Client.Components.Singleton;
+using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Spaceship;
 using GalaxyIO.Tools;
 using Unity.Collections;
@@ -7,12 +8,14 @@ using Unity.Mathematics;
 using Unity.NetCode;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 namespace GalaxyIO.Camera
 {
     /// <summary>
     /// DOTS 오브젝트인 플레이어 우주선을 따라다니는 카메라 로직.
     /// 우주선을 화면 중앙에 고정하지 않고 진행 방향 쪽으로 카메라를 밀어 시야를 확보함.
+    /// 마우스 휠로 시야 크기를 조절함.
     /// </summary>
     public sealed class FollowPlayerEntity : MonoBehaviour
     {
@@ -26,8 +29,32 @@ namespace GalaxyIO.Camera
         [Min(0.0F)]
         private float smoothSpeed = 10F;
 
+        [SerializeField]
+        [Tooltip("최대로 확대했을 때의 시야 크기(Orthographic Size). 축소는 카메라의 기본 크기까지만 됨.")]
+        [Min(0.1F)]
+        private float minZoom = 8F;
+
+        [SerializeField]
+        [Tooltip("휠 한 칸당 시야 크기 변화 비율")]
+        [Range(0.01F, 0.5F)]
+        private float zoomStep = 0.1F;
+
+        [SerializeField]
+        [Tooltip("시야 크기가 목표 크기로 전환되는 속도. 클수록 즉각적으로 반응한다.")]
+        [Min(0.0F)]
+        private float zoomSmoothSpeed = 10F;
+
         private EntityManager entityManager;
         private EntityQuery playerQuery;
+        private EntityQuery stateQuery;
+
+        private UnityEngine.Camera targetCamera;
+
+        // 카메라의 기본 시야 크기. 이보다 축소하지 않음.
+        private float maxZoom;
+
+        // 휠로 정한 목표 시야 크기. 실제 크기는 매 프레임 수렴함.
+        private float targetZoom;
 
         // 현재 적용 중인 오프셋. 목표 오프셋을 향해 매 프레임 수렴함.
         private Vector2 currentLookAhead;
@@ -60,6 +87,11 @@ namespace GalaxyIO.Camera
                 ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadOnly<PlayerSpaceshipMovementComponent>()
             );
+            stateQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<PlayerStateComponent>());
+
+            targetCamera = GetComponent<UnityEngine.Camera>();
+            maxZoom = targetCamera.orthographicSize;
+            targetZoom = maxZoom;
         }
 
         private void LateUpdate()
@@ -70,6 +102,31 @@ namespace GalaxyIO.Camera
                 enabled = false;
                 return;
             }
+
+            // 메뉴, 인벤토리가 열린 동안엔 휠을 UI 가 가짐.
+            bool menuOpen = stateQuery.TryGetSingleton(out PlayerStateComponent playerState)
+                            && (playerState.GameMenuOpened || playerState.InventoryOpened);
+
+            if (Mouse.current != null && Application.isFocused && !menuOpen)
+            {
+                float scroll = Mouse.current.scroll.ReadValue().y;
+
+                // 휠 위 = 확대. 비율로 바꿔 어느 배율에서도 한 칸의 체감이 같음.
+                if (scroll != 0.0F)
+                {
+                    targetZoom = Mathf.Clamp(
+                        targetZoom * (1F - Mathf.Sign(scroll) * zoomStep),
+                        Mathf.Min(minZoom, maxZoom),
+                        maxZoom
+                    );
+                }
+            }
+
+            targetCamera.orthographicSize = Mathf.Lerp(
+                targetCamera.orthographicSize,
+                targetZoom,
+                1F - Mathf.Exp(-zoomSmoothSpeed * Time.deltaTime)
+            );
 
             if (playerQuery.IsEmpty)
             {
