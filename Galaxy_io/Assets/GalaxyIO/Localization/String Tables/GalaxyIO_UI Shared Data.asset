@@ -339,6 +339,26 @@ MonoBehaviour:
     m_Key: Inventory/BlueprintHint
     m_Metadata:
       m_Items: []
+  - m_Id: 2400000000000001
+    m_Key: Chat/Public
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2400000000000002
+    m_Key: Chat/Placeholder
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2400000000000003
+    m_Key: Chat/UnknownCommand
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2400000000000004
+    m_Key: Chat/WhisperUsage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2400000000000005
+    m_Key: Chat/UserNotFound
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

@@ -1,4 +1,4 @@
-using GalaxyIO.DOTS.Client.Components.Message;
+using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.Tools;
 using System.Collections.Generic;
 using Unity.Collections;
@@ -65,7 +65,10 @@ namespace GalaxyIO.Scripts.Managed.UI
             }
 
             entityManager = clientWorld.EntityManager;
-            messageQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<ScoreboardMessage>());
+            messageQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<PlayerScoreRPC>(),
+                ComponentType.ReadOnly<ReceiveRpcCommandRequest>()
+            );
             connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
 
             rows = new ScoreboardRow[maxRows];
@@ -105,9 +108,9 @@ namespace GalaxyIO.Scripts.Managed.UI
                 return;
             }
 
-            using var messages = messageQuery.ToComponentDataArray<ScoreboardMessage>(Allocator.Temp);
+            using var messages = messageQuery.ToComponentDataArray<PlayerScoreRPC>(Allocator.Temp);
 
-            foreach (ScoreboardMessage message in messages)
+            foreach (PlayerScoreRPC message in messages)
             {
                 if (message.Left)
                 {

@@ -78,9 +78,9 @@ namespace GalaxyIO.DOTS.Client.Systems
 
         protected override void OnUpdate()
         {
-            // 게임 메뉴, 인벤토리 중 하나라도 열려 있으면 조작을 막음.
+            // 게임 메뉴, 인벤토리, 채팅 입력창 중 하나라도 열려 있으면 조작을 막음.
             PlayerStateComponent playerState = SystemAPI.GetSingleton<PlayerStateComponent>();
-            bool menuOpen = playerState.GameMenuOpened || playerState.InventoryOpened;
+            bool menuOpen = playerState.GameMenuOpened || playerState.InventoryOpened || playerState.ChatFocused;
 
             foreach (var (playerInput, transform) in SystemAPI.Query<RefRW<PlayerInputComponent>, RefRO<LocalTransform>>().WithAll<GhostOwnerIsLocal>())
             {
@@ -104,8 +104,8 @@ namespace GalaxyIO.DOTS.Client.Systems
                     playerInput.ValueRW.MoveArrows = new float2(arrowMovement.x, arrowMovement.y);
                 }
 
-                // 메뉴가 열린 동안엔 발사/가속도 막음.
-                bool firePressed = !menuOpen && turretAction.ReadValue<float>() > 0.0F;
+                // 메뉴가 열린 동안엔 발사/가속도 막음. 커서가 채팅 탭 위에 있으면 포탑만 막음.
+                bool firePressed = !menuOpen && !playerState.ChatHovered && turretAction.ReadValue<float>() > 0.0F;
                 playerInput.ValueRW.TurretTriggered = firePressed;
 
                 // 마지막 Fire입력값이 false이면 이번 프레임에 누르기 시작했다는 뜻

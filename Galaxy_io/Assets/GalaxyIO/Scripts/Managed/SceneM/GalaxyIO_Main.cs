@@ -261,6 +261,9 @@ namespace GalaxyIO.Main
             // 게임 오버 중엔 ESC 무시. 리스폰 창의 나가기만 남김.
             if (isGameOver) return;
 
+            // 채팅 입력 중의 ESC 는 입력창만 닫음.
+            if (stateQuery.GetSingleton<PlayerStateComponent>().ChatFocused) return;
+
             if (menuAction == null || !menuAction.action.WasPressedThisFrame()) return;
 
             if (gameMenuUI != null) return;
@@ -301,6 +304,9 @@ namespace GalaxyIO.Main
             }
 
             if (isGameOver || gameMenuUI != null) return;
+
+            // 채팅 입력 중의 E 는 글자로만 씀.
+            if (stateQuery.GetSingleton<PlayerStateComponent>().ChatFocused) return;
 
             if (inventoryAction == null || !inventoryAction.action.WasPressedThisFrame()) return;
 
