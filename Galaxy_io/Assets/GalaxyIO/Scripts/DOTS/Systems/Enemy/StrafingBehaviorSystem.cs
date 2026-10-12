@@ -138,11 +138,16 @@ namespace GalaxyIO.DOTS.Systems
                 * DeltaTime
             );
 
+            bool turning = false;
+
             float2 nextVelocity = SpaceshipHovering.Approach(
                 enemyMovement.Velocity,
                 desiredVelocity,
                 enemyMovement.HoveringAcceleration,
                 enemyMovement.HoveringDeceleration,
+                // 적은 방향 전환도 가속도 그대로.
+                enemyMovement.HoveringAcceleration,
+                ref turning,
                 DeltaTime
             );
 

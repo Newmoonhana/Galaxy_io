@@ -377,10 +377,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Scripts.Managed.UI.RadarView
   scanner: {fileID: 1404916992}
+  background: {fileID: 1279052655}
   coordinates: {fileID: 993819519}
-  sweepSpeed: 160
+  sweepSpeed: 120
+  sweepFadeStartSpeed: 360
+  sweepFadeEndSpeed: 5000
   responseTime: 0.1
   fadeOutTime: 2
+  minFadeOutTime: 0.05
+  fastestSweepSpeed: 7200
+  gridCellSize: 48
 --- !u!1 &248923274
 GameObject:
   m_ObjectHideFlags: 0

@@ -12,28 +12,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3e931273543f1f42af2e566e535732e, type: 3}
   m_Name: SO_Upgrade_Player
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.SpaceshipUpgradeAsset
-  Entries:
-  - Stat: 0
-    Amount: 0.1
+  Damage:
+    Damage: 0.1
     MaxLevel: 10
-  - Stat: 1
-    Amount: 10
+  MaxHeat:
+    MaxHeat: 10
     MaxLevel: 10
-  - Stat: 2
-    Amount: 10
+  MaxHealth:
+    MaxHealth: 10
     MaxLevel: 25
-  - Stat: 3
-    Amount: 2
+  Repair:
+    Repair: 2
     MaxLevel: 25
-  - Stat: 4
-    Amount: 2
+  Speed:
+    MaxSpeed: 2
+    Acceleration: 0.2
+    Deceleration: 0.15
+    HoveringSpeed: 0.1
+    HoveringAcceleration: 0.05
+    HoveringDeceleration: 0.03
     MaxLevel: 25
-  - Stat: 5
-    Amount: 1
+  Maneuver:
+    Maneuver: 4
+    ManeuverPenalty: 0.1
+    HoveringManeuver: 0.1
     MaxLevel: 25
-  - Stat: 6
-    Amount: 5
-    MaxLevel: 10
-  - Stat: 7
-    Amount: 0.02
-    MaxLevel: 10
+  RadarRange:
+    Range: 10
+    MaxLevel: 25
+  RadarSweep:
+    SweepSpeed: 1000
+    ResponseTime: 0.08
+    MaxLevel: 25

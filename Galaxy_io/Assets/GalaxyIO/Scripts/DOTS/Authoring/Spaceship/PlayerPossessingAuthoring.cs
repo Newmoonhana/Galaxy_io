@@ -46,6 +46,7 @@ namespace GalaxyIO.DOTS.Authoring
                 Deceleration         = spaceship.Deceleration,
                 Maneuver             = spaceship.Maneuver,
                 ManeuverPenalty      = spaceship.ManeuverPenalty,
+                HoveringManeuver     = spaceship.HoveringManeuver,
             });
 
             AddComponent(entity, new TurretHeatComponent

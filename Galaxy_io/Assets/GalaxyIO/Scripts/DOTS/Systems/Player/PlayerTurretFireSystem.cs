@@ -111,11 +111,11 @@ namespace GalaxyIO.DOTS.Systems
                 );
 
                 // 강화한 피해 배율. 강화가 없는 기체는 1.
-                float damageScale = SystemAPI.HasBuffer<UpgradeElement>(spaceship)
+                float damageScale = SystemAPI.HasBuffer<UpgradeParamElement>(spaceship)
                     ? Upgrade.Value(
-                        SystemAPI.GetBuffer<UpgradeElement>(spaceship),
+                        SystemAPI.GetBuffer<UpgradeParamElement>(spaceship),
                         SystemAPI.GetBuffer<UpgradeLevelElement>(spaceship),
-                        UpgradeStat.Damage)
+                        UpgradeParam.Damage)
                     : 1.0F;
 
                 // 총구 위치. 쿨다운과 같은 순서.
