@@ -1,0 +1,73 @@
+name: Discord PR notification
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Send PR context to Discord
+        env:
+          # No /github suffix: that endpoint only accepts GitHub's own webhook payloads
+          WEBHOOK_URL: https://discord.com/api/webhooks/1559015572975657062/k3Y9Fy4pTXU3N4S4WxbkCdWF9GBSg1sBCJ7mr2VOSm5PFaamnSOaKC2nAQRdXLtt1kLo?thread_id=1552691433952251925
+          GH_TOKEN: ${{ github.token }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_AUTHOR_URL: ${{ github.event.pull_request.user.html_url }}
+          PR_AVATAR: ${{ github.event.pull_request.user.avatar_url }}
+          PR_HEAD: ${{ github.event.pull_request.head.ref }}
+          PR_BASE: ${{ github.event.pull_request.base.ref }}
+          PR_ADDITIONS: ${{ github.event.pull_request.additions }}
+          PR_DELETIONS: ${{ github.event.pull_request.deletions }}
+          PR_FILES: ${{ github.event.pull_request.changed_files }}
+          PR_LABELS: ${{ join(github.event.pull_request.labels.*.name, ', ') }}
+          PR_CREATED_AT: ${{ github.event.pull_request.created_at }}
+        run: |
+          commits=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json commits \
+            --jq '.commits[] | "`\(.oid[0:7])` \(.messageHeadline)"')
+          files=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" --json files \
+            --jq '.files[] | "\(.path) (+\(.additions)/-\(.deletions))"')
+
+          # Discord limits: description 4096, field value 1024, whole embed 6000
+          jq -n \
+            --arg title "#$PR_NUMBER $PR_TITLE" \
+            --arg body "$PR_BODY" \
+            --arg url "$PR_URL" \
+            --arg author "$PR_AUTHOR" \
+            --arg author_url "$PR_AUTHOR_URL" \
+            --arg avatar "$PR_AVATAR" \
+            --arg branch "$PR_HEAD → $PR_BASE" \
+            --arg changes "+$PR_ADDITIONS / -$PR_DELETIONS in $PR_FILES files" \
+            --arg labels "$PR_LABELS" \
+            --arg commits "$commits" \
+            --arg files "$files" \
+            --arg repo "$GITHUB_REPOSITORY" \
+            --arg created "$PR_CREATED_AT" \
+            'def clip($n): if length > $n then .[0:$n - 1] + "…" else . end;
+             def orDash: if . == "" then "-" else . end;
+             {embeds: [{
+               title: ($title | clip(256)),
+               url: $url,
+               description: ($body | clip(3000)),
+               color: 5763719,
+               author: {name: $author, url: $author_url, icon_url: $avatar},
+               fields: [
+                 {name: "Branch", value: ($branch | clip(1024)), inline: true},
+                 {name: "Changes", value: $changes, inline: true},
+                 {name: "Labels", value: ($labels | orDash | clip(1024)), inline: true},
+                 {name: "Commits", value: ($commits | orDash | clip(1000))},
+                 {name: "Files", value: ($files | orDash | clip(1000))}
+               ],
+               footer: {text: $repo},
+               timestamp: $created
+             }]}' \
+          | curl -sS --fail-with-body -H "Content-Type: application/json" -d @- "$WEBHOOK_URL"
