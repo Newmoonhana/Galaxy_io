@@ -341,6 +341,7 @@ MonoBehaviour:
   popup_anim: {fileID: 1867904251707498735}
   replayInOnStateChange: 1
   isCancelable: 1
+  isAlwaysTop: 0
 --- !u!223 &7364217086791592531
 Canvas:
   m_ObjectHideFlags: 0
@@ -386,7 +387,7 @@ MonoBehaviour:
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
-  m_PresetInfoIsWorld: 0
+  m_PresetInfoIsWorld: 1
 --- !u!114 &768564502812087151
 MonoBehaviour:
   m_ObjectHideFlags: 0

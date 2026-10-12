@@ -252,7 +252,11 @@ namespace GalaxyIO.Scripts.Managed.UI
                             // 내가 보낸 귓속말의 사본은 받는 쪽 이름의 탭에 쌓음.
                             Channel channel = GetWhisper((message.Echo ? message.Target : message.Sender).ToString());
 
-                            Push(channel, Format(whisperHex, message, mine));
+                            string line = Format(whisperHex, message, mine);
+
+                            // 공개 탭에도 같은 줄을 쌓음.
+                            Push(channel, line);
+                            Push(publicChannel, line);
 
                             if (message.Echo)
                             {
@@ -545,6 +549,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             Refresh(channel);
             channelLabel.text = $"[{channel.Name}]:";
+            channelLabel.color = channel == publicChannel ? publicColor : whisperColor;
             body.text = string.Join("\n", channel.Lines);
             bodyUpdateTime = Time.time;
             nameMenu.gameObject.SetActive(false);

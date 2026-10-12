@@ -53,6 +53,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Tools.PopupUI.Window.WindowRespawn
   padding: 18
   lineHeight: 36
+  window_anim: {fileID: 0}
   quit_btn: {fileID: 2924632263471225121}
 --- !u!222 &3931753024129411061
 CanvasRenderer:
@@ -76,7 +77,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
   m_Color: {r: 0, g: 0, b: 0, a: 0.392}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -213,7 +214,7 @@ MonoBehaviour:
   isValid: 1
   target: {fileID: 3406698594751197853}
   animationType: 5
-  targetType: 5
+  targetType: 11
   forcedTargetType: 0
   autoPlay: 0
   useTargetAsV3: 0
@@ -830,6 +831,8 @@ MonoBehaviour:
   orderType: 0
   popup_anim: {fileID: 754932950804202906}
   replayInOnStateChange: 1
+  isCancelable: 0
+  isAlwaysTop: 0
 --- !u!114 &754932950804202906
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -968,7 +971,7 @@ MonoBehaviour:
   isValid: 1
   target: {fileID: 6363089495565738600}
   animationType: 5
-  targetType: 5
+  targetType: 11
   forcedTargetType: 0
   autoPlay: 0
   useTargetAsV3: 0
