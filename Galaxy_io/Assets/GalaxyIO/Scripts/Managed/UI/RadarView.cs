@@ -123,7 +123,7 @@ namespace GalaxyIO.Scripts.Managed.UI
             }
 
             previousAngle = angle;
-            angle += sweepSpeed * Time.fixedDeltaTime;
+            angle += sweepSpeed * UpgradeValue(UpgradeStat.RadarSweep, 1.0F) * Time.fixedDeltaTime;
 
             Sweep(previousAngle, angle);
 
@@ -191,7 +191,8 @@ namespace GalaxyIO.Scripts.Managed.UI
             using var targets = targetQuery.ToEntityArray(Allocator.Temp);
 
             Vector2 center = players[0].Position.xy;
-            float range = rangeQuery.GetSingleton<RelevancyConfigComponent>().Radius;
+            float range = rangeQuery.GetSingleton<RelevancyConfigComponent>().Radius
+                          + UpgradeValue(UpgradeStat.RadarRange, 0.0F);
             float swept = to - from;
 
             foreach (Entity target in targets)
@@ -224,6 +225,24 @@ namespace GalaxyIO.Scripts.Managed.UI
                     IsPlayer = entityManager.HasComponent<PlayerNameComponent>(target),
                 });
             }
+        }
+
+        // 로컬 우주선의 강화한 능력치 값. 우주선이 없거나 강화가 없는 기체면 fallback.
+        private float UpgradeValue(UpgradeStat stat, float fallback)
+        {
+            if (playerQuery.IsEmpty)
+            {
+                return fallback;
+            }
+
+            using var players = playerQuery.ToEntityArray(Allocator.Temp);
+
+            return entityManager.HasBuffer<UpgradeElement>(players[0])
+                ? Upgrade.Value(
+                    entityManager.GetBuffer<UpgradeElement>(players[0], true),
+                    entityManager.GetBuffer<UpgradeLevelElement>(players[0], true),
+                    stat)
+                : fallback;
         }
 
         // 로컬 우주선이 없으면 마지막 좌표를 유지함.

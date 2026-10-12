@@ -351,6 +351,38 @@ MonoBehaviour:
     m_Localized: Right-click to craft
     m_Metadata:
       m_Items: []
+  - m_Id: 2300000000000016
+    m_Localized: Damage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000017
+    m_Localized: Heat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000018
+    m_Localized: Health
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000019
+    m_Localized: Repair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000020
+    m_Localized: Speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000021
+    m_Localized: Maneuver
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000022
+    m_Localized: Detect Range
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000023
+    m_Localized: Latency
+    m_Metadata:
+      m_Items: []
   - m_Id: 2400000000000001
     m_Localized: Public
     m_Metadata:

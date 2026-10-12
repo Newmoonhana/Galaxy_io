@@ -367,6 +367,38 @@ MonoBehaviour:
     m_Key: Chat/Whisper
     m_Metadata:
       m_Items: []
+  - m_Id: 2300000000000016
+    m_Key: Upgrade/Damage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000017
+    m_Key: Upgrade/MaxHeat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000018
+    m_Key: Upgrade/MaxHealth
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000019
+    m_Key: Upgrade/Repair
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000020
+    m_Key: Upgrade/Speed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000021
+    m_Key: Upgrade/Maneuver
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000022
+    m_Key: Upgrade/RadarRange
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2300000000000023
+    m_Key: Upgrade/RadarSweep
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

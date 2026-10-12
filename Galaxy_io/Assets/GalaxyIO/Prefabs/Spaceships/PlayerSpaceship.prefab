@@ -130,6 +130,7 @@ MonoBehaviour:
   - {fileID: 3305843298488137801}
   - {fileID: 8240234519857750097}
   Turret: {fileID: 11400000, guid: 3037765fa7c4999d2c3d742734c545df, type: 2}
+  Upgrade: {fileID: 11400000, guid: 6c18918797304db4cb9324634658d1cd, type: 2}
 --- !u!114 &8909345426696020667
 MonoBehaviour:
   m_ObjectHideFlags: 0
