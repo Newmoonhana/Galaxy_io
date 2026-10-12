@@ -74,6 +74,11 @@ namespace GalaxyIO.DOTS.Authoring
 
         // 장착한 채로 시작하는 포탑. 아이템 레지스트리에 등록된 포탑이어야 함.
         public TurretItemAsset Turret;
+
+        [Header("Upgrade")]
+
+        // 강화 사양. 비우면 강화할 수 없는 기체.
+        public SpaceshipUpgradeAsset Upgrade;
     }
 
     public sealed class SpaceshipBaker : Baker<SpaceshipAuthoring>
@@ -152,6 +157,44 @@ namespace GalaxyIO.DOTS.Authoring
                         ? TurretCycle.Waiting
                         : 0.0F,
                 });
+            }
+
+            DependsOn(authoring.Upgrade);
+
+            if (authoring.Upgrade == null)
+            {
+                return;
+            }
+
+            var upgrades = AddBuffer<UpgradeElement>(entity);
+            var levels = AddBuffer<UpgradeLevelElement>(entity);
+
+            for (int i = 0; i < Upgrade.Count; i++)
+            {
+                upgrades.Add(new UpgradeElement
+                {
+                    // 배율은 1, 더하는 값은 0 에서 시작함.
+                    Base = (UpgradeStat)i switch
+                    {
+                        UpgradeStat.MaxHeat    => authoring.MaxHeat,
+                        UpgradeStat.MaxHealth  => authoring.MaxHealth,
+                        UpgradeStat.Repair     => authoring.Repair,
+                        UpgradeStat.Speed      => authoring.Speed,
+                        UpgradeStat.Maneuver   => authoring.Maneuver,
+                        UpgradeStat.RadarRange => 0.0F,
+                        _                      => 1.0F,
+                    },
+                });
+
+                levels.Add(default);
+            }
+
+            foreach (SpaceshipUpgradeAsset.Entry entry in authoring.Upgrade.Entries)
+            {
+                UpgradeElement upgrade = upgrades[(int)entry.Stat];
+                upgrade.Amount = entry.Amount;
+                upgrade.MaxLevel = (byte)entry.MaxLevel;
+                upgrades[(int)entry.Stat] = upgrade;
             }
         }
     }

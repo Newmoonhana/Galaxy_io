@@ -120,6 +120,36 @@ namespace GalaxyIO.DOTS.Inventory
         }
 
         /// <summary>
+        /// 강화 모듈을 소모해 우주선의 능력치를 한 단계 올림.
+        /// 최대 단계거나 모듈이 모자라면 아무것도 안 함.
+        /// </summary>
+        public void Upgrade(int networkId, UpgradeRPC rpc)
+        {
+            Entity ship = FindShip(networkId);
+            int stat = (int)rpc.Stat;
+
+            if (ship == Entity.Null
+                || !inventories.TryGetValue(networkId, out PlayerInventory inventory)
+                || !entityManager.HasBuffer<UpgradeElement>(ship)
+                || stat >= entityManager.GetBuffer<UpgradeElement>(ship, true).Length)
+            {
+                return;
+            }
+
+            int level = entityManager.GetBuffer<UpgradeLevelElement>(ship, true)[stat].Value;
+            int cost = Components.Actor.Upgrade.Cost(level);
+
+            if (level >= entityManager.GetBuffer<UpgradeElement>(ship, true)[stat].MaxLevel
+                || inventory.Count(ItemId.UpgradeModule) < cost)
+            {
+                return;
+            }
+
+            inventory.Remove(ItemId.UpgradeModule, cost);
+            entityManager.GetBuffer<UpgradeLevelElement>(ship).ElementAt(stat).Value = (byte)(level + 1);
+        }
+
+        /// <summary>
         /// 서버 틱마다 호출. 인벤토리 생성, 사망 드랍, 접속 종료 정리, 바뀐 칸 전송을 처리함.
         /// 우주선이 파괴되기 전에 불러야 사망 드랍이 동작함.
         /// </summary>

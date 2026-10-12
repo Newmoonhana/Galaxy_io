@@ -19,6 +19,9 @@ namespace GalaxyIO.DOTS.Systems
         public Entity Connection;
         public int NetworkId;
         public float2 Position;
+
+        // 이 접속의 복제 반경. 레이더 탐지 거리 강화만큼 늘어남.
+        public float Radius;
     }
 
     /// <summary>
@@ -55,11 +58,28 @@ namespace GalaxyIO.DOTS.Systems
             // 접속 초점을 소유한 우주선 위치로 옮김. 우주선이 없으면 마지막 위치를 유지함.
             var ships = new NativeHashMap<int, float3>(8, Allocator.Temp);
 
+            // NetworkId -> 레이더 탐지 거리 강화로 늘어난 복제 반경
+            var ranges = new NativeHashMap<int, float>(8, Allocator.Temp);
+            float maxRange = 0.0F;
+
             foreach (
-                var (owner, transform) in SystemAPI.Query<RefRO<GhostOwner>, RefRO<LocalTransform>>()
+                var (owner, transform, ship) in SystemAPI.Query<RefRO<GhostOwner>, RefRO<LocalTransform>>()
                     .WithAll<PlayerSpaceshipMovementComponent>()
+                    .WithEntityAccess()
             ) {
                 ships[owner.ValueRO.NetworkId] = transform.ValueRO.Position;
+
+                if (SystemAPI.HasBuffer<UpgradeElement>(ship))
+                {
+                    float range = Upgrade.Value(
+                        SystemAPI.GetBuffer<UpgradeElement>(ship),
+                        SystemAPI.GetBuffer<UpgradeLevelElement>(ship),
+                        UpgradeStat.RadarRange
+                    );
+
+                    ranges[owner.ValueRO.NetworkId] = range;
+                    maxRange = math.max(maxRange, range);
+                }
             }
 
             foreach (
@@ -73,8 +93,8 @@ namespace GalaxyIO.DOTS.Systems
 
             ships.Dispose();
 
-            // 칸 한 변 = 바깥 반경. 3x3 칸만 보면 반경 안의 접속을 모두 찾음.
-            float outerRadius = config.Radius + config.Hysteresis;
+            // 칸 한 변 = 가장 큰 바깥 반경. 3x3 칸만 보면 반경 안의 접속을 모두 찾음.
+            float outerRadius = config.Radius + maxRange + config.Hysteresis;
 
             var focuses = new NativeParallelMultiHashMap<int2, RelevancyFocus>(
                 math.max(connectionQuery.CalculateEntityCount(), 1),
@@ -88,14 +108,18 @@ namespace GalaxyIO.DOTS.Systems
                     .WithEntityAccess()
             ) {
                 float2 xy = position.ValueRO.Position.xy;
+                ranges.TryGetValue(networkId.ValueRO.Value, out float range);
 
                 focuses.Add(SpatialHash.ToCell(xy, outerRadius), new RelevancyFocus
                 {
                     Connection = connection,
                     NetworkId  = networkId.ValueRO.Value,
                     Position   = xy,
+                    Radius     = config.Radius + range,
                 });
             }
+
+            ranges.Dispose();
 
             var relevant = new NativeQueue<RelevantGhostForConnection>(Allocator.TempJob);
 
@@ -104,9 +128,8 @@ namespace GalaxyIO.DOTS.Systems
                 Focuses       = focuses,
                 Previous      = relevancy.ValueRO.GhostRelevancySet,
                 Relevant      = relevant.AsParallelWriter(),
-                CellSize      = outerRadius,
-                RadiusSq      = config.Radius * config.Radius,
-                OuterRadiusSq = outerRadius * outerRadius,
+                CellSize   = outerRadius,
+                Hysteresis = config.Hysteresis,
             }.ScheduleParallel(state.Dependency);
 
             state.Dependency = new FillRelevancySetJob
@@ -136,8 +159,7 @@ namespace GalaxyIO.DOTS.Systems
         public NativeQueue<RelevantGhostForConnection>.ParallelWriter Relevant;
 
         public float CellSize;
-        public float RadiusSq;
-        public float OuterRadiusSq;
+        public float Hysteresis;
 
         private void Execute(in GhostInstance ghost, in LocalTransform transform)
         {
@@ -165,8 +187,9 @@ namespace GalaxyIO.DOTS.Systems
                     do
                     {
                         float distanceSq = math.distancesq(position, focus.Position);
+                        float outerRadius = focus.Radius + Hysteresis;
 
-                        if (distanceSq > OuterRadiusSq)
+                        if (distanceSq > outerRadius * outerRadius)
                         {
                             continue;
                         }
@@ -174,7 +197,7 @@ namespace GalaxyIO.DOTS.Systems
                         var pair = new RelevantGhostForConnection(focus.NetworkId, ghost.ghostId);
 
                         // 경계에서 깜빡이지 않도록 보내던 Ghost 는 바깥 반경까지 유지함.
-                        if (distanceSq <= RadiusSq || Previous.ContainsKey(pair))
+                        if (distanceSq <= focus.Radius * focus.Radius || Previous.ContainsKey(pair))
                         {
                             Relevant.Enqueue(pair);
                         }

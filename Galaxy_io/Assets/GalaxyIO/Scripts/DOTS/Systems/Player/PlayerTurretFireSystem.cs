@@ -110,6 +110,14 @@ namespace GalaxyIO.DOTS.Systems
                     ref shots
                 );
 
+                // 강화한 피해 배율. 강화가 없는 기체는 1.
+                float damageScale = SystemAPI.HasBuffer<UpgradeElement>(spaceship)
+                    ? Upgrade.Value(
+                        SystemAPI.GetBuffer<UpgradeElement>(spaceship),
+                        SystemAPI.GetBuffer<UpgradeLevelElement>(spaceship),
+                        UpgradeStat.Damage)
+                    : 1.0F;
+
                 // 총구 위치. 쿨다운과 같은 순서.
                 DynamicBuffer<TurretElement> muzzles = SystemAPI.GetBuffer<TurretElement>(spaceship);
 
@@ -145,7 +153,7 @@ namespace GalaxyIO.DOTS.Systems
                     var shared = SystemAPI.GetComponent<SharedProjectileComponent>(spec.ProjectilePrefab);
                     shared.Owner = spaceship;
                     shared.TurretIndex = (byte)i;
-                    shared.Damage = spec.Damage;
+                    shared.Damage = spec.Damage * damageScale;
                     shared.InterpolationDelay = delay.ValueRO.Delay;
 
                     bool straight = SystemAPI.HasComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab);

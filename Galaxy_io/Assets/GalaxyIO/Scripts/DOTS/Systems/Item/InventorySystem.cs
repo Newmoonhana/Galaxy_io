@@ -20,6 +20,7 @@ namespace GalaxyIO.DOTS.Systems
         private EntityQuery moveQuery;
         private EntityQuery dropQuery;
         private EntityQuery craftQuery;
+        private EntityQuery upgradeQuery;
 
         public void OnCreate(ref SystemState state)
         {
@@ -32,6 +33,7 @@ namespace GalaxyIO.DOTS.Systems
             moveQuery = SystemAPI.QueryBuilder().WithAll<ReceiveRpcCommandRequest, InventoryMoveRPC>().Build();
             dropQuery = SystemAPI.QueryBuilder().WithAll<ReceiveRpcCommandRequest, InventoryDropRPC>().Build();
             craftQuery = SystemAPI.QueryBuilder().WithAll<ReceiveRpcCommandRequest, CraftRPC>().Build();
+            upgradeQuery = SystemAPI.QueryBuilder().WithAll<ReceiveRpcCommandRequest, UpgradeRPC>().Build();
 
             state.RequireForUpdate<ItemRegistryAssetComponent>();
             state.RequireForUpdate<ItemConfigComponent>();
@@ -45,6 +47,7 @@ namespace GalaxyIO.DOTS.Systems
             if (!moveQuery.IsEmpty) Receive<InventoryMoveRPC>(state.EntityManager, moveQuery, service.Move);
             if (!dropQuery.IsEmpty) Receive<InventoryDropRPC>(state.EntityManager, dropQuery, service.Drop);
             if (!craftQuery.IsEmpty) Receive<CraftRPC>(state.EntityManager, craftQuery, service.Craft);
+            if (!upgradeQuery.IsEmpty) Receive<UpgradeRPC>(state.EntityManager, upgradeQuery, service.Upgrade);
 
             service.Update();
         }

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using GalaxyIO.DOTS.Authoring;
 using GalaxyIO.DOTS.Authoring.Config;
 using GalaxyIO.DOTS.Client.Components.Singleton;
+using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.DOTS.Inventory;
@@ -9,6 +10,7 @@ using GalaxyIO.Tools.PopupUI.Window;
 using Newmoonhana.Runtime.Tools.PopupUI.Popup;
 using Newmoonhana.Runtime.Tools.PopupUI.Window;
 using Newmoonhana.Runtime.Utils.Pattern;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
 using UnityEngine;
@@ -20,7 +22,7 @@ using UnityEngine.Localization.Settings;
 namespace GalaxyIO.Tools.PopupUI.Popup
 {
     /// <summary>
-    /// 로컬 플레이어 우주선의 인벤토리 팝업. 칸 창과 제작 창을 관리함.
+    /// 로컬 플레이어 우주선의 인벤토리 팝업. 칸 창, 강화 창, 제작 창을 관리함.
     /// <p/>
     /// 칸을 누르면(뗄 때가 아니라 누르는 순간) 그 묶음을 집어 듦. 집어 든 동안 다른 칸을 누르면 좌클릭은 전부, 우클릭은 1개를 내려놓고,
     /// 다른 아이템이 있으면 맞바꿈. 패널 밖을 누르면 같은 규칙으로 버림.
@@ -101,10 +103,14 @@ namespace GalaxyIO.Tools.PopupUI.Popup
 
         private WindowInventory inventory_win;
         private WindowCraft craft_win;
+        private WindowUpgrade upgrade_win;
 
         private EntityManager entityManager;
         private EntityQuery inventoryQuery;
         private EntityQuery registryQuery;
+
+        // 강화할 수 있는 로컬 우주선
+        private EntityQuery shipQuery;
 
         // 집어 든 칸 번호. 없으면 -1.
         private int heldSlot = -1;
@@ -130,6 +136,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
 
             inventory_win = transform.GetComponentInChildren<WindowInventory>(true);
             craft_win = transform.GetComponentInChildren<WindowCraft>(true);
+            upgrade_win = transform.GetComponentInChildren<WindowUpgrade>(true);
         }
 
         protected override void Start()
@@ -140,6 +147,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             inventory_win.OnOutsidePressed += OnOutsidePress;
             craft_win.OnCraft += OnCraftPress;
             craft_win.OnClosed += OnCraftClosed;
+            upgrade_win.OnUpgrade += OnUpgradePress;
 
             stateM.Add(stateInventory, new InventoryState(inventory_win));
             stateM.Add(stateCraft, new CraftState(inventory_win, craft_win));
@@ -158,6 +166,11 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             entityManager = clientWorld.EntityManager;
             inventoryQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<LocalInventoryComponent>());
             registryQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<ItemRegistryAssetComponent>());
+            shipQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<GhostOwnerIsLocal>(),
+                ComponentType.ReadOnly<UpgradeElement>(),
+                ComponentType.ReadOnly<UpgradeLevelElement>()
+            );
         }
 
         protected override void OnDestroy()
@@ -167,6 +180,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
             inventory_win = null;
             craft_win = null;
+            upgrade_win = null;
         }
 
         /// <summary>
@@ -226,6 +240,17 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             RefreshHeld(inventory, registry);
 
             if (stateM.CurrentToString == stateCraft) craft_win.Refresh(inventory, registry);
+
+            if (shipQuery.IsEmpty) return;
+
+            using NativeArray<Entity> ships = shipQuery.ToEntityArray(Allocator.Temp);
+            ItemAsset module = registry.Find(ItemId.UpgradeModule);
+
+            upgrade_win.Refresh(
+                entityManager.GetBuffer<UpgradeElement>(ships[0], true),
+                entityManager.GetBuffer<UpgradeLevelElement>(ships[0], true),
+                inventory.Count(ItemId.UpgradeModule),
+                module != null ? module.Sprite : null);
         }
 
         private void RefreshSlots(PlayerInventory _inventory, ItemRegistryAsset _registry)
@@ -351,6 +376,17 @@ namespace GalaxyIO.Tools.PopupUI.Popup
 
             Entity rpcEntity = entityManager.CreateEntity(typeof(CraftRPC), typeof(SendRpcCommandRequest));
             entityManager.SetComponentData(rpcEntity, new CraftRPC { Slot = (byte)_blueprintSlot });
+        }
+
+        /// <summary>
+        /// <see cref="WindowUpgrade"/>의 능력치 줄을 눌렀을 때 호출됨.
+        /// </summary>
+        private void OnUpgradePress(UpgradeStat _stat)
+        {
+            if (!ClientWorldScope.IsAlive(clientWorld)) return;
+
+            Entity rpcEntity = entityManager.CreateEntity(typeof(UpgradeRPC), typeof(SendRpcCommandRequest));
+            entityManager.SetComponentData(rpcEntity, new UpgradeRPC { Stat = _stat });
         }
 
         private void OnCraftClosed() => stateM.Change(stateInventory);

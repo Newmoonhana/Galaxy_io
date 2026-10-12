@@ -15,5 +15,5 @@ MonoBehaviour:
   Id: 5
   Sprite: {fileID: 21300000, guid: 29cfe6c94b98c374c83a63f87a1e865b, type: 3}
   Type: 0
-  Stacking: 1
+  Stacking: 64
   Recipe: {fileID: 11400000, guid: 113ea82ac8c000856cc184de5997f3e4, type: 2}
