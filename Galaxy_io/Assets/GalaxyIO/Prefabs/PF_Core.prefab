@@ -694,7 +694,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 0c872ab64287bf04988f5ec31fbec7ee, type: 3}
+  m_Resource: {fileID: 8300000, guid: 6921e470d2c4f374692070cbd4e54d4b, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
@@ -837,16 +837,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 1
+  weight: 4
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
   useLocalization: 0
   reReRandomizeOnLoop: 0
-  useRandomPitch: 0
+  useRandomPitch: 1
   randomPitchMode: 0
-  randomPitchMin: 0
-  randomPitchMax: 0
+  randomPitchMin: -0.1
+  randomPitchMax: 0.1
   useRandomVolume: 0
   randomVolumeMode: 0
   randomVolumeMin: 0
@@ -1048,7 +1048,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 100
+  retriggerPercentage: 50
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -1095,7 +1095,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 332
+  frames: 2794
 --- !u!1 &3809429172540437953
 GameObject:
   m_ObjectHideFlags: 0
@@ -1196,7 +1196,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 1555
+  frames: 3805
 --- !u!1 &3941037054169278610
 GameObject:
   m_ObjectHideFlags: 0
@@ -2179,7 +2179,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 0c872ab64287bf04988f5ec31fbec7ee, type: 3}
+  m_Resource: {fileID: 8300000, guid: 94c6fb53b3a1b334ebd1da62f9425678, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0.5
   m_Pitch: 1
@@ -2328,10 +2328,10 @@ MonoBehaviour:
   isUninterruptible: 0
   useLocalization: 0
   reReRandomizeOnLoop: 0
-  useRandomPitch: 0
+  useRandomPitch: 1
   randomPitchMode: 0
   randomPitchMin: 0
-  randomPitchMax: 0
+  randomPitchMax: 0.1
   useRandomVolume: 0
   randomVolumeMode: 0
   randomVolumeMin: 0
@@ -4857,12 +4857,16 @@ PrefabInstance:
       value: PF_Core
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: busFilter
+      value: '[All]'
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: logOutOfVoices
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: groupBuses.Array.size
-      value: 2
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: mixerSpatialBlendType
@@ -4870,7 +4874,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.size
-      value: 1
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: groupBuses.Array.data[0].volume
@@ -4881,12 +4885,20 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: groupBuses.Array.data[2].volume
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: groupBuses.Array.data[0].busName
       value: SFX
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: groupBuses.Array.data[1].busName
-      value: Ambience
+      value: Jingles
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: groupBuses.Array.data[2].busName
+      value: Voices
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: groupBuses.Array.data[0].busColor.a
@@ -4929,27 +4941,67 @@ PrefabInstance:
       value: -1
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: groupBuses.Array.data[2].busColor.a
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: groupBuses.Array.data[2].busColor.b
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: groupBuses.Array.data[2].busColor.g
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: groupBuses.Array.data[2].busColor.r
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: groupBuses.Array.data[2].voiceLimit
+      value: -1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: groupBuses.Array.data[0].mixerChannel
       value: 
       objectReference: {fileID: -8014077137058332026, guid: 15e71c7a7a5c51d4b906936e900d03e5, type: 2}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: groupBuses.Array.data[1].mixerChannel
       value: 
-      objectReference: {fileID: -7883975745619563254, guid: 15e71c7a7a5c51d4b906936e900d03e5, type: 2}
+      objectReference: {fileID: -7293754208253392549, guid: 15e71c7a7a5c51d4b906936e900d03e5, type: 2}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: groupBuses.Array.data[2].mixerChannel
+      value: 
+      objectReference: {fileID: 1448535846434943056, guid: 15e71c7a7a5c51d4b906936e900d03e5, type: 2}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].isExpanded
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].isExpanded
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].playlistName
-      value: Ambient
+      value: Lobby
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].playlistName
+      value: Game
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].crossFadeTime
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].crossFadeTime
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].songTransitionType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].songTransitionType
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
@@ -4961,6 +5013,14 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].newMetadataPropName
+      value: PropertyName
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].newMetadataPropType
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: groupBuses.Array.data[0].busVoiceLimitExceededMode
       value: 2
       objectReference: {fileID: 0}
@@ -4969,20 +5029,52 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].newMetadataPropRequired
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.size
-      value: 2
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.size
+      value: 6
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[0].clip
       value: 
-      objectReference: {fileID: 8300000, guid: 4ae2bfbdd5f08f84aa067bb56c87f3a5, type: 3}
+      objectReference: {fileID: 8300000, guid: d09718f248468db4da68581e8555f1ab, type: 3}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[1].clip
       value: 
       objectReference: {fileID: 8300000, guid: 4ae084334db8c374da4748e8b1e6480e, type: 3}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[0].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 598c33689530f0c4cb81375de8c40d97, type: 3}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[1].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 59ce42342683546438b8a40434b0daa1, type: 3}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[2].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: b78460215a9eeab4dba441d261aa79c8, type: 3}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[3].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: e5e3e675b833c5b4b9c74e3042f4acee, type: 3}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[4].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 72f86ae4920737f4ab4a83a9516843fe, type: 3}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[5].clip
+      value: 
+      objectReference: {fileID: 8300000, guid: 1766adfa9d9bff74b82cf723cdd4bbd6, type: 3}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[0].alias
-      value: theme1
+      value: 
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[0].pitch
@@ -4997,12 +5089,96 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[0].pitch
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[1].pitch
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[2].pitch
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[3].pitch
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[4].pitch
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[5].pitch
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[0].isLoop
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[0].volume
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[1].volume
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[0].volume
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[1].volume
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[2].volume
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[3].volume
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[4].volume
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[5].volume
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[0].songName
+      value: Field_-_Ecumenopolis
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[1].songName
+      value: theme2
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[0].songName
+      value: Battle_-_Disruptor_Ray
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[1].songName
+      value: Field_-_Exploring_The_Rim
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[2].songName
+      value: Field_-_Nexus_Six
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[3].songName
+      value: Menu_-_Binary_Suns
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[4].songName
+      value: Menu_-_Mission_Briefing
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[5].songName
+      value: Menu_-_Serious_Decisions
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[0].isChecked
@@ -5013,11 +5189,87 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[0].isChecked
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[1].isChecked
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[2].isChecked
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[3].isChecked
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[4].isChecked
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[5].isChecked
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[0].isExpanded
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[0].isExpanded
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[1].isExpanded
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[2].isExpanded
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[3].isExpanded
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[4].isExpanded
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[5].isExpanded
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[0].metadataExpanded
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[1].metadataExpanded
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[0].metadataExpanded
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[1].metadataExpanded
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[2].metadataExpanded
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[3].metadataExpanded
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[4].metadataExpanded
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[5].metadataExpanded
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6979012843466458887, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
@@ -5059,6 +5311,10 @@ PrefabInstance:
     - target: {fileID: 6979012843466458887, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7640880782638385940, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: isShuffle
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7640880782638385940, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: mixerChannel
@@ -5111,9 +5367,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 4006325281196233232, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8766412373027143437}
-    - targetCorrespondingSourceObject: {fileID: 4006325281196233232, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3574258753303667776}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
 --- !u!4 &2681602925857305890 stripped
