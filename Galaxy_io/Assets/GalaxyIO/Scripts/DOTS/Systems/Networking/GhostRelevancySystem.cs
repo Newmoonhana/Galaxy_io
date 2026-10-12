@@ -69,12 +69,12 @@ namespace GalaxyIO.DOTS.Systems
             ) {
                 ships[owner.ValueRO.NetworkId] = transform.ValueRO.Position;
 
-                if (SystemAPI.HasBuffer<UpgradeElement>(ship))
+                if (SystemAPI.HasBuffer<UpgradeParamElement>(ship))
                 {
                     float range = Upgrade.Value(
-                        SystemAPI.GetBuffer<UpgradeElement>(ship),
+                        SystemAPI.GetBuffer<UpgradeParamElement>(ship),
                         SystemAPI.GetBuffer<UpgradeLevelElement>(ship),
-                        UpgradeStat.RadarRange
+                        UpgradeParam.RadarRange
                     );
 
                     ranges[owner.ValueRO.NetworkId] = range;

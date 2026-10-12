@@ -20,6 +20,11 @@ namespace GalaxyIO.Tools.PopupUI.Window
         [SerializeField] private float backBrightness = 0.45F;
         [SerializeField] private float backAlpha = 0.6F;
 
+        [Tooltip("강화할 수 없는 줄의 색. 줄 색마다 회색 밝기가 달라지지 않게 모든 줄이 같이 씀")]
+        [SerializeField] private Color disabled_color = new Color(0.75F, 0.75F, 0.75F);
+
+        private Color color = Color.white;
+
         private string shownName;
         private int shownLevel = -1;
         private bool shownEnabled;
@@ -29,12 +34,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
         /// </summary>
         public void SetColor(Color _color)
         {
-            if (name_tmp != null) name_tmp.color = _color;
-            if (size_tmp != null) size_tmp.color = _color;
-
-            if (back_img != null)
-                back_img.color = new Color(
-                    _color.r * backBrightness, _color.g * backBrightness, _color.b * backBrightness, backAlpha);
+            color = _color;
+            shownLevel = -1;
         }
 
         /// <summary>
@@ -56,6 +57,15 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 Size      = _isMax ? "MAX" : _level.ToString(),
                 IsEnabled = _isEnabled,
             });
+
+            Color tint = _isEnabled ? color : disabled_color;
+
+            if (name_tmp != null) name_tmp.color = tint;
+            if (size_tmp != null) size_tmp.color = tint;
+
+            if (back_img != null)
+                back_img.color = new Color(
+                    tint.r * backBrightness, tint.g * backBrightness, tint.b * backBrightness, backAlpha);
         }
     }
 }

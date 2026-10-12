@@ -8,6 +8,7 @@ Shader "GalaxyIO/UI-RadarScanner"
         // RadarView 가 채우는 값. 인스펙터 값은 미리보기용.
         _Angle ("Angle (Degree, Clockwise From Up)", Float) = 45
         [HideInInspector] _BlipCount ("Blip Count", Float) = 0
+        _SweepAlpha ("Sweep Alpha", Range(0, 1)) = 1
 
         _Radius ("Scan Radius", Float) = 0.88
         _ScanColor ("Scan Color", Color) = (0.1, 0.8, 1, 1)
@@ -50,6 +51,7 @@ Shader "GalaxyIO/UI-RadarScanner"
             CBUFFER_START(UnityPerMaterial)
                 float _Angle;
                 float _BlipCount;
+                float _SweepAlpha;
                 float _Radius;
                 half4 _ScanColor;
                 half4 _EdgeColor;
@@ -88,12 +90,13 @@ Shader "GalaxyIO/UI-RadarScanner"
                 half fade = behind >= beam ? pow(saturate(1.0 - (behind - beam) / trail), _TrailFalloff) * _TrailAlpha : 0.0;
 
                 // 바깥쪽일수록 밝게.
-                half sweep = (core + fade) * lerp(0.35, 1.0, saturate(r / _Radius)) * inside;
+                half sweep = (core + fade) * lerp(0.35, 1.0, saturate(r / _Radius)) * inside * _SweepAlpha;
 
                 half edge = Band(min(behind, TWO_PI - behind) * r, _EdgeWidth, aa) * inside;
                 half arc  = Band(r - _Radius, _EdgeWidth, aa) * step(behind, beam);
                 half hub  = Band(r - _HubRadius, _EdgeWidth * 1.5, aa);
-                half lines = saturate(edge + arc + hub);
+                // 빔과 함께 도는 선만 투명해짐. 중심 고리는 그대로.
+                half lines = saturate((edge + arc) * _SweepAlpha + hub);
 
                 half blips = 0.0;
                 half playerBlips = 0.0;

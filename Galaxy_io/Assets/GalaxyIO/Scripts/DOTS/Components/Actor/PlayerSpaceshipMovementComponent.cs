@@ -44,5 +44,12 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 고속 선회 억제: 최대 속력일 때 Maneuver가 감소하는 비율(0 ~ 1).
         // 0이면 속력과 무관하게 항상 최대 회전속도, 1이면 최대 속력에서 선회 불가.
         public float ManeuverPenalty;
+
+        // 호버링 방향 전환 가속도. 움직이던 중에 WASD 방향을 바꾸면 호버링 가감속 대신 이 값으로 붙음.
+        public float HoveringManeuver;
+
+        // 호버링 방향 전환 중. 예측 롤백 시 서버 값으로 되감아야 하므로 복제함.
+        [GhostField]
+        public bool HoveringTurning;
     }
 }

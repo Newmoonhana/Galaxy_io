@@ -102,16 +102,21 @@ namespace GalaxyIO.DOTS.Systems
                     ? float2.zero
                     : math.normalizesafe(inputRequest.ValueRO.MoveArrows, float2.zero) * hoveringSpeed;
 
+                bool turning = playerMovement.ValueRO.HoveringTurning;
+
                 float2 nextHovering = SpaceshipHovering.Approach(
                     playerMovement.ValueRO.HoveringVelocity,
                     desiredHovering,
                     playerMovement.ValueRO.HoveringAcceleration,
                     playerMovement.ValueRO.HoveringDeceleration,
+                    playerMovement.ValueRO.HoveringManeuver,
+                    ref turning,
                     deltaTime
                 );
 
                 playerMovement.ValueRW.Speed = nextSpeed;
                 playerMovement.ValueRW.HoveringVelocity = nextHovering;
+                playerMovement.ValueRW.HoveringTurning = turning;
                 transform.ValueRW.Rotation = SpaceshipHeading.ToRotation(nextForward);
                 movement.ValueRW.DeltaMovement = nextForward * nextSpeed + nextHovering;
             }

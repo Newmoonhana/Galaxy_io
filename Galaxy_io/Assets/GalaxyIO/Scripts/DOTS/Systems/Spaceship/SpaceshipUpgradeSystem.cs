@@ -18,27 +18,35 @@ namespace GalaxyIO.DOTS.Systems
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<UpgradeElement>();
+            state.RequireForUpdate<UpgradeParamElement>();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             foreach (
-                var (spec, movement, heat, upgrades, levels) in
+                var (spec, movement, heat, parameters, levels) in
                 SystemAPI.Query<
                     RefRW<SpaceshipSpecComponent>,
                     RefRW<PlayerSpaceshipMovementComponent>,
                     RefRW<TurretHeatComponent>,
-                    DynamicBuffer<UpgradeElement>,
+                    DynamicBuffer<UpgradeParamElement>,
                     DynamicBuffer<UpgradeLevelElement>
                 >()
             ) {
-                spec.ValueRW.MaxHealth = Upgrade.Value(upgrades, levels, UpgradeStat.MaxHealth);
-                spec.ValueRW.Repair = Upgrade.Value(upgrades, levels, UpgradeStat.Repair);
-                movement.ValueRW.MaxSpeed = Upgrade.Value(upgrades, levels, UpgradeStat.Speed);
-                movement.ValueRW.Maneuver = Upgrade.Value(upgrades, levels, UpgradeStat.Maneuver);
-                heat.ValueRW.MaxHeat = Upgrade.Value(upgrades, levels, UpgradeStat.MaxHeat);
+                spec.ValueRW.MaxHealth = Upgrade.Value(parameters, levels, UpgradeParam.MaxHealth);
+                spec.ValueRW.Repair = Upgrade.Value(parameters, levels, UpgradeParam.Repair);
+                heat.ValueRW.MaxHeat = Upgrade.Value(parameters, levels, UpgradeParam.MaxHeat);
+
+                movement.ValueRW.MaxSpeed = Upgrade.Value(parameters, levels, UpgradeParam.MaxSpeed);
+                movement.ValueRW.Acceleration = Upgrade.Value(parameters, levels, UpgradeParam.Acceleration);
+                movement.ValueRW.Deceleration = Upgrade.Value(parameters, levels, UpgradeParam.Deceleration);
+                movement.ValueRW.HoveringSpeed = Upgrade.Value(parameters, levels, UpgradeParam.HoveringSpeed);
+                movement.ValueRW.HoveringAcceleration = Upgrade.Value(parameters, levels, UpgradeParam.HoveringAcceleration);
+                movement.ValueRW.HoveringDeceleration = Upgrade.Value(parameters, levels, UpgradeParam.HoveringDeceleration);
+                movement.ValueRW.Maneuver = Upgrade.Value(parameters, levels, UpgradeParam.Maneuver);
+                movement.ValueRW.ManeuverPenalty = Upgrade.Value(parameters, levels, UpgradeParam.ManeuverPenalty);
+                movement.ValueRW.HoveringManeuver = Upgrade.Value(parameters, levels, UpgradeParam.HoveringManeuver);
             }
         }
     }

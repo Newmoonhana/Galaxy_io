@@ -1,6 +1,7 @@
 ﻿using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Singleton;
 using System.Collections.Generic;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -29,6 +30,10 @@ namespace GalaxyIO.DOTS.Authoring
         // 호버링 감속도. WASD를 뗐을 때 초당 줄어드는 속도.
         [Min(0.0F)]
         public float HoveringDeceleration = 60.0F;
+
+        // 호버링 방향 전환 가속도. 움직이던 중에 WASD 방향을 바꾸면 가감속 대신 이 값으로 붙음.
+        [Min(0.0F)]
+        public float HoveringManeuver = 40.0F;
 
         // 가속도
         public float Acceleration;
@@ -166,36 +171,44 @@ namespace GalaxyIO.DOTS.Authoring
                 return;
             }
 
+            SpaceshipUpgradeAsset upgrade = authoring.Upgrade;
+
+            // UpgradeStat 순서
             var upgrades = AddBuffer<UpgradeElement>(entity);
-            var levels = AddBuffer<UpgradeLevelElement>(entity);
+            upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.Damage.MaxLevel });
+            upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.MaxHeat.MaxLevel });
+            upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.MaxHealth.MaxLevel });
+            upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.Repair.MaxLevel });
+            upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.Speed.MaxLevel });
+            upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.Maneuver.MaxLevel });
+            upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.RadarRange.MaxLevel });
+            upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.RadarSweep.MaxLevel });
 
-            for (int i = 0; i < Upgrade.Count; i++)
-            {
-                upgrades.Add(new UpgradeElement
-                {
-                    // 배율은 1, 더하는 값은 0 에서 시작함.
-                    Base = (UpgradeStat)i switch
-                    {
-                        UpgradeStat.MaxHeat    => authoring.MaxHeat,
-                        UpgradeStat.MaxHealth  => authoring.MaxHealth,
-                        UpgradeStat.Repair     => authoring.Repair,
-                        UpgradeStat.Speed      => authoring.Speed,
-                        UpgradeStat.Maneuver   => authoring.Maneuver,
-                        UpgradeStat.RadarRange => 0.0F,
-                        _                      => 1.0F,
-                    },
-                });
+            AddBuffer<UpgradeLevelElement>(entity).Resize(Upgrade.Count, NativeArrayOptions.ClearMemory);
 
-                levels.Add(default);
-            }
+            // UpgradeParam 순서. 배율은 1, 레이더에 더하는 값은 0 에서 시작함.
+            var parameters = AddBuffer<UpgradeParamElement>(entity);
+            Add(parameters, UpgradeStat.Damage, 1.0F, upgrade.Damage.Damage);
+            Add(parameters, UpgradeStat.MaxHeat, authoring.MaxHeat, upgrade.MaxHeat.MaxHeat);
+            Add(parameters, UpgradeStat.MaxHealth, authoring.MaxHealth, upgrade.MaxHealth.MaxHealth);
+            Add(parameters, UpgradeStat.Repair, authoring.Repair, upgrade.Repair.Repair);
+            Add(parameters, UpgradeStat.Speed, authoring.Speed, upgrade.Speed.MaxSpeed);
+            Add(parameters, UpgradeStat.Speed, authoring.Acceleration, upgrade.Speed.Acceleration);
+            Add(parameters, UpgradeStat.Speed, authoring.Deceleration, upgrade.Speed.Deceleration);
+            Add(parameters, UpgradeStat.Speed, authoring.HoveringSpeed, upgrade.Speed.HoveringSpeed);
+            Add(parameters, UpgradeStat.Speed, authoring.HoveringAcceleration, upgrade.Speed.HoveringAcceleration);
+            Add(parameters, UpgradeStat.Speed, authoring.HoveringDeceleration, upgrade.Speed.HoveringDeceleration);
+            Add(parameters, UpgradeStat.Maneuver, authoring.Maneuver, upgrade.Maneuver.Maneuver);
+            Add(parameters, UpgradeStat.Maneuver, authoring.ManeuverPenalty, -upgrade.Maneuver.ManeuverPenalty);
+            Add(parameters, UpgradeStat.Maneuver, authoring.HoveringManeuver, upgrade.Maneuver.HoveringManeuver);
+            Add(parameters, UpgradeStat.RadarRange, 0.0F, upgrade.RadarRange.Range);
+            Add(parameters, UpgradeStat.RadarSweep, 0.0F, upgrade.RadarSweep.SweepSpeed);
+            Add(parameters, UpgradeStat.RadarSweep, 0.0F, upgrade.RadarSweep.ResponseTime);
+        }
 
-            foreach (SpaceshipUpgradeAsset.Entry entry in authoring.Upgrade.Entries)
-            {
-                UpgradeElement upgrade = upgrades[(int)entry.Stat];
-                upgrade.Amount = entry.Amount;
-                upgrade.MaxLevel = (byte)entry.MaxLevel;
-                upgrades[(int)entry.Stat] = upgrade;
-            }
+        private static void Add(DynamicBuffer<UpgradeParamElement> parameters, UpgradeStat stat, float baseValue, float amount)
+        {
+            parameters.Add(new UpgradeParamElement { Stat = stat, Base = baseValue, Amount = amount });
         }
     }
 }

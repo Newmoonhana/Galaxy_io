@@ -115,6 +115,7 @@ MonoBehaviour:
   HoveringSpeed: 8
   HoveringAcceleration: 18
   HoveringDeceleration: 10
+  HoveringManeuver: 15
   Acceleration: 10
   Deceleration: 20
   Maneuver: 360

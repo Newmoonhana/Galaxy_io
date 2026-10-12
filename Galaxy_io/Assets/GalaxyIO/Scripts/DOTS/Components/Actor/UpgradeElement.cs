@@ -5,9 +5,25 @@ using Unity.NetCode;
 namespace GalaxyIO.DOTS.Components.Actor
 {
     /// <summary>
-    /// 강화할 수 있는 우주선 능력치. 값이 곧 강화 버퍼의 인덱스.
+    /// 우주선 강화 종류. 값이 곧 <see cref="UpgradeElement"/>, <see cref="UpgradeLevelElement"/>의 인덱스.
     /// </summary>
     public enum UpgradeStat : byte
+    {
+        Damage = 0,
+        MaxHeat = 1,
+        MaxHealth = 2,
+        Repair = 3,
+        Speed = 4,
+        Maneuver = 5,
+        RadarRange = 6,
+        RadarSweep = 7,
+    }
+
+    /// <summary>
+    /// 강화로 바뀌는 능력치. 강화 종류 하나가 여러 개를 바꿀 수 있음.
+    /// 값이 곧 <see cref="UpgradeParamElement"/>의 인덱스.
+    /// </summary>
+    public enum UpgradeParam : byte
     {
         // 포탑 피해 배율
         Damage = 0,
@@ -21,43 +37,69 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 자가 수리 속도
         Repair = 3,
 
-        // 비행 최대 이동속도
-        Speed = 4,
+        // 비행 최대 이동속도, 가속도, 감속도
+        MaxSpeed = 4,
+        Acceleration = 5,
+        Deceleration = 6,
+
+        // 호버링 최대 이동속도, 가속도, 감속도
+        HoveringSpeed = 7,
+        HoveringAcceleration = 8,
+        HoveringDeceleration = 9,
 
         // 회전 속도(도/초)
-        Maneuver = 5,
+        Maneuver = 10,
 
-        // 레이더 탐지 거리
-        RadarRange = 6,
+        // 고속 선회 억제 비율
+        ManeuverPenalty = 11,
 
-        // 레이더 스캐너 회전 속도 배율
-        RadarSweep = 7,
+        // 호버링 방향 전환 가속도
+        HoveringManeuver = 12,
+
+        // 레이더 탐지 거리에 더하는 값
+        RadarRange = 13,
+
+        // 레이더 스캐너 회전 속도(도/초)에 더하는 값
+        RadarSweep = 14,
+
+        // 레이더 점이 나타나기까지의 시간(초)에서 빼는 값
+        RadarResponse = 15,
     }
 
     /// <summary>
-    /// <see cref="SpaceshipUpgradeAsset"/>의 DOTS 구조체. 능력치 하나의 강화 사양.
+    /// <see cref="SpaceshipUpgradeAsset"/>의 DOTS 구조체. 강화 종류 하나의 한계.
     /// 현재 단계는 같은 번호의 <see cref="UpgradeLevelElement"/>에 있음.
     /// </summary>
     [InternalBufferCapacity(Upgrade.Count)]
     public struct UpgradeElement : IBufferElementData
     {
-        // 강화하지 않았을 때의 값
-        public float Base;
-
-        // 한 단계마다 더해지는 값
-        public float Amount;
-
         public byte MaxLevel;
     }
 
     /// <summary>
-    /// 능력치별 현재 강화 단계. <see cref="UpgradeElement"/>와 같은 순서. 서버가 올림.
+    /// 강화 종류별 현재 단계. <see cref="UpgradeElement"/>와 같은 순서. 서버가 올림.
     /// </summary>
     [InternalBufferCapacity(Upgrade.Count)]
     public struct UpgradeLevelElement : IBufferElementData
     {
         [GhostField]
         public byte Value;
+    }
+
+    /// <summary>
+    /// <see cref="SpaceshipUpgradeAsset"/>의 DOTS 구조체. 능력치 하나가 강화로 바뀌는 양.
+    /// </summary>
+    [InternalBufferCapacity(Upgrade.ParamCount)]
+    public struct UpgradeParamElement : IBufferElementData
+    {
+        // 이 능력치를 올리는 강화 종류
+        public UpgradeStat Stat;
+
+        // 강화하지 않았을 때의 값
+        public float Base;
+
+        // 한 단계마다 더해지는 값
+        public float Amount;
     }
 
     /// <summary>
@@ -68,15 +110,20 @@ namespace GalaxyIO.DOTS.Components.Actor
         // UpgradeStat 종류 수
         public const int Count = 8;
 
+        // UpgradeParam 종류 수
+        public const int ParamCount = 16;
+
         /// <summary>
         /// 현재 단계까지 강화한 능력치 값.
         /// </summary>
         public static float Value(
-            DynamicBuffer<UpgradeElement> upgrades,
+            DynamicBuffer<UpgradeParamElement> parameters,
             DynamicBuffer<UpgradeLevelElement> levels,
-            UpgradeStat stat)
+            UpgradeParam param)
         {
-            return upgrades[(int)stat].Base + upgrades[(int)stat].Amount * levels[(int)stat].Value;
+            UpgradeParamElement parameter = parameters[(int)param];
+
+            return parameter.Base + parameter.Amount * levels[(int)parameter.Stat].Value;
         }
 
         /// <summary>
