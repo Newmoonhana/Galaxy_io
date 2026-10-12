@@ -35,7 +35,7 @@ MonoBehaviour:
   Maneuver:
     Maneuver: 4
     ManeuverPenalty: 0.1
-    HoveringManeuver: 0.1
+    HoveringManeuver: 1
     MaxLevel: 25
   RadarRange:
     Range: 10
