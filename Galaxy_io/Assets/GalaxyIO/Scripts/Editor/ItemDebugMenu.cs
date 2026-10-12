@@ -7,7 +7,7 @@ namespace GalaxyIO.Scripts.Editor
 {
     /// <summary>
     /// <see cref="ItemCommandHandlerList"/>를 에디터 메뉴에 노출함.
-    /// 패키지 EditorUtils의 "디버그 함수/" 메뉴 트리를 따름.
+    /// 패키지 EditorUtils 의 "디버그 함수/" 메뉴 트리를 따름.
     /// </summary>
     public static class ItemDebugMenu
     {
