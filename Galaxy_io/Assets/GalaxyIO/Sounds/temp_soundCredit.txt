@@ -17,7 +17,27 @@ Menu_-_Serious_Decisions: 어두움, 분위기
 Musician: Joel Steudler
 ```
 beep_neutral_04: UI버튼 입력음
+blaster_01: Bore 발사음
+blaster_17: Raptor 발사음
+blaster_burst_07: Vraxx 발사음
+glitch_01: Overheat
+alarm_siren_loop_04: Loop_Overheat
+manhole_metal_door_lid_impact_03: Crash
+```
+
+- Gamemaster Audio - Pro Sound Collection
+
+```
 foley_soldier_gear_equipment_rattle_movement_light_01: 아이템 픽업
+retro_laser_beam_02: Loop_Veylance
+```
+
+- RPG Maker
+```
+Explosion7: Brakkar 발사음
+Explosion4: Explosion
+Fire6: Pyron 발사음
+Fire3: Loop_Pyron 
 ```
 
 C:\Program Files (x86)\Steam\steamapps\common\RPGVXAce\dlc\SFSoundEffects_SND\SFX_OGG 부터 이어서 보기
