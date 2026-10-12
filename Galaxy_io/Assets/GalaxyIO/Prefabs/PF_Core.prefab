@@ -53,7 +53,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 60
+  retriggerPercentage: 10
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -100,7 +100,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 327
+  frames: 9591
 --- !u!1 &2457249127668085956
 GameObject:
   m_ObjectHideFlags: 0
@@ -201,252 +201,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 1555
---- !u!1 &2712169553375638470
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7192219234497179412}
-  - component: {fileID: 1372287959732241028}
-  - component: {fileID: 7862040631770284532}
-  - component: {fileID: 8312660057146595914}
-  m_Layer: 2
-  m_Name: Whisper
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &7192219234497179412
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2712169553375638470}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 3574258753303667776}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!82 &1372287959732241028
-AudioSource:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2712169553375638470}
-  m_Enabled: 1
-  serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
-  m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 8e051a2904adc884ca0936282513de20, type: 3}
-  m_PlayOnAwake: 0
-  m_Volume: 0.5
-  m_Pitch: 1
-  Loop: 0
-  Mute: 0
-  Spatialize: 0
-  SpatializePostEffects: 0
-  Priority: 128
-  DopplerLevel: 1
-  MinDistance: 10
-  MaxDistance: 100
-  Pan2D: 0
-  rolloffMode: 2
-  BypassEffects: 0
-  BypassListenerEffects: 0
-  BypassReverbZones: 0
-  rolloffCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0.02
-      value: 1
-      inSlope: -50.019924
-      outSlope: -50.019924
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 0.04
-      value: 0.5
-      inSlope: -12.504981
-      outSlope: -12.504981
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 0.08
-      value: 0.25
-      inSlope: -3.1262453
-      outSlope: -3.1262453
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 0.16
-      value: 0.125
-      inSlope: -0.7815613
-      outSlope: -0.7815613
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 0.32
-      value: 0.0625
-      inSlope: -0.19539033
-      outSlope: -0.19539033
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 0.64
-      value: 0.03125
-      inSlope: -0.048847582
-      outSlope: -0.048847582
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    - serializedVersion: 3
-      time: 1
-      value: 0
-      inSlope: -0.020007985
-      outSlope: -0.020007985
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  panLevelCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  spreadCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 0
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
-  reverbZoneMixCustomCurve:
-    serializedVersion: 2
-    m_Curve:
-    - serializedVersion: 3
-      time: 0
-      value: 1
-      inSlope: 0
-      outSlope: 0
-      tangentMode: 0
-      weightedMode: 0
-      inWeight: 0.33333334
-      outWeight: 0.33333334
-    m_PreInfinity: 2
-    m_PostInfinity: 2
-    m_RotationOrder: 4
---- !u!114 &7862040631770284532
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2712169553375638470}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  weight: 2
-  probabilityToPlay: 100
-  importance: 5
-  isUninterruptible: 0
-  useLocalization: 0
-  reReRandomizeOnLoop: 0
-  useRandomPitch: 0
-  randomPitchMode: 0
-  randomPitchMin: 0
-  randomPitchMax: 0
-  useRandomVolume: 0
-  randomVolumeMode: 0
-  randomVolumeMin: 0
-  randomVolumeMax: 0
-  clipAlias: 
-  audLocation: 0
-  resourceFileName: 
-  audioClipAddressable:
-    m_AssetGUID: 
-    m_SubObjectName: 
-    m_SubObjectType: 
-    m_SubObjectGUID: 
-    m_EditorAssetChanged: 0
-  original_pitch: 0
-  original_volume: 0
-  isExpanded: 1
-  isChecked: 1
-  useFades: 0
-  fadeInTime: 0
-  fadeOutTime: 0
-  useCustomLooping: 0
-  minCustomLoops: 1
-  maxCustomLoops: 5
-  useRandomStartTime: 0
-  randomStartMinPercent: 0
-  randomStartMaxPercent: 0
-  randomEndPercent: 100
-  useIntroSilence: 0
-  introSilenceMin: 0
-  introSilenceMax: 0
-  fadeMaxVolume: 0
-  curFadeMode: 0
-  curPitchMode: 0
-  curDetectEndMode: 0
-  frames: 0
---- !u!114 &8312660057146595914
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2712169553375638470}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e1b7eb7dcef8b0e48a8572747ca7c64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  frames: 5666
 --- !u!1 &2916076929188881455
 GameObject:
   m_ObjectHideFlags: 0
@@ -500,7 +255,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 60
+  retriggerPercentage: 100
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -527,11 +282,11 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 2
+  limitMode: 0
   limitPerXFrames: 1
   minimumTimeBetween: 0.05
   useClipAgePriority: 0
-  limitPolyphony: 0
+  limitPolyphony: 1
   voiceLimitCount: 1
   targetDespawnedBehavior: 0
   despawnFadeTime: 1
@@ -547,7 +302,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 873
+  frames: 4241
 --- !u!1 &3008422010975996906
 GameObject:
   m_ObjectHideFlags: 0
@@ -648,7 +403,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 1555
+  frames: 2660
 --- !u!1 &3434971531596244705
 GameObject:
   m_ObjectHideFlags: 0
@@ -947,7 +702,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 60
+  retriggerPercentage: 20
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -994,7 +749,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 326
+  frames: 3020
 --- !u!1 &3683315071182364970
 GameObject:
   m_ObjectHideFlags: 0
@@ -1095,7 +850,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 2794
+  frames: 2962
 --- !u!1 &3809429172540437953
 GameObject:
   m_ObjectHideFlags: 0
@@ -1196,7 +951,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 3805
+  frames: 3956
 --- !u!1 &3941037054169278610
 GameObject:
   m_ObjectHideFlags: 0
@@ -1250,7 +1005,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 60
+  retriggerPercentage: 100
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -1277,7 +1032,7 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 2
+  limitMode: 0
   limitPerXFrames: 1
   minimumTimeBetween: 0.05
   useClipAgePriority: 0
@@ -1297,7 +1052,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 803
+  frames: 3006
 --- !u!1 &4152777156386802529
 GameObject:
   m_ObjectHideFlags: 0
@@ -1343,9 +1098,9 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: a3835cf5ebbcf0c469fc5b2693428825, type: 3}
+  m_Resource: {fileID: 8300000, guid: 3ef96c71666fd2943893060546448c65, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.466
+  m_Volume: 1
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -1486,7 +1241,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 3
+  weight: 4
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -1588,9 +1343,9 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 01d0ce3688cc2fb4f9559767b8b578b0, type: 3}
+  m_Resource: {fileID: 8300000, guid: f56c57093eac14741a0e2dafc7946d55, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.3
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -1731,7 +1486,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 3
+  weight: 16
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -1833,7 +1588,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 71c5a135607066a4d94381192d60e035, type: 3}
+  m_Resource: {fileID: 8300000, guid: 4ad9455206c36044f9eea06526445c00, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0.5
   m_Pitch: 1
@@ -1976,7 +1731,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 2
+  weight: 1
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -2033,107 +1788,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1b7eb7dcef8b0e48a8572747ca7c64d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!1 &4575056707685793992
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 3574258753303667776}
-  - component: {fileID: 5529322225679853339}
-  m_Layer: 2
-  m_Name: Whisper
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &3574258753303667776
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4575056707685793992}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 7192219234497179412}
-  m_Father: {fileID: 2681602925857305890}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5529322225679853339
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4575056707685793992}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: db10a6d491569a8419b6f5e1bffc5243, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  busIndex: 2
-  spatialBlendType: 0
-  spatialBlend: 0
-  groupPlayType: 0
-  isTemporary: 0
-  isSelected: 0
-  isExpanded: 1
-  groupMasterVolume: 1
-  retriggerPercentage: 100
-  curVariationMode: 0
-  alwaysHighestPriority: 0
-  ignoreListenerPause: 0
-  importance: 5
-  isUninterruptible: 0
-  chainLoopDelayMin: 0
-  chainLoopDelayMax: 0
-  chainLoopMode: 0
-  chainLoopNumLoops: 0
-  useDialogFadeOut: 0
-  dialogFadeOutTime: 0.5
-  curVariationSequence: 0
-  useNoRepeatRefill: 1
-  useInactivePeriodPoolRefill: 0
-  inactivePeriodSeconds: 5
-  groupVariations:
-  - {fileID: 7862040631770284532}
-  bulkVariationMode: 0
-  comments: 
-  logSound: 0
-  copySettingsExpanded: 0
-  expandLinkedGroups: 0
-  childSoundGroups: []
-  endLinkedGroups: []
-  linkedStartGroupSelectionType: 0
-  linkedStopGroupSelectionType: 0
-  limitMode: 0
-  limitPerXFrames: 1
-  minimumTimeBetween: 0.1
-  useClipAgePriority: 0
-  limitPolyphony: 0
-  voiceLimitCount: 1
-  targetDespawnedBehavior: 0
-  despawnFadeTime: 1
-  isUsingOcclusion: 0
-  willOcclusionOverrideRaycastOffset: 0
-  occlusionRayCastOffset: 0
-  willOcclusionOverrideFrequencies: 0
-  occlusionMaxCutoffFreq: 0
-  occlusionMinCutoffFreq: 22000
-  isSoloed: 0
-  isMuted: 0
-  soundPlayedEventActive: 0
-  soundPlayedCustomEvent: 
-  willCleanUpDelegatesAfterStop: 1
-  addressableUnusedSecondsLifespan: 0
-  frames: 1555
 --- !u!1 &4884919280900882387
 GameObject:
   m_ObjectHideFlags: 0
@@ -2432,7 +2086,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 60
+  retriggerPercentage: 20
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -2464,7 +2118,7 @@ MonoBehaviour:
   minimumTimeBetween: 0.05
   useClipAgePriority: 0
   limitPolyphony: 0
-  voiceLimitCount: 1
+  voiceLimitCount: 16
   targetDespawnedBehavior: 0
   despawnFadeTime: 1
   isUsingOcclusion: 0
@@ -2479,7 +2133,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 328
+  frames: 13696
 --- !u!1 &5591481125045961486
 GameObject:
   m_ObjectHideFlags: 0
@@ -2525,7 +2179,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 4378f2fdcdd062c4ea9a2e27c62d6bae, type: 3}
+  m_Resource: {fileID: 8300000, guid: 40900a71ec987554f8dba42d11abd3c3, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
@@ -2668,19 +2322,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 3
+  weight: 4
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
   useLocalization: 0
   reReRandomizeOnLoop: 0
-  useRandomPitch: 0
+  useRandomPitch: 1
   randomPitchMode: 0
-  randomPitchMin: 0
+  randomPitchMin: -0.2
   randomPitchMax: 0
-  useRandomVolume: 0
+  useRandomVolume: 1
   randomVolumeMode: 0
-  randomVolumeMin: 0
+  randomVolumeMin: -0.3
   randomVolumeMax: 0
   clipAlias: 
   audLocation: 0
@@ -2770,9 +2424,9 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: e3a73ef7789f20e41822006a60131648, type: 3}
+  m_Resource: {fileID: 8300000, guid: 20fe3106cc8f0b042b3df8b2809eaacf, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.5
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -2913,16 +2567,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 3
+  weight: 16
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
   useLocalization: 0
   reReRandomizeOnLoop: 0
-  useRandomPitch: 0
+  useRandomPitch: 1
   randomPitchMode: 0
-  randomPitchMin: 0
-  randomPitchMax: 0
+  randomPitchMin: -0.1
+  randomPitchMax: 0.1
   useRandomVolume: 0
   randomVolumeMode: 0
   randomVolumeMin: 0
@@ -3015,7 +2669,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 072a9e4ea1e53da4ca5905b6705163d2, type: 3}
+  m_Resource: {fileID: 8300000, guid: cb1988bd4524d93489b7c4abceb1e945, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0.5
   m_Pitch: 1
@@ -3158,7 +2812,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 2
+  weight: 1
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -3195,9 +2849,9 @@ MonoBehaviour:
   randomStartMinPercent: 0
   randomStartMaxPercent: 0
   randomEndPercent: 100
-  useIntroSilence: 0
-  introSilenceMin: 0
-  introSilenceMax: 0
+  useIntroSilence: 1
+  introSilenceMin: 0.5
+  introSilenceMax: 0.5
   fadeMaxVolume: 0
   curFadeMode: 0
   curPitchMode: 0
@@ -3260,9 +2914,9 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 49441abe60a3162448ff88eb0714e155, type: 3}
+  m_Resource: {fileID: 8300000, guid: 3c3d1a477bb49fa43baefe621e73012f, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.3
+  m_Volume: 1
   m_Pitch: 1
   Loop: 1
   Mute: 0
@@ -3403,12 +3057,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 3
+  weight: 1
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
   useLocalization: 0
-  reReRandomizeOnLoop: 0
+  reReRandomizeOnLoop: 1
   useRandomPitch: 0
   randomPitchMode: 0
   randomPitchMin: 0
@@ -3439,7 +3093,7 @@ MonoBehaviour:
   useRandomStartTime: 0
   randomStartMinPercent: 0
   randomStartMaxPercent: 0
-  randomEndPercent: 100
+  randomEndPercent: 99.3
   useIntroSilence: 0
   introSilenceMin: 0
   introSilenceMax: 0
@@ -3473,7 +3127,7 @@ GameObject:
   - component: {fileID: 3990372903217513472}
   - component: {fileID: 1332552212083188620}
   m_Layer: 2
-  m_Name: BoreShot
+  m_Name: Shot01
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3505,9 +3159,9 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 8f2159ab85736df4bb50ddfff148331f, type: 3}
+  m_Resource: {fileID: 8300000, guid: dc75b88d4c401e246ac67d51980ff362, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 1
+  m_Volume: 0.3
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -3648,21 +3302,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 3
+  weight: 16
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
   useLocalization: 0
   reReRandomizeOnLoop: 0
-  useRandomPitch: 0
+  useRandomPitch: 1
   randomPitchMode: 0
-  randomPitchMin: 0
-  randomPitchMax: 0
+  randomPitchMin: -0.2
+  randomPitchMax: 0.2
   useRandomVolume: 0
   randomVolumeMode: 0
   randomVolumeMin: 0
   randomVolumeMax: 0
-  clipAlias: 
+  clipAlias: Shot01
   audLocation: 0
   resourceFileName: 
   audioClipAddressable:
@@ -3750,7 +3404,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 90754f1bf4bf82549bf37b3b3b5230b2, type: 3}
+  m_Resource: {fileID: 8300000, guid: 3877a46e3f0f9354ebc9b56f55c834df, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
@@ -3893,16 +3547,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 3
+  weight: 16
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
   useLocalization: 0
   reReRandomizeOnLoop: 0
-  useRandomPitch: 0
+  useRandomPitch: 1
   randomPitchMode: 0
-  randomPitchMin: 0
-  randomPitchMax: 0
+  randomPitchMin: -0.1
+  randomPitchMax: 0.1
   useRandomVolume: 0
   randomVolumeMode: 0
   randomVolumeMin: 0
@@ -4003,7 +3657,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 60
+  retriggerPercentage: 30
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -4050,7 +3704,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 514
+  frames: 2141
 --- !u!1 &7991672988859557561
 GameObject:
   m_ObjectHideFlags: 0
@@ -4104,7 +3758,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 60
+  retriggerPercentage: 100
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -4133,7 +3787,7 @@ MonoBehaviour:
   linkedStopGroupSelectionType: 0
   limitMode: 2
   limitPerXFrames: 1
-  minimumTimeBetween: 0.05
+  minimumTimeBetween: 0.1
   useClipAgePriority: 0
   limitPolyphony: 0
   voiceLimitCount: 1
@@ -4151,7 +3805,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 328
+  frames: 3375
 --- !u!1 &7998928393634076203
 GameObject:
   m_ObjectHideFlags: 0
@@ -4197,10 +3851,10 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: d7dcb4ac7daccc3428c48b9ddad3a051, type: 3}
+  m_Resource: {fileID: 8300000, guid: eb2f3fd0354f71547bbbc929b7facc0f, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
-  m_Pitch: 1
+  m_Pitch: 1.2
   Loop: 0
   Mute: 0
   Spatialize: 0
@@ -4340,7 +3994,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 3
+  weight: 4
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -4450,7 +4104,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 60
+  retriggerPercentage: 10
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -4497,7 +4151,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 340
+  frames: 1862
 --- !u!1 &8756206601907949017
 GameObject:
   m_ObjectHideFlags: 0
@@ -4543,10 +4197,10 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: a0127d68c8dc0fe40b3a6be6b281c264, type: 3}
+  m_Resource: {fileID: 8300000, guid: 319a9917a4a37f64caa52fba44402a51, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.3
-  m_Pitch: 1
+  m_Volume: 0.75
+  m_Pitch: -0.3
   Loop: 1
   Mute: 0
   Spatialize: 0
@@ -4686,7 +4340,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 3
+  weight: 1
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -4796,7 +4450,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 60
+  retriggerPercentage: 30
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -4843,7 +4497,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 843
+  frames: 2442
 --- !u!1001 &1346475385440773938
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5320,6 +4974,14 @@ PrefabInstance:
       propertyPath: mixerChannel
       value: 
       objectReference: {fileID: -3692124028134072481, guid: 15e71c7a7a5c51d4b906936e900d03e5, type: 2}
+    - target: {fileID: 8368557483462206592, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: isShuffle
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8368557483462206592, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
+      propertyPath: startPlaylistOnAwake
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 8576237685870290170, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: m_IsActive
       value: 0
