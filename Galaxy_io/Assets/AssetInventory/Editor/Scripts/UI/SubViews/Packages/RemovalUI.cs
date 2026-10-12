@@ -159,7 +159,7 @@ namespace AssetInventory
                     subtitle,
                     trailing: CreateStatePill(info),
                     extraClasses: rowIndex % 2 == 1
-                        ? new[] {"ai-removal-row", "ai-list-row-alt"}
+                        ? new[] {"ai-removal-row", BaseVerticalCollectionView.itemAlternativeBackgroundUssClassName}
                         : new[] {"ai-removal-row"});
                 row.Q<Label>("title").tooltip = info.SafeName;
                 row.Q<Label>("subtitle").tooltip = subtitle;

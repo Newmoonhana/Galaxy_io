@@ -4,7 +4,7 @@ description: "Use this skill whenever the user asks to 'find unused assets', ins
 metadata:
   asset: "Asset Inventory 4"
   publisher: "Impossible Robert"
-  asset-version: "4.8.0"
+  asset-version: "4.9.0"
   skill-version: "1.0.0"
   unity: "2022.3"
   render-pipelines: "Not applicable"
@@ -12,7 +12,7 @@ metadata:
   asset-store-url: "https://assetstore.unity.com/packages/tools/utilities/asset-inventory-4-349582"
   documentation-url: "https://www.wetzold.com/tools/assetinventory/docs/"
   support-url: "https://discord.com/invite/uzeHzEMM4B"
-  last-verified: "2026-08-29"
+  last-verified: "2026-10-02"
 ---
 
 # Audit Dependencies and Duplicates
@@ -34,8 +34,8 @@ Run the narrowest dependency, usage, duplicate, or maintenance audit, inspect fi
 
 1. Choose dependency or usage analysis for relationships, or Maintenance validators for integrity.
 2. Run the narrowest applicable analysis and wait for completion.
-3. Inspect every finding and distinguish source files from generated cache files.
-4. Apply only fixable results after explicit review, then rerun the audit.
+3. Inspect every finding and distinguish source files from generated cache files. Maintenance checks generally scan the catalog or configured storage, not just the selected package.
+4. Review the complete issue list for a fixable check before invoking its repair, then rerun that check.
 
 ## Workflows
 
@@ -48,9 +48,9 @@ Run the narrowest dependency, usage, duplicate, or maintenance audit, inspect fi
 
 ### Workflow: Run a maintenance validator
 
-1. Open the Maintenance surface and filter to the relevant validator.
+1. Open the Maintenance surface and filter check names to find the relevant validator; this changes the visible check list, not its scan scope.
 2. Run it and inspect database or filesystem findings.
-3. Use Fix only when the validator advertises support and the exact targets are approved.
+3. Use Fix only when the validator advertises support and its complete current issue collection is approved. Show opens an issue list, not an item-selection repair dialog.
 4. Rerun and confirm deterministic completion.
 
 ## Verification
@@ -59,6 +59,7 @@ Run the narrowest dependency, usage, duplicate, or maintenance audit, inspect fi
 - Findings distinguish database rows, source files, previews, and caches.
 - No non-fixable issue is presented as automatically repaired.
 - A post-fix run no longer reports approved resolved items.
+- A request to repair only a subset cannot use a validator whose `Fix()` processes the whole collection; report that limit before changing data.
 
 ## API quick reference
 
@@ -79,3 +80,4 @@ Run the narrowest dependency, usage, duplicate, or maintenance audit, inspect fi
 - Do not infer unused status from one incomplete index.
 - Do not extend or expose experimental search systems.
 - Respect validator cancellation and supported fixability.
+- Avoid Fix All when only one reviewed check is authorized.

@@ -1,9 +1,9 @@
 fileFormatVersion: 2
-guid: 663afb44ec956e242a96e1ac8121d384
+guid: 00bf889b54d9da446812170adff4f80f
 AssetOrigin:
   serializedVersion: 1
   productId: 349582
-  packageName: Asset Inventory - Find Every Asset in Your Library
-  packageVersion: 4.8.1
+  packageName: Asset Inventory 4 - Find Every Asset in Your Library
+  packageVersion: 4.9.0
   assetPath: Assets/AssetInventory/Editor/Scripts/Automation/SearchProjectAssetsAutomation.cs
-  uploadId: 992364
+  uploadId: 1012924

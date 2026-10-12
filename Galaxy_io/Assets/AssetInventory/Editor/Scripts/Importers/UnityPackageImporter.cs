@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -504,11 +505,15 @@ namespace AssetInventory
             // extract
             string tempPath = Paths.GetMaterializedAssetPath(asset);
             bool wasCachedAlready = Directory.Exists(tempPath);
-            tempPath = await Assets.Extract(asset, ct: AI.Actions.CancellationToken);
+            CancellationToken cancellationToken = AI.Actions.CancellationToken;
+            tempPath = await Assets.Extract(asset, ct: cancellationToken);
 
             if (string.IsNullOrEmpty(tempPath))
             {
-                Debug.LogError($"{asset} could not be indexed due to issues extracting it: {asset.GetLocation(true)}");
+                if (!cancellationToken.IsCancellationRequested)
+                {
+                    Debug.LogError($"{asset} could not be indexed due to issues extracting it: {asset.GetLocation(true)}");
+                }
                 MetaProgress.Remove(subProgressId);
                 return wasCachedAlready;
             }

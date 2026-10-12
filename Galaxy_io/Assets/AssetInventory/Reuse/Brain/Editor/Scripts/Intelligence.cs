@@ -446,17 +446,14 @@ namespace Brain
         }
 
         /// <summary>
-        /// The installed LM Studio version, or null if not installed.
+        /// The known LM Studio version, or null when unavailable or unknown.
         /// </summary>
         public static string LMStudioVersion => IsLMStudioInstalled ? _lmstudioVersion : null;
 
         /// <summary>
         /// The LM Studio service URL from settings, or default.
         /// </summary>
-        public static string LMStudioServiceUrl =>
-            string.IsNullOrWhiteSpace(Settings.LMStudioServiceUrl)
-                ? LMSTUDIO_SERVICE_URL
-                : Settings.LMStudioServiceUrl;
+        public static string LMStudioServiceUrl => LMStudioClient.NormalizeServiceUrl(Settings.LMStudioServiceUrl);
 
         /// <summary>
         /// Refreshes LM Studio connection status and model list.
@@ -473,33 +470,18 @@ namespace Brain
 
         private static async Task CheckLMStudioInstalled()
         {
-            _lmstudioInstalled = false;
+            using (HttpClient client = new HttpClient { Timeout = TimeSpan.FromSeconds(5) })
+                await CheckLMStudioInstalled(client, LMStudioServiceUrl);
+        }
 
+        internal static async Task CheckLMStudioInstalled(HttpClient client, string serviceUrl)
+        {
+            _lmstudioInstalled = false;
+            _lmstudioVersion = null;
             try
             {
-                using (HttpClient client = new HttpClient())
-                {
-                    client.Timeout = TimeSpan.FromSeconds(5);
-                    HttpResponseMessage response = await client.GetAsync($"{LMStudioServiceUrl}/api/v0/models");
-                    if (response.IsSuccessStatusCode)
-                    {
-                        _lmstudioInstalled = true;
-                        try
-                        {
-                            HttpResponseMessage versionResponse = await client.GetAsync($"{LMStudioServiceUrl}/api/v0/info");
-                            if (versionResponse.IsSuccessStatusCode)
-                            {
-                                string versionJson = await versionResponse.Content.ReadAsStringAsync();
-                                LMStudioInfoResponse info = JsonConvert.DeserializeObject<LMStudioInfoResponse>(versionJson);
-                                _lmstudioVersion = info?.version;
-                            }
-                        }
-                        catch
-                        {
-                            // Version endpoint might not be available
-                        }
-                    }
-                }
+                await LMStudioClient.GetModelsAsync(client, serviceUrl);
+                _lmstudioInstalled = true;
             }
             catch (Exception e)
             {
@@ -509,31 +491,25 @@ namespace Brain
 
         private static async Task LoadLMStudioModels()
         {
+            using (HttpClient client = new HttpClient { Timeout = TimeSpan.FromSeconds(10) })
+                await LoadLMStudioModels(client, LMStudioServiceUrl);
+        }
+
+        internal static async Task LoadLMStudioModels(HttpClient client, string serviceUrl)
+        {
             if (LoadingLMStudioModels) return;
             LoadingLMStudioModels = true;
-
+            _lmstudioVersion = null;
             try
             {
-                using (HttpClient client = new HttpClient())
-                {
-                    client.Timeout = TimeSpan.FromSeconds(10);
-                    HttpResponseMessage response = await client.GetAsync($"{LMStudioServiceUrl}/api/v0/models");
-                    if (response.IsSuccessStatusCode)
-                    {
-                        string json = await response.Content.ReadAsStringAsync();
-                        LMStudioModelsResponse modelsResponse = JsonConvert.DeserializeObject<LMStudioModelsResponse>(json);
-                        _lmstudioModels = modelsResponse?.data ?? Enumerable.Empty<LMStudioModel>();
-                    }
-                    else
-                    {
-                        _lmstudioModels = Enumerable.Empty<LMStudioModel>();
-                    }
-                }
+                _lmstudioModels = await LMStudioClient.GetModelsAsync(client, serviceUrl);
+                _lmstudioInstalled = true;
             }
             catch (Exception e)
             {
                 _lmstudioModels = Enumerable.Empty<LMStudioModel>();
-                Debug.LogError($"Error loading LM Studio models: {e.Message}");
+                _lmstudioInstalled = false;
+                Debug.LogWarning($"LM Studio models are not available: {e.Message}");
             }
             finally
             {
@@ -551,18 +527,10 @@ namespace Brain
         public string state;
         public string quantization;
         public int? max_context_length;
-    }
+        internal bool HasVisionCapability;
 
-    [Serializable]
-    internal sealed class LMStudioModelsResponse
-    {
-        public List<LMStudioModel> data;
-    }
-
-    [Serializable]
-    internal sealed class LMStudioInfoResponse
-    {
-        public string version;
+        public bool SupportsVision => type == "llm" && HasVisionCapability;
+        public bool IsEmbedding => type == "embedding";
     }
 
     // LM Studio chat request/response classes

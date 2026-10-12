@@ -1,3 +1,4 @@
+using ImpossibleRobert.Common;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
@@ -101,7 +102,8 @@ namespace AssetInventory
 
                 VisualElement row = new VisualElement();
                 row.AddToClassList("ai-list-row");
-                if (visibleRow % 2 == 1) row.AddToClassList("ai-list-row-alt");
+                CommonUITK.ApplyListRowStyle(row);
+                if (visibleRow % 2 == 1) row.AddToClassList(BaseVerticalCollectionView.itemAlternativeBackgroundUssClassName);
 
                 Label label = new Label(string.IsNullOrWhiteSpace(details.name) ? details.displayName : details.name);
                 label.AddToClassList("ai-list-row-title");

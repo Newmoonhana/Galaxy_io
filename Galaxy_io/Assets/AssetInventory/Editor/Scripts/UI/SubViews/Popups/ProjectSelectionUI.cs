@@ -96,13 +96,13 @@ namespace AssetInventory
                     lastOrg = organization;
                 }
 
-                scroll.Add(CreateProjectRow(asset));
+                scroll.Add(CreateProjectRow(asset, i));
             }
 
             root.Add(scroll);
         }
 
-        private Button CreateProjectRow(AssetInfo asset)
+        private Button CreateProjectRow(AssetInfo asset, int index)
         {
             Button row = new Button(() => SelectAsset(asset));
             row.text = string.Empty;
@@ -112,7 +112,7 @@ namespace AssetInventory
                 GetProjectTitle(asset),
                 location,
                 trailing: AssetInventoryUITK.CreateStatusPill("Select", "ai-status-muted"),
-                extraClasses: new[] {"ai-project-row"});
+                extraClasses: index % 2 == 1 ? new[] {"ai-project-row", BaseVerticalCollectionView.itemAlternativeBackgroundUssClassName} : new[] {"ai-project-row"});
             row.tooltip = $"Use {GetProjectTitle(asset)} as the target project.";
             return row;
         }

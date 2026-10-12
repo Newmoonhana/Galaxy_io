@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using UnityEditor;
-using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
@@ -150,7 +149,6 @@ namespace AssetInventory
         {
             // Create Canvas GameObject
             GameObject canvasGO = new GameObject("TemporaryCanvas");
-            StageUtility.PlaceGameObjectInCurrentStage(canvasGO);
             SceneManager.MoveGameObjectToScene(canvasGO, targetScene);
 
             // Add Canvas component - use ScreenSpaceCamera for proper ContentSizeFitter support

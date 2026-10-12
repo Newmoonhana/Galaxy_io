@@ -18,7 +18,7 @@ namespace AssetInventory
         public static event Action OnUpgradeDone;
 
         public const int CURRENT_CONFIG_VERSION = 11;
-        public const int CURRENT_DB_VERSION = 29;
+        public const int CURRENT_DB_VERSION = 30;
         public const int CURRENT_SEED_VERSION = 1;
 
         public bool LongUpgradeRequired { get; private set; }
@@ -270,6 +270,16 @@ namespace AssetInventory
             if (oldVersion < 29)
             {
                 ConvertNoIndexTagAssignments();
+            }
+
+            if (oldVersion < 30 && DBAdapter.DB.Find<AppProperty>("Upgrade-StepEnabled") == null)
+            {
+                // Long upgrades can postpone the version stamp. Never re-enable steps on a repeated startup.
+                DBAdapter.DB.RunInTransaction(() =>
+                {
+                    DBAdapter.DB.Execute("UPDATE CustomActionStep SET Enabled=1");
+                    DBAdapter.DB.InsertOrReplace(new AppProperty("Upgrade-StepEnabled", "true"));
+                });
             }
 
             bool upgradeDone = false;

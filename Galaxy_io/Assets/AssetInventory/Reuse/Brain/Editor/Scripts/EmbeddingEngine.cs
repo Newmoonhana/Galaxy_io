@@ -79,7 +79,7 @@ namespace Brain
             int timeoutSeconds,
             CancellationToken cancellationToken)
         {
-            string baseUrl = string.IsNullOrWhiteSpace(serviceUrl) ? Intelligence.LMStudioServiceUrl : serviceUrl.TrimEnd('/');
+            string baseUrl = string.IsNullOrWhiteSpace(serviceUrl) ? Intelligence.LMStudioServiceUrl : serviceUrl;
             using (CancellationTokenSource timeout = CreateTimeout(timeoutSeconds))
             using (CancellationTokenSource linked = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token))
             using (HttpClient client = new HttpClient { Timeout = Timeout.InfiniteTimeSpan })
@@ -92,7 +92,7 @@ namespace Brain
 
                 string body = JsonConvert.SerializeObject(request);
                 using (StringContent content = new StringContent(body, Encoding.UTF8, "application/json"))
-                using (HttpResponseMessage response = await client.PostAsync($"{baseUrl}/v1/embeddings", content, linked.Token).ConfigureAwait(false))
+                using (HttpResponseMessage response = await client.PostAsync(LMStudioClient.BuildEndpoint(baseUrl, LMStudioClient.EmbeddingsPath), content, linked.Token).ConfigureAwait(false))
                 {
                     response.EnsureSuccessStatusCode();
                     string json = await response.Content.ReadAsStringAsync().ConfigureAwait(false);

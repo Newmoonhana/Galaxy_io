@@ -49,8 +49,7 @@ namespace ImpossibleRobert.Common
                 _select?.Invoke();
                 if (evt.keyCode != KeyCode.Space)
                     _activate?.Invoke();
-                evt.StopPropagation();
-                evt.PreventDefault();
+                CommonUITK.ConsumeEvent(evt);
             });
             RegisterCallback<NavigationSubmitEvent>(evt =>
             {

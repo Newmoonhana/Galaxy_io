@@ -85,7 +85,8 @@ namespace AssetInventory
             {
                 VisualElement row = new VisualElement();
                 row.AddToClassList("ai-list-row");
-                if (index % 2 == 1) row.AddToClassList("ai-list-row-alt");
+                CommonUITK.ApplyListRowStyle(row);
+                if (index % 2 == 1) row.AddToClassList(BaseVerticalCollectionView.itemAlternativeBackgroundUssClassName);
 
                 Label name = new Label(string.IsNullOrWhiteSpace(anim.name) ? "Unnamed Clip" : anim.name);
                 name.AddToClassList("ai-list-row-title");

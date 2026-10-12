@@ -114,8 +114,7 @@ namespace Brain
             else if (currentBackend == 2 && Intelligence.LMStudioModels != null)
             {
                 models.AddRange(Intelligence.LMStudioModels
-                    .Where(model => model.type == "vlm" ||
-                        (model.type != null && model.type.Contains("vision", StringComparison.OrdinalIgnoreCase)))
+                    .Where(model => model.SupportsVision)
                     .OrderBy(model => model.id, StringComparer.InvariantCultureIgnoreCase)
                     .Select(model => new TestModel {Name = model.id, Backend = 2}));
             }

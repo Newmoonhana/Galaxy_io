@@ -229,7 +229,8 @@ namespace AssetInventory
 
                     VisualElement row = new VisualElement();
                     row.AddToClassList("ai-list-row");
-                    if (i % 2 == 1) row.AddToClassList("ai-list-row-alt");
+                    CommonUITK.ApplyListRowStyle(row);
+                    if (i % 2 == 1) row.AddToClassList(BaseVerticalCollectionView.itemAlternativeBackgroundUssClassName);
                     Label name = new Label(pkg.Name);
                     name.AddToClassList("ai-list-row-title");
                     row.Add(name);

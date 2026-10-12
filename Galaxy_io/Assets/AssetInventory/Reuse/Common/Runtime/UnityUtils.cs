@@ -108,6 +108,59 @@ namespace ImpossibleRobert.Common
             }
         }
 
+        /// <summary>Returns the baked-emission flag under its current Unity API name.</summary>
+        public static MaterialGlobalIlluminationFlags BakedEmissionFlag
+        {
+            get
+            {
+#if UNITY_6000_7_OR_NEWER
+                return MaterialGlobalIlluminationFlags.BakedEmission;
+#else
+                return MaterialGlobalIlluminationFlags.BakedEmissive;
+#endif
+            }
+        }
+
+        /// <summary>Returns the Enlighten transport index while the native realtime-GI backend remains supported.</summary>
+        public static int GetRealtimeLightmapIndex(this Renderer renderer)
+        {
+#pragma warning disable CS0618 // The existing Enlighten transport has no replacement binding API.
+            return renderer.realtimeLightmapIndex;
+#pragma warning restore CS0618
+        }
+
+        /// <summary>Sets the Enlighten transport index for fixture setup or restoration.</summary>
+        public static void SetRealtimeLightmapIndex(this Renderer renderer, int index)
+        {
+#pragma warning disable CS0618 // Native qualification must control the actual Enlighten binding.
+            renderer.realtimeLightmapIndex = index;
+#pragma warning restore CS0618
+        }
+
+        /// <summary>Returns the native Enlighten UV scale and offset used by lighting diagnostics.</summary>
+        public static Vector4 GetRealtimeLightmapScaleOffset(this Renderer renderer)
+        {
+#pragma warning disable CS0618 // Diagnostics must retain the actual Enlighten transport coordinates.
+            return renderer.realtimeLightmapScaleOffset;
+#pragma warning restore CS0618
+        }
+
+        /// <summary>Returns the native Enlighten vertex stream used by lighting diagnostics.</summary>
+        public static Mesh GetRealtimeGIVertexStream(this MeshRenderer renderer)
+        {
+#pragma warning disable CS0618 // Diagnostics must retain the actual Enlighten transport stream.
+            return renderer.enlightenVertexStream;
+#pragma warning restore CS0618
+        }
+
+        /// <summary>Schedules native Enlighten albedo and emission extraction for the renderer.</summary>
+        public static void UpdateRealtimeGIMaterials(this Renderer renderer)
+        {
+#pragma warning disable CS0618 // LED realtime indirect lighting still uses Unity's native Enlighten extraction.
+            renderer.UpdateGIMaterials();
+#pragma warning restore CS0618
+        }
+
         /// <summary>
         /// Returns the assemblies loaded into the current Unity domain using the non-obsolete Unity API where available.
         /// </summary>

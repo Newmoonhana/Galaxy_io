@@ -892,22 +892,15 @@ namespace AssetInventory
             section.AddToClassList(PackagesDetailMediaClass);
             if (info.Media == null || info.Media.Count == 0)
             {
-                if (PackageIndexingPolicy.HasNoIndex(info))
+                section.Add(AssetInventoryUITK.CreateHelpBox("No gallery metadata is available for this package."));
+                if (info.GetRoot().ForeignId > 0)
                 {
-                    section.Add(AssetInventoryUITK.CreateHelpBox("Gallery metadata is unavailable because indexing is disabled for this package."));
-                }
-                else
-                {
-                    section.Add(AssetInventoryUITK.CreateHelpBox("No gallery metadata is available for this package."));
-                    if (info.GetRoot().ForeignId > 0)
-                    {
-                        Button refresh = AssetInventoryUITK.CreateSecondaryButton(
-                            "Refresh Metadata",
-                            () => _ = RefreshNativePackageMetadataAsync(info));
-                        refresh.tooltip = "Fetch current package details and gallery metadata from the Asset Store.";
-                        refresh.SetEnabled(!AI.Actions.ActionsInProgress);
-                        section.Add(refresh);
-                    }
+                    Button refresh = AssetInventoryUITK.CreateSecondaryButton(
+                        "Refresh Metadata",
+                        () => _ = RefreshNativePackageMetadataAsync(info));
+                    refresh.tooltip = "Fetch current package details and gallery metadata from the Asset Store.";
+                    refresh.SetEnabled(!AI.Actions.ActionsInProgress);
+                    section.Add(refresh);
                 }
                 return section;
             }

@@ -21,7 +21,8 @@ namespace AssetInventory
                 Name = "Tag",
                 Description = "Tag assigned to the package.",
                 ValueList = StepParameter.ValueType.Custom,
-                LazyLoadOptions = true
+                LazyLoadOptions = true,
+                OptionComparison = StringComparison.OrdinalIgnoreCase
             });
         }
 
@@ -38,7 +39,7 @@ namespace AssetInventory
 
                 if (tags != null)
                 {
-                    foreach (TagInfo tag in tags)
+                    foreach (TagInfo tag in tags.GroupBy(t => t.Name, StringComparer.OrdinalIgnoreCase).Select(group => group.First()))
                     {
                         options.Add(new Tuple<string, ParameterValue>(tag.Name, new ParameterValue(tag.Name)));
                     }
@@ -49,10 +50,15 @@ namespace AssetInventory
             return base.GetParamOptions(param, parameters);
         }
 
+        internal static bool MatchesTag(IEnumerable<TagInfo> tags, string name)
+        {
+            return tags.Any(tag => string.Equals(tag.Name, name, StringComparison.OrdinalIgnoreCase));
+        }
+
         /// <summary>Finds every package carrying the configured tag and opens the import workflow for those packages.</summary>
         public override async Task Run(List<ParameterValue> parameters)
         {
-            List<AssetInfo> infos = Assets.Load().Where(a => a.PackageTags.Any(t => t.Name == parameters[0].stringValue)).ToList();
+            List<AssetInfo> infos = Assets.Load().Where(a => MatchesTag(a.PackageTags, parameters[0].stringValue)).ToList();
 
             bool finished = false;
             ImportUI importUI = ImportUI.ShowWindow();

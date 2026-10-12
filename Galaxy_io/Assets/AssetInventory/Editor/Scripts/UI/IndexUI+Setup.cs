@@ -1021,9 +1021,7 @@ namespace AssetInventory
             GenericMenu menu = new GenericMenu();
             if (models != null)
             {
-                foreach (LMStudioModel model in models.Where(m =>
-                    !string.IsNullOrEmpty(m.type) &&
-                    (m.type.ToLowerInvariant() == "vlm" || m.type.ToLowerInvariant().Contains("vision"))))
+                foreach (LMStudioModel model in models.Where(m => m.SupportsVision))
                 {
                     string modelId = model.id;
                     menu.AddItem(new GUIContent(modelId), string.Equals(AI.Config.lmStudioModel, modelId, StringComparison.Ordinal), () =>
@@ -1130,9 +1128,7 @@ namespace AssetInventory
                 {
                     string version = Intelligence.LMStudioVersion;
                     IEnumerable<LMStudioModel> models = Intelligence.LMStudioModels;
-                    int visionCount = models?.Count(m =>
-                        !string.IsNullOrEmpty(m.type) &&
-                        (m.type.ToLowerInvariant() == "vlm" || m.type.ToLowerInvariant().Contains("vision"))) ?? 0;
+                    int visionCount = models?.Count(m => m.SupportsVision) ?? 0;
 
                     _connectionStatus = $"Connected to LM Studio{(version != null ? $" v{version}" : "")}. {visionCount} vision model{(visionCount != 1 ? "s" : "")} available.";
                     _connectionMessageType = MessageType.Info;

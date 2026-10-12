@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace AssetInventory
@@ -92,7 +93,11 @@ namespace AssetInventory
 
                 PreviewRequest req = UnityPreviewGenerator.Localize(info, sourcePath, previewFile);
                 previewRequest = req;
-                texture = FontPreviewGenerator.Create(req.TempFileRel, previewSize);
+                if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+                {
+                    if (req != null) req.FailureReason = SceneViewCameraRenderer.PREFAB_MODE_REASON;
+                }
+                else texture = FontPreviewGenerator.Create(req.TempFileRel, previewSize);
                 directPreview = true;
             }
             else if ((info.Type == "fbx" || info.Type == "obj") && AI.Config.generateFBXPreviews)
@@ -598,10 +603,10 @@ namespace AssetInventory
                 }
 
                 // Fall through to Unity default if custom pipeline not used or failed
-                // VFX files have no Unity fallback, so mark as error
+                // Keep the actionable Prefab Mode reason instead of hiding it behind Unity fallback.
                 if (!customPipelineSucceeded)
                 {
-                    if (isVFX)
+                    if (isVFX || req?.FailureReason == CustomPrefabPreviewGenerator.PREFAB_MODE_VFX_REASON)
                     {
                         if (req != null && string.IsNullOrWhiteSpace(req.FailureReason))
                         {

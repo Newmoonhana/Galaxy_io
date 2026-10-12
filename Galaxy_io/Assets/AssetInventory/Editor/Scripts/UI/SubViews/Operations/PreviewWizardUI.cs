@@ -302,6 +302,11 @@ namespace AssetInventory
             scheduled.AddToClassList("ai-preview-scheduled-count");
             section.Add(CreateOverviewRow("Scheduled", string.Empty, null, scheduled));
 
+            int rowIndex = 0;
+            foreach (VisualElement row in section.Children())
+            {
+                if (row.ClassListContains("ai-preview-overview-row")) CommonUITK.ApplyListRowStyle(row, rowIndex++);
+            }
             return section;
         }
 
@@ -338,6 +343,7 @@ namespace AssetInventory
         {
             VisualElement row = new VisualElement();
             row.AddToClassList("ai-preview-overview-row");
+            CommonUITK.ApplyListRowStyle(row);
             if (indented) row.AddToClassList("ai-preview-overview-row-indented");
             row.tooltip = tooltip ?? string.Empty;
 
@@ -428,7 +434,7 @@ namespace AssetInventory
                 $"{item.Count:N0}",
                 trailing: actions,
                 extraClasses: rowIndex % 2 == 1
-                    ? new[] {"ai-preview-type-row", "ai-list-row-alt"}
+                    ? new[] {"ai-preview-type-row", BaseVerticalCollectionView.itemAlternativeBackgroundUssClassName}
                     : new[] {"ai-preview-type-row"});
 
             return row;

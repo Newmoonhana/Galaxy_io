@@ -643,11 +643,7 @@ namespace ImpossibleRobert.Common
             int childCount = section.hierarchy.childCount;
             for (int i = 0; i < childCount; i++)
             {
-                VisualElement child = section.hierarchy[i];
-                if (ReferenceEquals(child, sectionTitle))
-                    continue;
-
-                Label label = FindFirstContentLabel(child);
+                Label label = FindFirstVisibleLabel(section.hierarchy[i], sectionTitle);
                 if (label != null)
                     return label;
             }
@@ -655,9 +651,10 @@ namespace ImpossibleRobert.Common
             return null;
         }
 
-        static Label FindFirstContentLabel(VisualElement element)
+        static Label FindFirstVisibleLabel(VisualElement element, Label sectionTitle)
         {
-            if (element == null || element.resolvedStyle.display == DisplayStyle.None)
+            // The title may be nested in a header row, so skip it at any depth.
+            if (element == null || ReferenceEquals(element, sectionTitle) || element.resolvedStyle.display == DisplayStyle.None)
                 return null;
 
             Label label = element as Label;
@@ -667,7 +664,7 @@ namespace ImpossibleRobert.Common
             int childCount = element.hierarchy.childCount;
             for (int i = 0; i < childCount; i++)
             {
-                Label childLabel = FindFirstContentLabel(element.hierarchy[i]);
+                Label childLabel = FindFirstVisibleLabel(element.hierarchy[i], sectionTitle);
                 if (childLabel != null)
                     return childLabel;
             }

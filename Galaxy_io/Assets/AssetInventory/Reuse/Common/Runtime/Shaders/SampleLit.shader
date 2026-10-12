@@ -121,6 +121,16 @@ Shader "Impossible Robert/Common/Sample Lit"
 
     SubShader
     {
+        PackageRequirements { "com.unity.render-pipelines.high-definition" }
+        Tags { "RenderPipeline" = "HDRenderPipeline" }
+
+        UsePass "HDRP/Lit/IndirectDXR"
+        UsePass "HDRP/Lit/GBufferDXR"
+        UsePass "HDRP/Lit/VisibilityDXR"
+    }
+
+    SubShader
+    {
         Tags
         {
             "RenderType" = "Opaque"

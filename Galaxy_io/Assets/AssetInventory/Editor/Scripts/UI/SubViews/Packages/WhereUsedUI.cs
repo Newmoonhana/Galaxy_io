@@ -1,3 +1,4 @@
+using ImpossibleRobert.Common;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -132,7 +133,8 @@ namespace AssetInventory
         {
             VisualElement row = new VisualElement();
             row.AddToClassList("ai-list-row");
-            if (index % 2 == 1) row.AddToClassList("ai-list-row-alt");
+            CommonUITK.ApplyListRowStyle(row);
+            if (index % 2 == 1) row.AddToClassList(BaseVerticalCollectionView.itemAlternativeBackgroundUssClassName);
 
             Texture icon = AssetDatabase.GetCachedIcon(path);
             if (icon != null)

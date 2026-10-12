@@ -419,7 +419,7 @@ namespace AssetInventory
                 subtitle,
                 toggle,
                 CreateImportRowSide(info),
-                rowIndex % 2 == 1 ? new[] {"ai-import-row", "ai-list-row-alt"} : new[] {"ai-import-row"});
+                extraClasses: rowIndex % 2 == 1 ? new[] {"ai-import-row", BaseVerticalCollectionView.itemAlternativeBackgroundUssClassName} : new[] {"ai-import-row"});
             row.Q<Label>("title").tooltip = info.SafeName;
             row.Q<Label>("subtitle").tooltip = subtitle;
             return row;

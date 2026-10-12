@@ -402,8 +402,8 @@ namespace Brain
                         // cancellation is driven by the linked token (global stop + AITimeout).
                         httpClient.Timeout = Timeout.InfiniteTimeSpan;
                         string json = JsonConvert.SerializeObject(request);
-                        StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
-                        HttpResponseMessage response = await httpClient.PostAsync($"{Intelligence.LMStudioServiceUrl}/v1/chat/completions", content, linked.Token);
+                        using StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+                        using HttpResponseMessage response = await httpClient.PostAsync(LMStudioClient.BuildEndpoint(Intelligence.LMStudioServiceUrl, LMStudioClient.CaptionPath), content, linked.Token);
 
                         if (response.IsSuccessStatusCode)
                         {

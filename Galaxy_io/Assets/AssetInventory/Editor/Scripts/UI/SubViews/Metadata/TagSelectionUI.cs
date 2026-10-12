@@ -16,7 +16,7 @@ namespace AssetInventory
         private const float BaseIndent = 8f;
         private const float IndentPerDepth = 14f;
         private const float MaxIndent = 96f;
-        private const string KeyboardSelectedRowClass = "ai-tag-selector-row-keyboard-selected";
+        private static readonly string KeyboardSelectedRowClass = BaseVerticalCollectionView.itemSelectedVariantUssClassName;
         private const EventModifiers UserInputModifiers =
             EventModifiers.Alt | EventModifiers.Control | EventModifiers.Command | EventModifiers.Shift;
 
@@ -306,6 +306,7 @@ namespace AssetInventory
         {
             VisualElement container = new VisualElement();
             container.AddToClassList("ai-list-row");
+            CommonUITK.ApplyListRowStyle(container);
             container.AddToClassList("ai-tag-selector-row");
 
             VisualElement indent = new VisualElement();
@@ -347,7 +348,7 @@ namespace AssetInventory
         private static void UpdateTagRow(TagRowView view, TagSelectionRow row, int index)
         {
             view.Current = row;
-            view.Root.EnableInClassList("ai-list-row-alt", index % 2 == 1);
+            view.Root.EnableInClassList(BaseVerticalCollectionView.itemAlternativeBackgroundUssClassName, index % 2 == 1);
             float indentWidth = Mathf.Min(MaxIndent, BaseIndent + row.Depth * IndentPerDepth);
             view.Indent.style.width = indentWidth;
             view.Branch.style.marginLeft = Mathf.Max(0f, indentWidth - 11f);

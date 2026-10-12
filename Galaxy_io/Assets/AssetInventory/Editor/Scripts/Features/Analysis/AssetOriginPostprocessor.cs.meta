@@ -3,7 +3,7 @@ guid: 1eaa958b7db6440478fc58ac2172550c
 AssetOrigin:
   serializedVersion: 1
   productId: 349582
-  packageName: Asset Inventory - Find Every Asset in Your Library
-  packageVersion: 4.8.1
+  packageName: Asset Inventory 4 - Find Every Asset in Your Library
+  packageVersion: 4.9.0
   assetPath: Assets/AssetInventory/Editor/Scripts/Features/Analysis/AssetOriginPostprocessor.cs
-  uploadId: 992364
+  uploadId: 1012924

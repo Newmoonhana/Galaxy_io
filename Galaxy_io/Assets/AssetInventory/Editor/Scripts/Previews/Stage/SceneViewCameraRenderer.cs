@@ -13,6 +13,8 @@ namespace AssetInventory
     /// </summary>
     public static class SceneViewCameraRenderer
     {
+        public const string PREFAB_MODE_REASON = "This preview cannot be generated while editing a prefab. Close Prefab Mode and regenerate the preview.";
+
         /// <summary>
         /// Capture a GameObject using a temporary scene and camera
         /// </summary>
@@ -27,6 +29,12 @@ namespace AssetInventory
             int height,
             Action<Camera, Scene, PreviewSceneContext> setupCamera = null)
         {
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            {
+                if (AI.Config.LogPreviewCreation) Debug.LogWarning(PREFAB_MODE_REASON);
+                return null;
+            }
+
             if (target == null)
             {
                 Debug.LogError("[SceneViewCameraRenderer] Target GameObject is null");

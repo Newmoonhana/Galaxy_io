@@ -164,6 +164,7 @@ namespace Automator
                 for (int i = 0; i < steps.Count; i++)
                 {
                     ActionStepDefinition stepDef = steps[i];
+                    if (!stepDef.Enabled) continue;
                     ActionStep step = ActionStepRegistry.GetStep(stepDef.Key);
 
                     if (step == null)
@@ -396,6 +397,7 @@ namespace Automator
             for (int i = 0; i <= lastExecutedStepIndex && i < steps.Count; i++)
             {
                 ActionStepDefinition stepDef = steps[i];
+                if (!stepDef.Enabled) continue;
                 ActionStep step = ActionStepRegistry.GetStep(stepDef.Key);
 
                 if (step is SetTextVariableStep)

@@ -3,7 +3,7 @@ guid: 337b1ccd6560f00f9bf5c835a1f6e195
 AssetOrigin:
   serializedVersion: 1
   productId: 349582
-  packageName: Asset Inventory - Find Every Asset in Your Library
-  packageVersion: 4.8.1
+  packageName: Asset Inventory 4 - Find Every Asset in Your Library
+  packageVersion: 4.9.0
   assetPath: Assets/AssetInventory/Editor/Scripts/Features/PipelineConversionImportTracker.cs
-  uploadId: 992364
+  uploadId: 1012924

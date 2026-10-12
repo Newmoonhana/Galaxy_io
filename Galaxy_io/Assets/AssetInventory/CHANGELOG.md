@@ -5,6 +5,17 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [4.9.0] - 2026-10-05
+
+- Refresh Asset Store descriptions and cover images even for packages excluded from content indexing, while preserving their indexing choice when duplicate store and registry entries are combined.
+- Improved LM Studio model discovery, vision support and service URL handling, and made backend choices available before opening Settings.
+- Updated the optional Unity Pipeline integration for supported 0.8 releases. Later 0.9 prereleases and releases remain inactive until supported.
+- Improved automation authoring with persistent enabled-step choices, simpler step controls, case-insensitive package tags and a Template Export action that preserves existing saved workflows.
+- Preserved collapsed package branches and selection during sorting and refreshes, and added expand and collapse commands to ungrouped package lists.
+- Improved settings and lists with independently remembered section expansion and familiar Unity row styling that preserves status indicators.
+- Improved indexing-preview cleanup and isolation from Prefab Mode, with clearer guidance when a preview requires leaving Prefab Mode.
+- Fixed canceled package extraction reporting a misleading indexing failure.
+
 ## [4.8.1] - 2026-09-08
 
 - Skipped automatic Asset Store refresh in batch mode and added session-scoped authentication rejection handling with one suppressible warning, preserving refresh timestamps and purchase snapshots after failed requests.

@@ -129,7 +129,7 @@ namespace AssetInventory
         private string[] _currencyOptions;
         private readonly string[] _logOptions = {"Media Downloads", "Image Resizing", "Audio Parsing", "Package Parsing", "Custom Actions", "Preview Creation"};
         private string[] _blipOptions;
-        private string[] _aiBackendOptions;
+        private readonly string[] _aiBackendOptions = {"Blip", "Ollama", "LM Studio"};
         private string[] _browserTypeOptions;
 
         private int _lastTab = -1;
@@ -709,7 +709,6 @@ namespace AssetInventory
             _assetCacheLocationOptions = new[] {"Automatic", "Custom Folder"};
             _currencyOptions = new[] {"EUR", "USD", "CNY"};
             _blipOptions = new[] {"Small (1Gb)", "Large (1.8Gb)"};
-            _aiBackendOptions = new[] {"Blip", "Ollama", "LM Studio"};
             _browserTypeOptions = new[] {"System Default", "Custom"};
             _imageTypeOptions = new List<string> {"-all-", string.Empty}.Concat(TextureNameSuggester.suffixPatterns.Keys.Select(StringUtils.CamelCaseToWords)).ToArray();
             _expertSearchFields = new List<string> {"-Add Field-", string.Empty}.Concat(assetFields).ToArray();

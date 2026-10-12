@@ -21,6 +21,9 @@ namespace Automator
         private ListView _stepsList;
         private VisualElement _editorRoot;
         private Label _stepsSummary;
+        private CommonReorderableListView<ActionStepDefinition> _stepCollection;
+        private VisualElement _stepDetails;
+        private const float StepRowHeight = 28f;
 
         private ActionDefinition _action;
 
@@ -92,18 +95,21 @@ namespace Automator
                 return;
             }
 
-            ScrollView content = new ScrollView(ScrollViewMode.Vertical);
+            ScrollView content = new ScrollView(ScrollViewMode.Vertical) { name = "automator-workflow-pane" };
             content.style.flexGrow = 1f;
             content.style.minHeight = 0f;
-            _editorRoot.Add(content);
+            content.contentContainer.style.paddingLeft = 8f;
+            content.contentContainer.style.paddingRight = 8f;
+            content.contentContainer.style.paddingBottom = 8f;
 
             VisualElement identity = new VisualElement();
-            TextField name = new TextField("Name") { value = _action.Name ?? string.Empty };
+            TextField name = new TextField("Name") { value = _action.Name ?? string.Empty, tooltip = "Name shown in the action manager." };
             name.RegisterValueChangedCallback(evt => _action.Name = evt.newValue);
             identity.Add(name);
             TextField description = new TextField("Description")
             {
                 value = _action.Description ?? string.Empty,
+                tooltip = "Describe what this workflow does.",
                 multiline = true
             };
             description.RegisterValueChangedCallback(evt => _action.Description = evt.newValue);
@@ -116,6 +122,7 @@ namespace Automator
             stop.RegisterValueChangedCallback(evt => _action.StopOnFailure = evt.newValue);
             identity.Add(stop);
             EnumField mode = new EnumField("Run Mode", _action.Mode);
+            mode.tooltip = "Choose when this action is eligible to run.";
             mode.RegisterValueChangedCallback(evt => _action.Mode = (ActionDefinition.RunMode)evt.newValue);
             identity.Add(mode);
             content.Add(CommonInspectorElements.CreateSection(
@@ -123,50 +130,63 @@ namespace Automator
                 "automator-action-identity",
                 identity));
 
-            VisualElement stepHeader = new VisualElement();
-            stepHeader.AddToClassList("automator-step-header");
             _stepsSummary = CommonInspectorElements.CreateMutedText(GetStepSummary());
-            stepHeader.Add(_stepsSummary);
-            VisualElement spacer = new VisualElement();
-            spacer.style.flexGrow = 1f;
-            stepHeader.Add(spacer);
-            ToolbarMenu addMenu = new ToolbarMenu
-            {
-                text = "Add Step",
-                tooltip = "Add an automation step after the current selection"
-            };
-            foreach (ActionStep step in ActionStepRegistry.Steps)
-            {
-                ActionStep captured = step;
-                string category = StringUtils.CamelCaseToWords(step.Category.ToString());
-                addMenu.menu.AppendAction(
-                    category + "/" + step.Name,
-                    _ => AddStep(captured));
-            }
-            stepHeader.Add(addMenu);
-
-            _stepsList = new ListView
-            {
-                name = "automator-step-list",
-                itemsSource = _steps,
-                virtualizationMethod = CollectionVirtualizationMethod.DynamicHeight,
-                reorderable = true,
-                reorderMode = ListViewReorderMode.Animated,
-                selectionType = SelectionType.Single,
-                makeItem = MakeStepElement,
-                bindItem = BindStepElement,
-                showBorder = false,
-                showAlternatingRowBackgrounds = AlternatingRowBackground.ContentOnly
-            };
+            content.Add(CommonUITK.CreateLabel("Steps", "automator-steps-title"));
+            content.Add(_stepsSummary);
+            _stepCollection = new CommonReorderableListView<ActionStepDefinition>(
+                _steps, MakeStepRow, (element, _, index) => BindStepRow(element, index), StepRowHeight);
+            _stepsList = _stepCollection.ListView;
+            _stepsList.name = "automator-step-list";
+            _stepsList.tooltip = "Drag steps to reorder. Select a step to edit its parameters on the right; use + and - to add or remove steps.";
             _stepsList.AddToClassList("automator-step-list");
-
-            VisualElement stepsBody = new VisualElement();
-            stepsBody.Add(stepHeader);
-            stepsBody.Add(_stepsList);
-            content.Add(CommonInspectorElements.CreateSection(
-                "Steps",
-                "automator-action-steps",
-                stepsBody));
+            _stepsList.Q<ScrollView>().verticalScrollerVisibility = ScrollerVisibility.Hidden;
+            _stepCollection.SetAddHandler((_, button) => ShowAddStepMenu(button));
+            _stepCollection.ItemsChanged += RefreshStepList;
+            _stepsList.selectionChanged += _ => RefreshSelectedStep();
+            content.Add(_stepCollection);
+            _stepDetails = new VisualElement { name = "automator-step-details" };
+            _stepDetails.AddToClassList("automator-step-details");
+            ScrollView inspector = new ScrollView(ScrollViewMode.Vertical) { name = "automator-inspector-pane" };
+            inspector.style.minWidth = 280f;
+            inspector.AddToClassList("automator-inspector-pane");
+            inspector.Add(_stepDetails);
+            CommonTabbedPane inspectorPane = new CommonTabbedPane(new CommonTabbedPane.TabbedPaneClasses
+            {
+                RootClass = "automator-details-pane",
+                HeaderClass = "automator-details-header",
+                TabStripClass = "automator-details-tabs",
+                TabClass = "automator-details-tab",
+                SelectedTabClass = "automator-details-tab--selected",
+                BodyClass = CommonUITK.WindowBodyClass
+            });
+            inspectorPane.SetTabs(new[] { "Details" }, 0, _ => { });
+            inspectorPane.Body.style.flexGrow = 1f;
+            inspectorPane.Body.style.minHeight = 0f;
+            inspectorPane.Body.style.flexBasis = 0f;
+            inspector.style.flexGrow = 1f;
+            inspector.style.minHeight = 0f;
+            inspector.contentContainer.style.paddingLeft = 8f;
+            inspector.contentContainer.style.paddingRight = 8f;
+            inspectorPane.Body.Add(inspector);
+            CommonResizableSidePaneLayout split = new CommonResizableSidePaneLayout(content,
+                trailing: new CommonResizableSidePaneLayout.PaneDefinition
+                {
+                    Content = inspectorPane, PreferredWidth = 340f, MinimumWidth = 280f, MaximumWidth = 720f
+                },
+                options: new CommonResizableSidePaneLayout.LayoutOptions { MainMinimumWidth = 300f },
+                classes: new CommonResizableSidePaneLayout.LayoutClasses
+                {
+                    TrailingHostClass = "automator-details-host",
+                    DividerClass = "automator-details-divider",
+                    DividerLineClass = "automator-details-divider-line",
+                    CollapsedClass = "automator-details-collapsed"
+                });
+            split.AddToClassList(CommonUITK.WindowBodyClass);
+            split.style.flexBasis = 0f;
+            split.style.flexShrink = 1f;
+            _editorRoot.Add(split);
+            RefreshStepList();
+            if (_steps.Count > 0) _stepsList.SetSelection(0);
 
             Button saveClose = CommonInspectorElements.CreateButton(
                 "Save & Close",
@@ -184,18 +204,133 @@ namespace Automator
                 {
                     Save();
                     RunAction();
-                });
+                },
+                true);
             VisualElement footer = CommonUITK.CreateWindowFooter(0f, 0f, "automator-action-editor-footer");
+            saveClose.style.minHeight = 30f;
+            saveRun.style.minHeight = 30f;
+            saveClose.style.flexGrow = 1f;
+            saveRun.style.flexGrow = 1f;
             footer.Add(saveClose);
             footer.Add(saveRun);
             _editorRoot.Add(footer);
         }
 
-        private VisualElement MakeStepElement()
+        private void ShowAddStepMenu(Button button)
         {
-            VisualElement item = new VisualElement();
-            item.AddToClassList("automator-step-card");
-            return item;
+            GenericMenu menu = new GenericMenu();
+            foreach (ActionStep step in ActionStepRegistry.Steps)
+            {
+                ActionStep captured = step;
+                string category = StringUtils.CamelCaseToWords(step.Category.ToString());
+                menu.AddItem(new GUIContent(category + "/" + step.Name), false, () => AddStep(captured));
+            }
+            menu.DropDown(button.worldBound);
+        }
+
+        private VisualElement MakeStepRow()
+        {
+            VisualElement row = new VisualElement();
+            row.AddToClassList("automator-step-row");
+            Toggle enabled = new Toggle { name = "automator-step-enabled", tooltip = "Include this step when running the action. Individual Run remains available when disabled." };
+            enabled.AddToClassList("automator-step-row__enabled");
+            enabled.RegisterValueChangedCallback(evt =>
+            {
+                if (!(row.userData is ActionStepDefinition definition)) return;
+                definition.Enabled = evt.newValue;
+                UpdateStepEnabledState(row, definition);
+                RefreshStepSummary();
+                RefreshSelectedStep();
+            });
+            row.Add(enabled);
+            row.Add(CommonUITK.CreateLabel(string.Empty, "automator-step-row__name"));
+            row.Add(CommonUITK.CreateLabel(string.Empty, "automator-step-row__summary"));
+            row.Add(CommonUITK.CreateLabel("Disabled", "automator-step-row__disabled"));
+            return row;
+        }
+
+        private void BindStepRow(VisualElement row, int index)
+        {
+            ActionStepDefinition definition = _steps[index];
+            row.userData = definition;
+            row.Q<Toggle>().SetValueWithoutNotify(definition.Enabled);
+            UpdateStepEnabledState(row, definition);
+            ActionStep step = ActionStepRegistry.GetStep(definition.Key);
+            row.Q<Label>(className: "automator-step-row__name").text = step?.Name ?? definition.Key;
+            row.Q<Label>(className: "automator-step-row__summary").text = BuildStepSummary(step, definition);
+            row.tooltip = step?.Description ?? "This step is not installed. Select it for details or remove it with the list footer.";
+        }
+
+        internal string BuildStepSummary(ActionStep step, ActionStepDefinition definition)
+        {
+            List<string> parts = new List<string>();
+            for (int i = 0; i < definition.Values.Count; i++)
+            {
+                ParameterValue value = definition.Values[i];
+                string display = value.stringValue;
+                if (step != null && i < step.Parameters.Count)
+                {
+                    StepParameter parameter = step.Parameters[i];
+                    if (!step.GetParamVisibility(parameter, definition.Values)) continue;
+                    StepParameter.ParamType type = parameter.Type == StepParameter.ParamType.Dynamic
+                        ? step.GetParamType(parameter, definition.Values) : parameter.Type;
+                    List<Tuple<string, ParameterValue>> options = GetParameterOptions(step, parameter, definition.Values);
+                    int selected = FindOptionIndex(options, type, value, parameter.OptionComparison);
+                    if (selected >= 0) display = options[selected].Item1;
+                }
+                if (!string.IsNullOrWhiteSpace(display)) parts.Add(display.Replace('\n', ' '));
+            }
+            return string.Join(" · ", parts);
+        }
+
+        private List<Tuple<string, ParameterValue>> GetParameterOptions(ActionStep step, StepParameter parameter, List<ParameterValue> values)
+        {
+            if (parameter.LazyLoadOptions)
+            {
+                string cacheKey = $"{step.Key}_{parameter.Name}";
+                if (!_parameterOptionsCache.TryGetValue(cacheKey, out List<Tuple<string, ParameterValue>> options))
+                {
+                    options = step.GetParamOptions(parameter, values);
+                    _parameterOptionsCache[cacheKey] = options;
+                }
+                return options;
+            }
+            return parameter.Type == StepParameter.ParamType.Dynamic
+                ? step.GetParamOptions(parameter, values) : parameter.Options;
+        }
+
+        private static int FindOptionIndex(List<Tuple<string, ParameterValue>> options, StepParameter.ParamType type, ParameterValue value, StringComparison comparison)
+        {
+            return options?.FindIndex(option => type == StepParameter.ParamType.Int
+                ? option.Item2.intValue == value.intValue
+                : type == StepParameter.ParamType.Bool
+                    ? option.Item2.boolValue == value.boolValue
+                    : string.Equals(option.Item2.stringValue, value.stringValue, comparison)) ?? -1;
+        }
+
+        private static void UpdateStepEnabledState(VisualElement row, ActionStepDefinition definition)
+        {
+            row.EnableInClassList("automator-step-row--disabled", !definition.Enabled);
+            row.Q<Label>(className: "automator-step-row__disabled").style.display = definition.Enabled ? DisplayStyle.None : DisplayStyle.Flex;
+        }
+
+        private void RefreshStepList()
+        {
+            if (_stepsList == null) return;
+            // The list owns ordering; the outer ScrollView owns scrolling, even for long actions.
+            _stepsList.style.height = Math.Max(1, _steps.Count) * StepRowHeight + 28f;
+            _stepsList.RefreshItems();
+            RefreshStepSummary();
+            RefreshSelectedStep();
+        }
+
+        private void RefreshSelectedStep()
+        {
+            if (_stepDetails == null) return;
+            _stepDetails.Clear();
+            int index = _stepsList?.selectedIndex ?? -1;
+            if (index >= 0 && index < _steps.Count) BindStepElement(_stepDetails, index);
+            else _stepDetails.Add(CommonInspectorElements.CreateMutedText("Select a step to inspect its parameters."));
         }
 
         private void BindStepElement(VisualElement item, int index)
@@ -218,19 +353,13 @@ namespace Automator
             header.AddToClassList("automator-step-card__header");
             VisualElement titleBlock = new VisualElement();
             titleBlock.style.flexGrow = 1f;
-            titleBlock.Add(CommonUITK.CreateLabel($"{index + 1}. {step.Name}", "automator-step-card__title"));
+            titleBlock.Add(CommonUITK.CreateLabel(step.Name, "automator-step-card__title"));
             titleBlock.Add(CommonInspectorElements.CreateMutedText(step.Description));
             header.Add(titleBlock);
             header.Add(CommonInspectorElements.CreateButton(
                 "Run",
                 "Run only this step with variables produced by earlier steps",
                 () => RunStep(index)));
-            header.Add(CommonInspectorElements.CreateButton(
-                "Remove",
-                "Remove this step",
-                () => RemoveStep(index),
-                false,
-                true));
             item.Add(header);
 
             Dictionary<string, string> availableVariables = BuildAvailableVariables(index);
@@ -251,20 +380,7 @@ namespace Automator
                 if (finalType == StepParameter.ParamType.Dynamic)
                     finalType = step.GetParamType(param, stepDef.Values);
 
-                List<Tuple<string, ParameterValue>> finalOptions = param.Options;
-                if (param.LazyLoadOptions)
-                {
-                    string cacheKey = $"{step.Key}_{param.Name}";
-                    if (!_parameterOptionsCache.TryGetValue(cacheKey, out finalOptions))
-                    {
-                        finalOptions = step.GetParamOptions(param, stepDef.Values);
-                        _parameterOptionsCache[cacheKey] = finalOptions;
-                    }
-                }
-                else if (param.Type == StepParameter.ParamType.Dynamic)
-                {
-                    finalOptions = step.GetParamOptions(param, stepDef.Values);
-                }
+                List<Tuple<string, ParameterValue>> finalOptions = GetParameterOptions(step, param, stepDef.Values);
 
                 string label = param.Name + (param.Optional ? " (optional)" : string.Empty);
                 VisualElement field = CreateParameterField(
@@ -275,9 +391,10 @@ namespace Automator
                     stepDef.Values[i],
                     () =>
                     {
+                        _stepsList?.RefreshItem(index);
                         if (param.Type == StepParameter.ParamType.Dynamic)
-                            _stepsList?.RefreshItem(index);
-                    });
+                            _stepDetails.schedule.Execute(RefreshSelectedStep);
+                    }, param.OptionComparison);
                 if (field != null)
                     item.Add(field);
 
@@ -300,25 +417,27 @@ namespace Automator
             }
         }
 
-        private VisualElement CreateParameterField(
+        internal static VisualElement CreateParameterField(
             string label,
             string tooltip,
             StepParameter.ParamType type,
             List<Tuple<string, ParameterValue>> options,
             ParameterValue value,
-            Action changed)
+            Action changed,
+            StringComparison optionComparison = StringComparison.Ordinal)
         {
             if (options != null && options.Count > 0)
             {
                 List<string> choices = options.Select(option => option.Item1.Replace("/", "\\")).ToList();
-                int current = type == StepParameter.ParamType.Int
-                    ? options.FindIndex(option => option.Item2.intValue == value.intValue)
-                    : options.FindIndex(option => option.Item2.stringValue == value.stringValue);
-                current = Mathf.Clamp(current, 0, choices.Count - 1);
-                if (type == StepParameter.ParamType.Int)
-                    value.intValue = options[current].Item2.intValue;
-                else
-                    value.stringValue = options[current].Item2.stringValue;
+                int current = FindOptionIndex(options, type, value, optionComparison);
+                if (current < 0)
+                {
+                    // Rendering must never replace saved values, including removed or renamed options.
+                    string saved = type == StepParameter.ParamType.Int ? value.intValue.ToString()
+                        : type == StepParameter.ParamType.Bool ? value.boolValue.ToString() : value.stringValue;
+                    choices.Add(string.IsNullOrEmpty(saved) ? "Select a value..." : saved + " (unavailable)");
+                    current = choices.Count - 1;
+                }
                 PopupField<string> popup = new PopupField<string>(label, choices, current)
                 {
                     tooltip = tooltip
@@ -326,10 +445,15 @@ namespace Automator
                 popup.RegisterValueChangedCallback(evt =>
                 {
                     int index = choices.IndexOf(evt.newValue);
-                    if (index < 0)
+                    if (index < 0 || index >= options.Count)
+                    {
+                        popup.SetValueWithoutNotify(evt.previousValue);
                         return;
+                    }
                     if (type == StepParameter.ParamType.Int)
                         value.intValue = options[index].Item2.intValue;
+                    else if (type == StepParameter.ParamType.Bool)
+                        value.boolValue = options[index].Item2.boolValue;
                     else
                         value.stringValue = options[index].Item2.stringValue;
                     changed();
@@ -376,15 +500,6 @@ namespace Automator
             }
         }
 
-        private void RemoveStep(int index)
-        {
-            if (index < 0 || index >= _steps.Count)
-                return;
-            _steps.RemoveAt(index);
-            _stepsList?.Rebuild();
-            RefreshStepSummary();
-        }
-
         private void RunStep(int index)
         {
             if (index < 0 || index >= _steps.Count)
@@ -419,7 +534,7 @@ namespace Automator
         {
             return _steps.Count == 0
                 ? "No steps yet. Add the first step to build this workflow."
-                : $"{_steps.Count} step{(_steps.Count == 1 ? string.Empty : "s")} · drag cards to reorder";
+                : $"{_steps.Count} step{(_steps.Count == 1 ? string.Empty : "s")} · drag to reorder, select to edit";
         }
 
         private void RefreshStepSummary()
@@ -435,7 +550,7 @@ namespace Automator
             AssetDatabase.Refresh();
         }
 
-        private void Save()
+        internal void Save()
         {
             _repository.SaveAction(_action);
 
@@ -455,7 +570,7 @@ namespace Automator
             _onSave?.Invoke();
         }
 
-        private void AddStep(ActionStep step)
+        internal void AddStep(ActionStep step)
         {
             ActionStepDefinition newStep = new ActionStepDefinition
             {
@@ -466,16 +581,7 @@ namespace Automator
             };
 
             int selectedStepIndex = _stepsList?.selectedIndex ?? -1;
-            if (selectedStepIndex >= 0)
-            {
-                _steps.Insert(selectedStepIndex + 1, newStep);
-            }
-            else
-            {
-                _steps.Add(newStep);
-            }
-            _stepsList?.Rebuild();
-            RefreshStepSummary();
+            _stepCollection.AddItem(newStep, selectedStepIndex >= 0 ? selectedStepIndex + 1 : -1);
         }
 
         private Dictionary<string, string> BuildAvailableVariables(int stepIndex)
@@ -485,6 +591,7 @@ namespace Automator
             for (int i = 0; i < stepIndex && i < _steps.Count; i++)
             {
                 ActionStepDefinition stepDef = _steps[i];
+                if (!stepDef.Enabled) continue;
                 ActionStep step = ActionStepRegistry.GetStep(stepDef.Key);
                 if (step == null) continue;
 

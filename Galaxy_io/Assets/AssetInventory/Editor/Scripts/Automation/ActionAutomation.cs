@@ -233,7 +233,7 @@ namespace AssetInventory.Automation
                 return AutomationResponse.Error($"Action with ID {request.ActionId} not found.", errorCode: "not_found");
             }
             List<ActionStepDefinition> steps = repository.GetSteps(request.ActionId);
-            object stepPreview = steps.Select(step => new {step.Id, step.Key, step.OrderIndex, parameterValues = step.Values}).ToArray();
+            object stepPreview = steps.Select(step => new {step.Id, step.Key, step.OrderIndex, step.Enabled, parameterValues = step.Values}).ToArray();
             string actionState = SerializeActionState(action, steps);
             AutomationResponse confirmation = AutomationMutationGuard.RequireConfirmation(
                 "delete_action",
@@ -264,7 +264,7 @@ namespace AssetInventory.Automation
                 return AutomationResponse.Error($"Action with ID {request.ActionId} not found.", errorCode: "not_found");
             }
             List<ActionStepDefinition> steps = repository.GetSteps(request.ActionId);
-            object stepPreview = steps.Select(step => new {step.Id, step.Key, step.OrderIndex, parameterValues = step.Values}).ToArray();
+            object stepPreview = steps.Select(step => new {step.Id, step.Key, step.OrderIndex, step.Enabled, parameterValues = step.Values}).ToArray();
             string actionState = SerializeActionState(action, steps);
             AutomationResponse confirmation = AutomationMutationGuard.RequireConfirmation(
                 "run_action",
@@ -314,6 +314,7 @@ namespace AssetInventory.Automation
                     step.Id,
                     step.Key,
                     step.OrderIndex,
+                    step.Enabled,
                     step.Values
                 }).ToArray()
             });

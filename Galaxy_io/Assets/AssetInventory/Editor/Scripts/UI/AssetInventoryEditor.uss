@@ -4436,7 +4436,8 @@
 }
 
 .ai-settings-action-row.ai-settings-action-running {
-    background-color: rgba(83, 150, 91, 0.16);
+    border-left-width: 2px;
+    border-left-color: rgb(83, 150, 91);
 }
 
 .ai-settings-action-toggle {
@@ -6133,18 +6134,9 @@
     flex-direction: row;
     align-items: center;
     min-height: 30px;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
     padding-left: 8px;
     padding-right: 8px;
-    margin-bottom: 3px;
-    background-color: rgba(255, 255, 255, 0.055);
-}
-
-.ai-list-row-alt {
-    background-color: rgba(255, 255, 255, 0.085);
+    margin-bottom: 0;
 }
 
 .ai-metadata-row {
@@ -6169,14 +6161,6 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.ai-uitk-light .ai-list-row {
-    background-color: rgba(255, 255, 255, 0.55);
-}
-
-.ai-uitk-light .ai-list-row-alt {
-    background-color: rgba(255, 255, 255, 0.82);
 }
 
 .ai-list-row-title {
@@ -6289,14 +6273,6 @@
     border-top-color: rgba(0, 0, 0, 0.16);
     border-bottom-color: rgba(0, 0, 0, 0.16);
     background-color: rgba(255, 255, 255, 0.22);
-}
-
-.ai-connection-list .ai-connection-row:hover {
-    background-color: rgba(81, 142, 220, 0.18);
-}
-
-.ai-connection-list .ai-connection-row.unity-collection-view__item--selected {
-    background-color: rgba(81, 142, 220, 0.30);
 }
 
 .ai-connection-row {
@@ -6572,10 +6548,6 @@
     border-bottom-width: 0;
 }
 
-.ai-project-row:hover {
-    background-color: rgba(81, 142, 220, 0.18);
-}
-
 .ai-project-row .ai-list-row-body {
     align-items: flex-start;
     justify-content: center;
@@ -6611,10 +6583,6 @@
     border-bottom-width: 0;
 }
 
-.ai-metadata-selector-row:hover {
-    background-color: rgba(81, 142, 220, 0.18);
-}
-
 .ai-metadata-selector-row .ai-list-row-body {
     align-items: flex-start;
     justify-content: center;
@@ -6630,17 +6598,14 @@
     -unity-text-align: middle-left;
 }
 
-.ai-version-selector-row:hover {
-    background-color: rgba(81, 142, 220, 0.18);
-}
-
 .ai-version-selector-row {
     padding-top: 3px;
     padding-bottom: 3px;
 }
 
 .ai-version-selector-row.ai-list-row-selected {
-    background-color: rgba(83, 150, 91, 0.16);
+    border-left-width: 2px;
+    border-left-color: rgb(83, 150, 91);
 }
 
 .ai-version-selector-row .ai-list-row-body {
@@ -6754,18 +6719,6 @@
     padding-right: 7px;
     padding-top: 3px;
     padding-bottom: 3px;
-}
-
-.ai-tag-selector-row:hover {
-    background-color: rgba(81, 142, 220, 0.18);
-}
-
-.ai-tag-selector-row.ai-tag-selector-row-keyboard-selected {
-    background-color: rgba(81, 142, 220, 0.34);
-}
-
-.ai-uitk-light .ai-tag-selector-row.ai-tag-selector-row-keyboard-selected {
-    background-color: rgba(43, 112, 196, 0.24);
 }
 
 .ai-tag-selector-indent {
@@ -7108,28 +7061,11 @@
     align-items: center;
     min-width: 0;
     min-height: 32px;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
     padding-left: 8px;
     padding-right: 6px;
     padding-top: 3px;
     padding-bottom: 3px;
-    margin-bottom: 3px;
-    background-color: rgba(255, 255, 255, 0.035);
-}
-
-.ai-preview-overview-row:hover {
-    background-color: rgba(255, 255, 255, 0.07);
-}
-
-.ai-uitk-light .ai-preview-overview-row {
-    background-color: rgba(255, 255, 255, 0.42);
-}
-
-.ai-uitk-light .ai-preview-overview-row:hover {
-    background-color: rgba(255, 255, 255, 0.68);
+    margin-bottom: 0;
 }
 
 .ai-preview-overview-row-indented {
@@ -7600,24 +7536,11 @@
     padding-right: 8px;
     padding-top: 4px;
     padding-bottom: 4px;
-    margin-bottom: 3px;
-    border-top-left-radius: 4px;
-    border-top-right-radius: 4px;
-    border-bottom-left-radius: 4px;
-    border-bottom-right-radius: 4px;
-    background-color: rgba(255, 255, 255, 0.035);
+    margin-bottom: 0;
 }
 
 .ai-option-section {
     padding-bottom: 13px;
-}
-
-.ai-option-row:hover {
-    background-color: rgba(255, 255, 255, 0.075);
-}
-
-.ai-option-active {
-    background-color: rgba(81, 142, 220, 0.22);
 }
 
 .ai-option-disabled {

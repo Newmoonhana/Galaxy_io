@@ -281,118 +281,134 @@ namespace AssetInventory
                 }
             }
 
-            // Create preview scene
+            GameObject meshObject = null;
             try
             {
-                previewScene = EditorSceneManager.NewPreviewScene();
-                if (EditorSceneManager.GetSceneCullingMask(previewScene) == 0)
+                // Create preview scene
+                try
                 {
-                    throw new OutOfMemoryException("Too many preview scenes were not closed correctly. Restart Unity to fix.");
+                    previewScene = EditorSceneManager.NewPreviewScene();
+                    if (EditorSceneManager.GetSceneCullingMask(previewScene) == 0)
+                    {
+                        throw new OutOfMemoryException("Too many preview scenes were not closed correctly. Restart Unity to fix.");
+                    }
                 }
-            }
-            catch (Exception e)
-            {
-                Debug.LogError($"Failed to create preview scene for material: {e.Message}");
-                tcs.SetResult(null);
-                yield break;
-            }
-
-            // Setup phase (before yield) - no try-catch around yield
-            try
-            {
-                // Create preview mesh based on configured type
-                PreviewMeshType meshType = (PreviewMeshType)AI.Config.materialPreviewMesh;
-                GameObject meshObject = CreatePreviewMesh(meshType);
-
-                // Apply material to mesh
-                MeshRenderer renderer = meshObject.GetComponent<MeshRenderer>();
-                if (renderer != null)
+                catch (Exception e)
                 {
-                    renderer.sharedMaterial = material;
+                    Debug.LogError($"Failed to create preview scene for material: {e.Message}");
+                    hasError = true;
+                    errorMessage = e.Message;
+                    yield break;
                 }
 
-                // Create and setup stage
-                stage = ScriptableObject.CreateInstance<CustomPreviewStage>();
-                stage.SetScene(previewScene, true);
-
-                // Setup scene with the mesh object
-                stage.SetupSceneForMaterial(meshObject, meshType);
-            }
-            catch (Exception e)
-            {
-                hasError = true;
-                errorMessage = e.Message;
-                Debug.LogError($"Error setting up material preview: {e.Message}\n{e.StackTrace}");
-            }
-
-            if (hasError)
-            {
-                if (stage != null)
+                // Setup phase (before yield) - no try-catch around yield
+                try
                 {
-                    stage.RestoreEnvironment();
-                    Object.DestroyImmediate(stage);
+                    // Create preview mesh based on configured type
+                    PreviewMeshType meshType = (PreviewMeshType)AI.Config.materialPreviewMesh;
+                    meshObject = CreatePreviewMesh(meshType);
+                    SceneManager.MoveGameObjectToScene(meshObject, previewScene);
+
+                    // Apply material to mesh
+                    MeshRenderer renderer = meshObject.GetComponent<MeshRenderer>();
+                    if (renderer != null)
+                    {
+                        renderer.sharedMaterial = material;
+                    }
+
+                    // Create and setup stage
+                    stage = ScriptableObject.CreateInstance<CustomPreviewStage>();
+                    stage.SetScene(previewScene, true);
+
+                    // Setup scene with the mesh object
+                    stage.SetupSceneForMaterial(meshObject, meshType);
                 }
-                if (AI.Config.LogPreviewCreation)
+                catch (Exception e)
                 {
-                    string name = materialPath ?? material?.name ?? "Unknown";
-                    Debug.LogWarning($"Failed to generate preview for material '{name}': {errorMessage}");
+                    hasError = true;
+                    errorMessage = e.Message;
+                    Debug.LogError($"Error setting up material preview: {e.Message}\n{e.StackTrace}");
                 }
-                tcs.SetResult(null);
-                yield break;
-            }
 
-            // Wait a frame for any shaders to compile (yield outside try-catch)
-            yield return null;
-
-            // Diagnostic: detect race-condition damage during the yield above.
-            // True damage = a saved reference exists on disk (non-zero instance id) but
-            // resolves to null at runtime. Empty texture slots in the source .mat are
-            // legitimate (e.g. Standard shader has 9 TexEnv slots, most go unused).
-
-            // Render phase (after yield)
-            try
-            {
-                // Calculate native render size with super-sampling
-                int superSamplingMultiplier = AI.Config.cpSuperSamplingMultiplier;
-                int nativeSize = size * superSamplingMultiplier;
-
-                // Render the frame
-                resultTexture = stage.RenderFrame(nativeSize, nativeSize);
-
-                // Downscale if super-sampled
-                if (resultTexture != null && superSamplingMultiplier > 1)
+                if (hasError)
                 {
-                    Texture2D downscaled = resultTexture.Downscale(size, size);
-                    Object.DestroyImmediate(resultTexture);
-                    resultTexture = downscaled;
+                    yield break;
                 }
-            }
-            catch (Exception e)
-            {
-                hasError = true;
-                errorMessage = e.Message;
-                Debug.LogError($"Error rendering material preview: {e.Message}\n{e.StackTrace}");
-            }
 
-            // Cleanup
-            if (stage != null)
-            {
-                stage.RestoreEnvironment();
-                Object.DestroyImmediate(stage);
-            }
+                // Wait a frame for any shaders to compile (yield outside try-catch)
+                yield return null;
 
-            if (hasError)
-            {
-                if (AI.Config.LogPreviewCreation)
+                // Diagnostic: detect race-condition damage during the yield above.
+                // True damage = a saved reference exists on disk (non-zero instance id) but
+                // resolves to null at runtime. Empty texture slots in the source .mat are
+                // legitimate (e.g. Standard shader has 9 TexEnv slots, most go unused).
+
+                // Render phase (after yield)
+                try
                 {
-                    string name = materialPath ?? material?.name ?? "Unknown";
-                    Debug.LogWarning($"Failed to generate preview for material '{name}': {errorMessage}");
+                    // Calculate native render size with super-sampling
+                    int superSamplingMultiplier = AI.Config.cpSuperSamplingMultiplier;
+                    int nativeSize = size * superSamplingMultiplier;
+
+                    // Render the frame
+                    resultTexture = stage.RenderFrame(nativeSize, nativeSize);
+
+                    // Downscale if super-sampled
+                    if (resultTexture != null && superSamplingMultiplier > 1)
+                    {
+                        Texture2D downscaled = resultTexture.Downscale(size, size);
+                        Object.DestroyImmediate(resultTexture);
+                        resultTexture = downscaled;
+                    }
                 }
-                tcs.SetResult(null);
+                catch (Exception e)
+                {
+                    hasError = true;
+                    errorMessage = e.Message;
+                    Debug.LogError($"Error rendering material preview: {e.Message}\n{e.StackTrace}");
+                }
             }
-            else
+            finally
             {
-                tcs.SetResult(resultTexture);
+                try
+                {
+                    try
+                    {
+                        if (stage != null)
+                        {
+                            stage.RestoreEnvironment();
+                        }
+                    }
+                    finally
+                    {
+                        try
+                        {
+                            if (stage != null) Object.DestroyImmediate(stage);
+                            if (meshObject != null) Object.DestroyImmediate(meshObject);
+                        }
+                        finally
+                        {
+                            if (previewScene.IsValid()) EditorSceneManager.ClosePreviewScene(previewScene);
+                        }
+                    }
+                }
+                catch (Exception e)
+                {
+                    hasError = true;
+                    errorMessage = e.Message;
+                    Debug.LogError($"Error cleaning up material preview: {e.Message}\n{e.StackTrace}");
+                }
+
+                if (hasError)
+                {
+                    if (resultTexture != null) Object.DestroyImmediate(resultTexture);
+                    if (AI.Config.LogPreviewCreation)
+                    {
+                        string name = materialPath ?? material?.name ?? "Unknown";
+                        Debug.LogWarning($"Failed to generate preview for material '{name}': {errorMessage}");
+                    }
+                }
+                tcs.TrySetResult(hasError ? null : resultTexture);
             }
         }
 

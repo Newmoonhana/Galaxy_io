@@ -476,9 +476,11 @@ namespace AssetInventory
             string subtitle,
             VisualElement leading = null,
             VisualElement trailing = null,
+            bool collectionItem = false,
             params string[] extraClasses)
         {
             CommonUITK.AddClasses(row, "ai-list-row");
+            if (!collectionItem) CommonUITK.ApplyListRowStyle(row);
             return CommonUITK.PopulateTitleSubtitleActionRow(
                 row,
                 title,
