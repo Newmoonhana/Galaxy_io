@@ -238,12 +238,26 @@ namespace AssetInventory
                     }
                 }
 
-                if (reveal && nativeIds.Count > 0)
+                // Unity reveals hidden selected items even in its "without notify" API.
+                // Restore only ancestors it opened, keeping refreshes independent of navigation.
+                HashSet<int> collapsedAncestors = new HashSet<int>();
+                if (!reveal)
                 {
-                    ExpandAncestors(nativeIds[0]);
+                    foreach (int nativeId in nativeIds)
+                    {
+                        int current = nativeId;
+                        while (_parentNativeIds.TryGetValue(current, out int? parent) && parent.HasValue)
+                        {
+                            if (!View.IsExpanded(parent.Value)) collapsedAncestors.Add(parent.Value);
+                            current = parent.Value;
+                        }
+                    }
                 }
-
+                // Expand every selected branch before Unity resolves row indices. Otherwise
+                // opening a later branch shifts an earlier selection to a different item.
+                ExpandAncestors(nativeIds);
                 View.SetSelectionByIdWithoutNotify(nativeIds);
+                foreach (int ancestor in collapsedAncestors) View.CollapseItem(ancestor);
                 if (reveal && nativeIds.Count > 0)
                 {
                     View.ScrollToItemById(nativeIds[0]);
@@ -253,8 +267,9 @@ namespace AssetInventory
 
         public IList<int> GetSelectedModelIds()
         {
-            return View.selectedItems
-                .OfType<AssetInfo>()
+            return View.selectedIds
+                .Select(id => View.GetItemDataForId<AssetInfo>(id))
+                .Where(info => info != null)
                 .Select(info => info.TreeId)
                 .Distinct()
                 .ToList();
@@ -721,14 +736,18 @@ namespace AssetInventory
             return _nextSyntheticId++;
         }
 
-        private void ExpandAncestors(int nativeId)
+        private void ExpandAncestors(IEnumerable<int> nativeIds)
         {
             List<int> ancestors = new List<int>();
-            int current = nativeId;
-            while (_parentNativeIds.TryGetValue(current, out int? parent) && parent.HasValue)
+            HashSet<int> visited = new HashSet<int>();
+            foreach (int nativeId in nativeIds)
             {
-                ancestors.Add(parent.Value);
-                current = parent.Value;
+                int current = nativeId;
+                while (_parentNativeIds.TryGetValue(current, out int? parent) && parent.HasValue)
+                {
+                    if (visited.Add(parent.Value)) ancestors.Add(parent.Value);
+                    current = parent.Value;
+                }
             }
 
             for (int i = ancestors.Count - 1; i >= 0; i--)

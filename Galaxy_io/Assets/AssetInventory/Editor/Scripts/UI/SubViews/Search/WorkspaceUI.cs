@@ -139,7 +139,7 @@ namespace AssetInventory
         private static VisualElement CreateSearchRow()
         {
             VisualElement row = new VisualElement();
-            return AssetInventoryUITK.PopulateListRow(row, string.Empty, string.Empty, extraClasses: new[] {"ai-workspace-search-row"});
+            return AssetInventoryUITK.PopulateListRow(row, string.Empty, string.Empty, collectionItem: true, extraClasses: new[] {"ai-workspace-search-row"});
         }
 
         private void BindSearchRow(VisualElement element, WorkspaceSearch search, int index)

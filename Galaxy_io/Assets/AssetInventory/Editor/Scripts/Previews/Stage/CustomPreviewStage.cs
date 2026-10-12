@@ -30,12 +30,17 @@ namespace AssetInventory
         private Color _originalAmbientLight;
         private AmbientMode _originalAmbientMode;
         private float _originalAmbientIntensity;
+        private bool _environmentCaptured;
 
         // Background objects
         private GameObject _backgroundQuad;
 
         // Store the original scene of the prefab so we can move it back
         private Scene _originalPrefabScene;
+        private Transform _originalPrefabParent;
+        private Vector3 _originalPrefabPosition;
+        private Quaternion _originalPrefabRotation;
+        private Vector3 _originalPrefabScale;
 
         // Track whether this is a preview scene or regular scene (VFX needs regular scene)
         private bool _isPreviewScene = true;
@@ -51,19 +56,17 @@ namespace AssetInventory
 
         public void ReplaceInstantiatedPrefab(GameObject newPrefab)
         {
-            // Destroy the old prefab
-            if (InstantiatedPrefab != null)
-            {
-                DestroyImmediate(InstantiatedPrefab);
-            }
+            // Return borrowed instances and dispose owned instances before taking ownership of the replacement.
+            ReleaseInstantiatedPrefab();
 
             // Set the new prefab
             InstantiatedPrefab = newPrefab;
+            _originalPrefabScene = default;
+            _originalPrefabParent = null;
 
             // Move to preview scene
             if (newPrefab != null && scene.IsValid())
             {
-                StageUtility.PlaceGameObjectInCurrentStage(newPrefab);
                 SceneManager.MoveGameObjectToScene(newPrefab, scene);
                 newPrefab.SetActive(true);
             }
@@ -85,6 +88,7 @@ namespace AssetInventory
             _originalAmbientLight = RenderSettings.ambientLight;
             _originalAmbientMode = RenderSettings.ambientMode;
             _originalAmbientIntensity = RenderSettings.ambientIntensity;
+            _environmentCaptured = true;
 
             // Check if this is a prefab asset that needs to be instantiated
             bool isPrefabAsset = PrefabUtility.IsPartOfPrefabAsset(prefab);
@@ -96,16 +100,21 @@ namespace AssetInventory
                 InstantiatedPrefab.SetActive(true); // Ensure main GameObject is always enabled
                 InstantiatedPrefab.name = prefab.name; // Keep original name without (Clone) suffix
                 _originalPrefabScene = default; // No original scene since this is a new instance
+                _originalPrefabParent = null;
             }
             else
             {
                 // Already an instance, use it directly
                 InstantiatedPrefab = prefab;
                 _originalPrefabScene = prefab.scene;
+                _originalPrefabParent = prefab.transform.parent;
+                _originalPrefabPosition = prefab.transform.localPosition;
+                _originalPrefabRotation = prefab.transform.localRotation;
+                _originalPrefabScale = prefab.transform.localScale;
+                prefab.transform.SetParent(null, true);
             }
 
-            // Place in current stage and move to preview scene
-            StageUtility.PlaceGameObjectInCurrentStage(InstantiatedPrefab);
+            // Preview objects belong directly to the rendering scene, independent of the edited stage.
             SceneManager.MoveGameObjectToScene(InstantiatedPrefab, scene);
 
             InstantiatedPrefab.SetActive(true);
@@ -311,12 +320,13 @@ namespace AssetInventory
             _originalAmbientLight = RenderSettings.ambientLight;
             _originalAmbientMode = RenderSettings.ambientMode;
             _originalAmbientIntensity = RenderSettings.ambientIntensity;
+            _environmentCaptured = true;
 
             // Store reference and move to preview scene
             InstantiatedPrefab = meshObject;
             _originalPrefabScene = default;
+            _originalPrefabParent = null;
 
-            StageUtility.PlaceGameObjectInCurrentStage(meshObject);
             SceneManager.MoveGameObjectToScene(meshObject, scene);
             meshObject.SetActive(true);
 
@@ -441,9 +451,7 @@ namespace AssetInventory
             GameObject camGO = new GameObject("PreviewCamera");
             GameObject lightGO = new GameObject("PreviewLight");
 
-            // Place in current stage and move to preview scene
-            StageUtility.PlaceGameObjectInCurrentStage(camGO);
-            StageUtility.PlaceGameObjectInCurrentStage(lightGO);
+            // Keep rendering helpers out of the currently edited stage.
             SceneManager.MoveGameObjectToScene(camGO, scene);
             SceneManager.MoveGameObjectToScene(lightGO, scene);
 
@@ -474,7 +482,6 @@ namespace AssetInventory
 
                 // Create Volume with fixed exposure
                 GameObject volumeGO = new GameObject("PreviewVolume");
-                StageUtility.PlaceGameObjectInCurrentStage(volumeGO);
                 SceneManager.MoveGameObjectToScene(volumeGO, scene);
 
                 Volume volume = volumeGO.AddComponent<Volume>();
@@ -520,7 +527,6 @@ namespace AssetInventory
 
             // Setup secondary light
             GameObject secondaryLightGO = new GameObject("PreviewSecondaryLight");
-            StageUtility.PlaceGameObjectInCurrentStage(secondaryLightGO);
             SceneManager.MoveGameObjectToScene(secondaryLightGO, scene);
 
             secondaryLightGO.transform.rotation = Quaternion.Euler(AI.Config.cpSecondaryLightRotationX, AI.Config.cpSecondaryLightRotationY, 0f);
@@ -600,7 +606,6 @@ namespace AssetInventory
             // Create a quad that fills the camera view
             _backgroundQuad = GameObject.CreatePrimitive(PrimitiveType.Quad);
             _backgroundQuad.name = "GradientBackground";
-            StageUtility.PlaceGameObjectInCurrentStage(_backgroundQuad);
             SceneManager.MoveGameObjectToScene(_backgroundQuad, scene);
 
             // Remove the collider (we don't need it)
@@ -1068,42 +1073,67 @@ namespace AssetInventory
             return render;
         }
 
-        public void RestoreEnvironment()
+        private void ReleaseInstantiatedPrefab()
         {
-            // Handle cleanup of the instantiated prefab
-            if (InstantiatedPrefab != null && InstantiatedPrefab.scene == scene)
+            if (InstantiatedPrefab != null)
             {
-                if (_originalPrefabScene.IsValid())
+                if (_originalPrefabScene.IsValid() && _originalPrefabScene.isLoaded)
                 {
-                    // Move back to original scene (this was an instance from a storage preview scene)
+                    // UI previews can be children of a temporary canvas. Scene moves require a root.
+                    Transform prefabTransform = InstantiatedPrefab.transform;
+                    prefabTransform.SetParent(null, true);
                     SceneManager.MoveGameObjectToScene(InstantiatedPrefab, _originalPrefabScene);
+                    if (_originalPrefabParent != null && _originalPrefabParent.gameObject.scene == _originalPrefabScene)
+                    {
+                        prefabTransform.SetParent(_originalPrefabParent, false);
+                    }
+                    prefabTransform.localPosition = _originalPrefabPosition;
+                    prefabTransform.localRotation = _originalPrefabRotation;
+                    prefabTransform.localScale = _originalPrefabScale;
                     InstantiatedPrefab.SetActive(false);
                 }
                 else
                 {
-                    // This was instantiated from a prefab asset, so destroy the instance
-                    // The preview scene closure will handle the cleanup, but we explicitly destroy it here
+                    // Owned instances also need cleanup when setup failed before scene placement.
                     DestroyImmediate(InstantiatedPrefab);
-                    InstantiatedPrefab = null;
                 }
+                InstantiatedPrefab = null;
             }
+        }
 
-            // Restore original RenderSettings
-            RenderSettings.ambientLight = _originalAmbientLight;
-            RenderSettings.ambientMode = _originalAmbientMode;
-            RenderSettings.ambientIntensity = _originalAmbientIntensity;
-
-            // Close the scene (this will clean up camera, light, and background objects)
-            if (scene.IsValid())
+        public void RestoreEnvironment()
+        {
+            try
             {
-                if (_isPreviewScene)
+                ReleaseInstantiatedPrefab();
+            }
+            finally
+            {
+                try
                 {
-                    EditorSceneManager.ClosePreviewScene(scene);
+                    if (_environmentCaptured)
+                    {
+                        _environmentCaptured = false;
+                        RenderSettings.ambientLight = _originalAmbientLight;
+                        RenderSettings.ambientMode = _originalAmbientMode;
+                        RenderSettings.ambientIntensity = _originalAmbientIntensity;
+                    }
                 }
-                else
+                finally
                 {
-                    // VFX uses regular scene to bypass visibility limitations
-                    EditorSceneManager.CloseScene(scene, true);
+                    // Closing the owned scene disposes cameras, lights, canvases and background objects.
+                    if (scene.IsValid())
+                    {
+                        if (_isPreviewScene)
+                        {
+                            EditorSceneManager.ClosePreviewScene(scene);
+                        }
+                        else
+                        {
+                            EditorSceneManager.CloseScene(scene, true);
+                        }
+                        scene = default;
+                    }
                 }
             }
         }

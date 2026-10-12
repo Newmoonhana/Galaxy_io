@@ -143,6 +143,11 @@ namespace AssetInventory
                     spaceRequired += _ignoreCache ? 0 : Math.Max(0, _cacheSize);
                 }
 
+                int rowIndex = 0;
+                foreach (VisualElement row in relatedFolders.Children())
+                {
+                    if (row.ClassListContains("ai-list-row")) CommonUITK.ApplyListRowStyle(row, rowIndex++);
+                }
                 scroll.Add(relatedFolders);
             }
 
@@ -194,6 +199,7 @@ namespace AssetInventory
                 "ai-db-folder-row");
             row.Q<Label>(className: "ai-list-row-title")?.AddToClassList("ai-db-folder-title");
             row.Q<Label>(className: "ai-list-row-subtitle")?.AddToClassList("ai-db-folder-path");
+            CommonUITK.ApplyListRowStyle(row);
             return row;
         }
 

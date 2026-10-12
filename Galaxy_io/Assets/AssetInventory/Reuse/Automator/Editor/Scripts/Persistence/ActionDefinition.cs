@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 
 namespace Automator
 {
@@ -85,6 +86,10 @@ namespace Automator
         /// Order index within the action (0-based).
         /// </summary>
         public int OrderIndex;
+
+        /// <summary>Whether this step participates in action execution.</summary>
+        [DefaultValue(true)]
+        public bool Enabled = true;
 
         /// <summary>
         /// Parameter values for this step.

@@ -4,7 +4,7 @@ description: "Use this skill whenever the user asks to 'open Asset Inventory', s
 metadata:
   asset: "Asset Inventory 4"
   publisher: "Impossible Robert"
-  asset-version: "4.8.0"
+  asset-version: "4.9.0"
   skill-version: "1.0.0"
   unity: "2022.3"
   render-pipelines: "Not applicable"
@@ -12,7 +12,7 @@ metadata:
   asset-store-url: "https://assetstore.unity.com/packages/tools/utilities/asset-inventory-4-349582"
   documentation-url: "https://www.wetzold.com/tools/assetinventory/docs/"
   support-url: "https://discord.com/invite/uzeHzEMM4B"
-  last-verified: "2026-08-29"
+  last-verified: "2026-10-02"
 ---
 
 # Asset Inventory Setup and Overview
@@ -33,7 +33,7 @@ Open Asset Inventory, confirm its catalog state and configured sources, and rout
 ## Quick start
 
 1. Open `Tools > Asset Inventory > Asset Inventory`.
-2. Alternatively use `Window > Package Management > Asset Inventory` or `Window > Asset Inventory`.
+2. Alternatively use `Window > Package Management > Asset Inventory` on Unity 6.1+, or `Window > Asset Inventory` on earlier supported Editors.
 3. If the catalog is empty, choose automatic or choose-first indexing and let the initial actions complete.
 4. Select the narrowest sibling skill for the requested outcome.
 
@@ -62,8 +62,9 @@ Open Asset Inventory, confirm its catalog state and configured sources, and rout
 ## API quick reference
 
 - Main menu: `Tools > Asset Inventory > Asset Inventory`.
-- Alternative menus: `Window > Package Management > Asset Inventory` and `Window > Asset Inventory`.
+- Alternative menu: `Window > Package Management > Asset Inventory` on Unity 6.1+; `Window > Asset Inventory` on Unity 2022.3 through Unity 6.0.
 - Project context menu: `Assets > Asset Inventory`.
+- Welcome guide: `Tools > Asset Inventory > Welcome`; main-toolbar buttons are available on Unity 6.3+.
 - Automation queries initialize the catalog on demand but UI commands still require a live Editor.
 
 ## Common issues
@@ -77,4 +78,4 @@ Open Asset Inventory, confirm its catalog state and configured sources, and rout
 - Do not use or expose experimental semantic or code-search surfaces.
 - Do not assume the package lives under `Assets/_Tools` or any fixed import path.
 - Do not alter database schema or upgrader versions for ordinary use.
-- Use preview-bound confirmation for every automation mutation.
+- Use preview-bound confirmation for automation changes to catalog data, files, downloads, actions, or scene objects. Opening and closing windows are direct UI lifecycle operations without a dry-run token.

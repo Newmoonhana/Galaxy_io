@@ -15,6 +15,7 @@ namespace AssetInventory
         public int ActionId { get; set; }
         public string Key { get; set; }
         public int OrderIdx { get; set; }
+        public bool Enabled { get; set; } = true;
         public string Params { get; set; }
 
         // Runtime

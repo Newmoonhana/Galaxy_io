@@ -158,7 +158,7 @@ namespace AssetInventory
                 string.Empty,
                 trailing: AssetInventoryUITK.CreateStatusPill(pillText, pillClass),
                 extraClasses: index % 2 == 1
-                    ? new[] {"ai-version-selector-row", "ai-list-row-alt", isCurrent || isDefault ? "ai-list-row-selected" : null}
+                    ? new[] {"ai-version-selector-row", BaseVerticalCollectionView.itemAlternativeBackgroundUssClassName, isCurrent || isDefault ? "ai-list-row-selected" : null}
                     : new[] {"ai-version-selector-row", isCurrent || isDefault ? "ai-list-row-selected" : null});
             return row;
         }

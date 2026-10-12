@@ -4,7 +4,7 @@ description: "Use this skill whenever the user asks to 'import this asset', brin
 metadata:
   asset: "Asset Inventory 4"
   publisher: "Impossible Robert"
-  asset-version: "4.8.0"
+  asset-version: "4.9.0"
   skill-version: "1.0.0"
   unity: "2022.3"
   render-pipelines: "Not applicable"
@@ -12,12 +12,12 @@ metadata:
   asset-store-url: "https://assetstore.unity.com/packages/tools/utilities/asset-inventory-4-349582"
   documentation-url: "https://www.wetzold.com/tools/assetinventory/docs/"
   support-url: "https://discord.com/invite/uzeHzEMM4B"
-  last-verified: "2026-08-29"
+  last-verified: "2026-10-02"
 ---
 
 # Import Assets Safely
 
-Preflight an exact catalog item, preview dependencies and destination scope, then import or place it with explicit confirmation and post-import verification.
+Inspect an exact catalog item and its dependencies, review the configured collision policy, then preview its identity and destination before a confirmed import or scene placement.
 
 ## When to use this skill
 
@@ -32,9 +32,9 @@ Preflight an exact catalog item, preview dependencies and destination scope, the
 
 ## Quick start
 
-1. Inspect the target's details, preview, source path, and dependencies.
+1. Inspect the target's details, preview, source path, and complete dependency state; review collision behavior in Import settings.
 2. Choose a project-relative destination under `Assets`.
-3. Run the mutation as a dry run and review its exact scope.
+3. Run the mutation as a dry run and review the returned identity, destination, and options. Import dry-run does not expand a dependency list or simulate collisions.
 4. Execute only with the matching confirmation token, then verify imported assets and scene state.
 
 ## Workflows
@@ -42,9 +42,9 @@ Preflight an exact catalog item, preview dependencies and destination scope, the
 ### Workflow: Import an indexed file
 
 1. Resolve one exact indexed file.
-2. Preview destination, dependencies, collisions, and package-relative paths.
+2. Inspect dependencies and package-relative paths in the UI, then review the target folder and `AI.Config.importCollisionMode` separately.
 3. Run the default dry run.
-4. Repeat the unchanged request with execution enabled and the returned token.
+4. Review the dry-run file ID, package ID, target folder, dependency option, and script mode. Repeat the unchanged request with execution enabled and the returned token.
 5. Verify imported files, GUID handling, and Console state.
 
 ### Workflow: Place an imported asset in the scene
@@ -57,16 +57,18 @@ Preflight an exact catalog item, preview dependencies and destination scope, the
 ## Verification
 
 - Imported paths remain inside the project `Assets` directory.
-- Only previewed dependencies and targets were created or updated.
+- Imported files match the inspected dependency scope and configured collision behavior; the dry-run response alone cannot prove either.
 - Existing GUID and collision behavior is reported.
 - Scene placement targets one active scene and is undoable.
 
 ## API quick reference
 
-- Automation mutations include starting a download, importing a file, adding an imported asset to the active scene, and exporting data.
+- Import parameters include `FileId`, `TargetFolder`, `WithDependencies` (default true), and `ScriptMode` (0 none, 2 direct, 3 extended, 4 all package scripts).
 - Mutations default to `DryRun = true`.
 - Execution requires the current SHA-256 confirmation token and unchanged validated scope.
 - Download progress is available through a separate read-only query.
+- A file already present in the project returns `alreadyInProject = true` and its path without copying or requiring a new token. Inspect that path before continuing to scene placement.
+- The token binds the import identity and request options; it does not snapshot the dependency graph, collision policy, or project filesystem. Recheck those before execution when they changed.
 
 ## Common issues
 

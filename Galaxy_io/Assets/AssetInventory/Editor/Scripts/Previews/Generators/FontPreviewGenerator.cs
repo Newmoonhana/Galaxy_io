@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using ImpossibleRobert.Common;
 using UnityEngine;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace AssetInventory
@@ -12,6 +13,12 @@ namespace AssetInventory
 
         public static Texture2D Create(Font font, int textureSize = PreviewManager.DEFAULT_PREVIEW_SIZE)
         {
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            {
+                if (AI.Config.LogPreviewCreation) Debug.LogWarning(SceneViewCameraRenderer.PREFAB_MODE_REASON);
+                return null;
+            }
+
             // Step 1: Set a higher rendering resolution
             int renderResolution = textureSize * 4; // Increase resolution (e.g., 512 for 128 texture size)
 
@@ -134,6 +141,12 @@ namespace AssetInventory
 
         public static Texture2D Create(string file, int textureSize = 128)
         {
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            {
+                if (AI.Config.LogPreviewCreation) Debug.LogWarning(SceneViewCameraRenderer.PREFAB_MODE_REASON);
+                return null;
+            }
+
             Font font = AssetDatabase.LoadAssetAtPath<Font>(file);
             if (font == null)
             {

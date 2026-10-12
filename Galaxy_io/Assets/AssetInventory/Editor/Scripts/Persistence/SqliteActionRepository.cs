@@ -146,6 +146,7 @@ namespace AssetInventory
                 ActionId = cas.ActionId,
                 Key = cas.Key,
                 OrderIndex = cas.OrderIdx,
+                Enabled = cas.Enabled,
                 Values = values
             };
         }
@@ -165,6 +166,7 @@ namespace AssetInventory
                 ActionId = step.ActionId,
                 Key = step.Key,
                 OrderIdx = step.OrderIndex,
+                Enabled = step.Enabled,
                 Params = JsonConvert.SerializeObject(step.Values, settings)
             };
         }

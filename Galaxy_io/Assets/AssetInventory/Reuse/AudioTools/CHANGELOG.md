@@ -5,11 +5,11 @@ All notable changes to this package will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [1.2.0]
+## [1.2.0] - 2026-10-05
 
-- Added four source-verified AI Skills for setup, audio preview and selection, non-destructive processing, and WAV export, with repository-only benchmark scenarios and package validation.
-- Added Unity 6.7 lifecycle ownership for audio preview state and editor registrations while retaining Unity 2022.3 support.
-- Standardized Tools and Project-window context-menu labels to omit ellipses.
+- Added AI guidance for setup, audio preview and selection, non-destructive processing and WAV export.
+- Improved audio-preview recovery and editor cleanup on newer Unity versions while retaining Unity 2022.3 support.
+- Simplified Tools and Project-window context-menu labels.
 
 ## [1.1.1] - 2026-08-07
 

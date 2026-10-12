@@ -741,6 +741,19 @@ namespace ImpossibleRobert.Common
             return header;
         }
 
+        // Standalone rows reuse Unity's collection styling. ListView/TreeView own these classes themselves.
+        public static void ApplyListRowStyle(VisualElement row, int index = -1)
+        {
+            row.AddToClassList(BaseVerticalCollectionView.itemUssClassName);
+            if (index >= 0) row.EnableInClassList(BaseVerticalCollectionView.itemAlternativeBackgroundUssClassName, index % 2 == 1);
+            if (row is Button && row.ClassListContains(Button.ussClassName))
+            {
+                row.RemoveFromClassList(Button.ussClassName);
+                row.RegisterCallback<FocusInEvent>(_ => row.AddToClassList(BaseVerticalCollectionView.itemSelectedVariantUssClassName));
+                row.RegisterCallback<FocusOutEvent>(_ => row.RemoveFromClassList(BaseVerticalCollectionView.itemSelectedVariantUssClassName));
+            }
+        }
+
         public static VisualElement CreateTitleSubtitleActionRow(
             string title,
             string subtitle,
@@ -987,21 +1000,7 @@ namespace ImpossibleRobert.Common
         /// </summary>
         public static void ConsumeEvent(EventBase evt, bool immediate = false)
         {
-            if (evt == null) return;
-
-#if UNITY_2023_2_OR_NEWER
-            (evt.target as VisualElement)?.panel?.focusController?.IgnoreEvent(evt);
-#else
-            evt.PreventDefault();
-#endif
-            if (immediate)
-            {
-                evt.StopImmediatePropagation();
-            }
-            else
-            {
-                evt.StopPropagation();
-            }
+            UIToolkitEventUtils.ConsumeEvent(evt, immediate);
         }
 
         public static void AddClasses(VisualElement element, params string[] classNames)

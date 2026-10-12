@@ -131,7 +131,7 @@ namespace AssetInventory
                 sample.description,
                 trailing: actions,
                 extraClasses: index % 2 == 1
-                    ? new[] {"ai-sample-selector-row", "ai-list-row-alt"}
+                    ? new[] {"ai-sample-selector-row", BaseVerticalCollectionView.itemAlternativeBackgroundUssClassName}
                     : new[] {"ai-sample-selector-row"});
 
             return row;

@@ -14,11 +14,20 @@ namespace AssetInventory
     /// </summary>
     public static class ScenePreviewGenerator
     {
+        public const string PREFAB_MODE_REASON = "Scene previews cannot be generated while editing a prefab. Close Prefab Mode and regenerate the preview.";
+
         /// <summary>
         /// Create preview for a scene file
         /// </summary>
         public static Texture2D Create(string sceneFile, int size = PreviewManager.DEFAULT_PREVIEW_SIZE, PreviewRequest previewRequest = null)
         {
+            if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+            {
+                if (previewRequest != null) previewRequest.FailureReason = PREFAB_MODE_REASON;
+                if (AI.Config.LogPreviewCreation) Debug.LogWarning(PREFAB_MODE_REASON);
+                return null;
+            }
+
             Scene originalActiveScene = SceneManager.GetActiveScene();
             Scene loadedScene = default;
             Camera previewCamera = null;
@@ -158,4 +167,3 @@ namespace AssetInventory
         }
     }
 }
-

@@ -88,7 +88,7 @@ namespace AssetInventory
                 reorderable = false,
                 selectionType = SelectionType.Single,
                 showAddRemoveFooter = false,
-                showAlternatingRowBackgrounds = AlternatingRowBackground.None,
+                showAlternatingRowBackgrounds = AlternatingRowBackground.ContentOnly,
                 showBorder = false,
                 showBoundCollectionSize = false,
                 showFoldoutHeader = false,
@@ -120,7 +120,7 @@ namespace AssetInventory
                 row,
                 string.Empty,
                 string.Empty,
-                extraClasses: new[] {"ai-connection-row"});
+                collectionItem: true, extraClasses: new[] {"ai-connection-row"});
         }
 
         private void BindConnectionRow(VisualElement element, int index)
@@ -128,7 +128,6 @@ namespace AssetInventory
             if (index < 0 || index >= _connections.Count) return;
 
             FTPConnection connection = _connections[index];
-            element.EnableInClassList("ai-list-row-alt", index % 2 == 1);
 
             string name = string.IsNullOrWhiteSpace(connection.name) ? "<Unnamed>" : connection.name;
             string protocol = connection.protocol == FTPConnection.FTPProtocol.SFTP ? "SFTP" : "FTP";

@@ -4,7 +4,7 @@ description: "Use this skill whenever the user asks to 'automate Asset Inventory
 metadata:
   asset: "Asset Inventory 4"
   publisher: "Impossible Robert"
-  asset-version: "4.8.0"
+  asset-version: "4.9.0"
   skill-version: "1.0.0"
   unity: "2022.3"
   render-pipelines: "Not applicable"
@@ -12,7 +12,7 @@ metadata:
   asset-store-url: "https://assetstore.unity.com/packages/tools/utilities/asset-inventory-4-349582"
   documentation-url: "https://www.wetzold.com/tools/assetinventory/docs/"
   support-url: "https://discord.com/invite/uzeHzEMM4B"
-  last-verified: "2026-08-29"
+  last-verified: "2026-10-02"
 ---
 
 # Automate Catalog Workflows
@@ -28,7 +28,7 @@ Invoke Asset Inventory's transport-neutral automation through an installed adapt
 ## Prerequisites
 
 - Asset Inventory is ready in a live Unity Editor.
-- The chosen adapter package is installed and automatically active.
+- A supported companion is installed: Unity AI Assistant 2.0.0-pre.1+ or Unity Pipeline in `[0.8.0-exp.1,0.9.0-0)`. Asset Inventory bundles the adapter; no separate integration package or forced scripting define is needed.
 - The absolute target project path is known when more than one Editor can exist.
 
 ## Quick start
@@ -56,7 +56,7 @@ Invoke Asset Inventory's transport-neutral automation through an installed adapt
 
 ## Verification
 
-- The response identifies the intended project and operation.
+- The CLI invocation targets the explicit project path, and follow-up data matches that project's catalog. The shared response envelope does not itself guarantee a project-path field.
 - Queries remain bounded and structured.
 - Mutation scope matches its preview token exactly.
 - Exports or action changes are verified through a follow-up read.
@@ -67,6 +67,8 @@ Invoke Asset Inventory's transport-neutral automation through an installed adapt
 - Example: `unity command asset_inventory_search_packages --project-path <path> --search-phrase environment --max-results 10 --json`.
 - The shared surface contains 31 operations spanning queries, tags, imports, downloads, exports, actions, and window lifecycle.
 - Unity AI Assistant uses `AssetInventory_*` names; Unity Pipeline uses lower snake case `asset_inventory_*` names.
+- Opening and closing Asset Inventory windows are direct UI lifecycle operations without dry-run parameters. Catalog, file, download, action, export, and scene mutations use preview-bound confirmation.
+- A run-action preview lists configured steps and values. It does not simulate their filesystem or network effects; inspect the full step list and existing side effects before confirming execution.
 
 ## Common issues
 

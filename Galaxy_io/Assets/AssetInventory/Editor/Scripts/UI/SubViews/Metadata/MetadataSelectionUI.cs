@@ -171,7 +171,7 @@ namespace AssetInventory
                 $"{meta.Type}{restriction}",
                 trailing: AssetInventoryUITK.CreateStatusPill("Add", "ai-status-muted"),
                 extraClasses: index % 2 == 1
-                    ? new[] {"ai-metadata-selector-row", "ai-list-row-alt"}
+                    ? new[] {"ai-metadata-selector-row", BaseVerticalCollectionView.itemAlternativeBackgroundUssClassName}
                     : new[] {"ai-metadata-selector-row"});
             row.tooltip = $"Add the {meta.Name} metadata field.";
             return row;

@@ -227,7 +227,7 @@ namespace AssetInventory
             actions.Add(changeLog);
 
             List<string> classes = new List<string> {"ai-version-selector-row", "ai-registry-version-row"};
-            if (index % 2 == 1) classes.Add("ai-list-row-alt");
+            if (index % 2 == 1) classes.Add(BaseVerticalCollectionView.itemAlternativeBackgroundUssClassName);
             if (recommended || installed) classes.Add("ai-list-row-selected");
             if (!canInstall) classes.Add("ai-version-row-disabled");
             AssetInventoryUITK.PopulateListRow(row, version, string.Empty, trailing: actions, extraClasses: classes.ToArray());

@@ -3,7 +3,7 @@ guid: b06e2c322c99b4512bdf08860fafc1f9
 AssetOrigin:
   serializedVersion: 1
   productId: 349582
-  packageName: Asset Inventory - Find Every Asset in Your Library
-  packageVersion: 4.8.1
+  packageName: Asset Inventory 4 - Find Every Asset in Your Library
+  packageVersion: 4.9.0
   assetPath: Assets/AssetInventory/Editor/Scripts/UI/TreeView/FileTreeBuilder.cs
-  uploadId: 992364
+  uploadId: 1012924

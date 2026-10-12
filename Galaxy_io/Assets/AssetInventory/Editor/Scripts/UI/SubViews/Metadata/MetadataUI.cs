@@ -206,7 +206,7 @@ namespace AssetInventory
                 meta.Name,
                 subtitle,
                 trailing: actions,
-                extraClasses: index % 2 == 1 ? new[] {"ai-list-row-alt"} : null);
+                extraClasses: index % 2 == 1 ? new[] {BaseVerticalCollectionView.itemAlternativeBackgroundUssClassName} : null);
 
             Label titleLabel = row.Q<Label>(className: "ai-list-row-title");
             if (titleLabel != null) titleLabel.tooltip = meta.Name;

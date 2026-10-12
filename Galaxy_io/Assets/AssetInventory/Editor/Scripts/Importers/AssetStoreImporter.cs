@@ -248,7 +248,6 @@ namespace AssetInventory
 
             assets = assets
                 .Where(a => a.AssetSource != Asset.Source.Synty || AI.Config.syntyLinkAssetStoreMetadata)
-                .Where(a => a.AssetSource == Asset.Source.Synty || !HasNoIndex(a))
                 .ToList();
             return await FetchAssetsDetailsInternal(assets, forceUpdate && resetEtag);
         }
@@ -257,7 +256,6 @@ namespace AssetInventory
         {
             assets = assets?
                 .Where(a => a.AssetSource != Asset.Source.Synty || AI.Config.syntyLinkAssetStoreMetadata)
-                .Where(a => a.AssetSource == Asset.Source.Synty || !HasNoIndex(a))
                 .ToList() ?? new List<Asset>();
 
             return await FetchAssetsDetailsInternal(assets, forceUpdate && resetEtag);
@@ -277,7 +275,6 @@ namespace AssetInventory
             {
                 int assetIndex = i;
                 Asset asset = assets[assetIndex];
-                if (HasNoIndex(asset) && asset.AssetSource != Asset.Source.Synty) continue;
                 int id = asset.ForeignId;
                 if (id <= 0) continue;
 
@@ -327,6 +324,8 @@ namespace AssetInventory
                             Asset existing = DBAdapter.DB.Find<Asset>(a => a.SafeName == details.packageName && a.AssetSource == Asset.Source.RegistryPackage);
                             if (existing != null)
                             {
+                                // Keep the stricter participation choice when package identities merge.
+                                existing.NoIndex |= HasNoIndex(currentAsset);
                                 DBAdapter.DB.Delete(currentAsset);
                                 assets[currentAssetIndex] = existing;
                                 currentAsset = existing;
@@ -557,7 +556,6 @@ namespace AssetInventory
                 .ToList();
             assets = assets
                 .Where(a => a.AssetSource != Asset.Source.Synty || AI.Config.syntyLinkAssetStoreMetadata)
-                .Where(a => a.AssetSource == Asset.Source.Synty || !HasNoIndex(a))
                 .ToList();
 
             // check only those which are outside of refresh window

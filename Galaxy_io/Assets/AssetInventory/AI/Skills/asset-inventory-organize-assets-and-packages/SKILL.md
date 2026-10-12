@@ -4,7 +4,7 @@ description: "Use this skill whenever the user asks to 'tag these packages', gro
 metadata:
   asset: "Asset Inventory 4"
   publisher: "Impossible Robert"
-  asset-version: "4.8.0"
+  asset-version: "4.9.0"
   skill-version: "1.0.0"
   unity: "2022.3"
   render-pipelines: "Not applicable"
@@ -12,7 +12,7 @@ metadata:
   asset-store-url: "https://assetstore.unity.com/packages/tools/utilities/asset-inventory-4-349582"
   documentation-url: "https://www.wetzold.com/tools/assetinventory/docs/"
   support-url: "https://discord.com/invite/uzeHzEMM4B"
-  last-verified: "2026-08-29"
+  last-verified: "2026-10-02"
 ---
 
 # Organize Assets and Packages

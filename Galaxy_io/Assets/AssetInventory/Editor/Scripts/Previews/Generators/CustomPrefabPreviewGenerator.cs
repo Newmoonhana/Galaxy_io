@@ -41,6 +41,7 @@ namespace AssetInventory
 
         // Reason message for when no visible content is detected during preview generation
         public const string NO_VISIBLE_CONTENT_REASON = "No visible content detected";
+        public const string PREFAB_MODE_VFX_REASON = "VFX previews cannot be generated while editing a prefab. Close Prefab Mode and regenerate the preview.";
 
         public static void ClearVFXCache()
         {
@@ -863,28 +864,43 @@ namespace AssetInventory
         /// </summary>
         private static void CleanupPreviewStage(CustomPreviewStage stage, Scene scene, bool isPreviewScene)
         {
-            if (stage != null)
+            try
             {
-                stage.RestoreEnvironment();
-                Object.DestroyImmediate(stage);
-            }
-            else if (scene.IsValid())
-            {
-                if (isPreviewScene)
+                if (stage != null)
                 {
-                    EditorSceneManager.ClosePreviewScene(scene);
+                    stage.RestoreEnvironment();
                 }
-                else
+            }
+            finally
+            {
+                try
                 {
-                    EditorSceneManager.CloseScene(scene, true);
+                    if (stage != null)
+                    {
+                        Object.DestroyImmediate(stage);
+                    }
+                }
+                finally
+                {
+                    if (scene.IsValid())
+                    {
+                        if (isPreviewScene)
+                        {
+                            EditorSceneManager.ClosePreviewScene(scene);
+                        }
+                        else
+                        {
+                            EditorSceneManager.CloseScene(scene, true);
+                        }
+                    }
                 }
             }
         }
 
         private static IEnumerator ProcessPrefab(GameObject prefab, string prefabPath, int size, int frameCount, TaskCompletionSource<Texture2D> tcs, int animationCount = 0, PreviewRequest previewRequest = null)
         {
-            CustomPreviewStage stage;
-            Scene previewScene;
+            CustomPreviewStage stage = null;
+            Scene previewScene = default;
             Texture2D resultTexture = null;
             bool hasError = false;
             bool skipFrameCapture = false;
@@ -916,7 +932,7 @@ namespace AssetInventory
             if (isVFXPrefab)
             {
                 float waitStart = (float)EditorApplication.timeSinceStartup;
-                while (_vfxSceneInUse)
+                while (_vfxSceneInUse && PrefabStageUtility.GetCurrentPrefabStage() == null)
                 {
                     if ((float)EditorApplication.timeSinceStartup - waitStart > VFX_SCENE_WAIT_TIMEOUT)
                     {
@@ -925,6 +941,14 @@ namespace AssetInventory
                         yield break;
                     }
                     yield return null;
+                }
+                // Regular scene creation exits Prefab Mode. Recheck after yielding for the VFX slot.
+                if (PrefabStageUtility.GetCurrentPrefabStage() != null)
+                {
+                    if (previewRequest != null) previewRequest.FailureReason = PREFAB_MODE_VFX_REASON;
+                    if (AI.Config.LogPreviewCreation) Debug.LogWarning(PREFAB_MODE_VFX_REASON);
+                    tcs.TrySetResult(null);
+                    yield break;
                 }
                 _vfxSceneInUse = true;
             }
@@ -953,8 +977,15 @@ namespace AssetInventory
             catch (Exception e)
             {
                 Debug.LogError($"Failed to create scene: {e.Message}");
-                if (isVFXPrefab) _vfxSceneInUse = false;
-                tcs.SetResult(null);
+                try
+                {
+                    CleanupPreviewStage(stage, previewScene, isPreviewScene);
+                }
+                finally
+                {
+                    if (isVFXPrefab) _vfxSceneInUse = false;
+                    tcs.TrySetResult(null);
+                }
                 yield break;
             }
 
@@ -973,19 +1004,15 @@ namespace AssetInventory
             catch (Exception e)
             {
                 Debug.LogError($"Failed to create preview stage: {e.Message}");
-                if (previewScene.IsValid())
+                try
                 {
-                    if (isPreviewScene)
-                    {
-                        EditorSceneManager.ClosePreviewScene(previewScene);
-                    }
-                    else
-                    {
-                        EditorSceneManager.CloseScene(previewScene, true);
-                    }
+                    CleanupPreviewStage(stage, previewScene, isPreviewScene);
                 }
-                if (isVFXPrefab) _vfxSceneInUse = false;
-                tcs.SetResult(null);
+                finally
+                {
+                    if (isVFXPrefab) _vfxSceneInUse = false;
+                    tcs.TrySetResult(null);
+                }
                 yield break;
             }
 

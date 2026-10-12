@@ -1995,7 +1995,6 @@ namespace AssetInventory
         {
             if (_nativePackageTreeAdapter == null) return;
 
-            _nativePackageTreeAdapter.ClearSelection();
             _nativePackageTreeAdapter.CollapseAll();
         }
 
@@ -2179,20 +2178,25 @@ namespace AssetInventory
             _nativePackageGroupPopup = CreateNativePackagePopup(_groupByOptions, AI.Config.assetGrouping, "Select if packages should be grouped or not.", PackagesPopupClass, SelectNativePackageGroup);
             group.Add(_nativePackageGroupPopup);
 
-            if (AI.Config.assetGrouping > 0)
+            if (AI.Config.packageViewMode == 0)
             {
-                Button expand = AssetInventoryUITK.CreateSecondaryButton("Expand", ExpandNativePackageTree);
-                expand.tooltip = "Expand all package groups.";
-                expand.AddToClassList(PackagesTreeActionClass);
-                group.Add(expand);
-
-                Button collapse = AssetInventoryUITK.CreateSecondaryButton("Collapse", CollapseNativePackageTree);
-                collapse.tooltip = "Collapse all package groups.";
-                collapse.AddToClassList(PackagesTreeActionClass);
-                group.Add(collapse);
+                AddPackageTreeExpansionControls(group, ExpandNativePackageTree, CollapseNativePackageTree);
             }
 
             return group;
+        }
+
+        internal static void AddPackageTreeExpansionControls(VisualElement group, Action expandAll, Action collapseAll)
+        {
+            Button expand = AssetInventoryUITK.CreateSecondaryButton("Expand", expandAll);
+            expand.tooltip = "Expand all groups and sub-packages.";
+            expand.AddToClassList(PackagesTreeActionClass);
+            group.Add(expand);
+
+            Button collapse = AssetInventoryUITK.CreateSecondaryButton("Collapse", collapseAll);
+            collapse.tooltip = "Collapse all groups and sub-packages without clearing selection.";
+            collapse.AddToClassList(PackagesTreeActionClass);
+            group.Add(collapse);
         }
 
         private UnityEngine.UIElements.PopupField<string> CreateNativePackagePopup(string[] options, int selectedIndex, string tooltip, string className, Action<int> onChanged)
@@ -3279,7 +3283,7 @@ namespace AssetInventory
                     validSelectionIds.AddRange(previousSelectionIds.Where(id => availableIds.Contains(id)));
                 }
 
-                QueueNativePackageTreeRefresh(validSelectionIds, validSelectionIds.Count > 0);
+                QueueNativePackageTreeRefresh(validSelectionIds, false);
                 _assetTreeSelectedIds.Clear();
                 _assetTreeSelectedIds.AddRange(validSelectionIds);
                 HandleAssetTreeSelectionChanged(GetCurrentPackageTreeSelection());

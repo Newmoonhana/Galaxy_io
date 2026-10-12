@@ -140,6 +140,9 @@ namespace Automator
         /// </summary>
         public List<Tuple<string, ParameterValue>> Options { get; set; }
 
+        /// <summary>Comparison used to restore string option identities without changing stored values.</summary>
+        public StringComparison OptionComparison { get; set; } = StringComparison.Ordinal;
+
         /// <summary>
         /// If true, this parameter can be left empty.
         /// </summary>

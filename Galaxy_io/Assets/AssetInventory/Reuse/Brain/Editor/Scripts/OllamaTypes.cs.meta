@@ -3,7 +3,7 @@ guid: 92ed78c3c00304c77885a0f7b4efc5ec
 AssetOrigin:
   serializedVersion: 1
   productId: 349582
-  packageName: Asset Inventory - Find Every Asset in Your Library
-  packageVersion: 4.8.1
+  packageName: Asset Inventory 4 - Find Every Asset in Your Library
+  packageVersion: 4.9.0
   assetPath: Assets/AssetInventory/Reuse/Brain/Editor/Scripts/OllamaTypes.cs
-  uploadId: 992364
+  uploadId: 1012924

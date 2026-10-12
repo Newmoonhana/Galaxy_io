@@ -58,7 +58,7 @@
             "logoTextureName": "LEDStudio",
             "description": "Premium LED wall, ribbon board, and perimeter display simulation with coarse-pixel emitter rendering.",
             "assetStoreLink": "https://u3d.as/3Z1B",
-            "webLink": "https://www.wetzold.com/tools/plot-keeper/",
+            "webLink": "https://www.wetzold.com/tools/ledstudio/",
             "packageName": "com.wetzold.led-studio",
             "isPublic": true
         },

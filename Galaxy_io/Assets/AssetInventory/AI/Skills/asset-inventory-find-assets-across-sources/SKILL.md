@@ -4,7 +4,7 @@ description: "Use this skill whenever the user asks to 'find an asset', search p
 metadata:
   asset: "Asset Inventory 4"
   publisher: "Impossible Robert"
-  asset-version: "4.8.0"
+  asset-version: "4.9.0"
   skill-version: "1.0.0"
   unity: "2022.3"
   render-pipelines: "Not applicable"
@@ -12,7 +12,7 @@ metadata:
   asset-store-url: "https://assetstore.unity.com/packages/tools/utilities/asset-inventory-4-349582"
   documentation-url: "https://www.wetzold.com/tools/assetinventory/docs/"
   support-url: "https://discord.com/invite/uzeHzEMM4B"
-  last-verified: "2026-08-29"
+  last-verified: "2026-10-02"
 ---
 
 # Find Assets Across Sources
@@ -66,10 +66,12 @@ Search Asset Inventory's indexed files and packages with bounded filters, verify
 - Automation query: `asset_inventory_search_packages`.
 - Automation query: `asset_inventory_search_project_assets`.
 - Related queries include package details, package files, inventory statistics, groups, and project GUID checks.
+- `search_assets` has no source or package-ID parameter. To restrict automation to a known source, use `search_packages` with its `Source` filter, then `list_package_files` with each verified `PackageId`; the interactive Search source filter remains available.
+- Choose either `Type` or `AssetGroup`, not both. File and package automation searches accept pages of 1-100 results; package-file queries accept 1-200.
 
 ## Common issues
 
-- **Expected files are missing:** Confirm the owning source participates in indexing and run only the needed indexing action.
+- **Expected files are missing:** Check source readiness, hidden/excluded filters, and whether the owning package has indexed files. Do Not Index retains existing results; Exclude hides them. Run indexing only when needed and requested.
 - **Results are too broad:** Add type, source, package, tag, or range filters rather than relying on longer free text.
 - **An expert query is rejected:** Use one leading `=` expression and remove comments, separators, NULs, or unterminated quotes.
 

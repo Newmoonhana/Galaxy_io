@@ -3,7 +3,7 @@ guid: 1d7705e2c0b3d4505af1e35ea2f30c3f
 AssetOrigin:
   serializedVersion: 1
   productId: 349582
-  packageName: Asset Inventory - Find Every Asset in Your Library
-  packageVersion: 4.8.1
+  packageName: Asset Inventory 4 - Find Every Asset in Your Library
+  packageVersion: 4.9.0
   assetPath: Assets/AssetInventory/Editor/Scripts/Features/Search/HierarchyBuilder.cs
-  uploadId: 992364
+  uploadId: 1012924

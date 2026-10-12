@@ -14,7 +14,7 @@ namespace AssetInventory
         public HTMLExportStep()
         {
             Key = "HTMLExport";
-            Name = "HTML Export";
+            Name = "Template Export";
             Description = "Export the full database to HTML using a template.";
             Category = ActionCategory.Actions;
 

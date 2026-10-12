@@ -143,7 +143,8 @@ namespace AssetInventory
         {
             VisualElement row = new VisualElement();
             row.AddToClassList("ai-option-row");
-            row.EnableInClassList("ai-option-active", _selectedMode == mode);
+            CommonUITK.ApplyListRowStyle(row, (int)mode);
+            row.EnableInClassList(BaseVerticalCollectionView.itemSelectedVariantUssClassName, _selectedMode == mode);
             row.EnableInClassList("ai-option-disabled", !enabled);
             row.SetEnabled(enabled);
 
