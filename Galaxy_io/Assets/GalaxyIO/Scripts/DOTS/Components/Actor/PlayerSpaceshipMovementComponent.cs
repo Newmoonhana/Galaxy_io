@@ -32,6 +32,11 @@ namespace GalaxyIO.DOTS.Components.Actor
         [GhostField]
         public float2 HoveringVelocity;
 
+        // 회전 관성 속도. 선회 제동이 걸리면 돌기 전 방향으로 밀려남.
+        // 예측 롤백 시 서버 값으로 되감아야 하므로 복제함.
+        [GhostField]
+        public float2 InertiaVelocity;
+
         // 가속도
         public float Acceleration;
 

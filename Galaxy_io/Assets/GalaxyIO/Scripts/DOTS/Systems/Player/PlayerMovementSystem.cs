@@ -24,12 +24,14 @@ namespace GalaxyIO.DOTS.Systems
         {
             state.RequireForUpdate<PlayerInputComponent>();
             state.RequireForUpdate<ItemRegistryElement>();
+            state.RequireForUpdate<TurnBrakeConfigComponent>();
         }
 
         // 플레이어 입력 > 우주선의 기수 회전, DeltaMovement 수정
         public void OnUpdate(ref SystemState state)
         {
             DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetSingletonBuffer<ItemRegistryElement>(true);
+            TurnBrakeConfigComponent turnBrake = SystemAPI.GetSingleton<TurnBrakeConfigComponent>();
 
             foreach (
                 var (transform, inputRequest, movement, playerMovement, turretSwitch, equipped) in
@@ -60,14 +62,6 @@ namespace GalaxyIO.DOTS.Systems
                 float currentSpeed = playerMovement.ValueRO.Speed;
                 float maxSpeed = playerMovement.ValueRO.MaxSpeed;
 
-                // 가속 키를 누르면 MaxSpeed로, 떼면 0으로 접근.
-                float desiredSpeed = accelerating ? maxSpeed : 0.0F;
-                float maxSpeedDelta = deltaTime * (accelerating
-                    ? playerMovement.ValueRO.Acceleration
-                    : playerMovement.ValueRO.Deceleration);
-
-                float nextSpeed = currentSpeed + math.clamp(desiredSpeed - currentSpeed, -maxSpeedDelta, maxSpeedDelta);
-
                 // 회전: 목표 방향까지 Maneuver 한계 내에서 접근.
                 float2 currentForward = math.normalizesafe(
                     SpaceshipHeading.FromRotation(transform.ValueRO.Rotation),
@@ -93,6 +87,40 @@ namespace GalaxyIO.DOTS.Systems
                 float maxAngleDelta = math.radians(playerMovement.ValueRO.Maneuver) * maneuverScale * deltaTime;
                 float2 nextForward = SpaceshipHeading.RotateTowards(currentForward, desiredForward, maxAngleDelta);
 
+                // 가속 키를 누르면 MaxSpeed로, 떼면 0으로 접근.
+                float desiredSpeed = accelerating ? maxSpeed : 0.0F;
+                float maxSpeedDelta = deltaTime * (accelerating
+                    ? playerMovement.ValueRO.Acceleration
+                    : playerMovement.ValueRO.Deceleration);
+
+                float nextSpeed = currentSpeed + math.clamp(desiredSpeed - currentSpeed, -maxSpeedDelta, maxSpeedDelta);
+
+                // 선회 제동: 이번 틱의 회전속도(도/초)가 빠를수록 감속도가 커짐.
+                // 비행 속력이 StartSpeed 를 넘는 만큼 선형으로 더 커짐.
+                float turnRate = math.degrees(math.abs(math.atan2(
+                    currentForward.x * nextForward.y - currentForward.y * nextForward.x,
+                    math.dot(currentForward, nextForward)
+                ))) / deltaTime;
+
+                float turnDeceleration = turnBrake.Deceleration
+                                         * math.pow(turnRate / turnBrake.TurnRate, turnBrake.Exponent)
+                                         * math.max(currentSpeed - turnBrake.StartSpeed, 0.0F)
+                                         / (turnBrake.ReferenceSpeed - turnBrake.StartSpeed);
+
+                float brakedSpeed = math.min(turnDeceleration * deltaTime, nextSpeed);
+                nextSpeed -= brakedSpeed;
+
+                // 회전 관성: 선회 제동으로 잃은 속력만큼 돌기 전 방향으로 밀려남. 밀려나는 속도는 스스로 줄어듦.
+                float2 inertia = playerMovement.ValueRO.InertiaVelocity;
+                float inertiaSpeed = math.length(inertia);
+
+                if (inertiaSpeed > math.EPSILON)
+                {
+                    inertia *= math.max(inertiaSpeed - turnBrake.InertiaDeceleration * deltaTime, 0.0F) / inertiaSpeed;
+                }
+
+                inertia += currentForward * (brakedSpeed * turnBrake.Inertia);
+
                 // 호버링: 기수와 무관하게 WASD 합산 방향으로 평행 이동함.
                 // 비행 모드가 우선이라, 가속 중이거나 비행 속력이 아직 호버링 속력보다
                 // 빠른 동안에는 WASD를 (0, 0)으로 봄.
@@ -117,8 +145,9 @@ namespace GalaxyIO.DOTS.Systems
                 playerMovement.ValueRW.Speed = nextSpeed;
                 playerMovement.ValueRW.HoveringVelocity = nextHovering;
                 playerMovement.ValueRW.HoveringTurning = turning;
+                playerMovement.ValueRW.InertiaVelocity = inertia;
                 transform.ValueRW.Rotation = SpaceshipHeading.ToRotation(nextForward);
-                movement.ValueRW.DeltaMovement = nextForward * nextSpeed + nextHovering;
+                movement.ValueRW.DeltaMovement = nextForward * nextSpeed + nextHovering + inertia;
             }
         }
     }
