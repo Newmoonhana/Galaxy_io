@@ -5,7 +5,8 @@ using UnityEngine;
 namespace GalaxyIO.DOTS.Authoring
 {
     /// <summary>
-    /// 제작법. 재료를 소모해 결과물 한 개를 만듦. <see cref="BlueprintItemAsset"/>이 참조함.
+    /// 포탑 제작법. 재료를 소모해 결과물 포탑을 사서 장착함.
+    /// <see cref="Config.ItemRegistryAsset.Recipes"/>에 등록하면 포탑 상점에 나타남.
     /// </summary>
     [CreateAssetMenu(fileName = "SO_Recipe", menuName = "GalaxyIO/Recipe")]
     public sealed class RecipeAsset : ScriptableObject

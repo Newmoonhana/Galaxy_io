@@ -156,6 +156,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.PrefabRegistryAuthoring
   Registry: {fileID: 11400000, guid: 7955d1a2a92242ee893d5fd868295801, type: 2}
   ItemRegistry: {fileID: 11400000, guid: c9d6e484c51f457c832bc366d88a6daf, type: 2}
+  SpaceshipRegistry: {fileID: 11400000, guid: efdf5610a253ab543b319a5b2fa5b1e4, type: 2}
 --- !u!4 &163557124
 Transform:
   m_ObjectHideFlags: 0
@@ -247,11 +248,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.ItemConfigAuthoring
   PickupSound: Item_Pickup
-  PlayerSlotDropChance: 0.5
+  PlayerKindDropChance: 0.5
   PlayerStackDropChance: 0.5
-  CommonSlots: 36
-  TurretSlots: 1
-  BombSlots: 3
   NoFireStandbyTime: 1.7
   CoolingTime: 1.5
   OverheatCoolingTime: 3

@@ -6,29 +6,23 @@ namespace GalaxyIO.DOTS.Components.Singleton
     /// </summary>
     public enum ItemId : ushort
     {
-        // 빈 칸. 실제 아이템을 가리키지 않음.
+        // 아무 아이템도 가리키지 않음.
         None = 0,
 
-        // 강화 모듈
-        UpgradeModule = 1,
+        // 재료(화폐). 플레이어 인벤토리에 개수로 쌓임.
+        PowerCell = 1,
+        OverchargedPowerCell = 2,
+        Reactor = 3,
 
-        // 포탑 설계도
-        BoreBlueprint = 2,
-        BrakkarBlueprint = 3,
-        PyronBlueprint = 4,
-        RaptorBlueprint = 5,
-        VeylanceBlueprint = 6,
-        VraxxBlueprint = 7,
+        // 포탑. 포탑 상점에서 재료로 사서 장착함.
+        Bore = 4,
+        Brakkar = 5,
+        Pyron = 6,
+        Raptor = 7,
+        Veylance = 8,
+        Vraxx = 9,
 
-        // 포탑
-        Bore = 8,
-        Brakkar = 9,
-        Pyron = 10,
-        Raptor = 11,
-        Veylance = 12,
-        Vraxx = 13,
-
-        // 적 전용 포탑. 드랍 테이블에 넣지 않음.
-        CorsairTurret = 14,
+        // 적 전용 포탑. 드랍 테이블, 상점에 넣지 않음.
+        CorsairTurret = 10,
     }
 }

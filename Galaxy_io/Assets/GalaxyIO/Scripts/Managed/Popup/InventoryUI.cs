@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using GalaxyIO.DOTS.Authoring;
 using GalaxyIO.DOTS.Authoring.Config;
 using GalaxyIO.DOTS.Client.Components.Singleton;
@@ -8,31 +7,23 @@ using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.DOTS.Inventory;
 using GalaxyIO.Tools.PopupUI.Window;
 using Newmoonhana.Runtime.Tools.PopupUI.Popup;
-using Newmoonhana.Runtime.Tools.PopupUI.Window;
 using Newmoonhana.Runtime.Utils.Pattern;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
-using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.EventSystems;
-using UnityEngine.Localization;
-using UnityEngine.Localization.Settings;
 
 namespace GalaxyIO.Tools.PopupUI.Popup
 {
     /// <summary>
-    /// 로컬 플레이어 우주선의 인벤토리 팝업. 칸 창, 강화 창, 제작 창을 관리함.
-    /// <p/>
-    /// 칸을 누르면(뗄 때가 아니라 누르는 순간) 그 묶음을 집어 듦. 집어 든 동안 다른 칸을 누르면 좌클릭은 전부, 우클릭은 1개를 내려놓고,
-    /// 다른 아이템이 있으면 맞바꿈. 패널 밖을 누르면 같은 규칙으로 버림.
-    /// 집어 든 묶음은 원래 칸에 그대로 있고, 서버에는 옮기기/버리기 요청만 보냄.
-    /// 빈손으로 설계도를 우클릭하면 제작 창을 엶.
+    /// 로컬 플레이어 우주선의 인벤토리 팝업. 메인 창, 강화 창, 우주선 / 포탑 사양 창을 관리함.
+    /// 상점 상품을 누르면 사양 창을 열고, 사양 창의 장착 버튼이 서버에 구매 요청을 보냄.
     /// </summary>
     public class InventoryUI : PopupBase
     {
         private const string stateInventory = "inventory";
-        private const string stateCraft = "craft";
+        private const string stateSpaceship = "spaceship";
+        private const string stateTurret = "turret";
 
         #region IState
         private class InventoryState : IState
@@ -53,7 +44,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             }
             public void OnExit()
             {
-                //칸 창은 제작 창 밑에 그대로 남음. 입력만 막음
+                //메인 창은 사양 창 밑에 그대로 남음. 입력만 막음
                 win.Deactivate();
             }
             public void Dispose()
@@ -64,16 +55,18 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         }
 
         /// <summary>
-        /// 제작 창. 칸 창 위에 겹쳐 열리고 칸 창의 입력만 막음.
+        /// 사양 창. 메인 창 위에 겹쳐 열리고 메인 창의 입력만 막음. 열 때 p_data 로 보여줄 상품을 받음.
         /// </summary>
-        private class CraftState : IState
+        private class SpecState : IState
         {
             private WindowInventory inv_win;
-            private WindowCraft win;
-            public CraftState(WindowInventory _invWin, WindowCraft _win)
+            private WindowSpecBase win;
+            private readonly System.Action<object> set;
+            public SpecState(WindowInventory _invWin, WindowSpecBase _win, System.Action<object> _set)
             {
                 inv_win = _invWin;
                 win = _win;
+                set = _set;
                 OnExit();
             }
 
@@ -83,8 +76,8 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             {
                 inv_win.Deactivate();
 
-                win.SetSlot((int)p_data);
                 win.Open();
+                set(p_data);
                 win.Activate();
             }
             public void OnExit()
@@ -102,30 +95,24 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         #endregion
 
         private WindowInventory inventory_win;
-        private WindowCraft craft_win;
         private WindowUpgrade upgrade_win;
+        private WindowSpaceshipSpec spaceship_win;
+        private WindowTurretSpec turret_win;
 
         private EntityManager entityManager;
         private EntityQuery inventoryQuery;
         private EntityQuery registryQuery;
+        private EntityQuery spaceshipRegistryQuery;
+        private EntityQuery relevancyQuery;
 
-        // 강화할 수 있는 로컬 우주선
+        // 레이더 기본 탐지 거리. 우주선 사양 창에 넘김.
+        private float detectRange;
+
+        // 강화, 장착 대상인 로컬 우주선
         private EntityQuery shipQuery;
-
-        // 집어 든 칸 번호. 없으면 -1.
-        private int heldSlot = -1;
-
-        // 칸을 만들어 둔 인벤토리 길이. 바뀌면 다시 만듦.
-        private int builtLength = -1;
 
         // 인벤토리 전체 닫기. 띄운 쪽이 상태 플래그까지 정리함.
         private UnityAction exit;
-
-        // 설계도 칸 툴팁에 덧붙이는 안내. 테이블 조회가 매 프레임 돌지 않게 캐시함.
-        private string blueprintHint;
-
-        // 아이템 이름 조회 캐시. 칸 툴팁이 매 프레임 테이블을 뒤지지 않게 함.
-        private readonly Dictionary<ItemId, string> names = new Dictionary<ItemId, string>();
 
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
@@ -135,25 +122,29 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             base.Awake();
 
             inventory_win = transform.GetComponentInChildren<WindowInventory>(true);
-            craft_win = transform.GetComponentInChildren<WindowCraft>(true);
             upgrade_win = transform.GetComponentInChildren<WindowUpgrade>(true);
+            spaceship_win = transform.GetComponentInChildren<WindowSpaceshipSpec>(true);
+            turret_win = transform.GetComponentInChildren<WindowTurretSpec>(true);
         }
 
         protected override void Start()
         {
             base.Start();
 
-            inventory_win.OnSlotPressed += OnSlotPress;
-            inventory_win.OnOutsidePressed += OnOutsidePress;
-            craft_win.OnCraft += OnCraftPress;
-            craft_win.OnClosed += OnCraftClosed;
+            inventory_win.OnSpaceshipPressed += spaceship => stateM.Change(stateSpaceship, spaceship);
+            inventory_win.OnTurretPressed += recipe => stateM.Change(stateTurret, recipe);
             upgrade_win.OnUpgrade += OnUpgradePress;
+            spaceship_win.OnEquip += OnSpaceshipEquip;
+            spaceship_win.OnClosed += OnSpecClosed;
+            turret_win.OnEquip += OnTurretEquip;
+            turret_win.OnClosed += OnSpecClosed;
 
             stateM.Add(stateInventory, new InventoryState(inventory_win));
-            stateM.Add(stateCraft, new CraftState(inventory_win, craft_win));
+            stateM.Add(stateSpaceship, new SpecState(inventory_win, spaceship_win,
+                data => spaceship_win.SetSpaceship((SpaceshipAsset)data, detectRange)));
+            stateM.Add(stateTurret, new SpecState(inventory_win, turret_win,
+                data => turret_win.SetRecipe((RecipeAsset)data)));
             stateM.Change(stateInventory);
-
-            LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
 
             clientWorld = ClientServerBootstrap.ClientWorld;
 
@@ -166,10 +157,12 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             entityManager = clientWorld.EntityManager;
             inventoryQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<LocalInventoryComponent>());
             registryQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<ItemRegistryAssetComponent>());
+            spaceshipRegistryQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<SpaceshipRegistryAssetComponent>());
+            relevancyQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<RelevancyConfigComponent>());
             shipQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<GhostOwnerIsLocal>(),
-                ComponentType.ReadOnly<UpgradeElement>(),
-                ComponentType.ReadOnly<UpgradeLevelElement>()
+                ComponentType.ReadOnly<SpaceshipKindComponent>(),
+                ComponentType.ReadOnly<EquippedTurretComponent>()
             );
         }
 
@@ -177,10 +170,10 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         {
             base.OnDestroy();
 
-            LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
             inventory_win = null;
-            craft_win = null;
             upgrade_win = null;
+            spaceship_win = null;
+            turret_win = null;
         }
 
         /// <summary>
@@ -189,21 +182,19 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         public void AddListener(UnityAction _onExit)
         {
             inventory_win.AddListener(_onExit);
-            //제작 창의 나가기는 제작 창만 닫음. 인벤토리 전체는 칸 창의 나가기가 담당
-            craft_win.AddListener(OnCraftClosed);
             exit = _onExit;
         }
 
         /// <summary>
-        /// ESC / E. 제작 창이 열려 있으면 그것만 닫고, 아니면 인벤토리를 닫음.
+        /// ESC / E. 사양 창이 열려 있으면 그것만 닫고, 아니면 인벤토리를 닫음.
         /// </summary>
         public override void TryCancel()
         {
             if (isClosing) return;
 
-            if (stateM != null && stateM.CurrentToString == stateCraft)
+            if (stateM != null && stateM.CurrentToString != stateInventory)
             {
-                OnCraftClosed();
+                OnSpecClosed();
                 return;
             }
 
@@ -219,163 +210,39 @@ namespace GalaxyIO.Tools.PopupUI.Popup
                 return;
             }
 
-            if (registryQuery.IsEmpty) return;
+            if (registryQuery.IsEmpty || spaceshipRegistryQuery.IsEmpty || shipQuery.IsEmpty) return;
 
             PlayerInventory inventory = inventoryQuery.GetSingleton<LocalInventoryComponent>().Value;
-            ItemRegistryAsset registry = registryQuery.GetSingleton<ItemRegistryAssetComponent>().Value;
 
             if (inventory == null) return;
 
-            if (builtLength != inventory.Length)
-            {
-                inventory_win.Build(inventory);
-                builtLength = inventory.Length;
-            }
-
-            // 집어 든 칸이 비면 손도 비움. 전부 내려놓았거나 버린 경우.
-            if (heldSlot >= inventory.Length || (heldSlot >= 0 && registry.Find(inventory[heldSlot].Id) == null))
-                heldSlot = -1;
-
-            RefreshSlots(inventory, registry);
-            RefreshHeld(inventory, registry);
-
-            if (stateM.CurrentToString == stateCraft) craft_win.Refresh(inventory, registry);
-
-            if (shipQuery.IsEmpty) return;
+            ItemRegistryAsset items = registryQuery.GetSingleton<ItemRegistryAssetComponent>().Value;
+            SpaceshipRegistryAsset spaceships = spaceshipRegistryQuery.GetSingleton<SpaceshipRegistryAssetComponent>().Value;
 
             using NativeArray<Entity> ships = shipQuery.ToEntityArray(Allocator.Temp);
-            ItemAsset module = registry.Find(ItemId.UpgradeModule);
+            SpaceshipId kind = entityManager.GetComponentData<SpaceshipKindComponent>(ships[0]).Value;
+            ItemId turret = entityManager.GetComponentData<EquippedTurretComponent>(ships[0]).Value;
+            ItemAsset turretItem = items.Find(turret);
+            ItemAsset powerCell = items.Find(ItemId.PowerCell);
+
+            inventory_win.Refresh(inventory, items, spaceships, spaceships.Find(kind),
+                turretItem != null ? turretItem.Sprite : null);
+
+            if (stateM.CurrentToString == stateSpaceship) spaceship_win.Refresh(inventory, kind);
+            // 자동 포탑 칸은 아직 장착할 수 없어 비어 있음
+            if (stateM.CurrentToString == stateTurret)
+                turret_win.Refresh(inventory, inventory_win.SelectedSlot == 0 ? turret : ItemId.None);
+
+            if (!relevancyQuery.IsEmpty) detectRange = relevancyQuery.GetSingleton<RelevancyConfigComponent>().Radius;
+
+            // 강화 사양이 없는 기체는 강화 창을 비움
+            if (!entityManager.HasBuffer<UpgradeElement>(ships[0])) return;
 
             upgrade_win.Refresh(
                 entityManager.GetBuffer<UpgradeElement>(ships[0], true),
                 entityManager.GetBuffer<UpgradeLevelElement>(ships[0], true),
-                inventory.Count(ItemId.UpgradeModule),
-                module != null ? module.Sprite : null);
-        }
-
-        private void RefreshSlots(PlayerInventory _inventory, ItemRegistryAsset _registry)
-        {
-            for (int i = 0; i < inventory_win.Count && i < _inventory.Length; i++)
-            {
-                ItemSlot slot = _inventory[i];
-                ItemAsset item = _registry.Find(slot.Id);
-
-                // 설계도는 결과물 아이콘을 덧붙여 구분함.
-                Sprite badge = item is BlueprintItemAsset blueprint && blueprint.Recipe != null && blueprint.Recipe.Result != null
-                    ? blueprint.Recipe.Result.Sprite
-                    : null;
-
-                string name = item != null ? NameOf(item.Id) : string.Empty;
-
-                inventory_win.SetSlot(i, new SlotView
-                    {
-                        Icon      = item != null ? item.Sprite : null,
-                        Name      = name,
-                        //설계도는 우클릭으로 제작 창을 엶. 칸에 표기할 자리가 없어 툴팁에 붙임
-                        Tooltip   = badge != null ? $"{name}\n{BlueprintHint}" : name,
-                        IsEmpty   = item == null,
-                        IsEnabled = true,
-                    },
-                    badge,
-                    slot.Count,
-                    // 빈 장비 칸에만 칸 종류를 띄움
-                    item == null && slot.Type != SlotType.Common ? slot.Type.ToString() : string.Empty,
-                    i == heldSlot);
-            }
-        }
-
-        private void RefreshHeld(PlayerInventory _inventory, ItemRegistryAsset _registry)
-        {
-            if (heldSlot < 0)
-            {
-                inventory_win.SetHeld(null, 0);
-                return;
-            }
-
-            ItemSlot held = _inventory[heldSlot];
-            inventory_win.SetHeld(_registry.Find(held.Id).Sprite, held.Count);
-        }
-
-        private string NameOf(ItemId _id)
-        {
-            if (names.TryGetValue(_id, out string name)) return name;
-
-            name = L10n.Get($"Item/{_id}");
-            names[_id] = name;
-            return name;
-        }
-
-        private void OnLocaleChanged(Locale _locale)
-        {
-            names.Clear();
-            blueprintHint = null;
-        }
-
-        //색 태그는 번역 테이블에 넣지 않고 여기서 감쌈
-        private string BlueprintHint =>
-            blueprintHint ??= $"<color=red>({L10n.Get("Inventory/BlueprintHint")})</color>";
-
-        /// <summary>
-        /// <see cref="WindowInventory"/>의 칸을 눌렀을 때 호출됨.
-        /// </summary>
-        private void OnSlotPress(int _index, PointerEventData.InputButton _button)
-        {
-            if (heldSlot < 0)
-            {
-                InventorySlotElement slot = inventory_win.Element(_index);
-                if (slot == null) return;
-
-                if (_button == PointerEventData.InputButton.Right && slot.IsBlueprint)
-                {
-                    stateM.Change(stateCraft, _index);
-                    return;
-                }
-
-                if (slot.HasItem) heldSlot = _index;
-
-                return;
-            }
-
-            // 원래 칸을 다시 누르면 그대로 내려놓음.
-            if (_index == heldSlot)
-            {
-                heldSlot = -1;
-                return;
-            }
-
-            if (!ClientWorldScope.IsAlive(clientWorld)) return;
-
-            Entity rpcEntity = entityManager.CreateEntity(typeof(InventoryMoveRPC), typeof(SendRpcCommandRequest));
-            entityManager.SetComponentData(rpcEntity, new InventoryMoveRPC
-            {
-                From  = (byte)heldSlot,
-                To    = (byte)_index,
-                Count = _button == PointerEventData.InputButton.Right ? (byte)1 : byte.MaxValue,
-            });
-        }
-
-        // 패널 밖을 누름. 집어 든 묶음을 버림.
-        private void OnOutsidePress(PointerEventData.InputButton _button)
-        {
-            if (heldSlot < 0 || !ClientWorldScope.IsAlive(clientWorld)) return;
-
-            Entity rpcEntity = entityManager.CreateEntity(typeof(InventoryDropRPC), typeof(SendRpcCommandRequest));
-            entityManager.SetComponentData(rpcEntity, new InventoryDropRPC
-            {
-                Slot  = (byte)heldSlot,
-                Count = _button == PointerEventData.InputButton.Right ? (byte)1 : byte.MaxValue,
-            });
-        }
-
-        /// <summary>
-        /// <see cref="WindowCraft"/>의 제작 버튼을 눌렀을 때 호출됨.
-        /// </summary>
-        private void OnCraftPress(int _blueprintSlot)
-        {
-            if (!ClientWorldScope.IsAlive(clientWorld)) return;
-
-            Entity rpcEntity = entityManager.CreateEntity(typeof(CraftRPC), typeof(SendRpcCommandRequest));
-            entityManager.SetComponentData(rpcEntity, new CraftRPC { Slot = (byte)_blueprintSlot });
+                inventory.Count(ItemId.PowerCell),
+                powerCell != null ? powerCell.Sprite : null);
         }
 
         /// <summary>
@@ -389,6 +256,36 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             entityManager.SetComponentData(rpcEntity, new UpgradeRPC { Stat = _stat });
         }
 
-        private void OnCraftClosed() => stateM.Change(stateInventory);
+        /// <summary>
+        /// <see cref="WindowSpaceshipSpec"/>의 장착 버튼을 눌렀을 때 호출됨. 바꿔 타면 사양 창을 닫음.
+        /// </summary>
+        private void OnSpaceshipEquip()
+        {
+            if (!ClientWorldScope.IsAlive(clientWorld)) return;
+
+            Entity rpcEntity = entityManager.CreateEntity(typeof(SpaceshipPurchaseRPC), typeof(SendRpcCommandRequest));
+            entityManager.SetComponentData(rpcEntity, new SpaceshipPurchaseRPC { Spaceship = spaceship_win.Spaceship });
+
+            OnSpecClosed();
+        }
+
+        /// <summary>
+        /// <see cref="WindowTurretSpec"/>의 장착 버튼을 눌렀을 때 호출됨. 잠금 해제가 필요하면 서버가 재료를 씀. 사양 창을 닫음.
+        /// </summary>
+        private void OnTurretEquip()
+        {
+            if (!ClientWorldScope.IsAlive(clientWorld)) return;
+
+            Entity rpcEntity = entityManager.CreateEntity(typeof(TurretEquipRPC), typeof(SendRpcCommandRequest));
+            entityManager.SetComponentData(rpcEntity, new TurretEquipRPC
+            {
+                Slot   = (byte)inventory_win.SelectedSlot,
+                Turret = turret_win.Turret,
+            });
+
+            OnSpecClosed();
+        }
+
+        private void OnSpecClosed() => stateM.Change(stateInventory);
     }
 }

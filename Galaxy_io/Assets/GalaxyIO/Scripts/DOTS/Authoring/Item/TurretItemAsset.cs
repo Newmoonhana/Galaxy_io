@@ -9,7 +9,7 @@ using UnityEngine.Serialization;
 namespace GalaxyIO.DOTS.Authoring
 {
     /// <summary>
-    /// 포탑 아이템. 인벤토리 포탑 칸에 넣으면 우주선 총구에 장착됨.
+    /// 포탑 아이템. 포탑 상점에서 사면 우주선 총구에 장착됨.
     /// </summary>
     [CreateAssetMenu(fileName = "SO_Item_Turret", menuName = "GalaxyIO/Turret Item")]
     public sealed class TurretItemAsset : ItemAsset
@@ -89,11 +89,5 @@ namespace GalaxyIO.DOTS.Authoring
         [SerializeField]
         [Tooltip("사격 중 반복 재생. 지정하면 투사체마다의 발사음(ShotSound)은 재생하지 않음.")]
         public string LoopSound;
-
-        private void Reset()
-        {
-            Type = ItemType.Turret;
-            Stacking = 1;
-        }
     }
 }

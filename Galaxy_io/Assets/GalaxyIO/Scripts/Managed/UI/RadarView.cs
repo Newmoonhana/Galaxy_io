@@ -41,11 +41,6 @@ namespace GalaxyIO.Scripts.Managed.UI
         private TMP_Text coordinates;
 
         [SerializeField]
-        [Tooltip("스캐너 회전 속도(도/초). 시계 방향.")]
-        [Min(0.0F)]
-        private float sweepSpeed = 120.0F;
-
-        [SerializeField]
         [Tooltip("스캐너 빔이 투명해지기 시작하는 회전 속도(도/초)")]
         [Min(0.0F)]
         private float sweepFadeStartSpeed = 360.0F;
@@ -54,11 +49,6 @@ namespace GalaxyIO.Scripts.Managed.UI
         [Tooltip("스캐너 빔이 완전히 보이지 않게 되는 회전 속도(도/초)")]
         [Min(0.0F)]
         private float sweepFadeEndSpeed = 5000.0F;
-
-        [SerializeField]
-        [Tooltip("스캐너가 지나간 뒤 점이 나타나기까지의 시간(초)")]
-        [Min(0.0F)]
-        private float responseTime = 0.1F;
 
         [SerializeField]
         [Tooltip("점이 사라지는 데 걸리는 시간(초). 스캐너가 기본 회전 속도일 때의 값.")]
@@ -98,7 +88,9 @@ namespace GalaxyIO.Scripts.Managed.UI
         private Material material;
         private Material backgroundMaterial;
 
-        // 로컬 우주선의 레이더 강화를 반영한 값. 우주선이 없으면 마지막 값을 유지함.
+        // 로컬 우주선의 레이더 기본값과 강화를 반영한 값. 우주선이 없으면 마지막 값을 유지함.
+        // 스캐너 회전 속도(도/초)는 시계 방향.
+        private float sweepSpeed;
         private float sweepBonus;
         private float rangeBonus;
         private float response;
@@ -132,6 +124,7 @@ namespace GalaxyIO.Scripts.Managed.UI
             playerQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<GhostOwnerIsLocal>(),
                 ComponentType.ReadOnly<PlayerSpaceshipMovementComponent>(),
+                ComponentType.ReadOnly<SpaceshipRadarComponent>(),
                 ComponentType.ReadOnly<LocalTransform>()
             );
             targetQuery = new EntityQueryBuilder(Allocator.Temp)
@@ -147,7 +140,6 @@ namespace GalaxyIO.Scripts.Managed.UI
             backgroundMaterial = new Material(background.material);
             background.material = backgroundMaterial;
 
-            response = responseTime;
             fadeOut = fadeOutTime;
         }
 
@@ -176,6 +168,12 @@ namespace GalaxyIO.Scripts.Managed.UI
             if (!playerQuery.IsEmpty)
             {
                 using var players = playerQuery.ToEntityArray(Allocator.Temp);
+                var radar = entityManager.GetComponentData<SpaceshipRadarComponent>(players[0]);
+
+                sweepSpeed = radar.SweepSpeed;
+                response = radar.ResponseTime;
+                sweepBonus = 0.0F;
+                rangeBonus = 0.0F;
 
                 // 강화가 없는 기체는 기본값 그대로.
                 if (entityManager.HasBuffer<UpgradeParamElement>(players[0]))
@@ -185,19 +183,15 @@ namespace GalaxyIO.Scripts.Managed.UI
 
                     sweepBonus = Upgrade.Value(parameters, levels, UpgradeParam.RadarSweep);
                     rangeBonus = Upgrade.Value(parameters, levels, UpgradeParam.RadarRange);
-
-                    response = Mathf.Max(
-                        responseTime - Upgrade.Value(parameters, levels, UpgradeParam.RadarResponse),
-                        0.0F
-                    );
-
-                    // 스캐너가 빨리 돌수록 점도 빨리 사라짐.
-                    fadeOut = Mathf.Lerp(
-                        fadeOutTime,
-                        minFadeOutTime,
-                        Mathf.InverseLerp(sweepSpeed, fastestSweepSpeed, sweepSpeed + sweepBonus)
-                    );
+                    response = Mathf.Max(response - Upgrade.Value(parameters, levels, UpgradeParam.RadarResponse), 0.0F);
                 }
+
+                // 스캐너가 빨리 돌수록 점도 빨리 사라짐.
+                fadeOut = Mathf.Lerp(
+                    fadeOutTime,
+                    minFadeOutTime,
+                    Mathf.InverseLerp(sweepSpeed, fastestSweepSpeed, sweepSpeed + sweepBonus)
+                );
             }
 
             previousAngle = angle;

@@ -13,30 +13,22 @@ namespace GalaxyIO.Scripts.Editor
     {
         private const string root = "디버그 함수/10_아이템/";
 
-        [MenuItem(root + "강화 모듈 50개", false, 0)]
-        private static void GiveUpgradeModule() => ItemCommandHandlerList.GiveUpgradeModule(50);
+        [MenuItem(root + "파워 셀 50개", false, 0)]
+        private static void GivePowerCell() => ItemCommandHandlerList.GivePowerCell(50);
 
-        [MenuItem(root + "설계도 전부", false, 1)]
-        private static void GiveAllBlueprints() => ItemCommandHandlerList.GiveAllBlueprints();
+        [MenuItem(root + "모든 재료 10개씩", false, 1)]
+        private static void GiveAllIngredients() => ItemCommandHandlerList.GiveAllIngredients(10);
 
-        [MenuItem(root + "포탑 전부", false, 2)]
-        private static void GiveAllTurrets() => ItemCommandHandlerList.GiveAllTurrets();
-
-        [MenuItem(root + "모든 아이템 1개씩", false, 3)]
-        private static void GiveEverything() => ItemCommandHandlerList.GiveEverything();
-
-        [MenuItem(root + "모든 아이템 10개씩", false, 4)]
-        private static void GiveEverythingStack() => ItemCommandHandlerList.GiveEverything(10);
+        [MenuItem(root + "모든 재료 100개씩", false, 2)]
+        private static void GiveAllIngredientsStack() => ItemCommandHandlerList.GiveAllIngredients(100);
 
         [MenuItem(root + "인벤토리 로그", false, 20)]
         private static void LogInventory() => ItemCommandHandlerList.LogInventory();
 
         // 플레이 중이 아니면 서버 월드가 없어 전부 실패하므로 메뉴를 잠가 둠
-        [MenuItem(root + "강화 모듈 50개", true)]
-        [MenuItem(root + "설계도 전부", true)]
-        [MenuItem(root + "포탑 전부", true)]
-        [MenuItem(root + "모든 아이템 1개씩", true)]
-        [MenuItem(root + "모든 아이템 10개씩", true)]
+        [MenuItem(root + "파워 셀 50개", true)]
+        [MenuItem(root + "모든 재료 10개씩", true)]
+        [MenuItem(root + "모든 재료 100개씩", true)]
         [MenuItem(root + "인벤토리 로그", true)]
         private static bool IsPlaying() => EditorApplication.isPlaying;
 
@@ -47,7 +39,7 @@ namespace GalaxyIO.Scripts.Editor
     /// <summary>아이템 종류와 개수를 골라 지급하는 창.</summary>
     public sealed class ItemGiveWindow : EditorWindow
     {
-        private ItemId id = ItemId.UpgradeModule;
+        private ItemId id = ItemId.PowerCell;
         private int count = 1;
 
         public static void Open()

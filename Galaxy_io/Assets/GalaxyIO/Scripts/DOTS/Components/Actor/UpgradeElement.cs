@@ -127,7 +127,7 @@ namespace GalaxyIO.DOTS.Components.Actor
         }
 
         /// <summary>
-        /// 다음 단계로 올리는 데 드는 강화 모듈 수. 올릴 때마다 1개씩 늘어남.
+        /// 다음 단계로 올리는 데 드는 파워 셀 수. 올릴 때마다 1개씩 늘어남.
         /// </summary>
         public static int Cost(int level)
         {

@@ -14,5 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.RecipeAsset
   Ingredients:
   - Item: {fileID: 11400000, guid: a12592c859254e13b0b09fe57c6e0454, type: 2}
-    Count: 10
+    Count: 30
+  - Item: {fileID: 11400000, guid: 8732664549d665f46b7f109f4b9e4889, type: 2}
+    Count: 2
   Result: {fileID: 11400000, guid: 12dcbc384087b919b90c5d5a34a1af21, type: 2}

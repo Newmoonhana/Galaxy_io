@@ -15,6 +15,10 @@ namespace GalaxyIO.DOTS.Authoring.Config
         [Tooltip("ItemId 로 찾을 아이템 목록. 순서는 상관없음.")]
         public List<ItemAsset> Items = new List<ItemAsset>();
 
+        [SerializeField]
+        [Tooltip("포탑 상점 목록. 이 순서대로 보여줌.")]
+        public List<RecipeAsset> Recipes = new List<RecipeAsset>();
+
         // ItemId -> 아이템. 처음 찾을 때 만듦.
         [NonSerialized]
         private Dictionary<ItemId, ItemAsset> lookup;
@@ -38,6 +42,22 @@ namespace GalaxyIO.DOTS.Authoring.Config
             }
 
             return lookup.TryGetValue(id, out ItemAsset found) ? found : null;
+        }
+
+        /// <summary>
+        /// 결과물이 id 인 제작법. 없으면 null.
+        /// </summary>
+        public RecipeAsset FindRecipe(ItemId id)
+        {
+            foreach (RecipeAsset recipe in Recipes)
+            {
+                if (recipe != null && recipe.Result != null && recipe.Result.Id == id)
+                {
+                    return recipe;
+                }
+            }
+
+            return null;
         }
 
         private void OnValidate()

@@ -14,12 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.ItemRegistryAsset
   Items:
   - {fileID: 11400000, guid: a12592c859254e13b0b09fe57c6e0454, type: 2}
-  - {fileID: 11400000, guid: 22941d23f0b649e583a80c7af199c8eb, type: 2}
-  - {fileID: 11400000, guid: a602aab2a6f53bf2590ac9a1af1d7e2c, type: 2}
-  - {fileID: 11400000, guid: 0ef525a858ab3e6a3d6f489ae95bf949, type: 2}
-  - {fileID: 11400000, guid: 5cbffac41e28a73b78b949486de3600b, type: 2}
-  - {fileID: 11400000, guid: 17719f533632c49ae32248650b4a91a0, type: 2}
-  - {fileID: 11400000, guid: 45805548407e438e04eebbf9a94410cd, type: 2}
+  - {fileID: 11400000, guid: 8732664549d665f46b7f109f4b9e4889, type: 2}
+  - {fileID: 11400000, guid: 1da41d2b708f4e148bdd3772cad27889, type: 2}
   - {fileID: 11400000, guid: 3037765fa7c4999d2c3d742734c545df, type: 2}
   - {fileID: 11400000, guid: 52ddbe9c5873d36434f6db223d1d2007, type: 2}
   - {fileID: 11400000, guid: 7effac6e82c5b143022ab3a57e929374, type: 2}
@@ -27,3 +23,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 7ff94bfebd392db8b636ff2b5a9708e9, type: 2}
   - {fileID: 11400000, guid: 12dcbc384087b919b90c5d5a34a1af21, type: 2}
   - {fileID: 11400000, guid: 2baf083577296fe201ee47322dca5e73, type: 2}
+  Recipes:
+  - {fileID: 11400000, guid: 8c5b390233ccd3137f636f67404ba5d7, type: 2}
+  - {fileID: 11400000, guid: 113ea82ac8c000856cc184de5997f3e4, type: 2}
+  - {fileID: 11400000, guid: b3d8952441c58e60f5c128702a2e8207, type: 2}
+  - {fileID: 11400000, guid: 6656deec890491e1d73fab3b5b1f351c, type: 2}
+  - {fileID: 11400000, guid: dfca4aa0cedb08f163a530cc10d37de1, type: 2}
+  - {fileID: 11400000, guid: 4e21a69a76007f376c5eaf0218f6f50f, type: 2}

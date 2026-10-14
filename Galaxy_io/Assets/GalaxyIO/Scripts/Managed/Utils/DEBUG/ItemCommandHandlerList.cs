@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Text;
 using GalaxyIO.DOTS.Client.Components.Singleton;
@@ -22,9 +21,6 @@ namespace GalaxyIO.Utils.DEBUG
     /// </summary>
     public static class ItemCommandHandlerList
     {
-        // 적 전용이라 플레이어에게 줄 의미가 없는 아이템
-        private static readonly ItemId[] excluded = { ItemId.None, ItemId.CorsairTurret };
-
         /// <summary>
         /// 접속한 모든 플레이어에게 아이템을 넣음. 실제로 들어간 개수를 반환.
         /// </summary>
@@ -50,7 +46,7 @@ namespace GalaxyIO.Utils.DEBUG
             if (inserted < _count * networkIds.Count)
             {
                 Debug.LogWarning($"[Command] GiveItem: {_id} 일부만 들어감. " +
-                                 $"요청 {_count * networkIds.Count} / 실제 {inserted} (칸이 모자람)");
+                                 $"요청 {_count * networkIds.Count} / 실제 {inserted} (재료가 아니거나 최대 개수)");
             }
             else
             {
@@ -60,17 +56,17 @@ namespace GalaxyIO.Utils.DEBUG
             return inserted;
         }
 
-        /// <summary>강화 모듈 지급. 제작 재료용.</summary>
-        public static void GiveUpgradeModule(int _count = 50) => GiveItem(ItemId.UpgradeModule, _count);
+        /// <summary>파워 셀 지급. 강화, 구매 확인용.</summary>
+        public static void GivePowerCell(int _count = 50) => GiveItem(ItemId.PowerCell, _count);
 
-        /// <summary>설계도 6종 지급. 제작 창(Window_Craft) 확인용.</summary>
-        public static void GiveAllBlueprints(int _count = 1) => GiveEach(IsBlueprint, _count, "설계도");
-
-        /// <summary>포탑 6종 지급. 포탑 칸 확인용.</summary>
-        public static void GiveAllTurrets(int _count = 1) => GiveEach(IsTurret, _count, "포탑");
-
-        /// <summary>모든 아이템 지급. 인벤토리 창을 가득 채워 확인할 때 씀.</summary>
-        public static void GiveEverything(int _count = 1) => GiveEach(_ => true, _count, "전체");
+        /// <summary>모든 재료 지급. 상점 구매 확인용.</summary>
+        public static void GiveAllIngredients(int _count = 10)
+        {
+            foreach (ItemId id in PlayerInventory.Ingredients)
+            {
+                GiveItem(id, _count);
+            }
+        }
 
         /// <summary>로컬 클라이언트가 들고 있는 인벤토리를 로그로 출력.</summary>
         public static void LogInventory()
@@ -102,35 +98,13 @@ namespace GalaxyIO.Utils.DEBUG
             }
 
             StringBuilder sb = new StringBuilder("[Command] 로컬 인벤토리\n");
-            for (int i = 0; i < inventory.Length; i++)
+            foreach (ItemId id in PlayerInventory.Ingredients)
             {
-                ItemSlot slot = inventory[i];
-                if (slot.Id == ItemId.None) continue;
-
-                sb.AppendLine($"  [{i:D2}] {slot.Type,-7} {slot.Id} x{slot.Count}");
+                sb.AppendLine($"  {id} x{inventory.Count(id)}");
             }
 
             Debug.Log(sb.ToString());
         }
-
-        private static void GiveEach(Func<ItemId, bool> _filter, int _count, string _label)
-        {
-            int kinds = 0;
-            foreach (ItemId id in Enum.GetValues(typeof(ItemId)))
-            {
-                if (Array.IndexOf(excluded, id) >= 0) continue;
-                if (!_filter(id)) continue;
-
-                if (GiveItem(id, _count) > 0) kinds++;
-            }
-
-            Debug.Log($"[Command] {_label} 지급 완료. 종류 {kinds}개 x{_count}");
-        }
-
-        private static bool IsBlueprint(ItemId _id) => _id.ToString().EndsWith("Blueprint");
-
-        private static bool IsTurret(ItemId _id)
-            => !IsBlueprint(_id) && _id != ItemId.UpgradeModule;
 
         /// <summary>
         /// 서버 월드의 서비스와 접속한 플레이어 NetworkId 목록을 가져옴.

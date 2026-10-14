@@ -14,6 +14,9 @@ namespace GalaxyIO.DOTS.Authoring
     /// </summary>
     public sealed class SpaceshipAuthoring : MonoBehaviour
     {
+        // 상점 기종. 상점에서 살 수 없는 기체는 None.
+        public SpaceshipId Kind = SpaceshipId.None;
+
         [Header("Attributes")]
 
         // 월드 좌표 상 이동속도
@@ -67,6 +70,16 @@ namespace GalaxyIO.DOTS.Authoring
         [Min(0.0F)]
         public float MaxHeat = 20.0F;
 
+        [Header("Radar")]
+
+        // 레이더 스캐너 회전 속도(도/초). 탐지 거리는 Ghost 복제 반경(RelevancyConfig)을 따름.
+        [Min(0.0F)]
+        public float RadarSweepSpeed = 120.0F;
+
+        // 스캐너가 지나간 뒤 레이더 점이 나타나기까지의 시간(초)
+        [Min(0.0F)]
+        public float RadarResponseTime = 0.1F;
+
         [Header("Faction")]
 
         // 소속 진영
@@ -109,6 +122,17 @@ namespace GalaxyIO.DOTS.Authoring
             AddComponent(entity, new FactionComponent
             {
                 Value = authoring.Faction,
+            });
+
+            AddComponent(entity, new SpaceshipKindComponent
+            {
+                Value = authoring.Kind,
+            });
+
+            AddComponent(entity, new SpaceshipRadarComponent
+            {
+                SweepSpeed   = authoring.RadarSweepSpeed,
+                ResponseTime = authoring.RadarResponseTime,
             });
 
             var buffer = AddBuffer<TurretElement>(entity);

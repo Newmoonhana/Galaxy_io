@@ -12,10 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7a1c3e5f2b8d4c6e9f0a1b2c3d4e5f60, type: 3}
   m_Name: SO_Item_Raptor
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.TurretItemAsset
-  Id: 11
+  Id: 7
   Sprite: {fileID: 21300000, guid: 8a4ec859c36d318408fc6cbe3d9162ce, type: 3}
-  Type: 2
-  Stacking: 1
   TurretSpecs:
   - Projectile: {fileID: 3898896724990523705, guid: a8e22ae2209f261498f8ee2521040c67, type: 3}
     RPS: 18

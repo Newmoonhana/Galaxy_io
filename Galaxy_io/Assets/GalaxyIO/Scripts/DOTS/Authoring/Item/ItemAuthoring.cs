@@ -52,16 +52,6 @@ namespace GalaxyIO.DOTS.Authoring
         [Min(0.0F)]
         public float DropPickupDelay = 0.5F;
 
-        [SerializeField]
-        [Tooltip("플레이어가 버린 아이템을 기수 방향으로 던지는 속력")]
-        [Min(0.0F)]
-        public float ThrowSpeed = 15.0F;
-
-        [SerializeField]
-        [Tooltip("플레이어가 버린 아이템을 주울 수 없는 시간(초). 버리자마자 다시 줍는 것 방지.")]
-        [Min(0.0F)]
-        public float ThrowPickupDelay = 1.5F;
-
         private void OnDrawGizmosSelected()
         {
             Gizmos.color = new Color(1.0F, 0.9F, 0.3F, 0.8F);
@@ -92,8 +82,6 @@ namespace GalaxyIO.DOTS.Authoring
                 SpinSpeed         = math.radians(authoring.SpinSpeed),
                 Lifetime          = authoring.Lifetime,
                 DropPickupDelay   = authoring.DropPickupDelay,
-                ThrowSpeed        = authoring.ThrowSpeed,
-                ThrowPickupDelay  = authoring.ThrowPickupDelay,
             });
 
             // 크기는 스폰 시 아이템 스프라이트에 맞춤.
