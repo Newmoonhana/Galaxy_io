@@ -28,5 +28,8 @@ namespace GalaxyIO.DOTS.Components.Singleton
 
         // 회전 관성 속도의 감속도
         public float InertiaDeceleration;
+
+        // 회전 관성 방향이 기수 방향을 따라 도는 속도(도/초)
+        public float InertiaTurnRate;
     }
 }
