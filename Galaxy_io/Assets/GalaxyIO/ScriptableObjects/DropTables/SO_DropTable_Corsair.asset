@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: SO_DropTable_Corsair
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.DropTableAsset
   Rolls:
-  - Chance: 1
+  - Chance: 0.2
     Entries:
     - Item: {fileID: 11400000, guid: a12592c859254e13b0b09fe57c6e0454, type: 2}
-      CountRange: {x: 9999, y: 9999}
+      CountRange: {x: 1, y: 4}
       Weight: 1
-  - Chance: 1
+  - Chance: 0.1
     Entries:
     - Item: {fileID: 11400000, guid: 22941d23f0b649e583a80c7af199c8eb, type: 2}
       CountRange: {x: 1, y: 1}
