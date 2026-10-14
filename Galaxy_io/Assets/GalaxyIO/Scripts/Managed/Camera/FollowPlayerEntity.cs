@@ -168,9 +168,9 @@ namespace GalaxyIO.Camera
                 return Vector2.zero;
             }
 
-            // 기수 방향 * (현재 속력 / 최대 속력). 가속/감속을 따라 오프셋도 늘고 줆.
+            // 기수 방향 * (기수 방향 속력 / 최대 속력). 가속/감속을 따라 오프셋도 늘고 줆.
             float2 forward = math.normalizesafe(SpaceshipHeading.FromRotation(transform.Rotation), float2.zero);
-            float speedRatio = math.saturate(movement.Speed / movement.MaxSpeed);
+            float speedRatio = math.saturate(math.dot(movement.Velocity, forward) / movement.MaxSpeed);
 
             return new Vector2(forward.x, forward.y) * (speedRatio * lookAheadDistance);
         }

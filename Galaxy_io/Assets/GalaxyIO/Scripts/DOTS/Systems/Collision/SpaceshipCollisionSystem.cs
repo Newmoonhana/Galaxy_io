@@ -1,7 +1,6 @@
 using GalaxyIO.DOTS.Collision;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Singleton;
-using GalaxyIO.DOTS.Spaceship;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -173,8 +172,7 @@ namespace GalaxyIO.DOTS.Systems
     }
 
     /// <summary>
-    /// 플레이어 기체의 충돌 반응. 비행 속력은 기수 방향뿐이라
-    /// 기수 성분만 속력에 넣고 나머지는 호버링 속도로 넘김.
+    /// 플레이어 기체의 충돌 반응. 속도 벡터 하나뿐이라 그대로 더함.
     /// </summary>
     [BurstCompile]
     [WithAll(typeof(Simulate))]
@@ -184,26 +182,10 @@ namespace GalaxyIO.DOTS.Systems
 
         private void Execute(
             in DynamicBuffer<SpaceshipCollisionElement> messages,
-            in LocalTransform transform,
             in SpaceshipMovementComponent movement,
             ref PlayerSpaceshipMovementComponent player)
         {
-            float2 impulse = CollisionResponse.Impulse(movement.DeltaMovement, messages, Restitution);
-
-            if (math.lengthsq(impulse) <= math.EPSILON)
-            {
-                return;
-            }
-
-            float2 forward = math.normalizesafe(
-                SpaceshipHeading.FromRotation(transform.Rotation),
-                new float2(1.0F, 0.0F)
-            );
-
-            float along = math.dot(impulse, forward);
-
-            player.Speed = math.clamp(player.Speed + along, 0.0F, player.MaxSpeed);
-            player.HoveringVelocity += impulse - forward * along;
+            player.Velocity += CollisionResponse.Impulse(movement.DeltaMovement, messages, Restitution);
         }
     }
 
