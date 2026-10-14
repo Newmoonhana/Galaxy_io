@@ -53,7 +53,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 10
+  retriggerPercentage: 0
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -80,7 +80,7 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 2
+  limitMode: 1
   limitPerXFrames: 1
   minimumTimeBetween: 0.05
   useClipAgePriority: 0
@@ -100,7 +100,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 10808
+  frames: 11200
 --- !u!1 &2457249127668085956
 GameObject:
   m_ObjectHideFlags: 0
@@ -403,7 +403,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 2660
+  frames: 2692
 --- !u!1 &3434971531596244705
 GameObject:
   m_ObjectHideFlags: 0
@@ -592,7 +592,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 4
+  weight: 16
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -729,7 +729,7 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 2
+  limitMode: 1
   limitPerXFrames: 1
   minimumTimeBetween: 0.05
   useClipAgePriority: 0
@@ -749,7 +749,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 3038
+  frames: 3373
 --- !u!1 &3683315071182364970
 GameObject:
   m_ObjectHideFlags: 0
@@ -803,7 +803,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 50
+  retriggerPercentage: 0
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -830,7 +830,7 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 0
+  limitMode: 1
   limitPerXFrames: 1
   minimumTimeBetween: 0.1
   useClipAgePriority: 0
@@ -850,7 +850,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 2962
+  frames: 3527
 --- !u!1 &3809429172540437953
 GameObject:
   m_ObjectHideFlags: 0
@@ -1345,7 +1345,7 @@ AudioSource:
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 01d0ce3688cc2fb4f9559767b8b578b0, type: 3}
   m_PlayOnAwake: 0
-  m_Volume: 0.3
+  m_Volume: 0.7
   m_Pitch: 1
   Loop: 0
   Mute: 0
@@ -2086,7 +2086,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 20
+  retriggerPercentage: 0
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -2113,7 +2113,7 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 2
+  limitMode: 1
   limitPerXFrames: 1
   minimumTimeBetween: 0.05
   useClipAgePriority: 0
@@ -2133,7 +2133,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 13696
+  frames: 15722
 --- !u!1 &5591481125045961486
 GameObject:
   m_ObjectHideFlags: 0
@@ -2322,7 +2322,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 4
+  weight: 16
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -3657,7 +3657,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 30
+  retriggerPercentage: 0
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -3684,7 +3684,7 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 2
+  limitMode: 1
   limitPerXFrames: 1
   minimumTimeBetween: 0.05
   useClipAgePriority: 0
@@ -3704,7 +3704,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 2573
+  frames: 3087
 --- !u!1 &7991672988859557561
 GameObject:
   m_ObjectHideFlags: 0
@@ -3758,7 +3758,7 @@ MonoBehaviour:
   isSelected: 0
   isExpanded: 1
   groupMasterVolume: 1
-  retriggerPercentage: 100
+  retriggerPercentage: 0
   curVariationMode: 0
   alwaysHighestPriority: 0
   ignoreListenerPause: 0
@@ -3785,7 +3785,7 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 2
+  limitMode: 1
   limitPerXFrames: 1
   minimumTimeBetween: 0.1
   useClipAgePriority: 0
@@ -3805,7 +3805,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 3621
+  frames: 4695
 --- !u!1 &7998928393634076203
 GameObject:
   m_ObjectHideFlags: 0
@@ -3994,7 +3994,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 931518f9ca6c3844891dee74db8ed494, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  weight: 4
+  weight: 16
   probabilityToPlay: 100
   importance: 5
   isUninterruptible: 0
@@ -4131,7 +4131,7 @@ MonoBehaviour:
   endLinkedGroups: []
   linkedStartGroupSelectionType: 0
   linkedStopGroupSelectionType: 0
-  limitMode: 2
+  limitMode: 1
   limitPerXFrames: 1
   minimumTimeBetween: 0.05
   useClipAgePriority: 0
@@ -4151,7 +4151,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 2302
+  frames: 2473
 --- !u!1 &8756206601907949017
 GameObject:
   m_ObjectHideFlags: 0
