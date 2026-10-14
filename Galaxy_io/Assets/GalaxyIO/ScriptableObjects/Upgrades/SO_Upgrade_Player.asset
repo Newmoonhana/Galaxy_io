@@ -41,6 +41,6 @@ MonoBehaviour:
     Range: 10
     MaxLevel: 25
   RadarSweep:
-    SweepSpeed: 1000
+    SweepSpeed: 20
     ResponseTime: 0.08
     MaxLevel: 25

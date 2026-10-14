@@ -16,9 +16,9 @@ MonoBehaviour:
   - Chance: 1
     Entries:
     - Item: {fileID: 11400000, guid: a12592c859254e13b0b09fe57c6e0454, type: 2}
-      CountRange: {x: 200, y: 255}
+      CountRange: {x: 9999, y: 9999}
       Weight: 1
-  - Chance: 0.1
+  - Chance: 1
     Entries:
     - Item: {fileID: 11400000, guid: 22941d23f0b649e583a80c7af199c8eb, type: 2}
       CountRange: {x: 1, y: 1}

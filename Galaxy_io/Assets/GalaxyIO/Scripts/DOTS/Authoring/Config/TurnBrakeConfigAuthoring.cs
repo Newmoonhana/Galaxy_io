@@ -43,6 +43,11 @@ namespace GalaxyIO.DOTS.Authoring.Config
         [Tooltip("회전 관성으로 밀려나는 속도가 초당 줄어드는 양")]
         [Min(0.0F)]
         public float InertiaDeceleration = 20.0F;
+
+        [SerializeField]
+        [Tooltip("회전 관성으로 밀려나는 방향이 기수 방향을 따라 도는 속도(도/초). 0이면 방향이 바뀌지 않음.")]
+        [Min(0.0F)]
+        public float InertiaTurnRate = 120.0F;
     }
 
     public sealed class TurnBrakeConfigBaker : Baker<TurnBrakeConfigAuthoring>
@@ -63,6 +68,7 @@ namespace GalaxyIO.DOTS.Authoring.Config
 
                 Inertia             = authoring.Inertia,
                 InertiaDeceleration = authoring.InertiaDeceleration,
+                InertiaTurnRate     = authoring.InertiaTurnRate,
             });
         }
     }

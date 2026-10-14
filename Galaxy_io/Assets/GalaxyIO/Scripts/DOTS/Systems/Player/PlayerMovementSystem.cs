@@ -110,16 +110,22 @@ namespace GalaxyIO.DOTS.Systems
                 float brakedSpeed = math.min(turnDeceleration * deltaTime, nextSpeed);
                 nextSpeed -= brakedSpeed;
 
-                // 회전 관성: 선회 제동으로 잃은 속력만큼 돌기 전 방향으로 밀려남. 밀려나는 속도는 스스로 줄어듦.
-                float2 inertia = playerMovement.ValueRO.InertiaVelocity;
+                // 회전 관성: 선회 제동으로 잃은 속력만큼 돌기 전 방향으로 밀려남.
+                // 밀려나는 속도는 스스로 줄어들고, 방향은 기수를 뒤늦게 따라 돎.
+                float2 inertia = playerMovement.ValueRO.InertiaVelocity
+                                 + currentForward * (brakedSpeed * turnBrake.Inertia);
+
                 float inertiaSpeed = math.length(inertia);
 
                 if (inertiaSpeed > math.EPSILON)
                 {
-                    inertia *= math.max(inertiaSpeed - turnBrake.InertiaDeceleration * deltaTime, 0.0F) / inertiaSpeed;
+                    inertia = SpaceshipHeading.RotateTowards(
+                                  inertia / inertiaSpeed,
+                                  nextForward,
+                                  math.radians(turnBrake.InertiaTurnRate) * deltaTime
+                              )
+                              * math.max(inertiaSpeed - turnBrake.InertiaDeceleration * deltaTime, 0.0F);
                 }
-
-                inertia += currentForward * (brakedSpeed * turnBrake.Inertia);
 
                 // 호버링: 기수와 무관하게 WASD 합산 방향으로 평행 이동함.
                 // 비행 모드가 우선이라, 가속 중이거나 비행 속력이 아직 호버링 속력보다
