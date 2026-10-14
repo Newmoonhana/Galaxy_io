@@ -35,17 +35,17 @@ namespace GalaxyIO.DOTS.Authoring.Config
         public float ReferenceSpeed = 60.0F;
 
         [SerializeField]
-        [Tooltip("회전 관성. 선회 제동으로 잃은 속력 중 돌기 전 방향으로 밀려나는 속도로 바뀌는 비율. 0이면 밀리지 않음.")]
+        [Tooltip("회전 관성. 선회 제동이 셀수록 속도가 기수를 덜 따라 돌아 돌기 전 방향으로 밀려남. 0이면 밀리지 않고, 1이면 기준 제동에서 기수를 전혀 따라 돌지 않음.")]
         [Min(0.0F)]
         public float Inertia = 1.0F;
 
         [SerializeField]
-        [Tooltip("회전 관성으로 밀려나는 속도가 초당 줄어드는 양")]
+        [Tooltip("기수와 어긋난 옆 방향 속도가 초당 줄어드는 양")]
         [Min(0.0F)]
         public float InertiaDeceleration = 20.0F;
 
         [SerializeField]
-        [Tooltip("회전 관성으로 밀려나는 방향이 기수 방향을 따라 도는 속도(도/초). 0이면 방향이 바뀌지 않음.")]
+        [Tooltip("뒤처진 속도 방향이 기수 방향을 따라 도는 속도(도/초)")]
         [Min(0.0F)]
         public float InertiaTurnRate = 120.0F;
     }

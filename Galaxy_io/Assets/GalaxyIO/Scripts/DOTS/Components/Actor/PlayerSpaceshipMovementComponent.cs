@@ -8,7 +8,9 @@ namespace GalaxyIO.DOTS.Components.Actor
     /// <summary>
     /// 플레이어가 조종하는 우주선의 비행 모델. <see cref="PlayerMovementSystem"/>이
     /// 이 값들과 입력을 합쳐 <see cref="SpaceshipMovementComponent"/>를 만듦.
+    /// 주인에게만 복제함. 다른 클라이언트는 위치와 회전만 받아 보간함.
     /// </summary>
+    [GhostComponent(OwnerSendType = SendToOwnerType.SendToOwner)]
     public struct PlayerSpaceshipMovementComponent : IComponentData
     {
         // 비행 모드(가속 키)의 최대 이동속도
@@ -23,19 +25,10 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 호버링 감속도. WASD를 떼면 이 값으로 0까지 줄어듦.
         public float HoveringDeceleration;
 
-        // 현재 비행 속력. 예측 롤백 시 서버 값으로 되감아야 하므로 복제함.
-        [GhostField]
-        public float Speed;
-
-        // 현재 호버링 속도. 기수와 무관한 방향이라 벡터로 들고 있음.
+        // 현재 속도. 비행, 호버링, 회전 관성이 모두 이 벡터 하나에 담김.
         // 예측 롤백 시 서버 값으로 되감아야 하므로 복제함.
         [GhostField]
-        public float2 HoveringVelocity;
-
-        // 회전 관성 속도. 선회 제동이 걸리면 돌기 전 방향으로 밀려남.
-        // 예측 롤백 시 서버 값으로 되감아야 하므로 복제함.
-        [GhostField]
-        public float2 InertiaVelocity;
+        public float2 Velocity;
 
         // 가속도
         public float Acceleration;
@@ -52,9 +45,5 @@ namespace GalaxyIO.DOTS.Components.Actor
 
         // 호버링 방향 전환 가속도. 움직이던 중에 WASD 방향을 바꾸면 호버링 가감속 대신 이 값으로 붙음.
         public float HoveringManeuver;
-
-        // 호버링 방향 전환 중. 예측 롤백 시 서버 값으로 되감아야 하므로 복제함.
-        [GhostField]
-        public bool HoveringTurning;
     }
 }

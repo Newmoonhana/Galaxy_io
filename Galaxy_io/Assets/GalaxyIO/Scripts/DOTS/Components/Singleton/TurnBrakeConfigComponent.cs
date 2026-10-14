@@ -23,13 +23,13 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 기준 속력. 항상 StartSpeed 보다 큼.
         public float ReferenceSpeed;
 
-        // 선회 제동으로 잃은 속력 중 회전 관성 속도로 바뀌는 비율
+        // 선회 제동이 셀수록 속도가 기수를 덜 따라 도는 정도
         public float Inertia;
 
-        // 회전 관성 속도의 감속도
+        // 기수와 어긋난 옆 방향 속도의 감속도
         public float InertiaDeceleration;
 
-        // 회전 관성 방향이 기수 방향을 따라 도는 속도(도/초)
+        // 뒤처진 속도 방향이 기수 방향을 따라 도는 속도(도/초)
         public float InertiaTurnRate;
     }
 }
