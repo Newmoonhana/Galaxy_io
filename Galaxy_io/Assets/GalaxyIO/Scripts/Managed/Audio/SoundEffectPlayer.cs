@@ -29,10 +29,9 @@ namespace GalaxyIO.Scripts.Managed.Audio
         [Min(0.01F)]
         private float loopFadeOut = 0.3F;
 
-        [SerializeField]
-        [Tooltip("같은 효과음을 한 프레임에 최대 몇 개까지 재생할지. Sound Group 의 음성 수와 맞춤")]
+        // 같은 효과음을 한 프레임에 최대 몇 개까지 재생할지. Sound Group 의 음성 수와 맞춤
         [Min(1)]
-        private int maxPerKeyPerFrame = 3;
+        private int maxPerKeyPerFrame = 16;
 
         private EntityManager entityManager;
         private EntityQuery messageQuery;
