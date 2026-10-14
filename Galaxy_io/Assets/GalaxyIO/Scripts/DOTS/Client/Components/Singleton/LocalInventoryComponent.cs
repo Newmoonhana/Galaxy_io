@@ -8,7 +8,7 @@ namespace GalaxyIO.DOTS.Client.Components.Singleton
     /// </summary>
     public sealed class LocalInventoryComponent : IComponentData
     {
-        // 첫 칸을 받기 전에는 null
+        // 초기화 RPC 를 받기 전에는 null
         public PlayerInventory Value;
     }
 }

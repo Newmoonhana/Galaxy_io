@@ -9,7 +9,8 @@ using UnityEngine;
 namespace GalaxyIO.DOTS.Authoring.Config
 {
     /// <summary>
-    /// <see cref="PrefabRegistryAsset"/>, <see cref="ItemRegistryAsset"/>을 서브씬에 베이킹하는 연결 컴포넌트. 월드당 한 개.
+    /// <see cref="PrefabRegistryAsset"/>, <see cref="ItemRegistryAsset"/>, <see cref="SpaceshipRegistryAsset"/>을
+    /// 서브씬에 베이킹하는 연결 컴포넌트. 월드당 한 개.
     /// </summary>
     public sealed class PrefabRegistryAuthoring : MonoBehaviour
     {
@@ -20,6 +21,10 @@ namespace GalaxyIO.DOTS.Authoring.Config
         [SerializeField]
         [Tooltip("베이킹할 아이템 레지스트리")]
         public ItemRegistryAsset ItemRegistry;
+
+        [SerializeField]
+        [Tooltip("베이킹할 우주선 레지스트리")]
+        public SpaceshipRegistryAsset SpaceshipRegistry;
     }
 
     public sealed class PrefabRegistryBaker : Baker<PrefabRegistryAuthoring>
@@ -178,6 +183,67 @@ namespace GalaxyIO.DOTS.Authoring.Config
                 }
 
                 registry[(int)item.Id] = element;
+            }
+        }
+    }
+
+    /// <summary>
+    /// <see cref="PrefabRegistryAuthoring.SpaceshipRegistry"/>를 베이킹함.
+    /// </summary>
+    public sealed class SpaceshipRegistryBaker : Baker<PrefabRegistryAuthoring>
+    {
+        public override void Bake(PrefabRegistryAuthoring authoring)
+        {
+            SpaceshipRegistryAsset spaceshipRegistry = authoring.SpaceshipRegistry;
+
+            // 에셋 내용이 바뀌면 다시 베이킹.
+            DependsOn(spaceshipRegistry);
+
+            if (spaceshipRegistry == null)
+            {
+                Debug.LogWarning("SpaceshipRegistry: 레지스트리 에셋이 비어 있음.", authoring);
+                return;
+            }
+
+            Entity entity = GetEntity(TransformUsageFlags.None);
+            DynamicBuffer<SpaceshipRegistryElement> registry = AddBuffer<SpaceshipRegistryElement>(entity);
+
+            // 가장 큰 Id 까지 빈 칸으로 채워 둠. 칸 번호가 곧 Id.
+            int maxId = 0;
+
+            foreach (SpaceshipAsset spaceship in spaceshipRegistry.Spaceships)
+            {
+                DependsOn(spaceship);
+
+                if (spaceship != null)
+                {
+                    maxId = Math.Max(maxId, (int)spaceship.Id);
+                }
+            }
+
+            registry.Resize(maxId + 1, NativeArrayOptions.ClearMemory);
+
+            // 상점 UI 와 구매 검증은 에셋을 직접 읽음.
+            AddComponentObject(entity, new SpaceshipRegistryAssetComponent { Value = spaceshipRegistry });
+
+            foreach (SpaceshipAsset spaceship in spaceshipRegistry.Spaceships)
+            {
+                // 프리팹이 없는 기종은 상점에 보이기만 함.
+                if (spaceship == null || spaceship.Id == SpaceshipId.None || spaceship.Prefab == null)
+                {
+                    continue;
+                }
+
+                if (registry[(int)spaceship.Id].Prefab != Entity.Null)
+                {
+                    Debug.LogWarning($"SpaceshipRegistry: Id 중복. 뒤의 항목을 버림. ({spaceship.Id})", spaceshipRegistry);
+                    continue;
+                }
+
+                registry[(int)spaceship.Id] = new SpaceshipRegistryElement
+                {
+                    Prefab = GetEntity(spaceship.Prefab, TransformUsageFlags.Dynamic),
+                };
             }
         }
     }

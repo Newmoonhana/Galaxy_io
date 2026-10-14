@@ -84,12 +84,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 413815d9ff30baa4a84bb8f074900998, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 21428011ed79af948a7e5aff12ff3164, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 0.64, y: 0.64}
+  m_Size: {x: 1.3333334, y: 1.3333334}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -114,8 +114,6 @@ MonoBehaviour:
   SpinSpeed: 15
   Lifetime: 60
   DropPickupDelay: 0.5
-  ThrowSpeed: 15
-  ThrowPickupDelay: 1.5
 --- !u!114 &2875581884597062574
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -1,6 +1,5 @@
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Message;
-using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.DOTS.Inventory;
 using Unity.Collections;
 using Unity.Entities;
@@ -17,10 +16,10 @@ namespace GalaxyIO.DOTS.Client.Systems
         public void OnCreate(ref SystemState state)
         {
             state.EntityManager.AddComponentObject(state.EntityManager.CreateEntity(), new LocalInventoryComponent());
-            state.RequireForUpdate<ItemConfigComponent>();
             state.RequireAnyForUpdate(
                 SystemAPI.QueryBuilder().WithAll<InventoryResetRPC, ReceiveRpcCommandRequest>().Build(),
-                SystemAPI.QueryBuilder().WithAll<InventorySlotRPC, ReceiveRpcCommandRequest>().Build()
+                SystemAPI.QueryBuilder().WithAll<InventoryCountRPC, ReceiveRpcCommandRequest>().Build(),
+                SystemAPI.QueryBuilder().WithAll<TurretUnlockRPC, ReceiveRpcCommandRequest>().Build()
             );
         }
 
@@ -30,27 +29,35 @@ namespace GalaxyIO.DOTS.Client.Systems
 
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
-            // 칸 RPC 보다 먼저 처리함. 서버도 초기화를 먼저 보냄.
+            // 개수 RPC 보다 먼저 처리함. 서버도 초기화를 먼저 보냄.
             foreach (
                 var (_, rpcEntity) in
                 SystemAPI.Query<RefRO<ReceiveRpcCommandRequest>>()
                     .WithAll<InventoryResetRPC>()
                     .WithEntityAccess()
             ) {
-                local.Value = new PlayerInventory(SystemAPI.GetSingleton<ItemConfigComponent>());
+                local.Value = new PlayerInventory();
                 ecb.DestroyEntity(rpcEntity);
             }
 
             foreach (
                 var (rpc, rpcEntity) in
-                SystemAPI.Query<RefRO<InventorySlotRPC>>()
+                SystemAPI.Query<RefRO<InventoryCountRPC>>()
                     .WithAll<ReceiveRpcCommandRequest>()
                     .WithEntityAccess()
             ) {
-                if (local.Value != null && rpc.ValueRO.Slot < local.Value.Length)
-                {
-                    local.Value.Set(rpc.ValueRO.Slot, rpc.ValueRO.Id, rpc.ValueRO.Count);
-                }
+                local.Value?.Set(rpc.ValueRO.Id, rpc.ValueRO.Count);
+
+                ecb.DestroyEntity(rpcEntity);
+            }
+
+            foreach (
+                var (rpc, rpcEntity) in
+                SystemAPI.Query<RefRO<TurretUnlockRPC>>()
+                    .WithAll<ReceiveRpcCommandRequest>()
+                    .WithEntityAccess()
+            ) {
+                local.Value?.Unlock(rpc.ValueRO.Turret);
 
                 ecb.DestroyEntity(rpcEntity);
             }

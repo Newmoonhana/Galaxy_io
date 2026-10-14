@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d7f30015e4bd9c4a99ce21f25d98ff7, type: 3}
+  m_Name: SO_SpaceshipRegistry
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.SpaceshipRegistryAsset
+  Spaceships:
+  - {fileID: 11400000, guid: cedcebdcd054b154380286a9b3aa536f, type: 2}
+  - {fileID: 11400000, guid: a9d935f20ab349e4cb36f0ee969050f1, type: 2}
+  - {fileID: 11400000, guid: 77b57a64de5818c42b61621f624d2338, type: 2}
+  - {fileID: 11400000, guid: 03516963d2c75f448b7c0d5443d05741, type: 2}
+  - {fileID: 11400000, guid: c3e489657241ced4388166b1d3849f95, type: 2}
+  - {fileID: 11400000, guid: ccf13af24a6c4d04e86d1cc09340ec9e, type: 2}
+  - {fileID: 11400000, guid: 6b412d92faa1511488df4b55f151fe2a, type: 2}
+  - {fileID: 11400000, guid: 41c994ee360713641af63fc975b3d6a6, type: 2}
+  - {fileID: 11400000, guid: 85b1fceed0ca5ce49a0af4156cbe5814, type: 2}
+  - {fileID: 11400000, guid: ee7a1591ec378a14ca9fe1f61435a27c, type: 2}

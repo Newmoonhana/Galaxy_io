@@ -17,10 +17,9 @@ namespace GalaxyIO.DOTS.Systems
     [UpdateBefore(typeof(SpaceshipDeathSystem))]
     public partial struct InventorySystem : ISystem
     {
-        private EntityQuery moveQuery;
-        private EntityQuery dropQuery;
-        private EntityQuery craftQuery;
         private EntityQuery upgradeQuery;
+        private EntityQuery turretQuery;
+        private EntityQuery spaceshipQuery;
 
         public void OnCreate(ref SystemState state)
         {
@@ -30,10 +29,9 @@ namespace GalaxyIO.DOTS.Systems
                 Value = new InventoryService(state.EntityManager),
             });
 
-            moveQuery = SystemAPI.QueryBuilder().WithAll<ReceiveRpcCommandRequest, InventoryMoveRPC>().Build();
-            dropQuery = SystemAPI.QueryBuilder().WithAll<ReceiveRpcCommandRequest, InventoryDropRPC>().Build();
-            craftQuery = SystemAPI.QueryBuilder().WithAll<ReceiveRpcCommandRequest, CraftRPC>().Build();
             upgradeQuery = SystemAPI.QueryBuilder().WithAll<ReceiveRpcCommandRequest, UpgradeRPC>().Build();
+            turretQuery = SystemAPI.QueryBuilder().WithAll<ReceiveRpcCommandRequest, TurretEquipRPC>().Build();
+            spaceshipQuery = SystemAPI.QueryBuilder().WithAll<ReceiveRpcCommandRequest, SpaceshipPurchaseRPC>().Build();
 
             state.RequireForUpdate<ItemRegistryAssetComponent>();
             state.RequireForUpdate<ItemConfigComponent>();
@@ -44,10 +42,9 @@ namespace GalaxyIO.DOTS.Systems
         {
             InventoryService service = SystemAPI.ManagedAPI.GetSingleton<InventoryServiceComponent>().Value;
 
-            if (!moveQuery.IsEmpty) Receive<InventoryMoveRPC>(state.EntityManager, moveQuery, service.Move);
-            if (!dropQuery.IsEmpty) Receive<InventoryDropRPC>(state.EntityManager, dropQuery, service.Drop);
-            if (!craftQuery.IsEmpty) Receive<CraftRPC>(state.EntityManager, craftQuery, service.Craft);
             if (!upgradeQuery.IsEmpty) Receive<UpgradeRPC>(state.EntityManager, upgradeQuery, service.Upgrade);
+            if (!turretQuery.IsEmpty) Receive<TurretEquipRPC>(state.EntityManager, turretQuery, service.EquipTurret);
+            if (!spaceshipQuery.IsEmpty) Receive<SpaceshipPurchaseRPC>(state.EntityManager, spaceshipQuery, service.PurchaseSpaceship);
 
             service.Update();
         }

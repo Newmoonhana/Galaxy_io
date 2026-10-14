@@ -5,7 +5,7 @@ using UnityEngine.UI;
 namespace GalaxyIO.Tools.PopupUI.Window
 {
     /// <summary>
-    /// 강화 창의 능력치 한 줄. 이름, 단계(= 다음 강화에 드는 모듈 수), 강화 모듈 아이콘.
+    /// 강화 창의 능력치 한 줄. 이름, 단계(= 다음 강화에 드는 파워 셀 수), 파워 셀 아이콘.
     /// 강화할 수 없으면 버튼이 잠겨 회색으로 보임.
     /// </summary>
     public sealed class UpgradeRowElement : SlotElement
@@ -13,7 +13,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
         [Tooltip("줄 배경. 줄 색을 어둡게 깔음")]
         [SerializeField] private Image back_img;
 
-        [Tooltip("강화 모듈 아이콘")]
+        [Tooltip("파워 셀 아이콘")]
         [SerializeField] private Image module_img;
 
         [Tooltip("배경에 까는 줄 색의 밝기와 불투명도")]
@@ -41,9 +41,9 @@ namespace GalaxyIO.Tools.PopupUI.Window
         /// <summary>
         /// 표시 값. 바뀔 때만 글자를 다시 만듦. 최대 단계면 단계 대신 MAX 를 띄움.
         /// </summary>
-        public void SetUpgrade(string _name, Sprite _module, int _level, bool _isMax, bool _isEnabled)
+        public void SetUpgrade(string _name, Sprite _powerCell, int _level, bool _isMax, bool _isEnabled)
         {
-            SetIcon(module_img, _module);
+            SetIcon(module_img, _powerCell);
 
             if (_name == shownName && _level == shownLevel && _isEnabled == shownEnabled) return;
 

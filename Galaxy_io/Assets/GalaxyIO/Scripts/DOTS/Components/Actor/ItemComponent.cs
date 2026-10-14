@@ -53,12 +53,6 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 우주선이 파괴되며 떨어뜨린 아이템의 줍기 대기 시간(초)
         public float DropPickupDelay;
 
-        // 플레이어가 버린 아이템을 던지는 속력
-        public float ThrowSpeed;
-
-        // 플레이어가 버린 아이템의 줍기 대기 시간(초)
-        public float ThrowPickupDelay;
-
         /// <summary>
         /// 주어진 속도로 미끄러뜨림. 줍기 대기 시간도 새로 걺.
         /// </summary>

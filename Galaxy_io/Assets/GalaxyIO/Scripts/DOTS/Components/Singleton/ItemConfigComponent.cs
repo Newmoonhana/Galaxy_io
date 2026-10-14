@@ -13,16 +13,11 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 아이템을 주웠을 때 재생할 효과음. 클라이언트만 씀.
         public FixedString64Bytes PickupSound;
 
-        // 플레이어가 파괴될 때 인벤토리 칸마다 그 칸을 떨어뜨릴 확률. 서버만 씀.
-        public float PlayerSlotDropChance;
+        // 플레이어가 파괴될 때 가진 재료 종류마다 그 재료를 떨어뜨릴 확률. 서버만 씀.
+        public float PlayerKindDropChance;
 
-        // 떨어뜨릴 칸의 아이템 하나하나가 실제로 떨어질 확률. 서버만 씀.
+        // 떨어뜨릴 재료 하나하나가 실제로 떨어질 확률. 서버만 씀.
         public float PlayerStackDropChance;
-
-        // 플레이어 인벤토리 칸 수
-        public int CommonSlots;
-        public int TurretSlots;
-        public int BombSlots;
 
         // 마지막 발사 후 이 시간(초)이 지나면 포탑 열이 식기 시작함.
         public float NoFireStandbyTime;

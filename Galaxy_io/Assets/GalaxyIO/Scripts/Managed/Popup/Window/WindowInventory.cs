@@ -1,93 +1,119 @@
 using System;
 using System.Collections.Generic;
+using GalaxyIO.DOTS.Authoring;
+using GalaxyIO.DOTS.Authoring.Config;
+using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.DOTS.Inventory;
 using Newmoonhana.Runtime.Tools.PopupUI.Window;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem;
+using UnityEngine.Localization;
+using UnityEngine.Localization.Settings;
 using UnityEngine.UI;
 
 namespace GalaxyIO.Tools.PopupUI.Window
 {
     /// <summary>
-    /// 인벤토리 칸 창. 칸 종류별 목록과 커서를 따라다니는 아이콘을 가짐.
+    /// 인벤토리 메인 창. 우주선 / 포탑 상점 목록, 현재 우주선 배치도, 보유 재료를 가짐.
+    /// 포탑 칸을 누르면 포탑 상점으로, 버튼이 아닌 곳을 누르면 우주선 상점으로 돌아감.
     /// </summary>
     public class WindowInventory : WindowBase, IPointerDownHandler
     {
-        [Header("Slots")]
-        [Tooltip("칸 종류 순(일반 -> 포탑 -> 폭탄). 칸 번호가 이 순서대로 이어짐")]
-        [SerializeField] private WindowSlotList[] lists;
+        [Header("Spaceship Market")]
+        [Tooltip("우주선 상점 화면. 포탑 상점과 번갈아 켜짐")]
+        [SerializeField] private GameObject spaceshipMarket_obj;
 
-        [Header("Held")]
-        [Tooltip("이 영역 밖을 누르면 집어 든 아이템을 버림")]
-        [SerializeField] private RectTransform panel_rt;
+        [Tooltip("SpaceshipCategory 순서의 분류별 칸 목록. 템플릿은 SpaceshipCell.prefab")]
+        [SerializeField] private WindowSlotList[] category_lists;
 
-        [Tooltip("집어 든 묶음을 보여주며 커서를 따라다니는 아이콘")]
-        [SerializeField] private Image held_img;
+        [Tooltip("SpaceshipCategory 순서의 분류 제목")]
+        [SerializeField] private TextMeshProUGUI[] category_tmps;
 
-        [SerializeField] private TextMeshProUGUI heldCount_tmp;
+        [Header("Turret Market")]
+        [SerializeField] private GameObject turretMarket_obj;
+
+        [Tooltip("포탑 줄 목록. 템플릿은 TurretRow.prefab")]
+        [SerializeField] private WindowSlotList turret_list;
+
+        [Header("Layout")]
+        [Tooltip("현재 우주선 외곽선. 외곽선 머티리얼을 씀")]
+        [SerializeField] private Image layout_img;
+
+        [Tooltip("포탑 칸 목록. 칸을 누르면 그 칸의 포탑 상점을 엶. 외곽선 이미지 중심 기준으로 놓음")]
+        [SerializeField] private WindowSlotList turretSlot_list;
+
+        [Header("Wallet")]
+        [Tooltip("보유 재료 줄 목록. 템플릿은 WalletRow.prefab")]
+        [SerializeField] private WindowSlotList wallet_list;
 
         [Header("Buttons")]
         [SerializeField] private Button exit_btn;
 
-        /// <summary>칸 누름. 인자는 칸 번호와 누른 버튼.</summary>
-        public event Action<int, PointerEventData.InputButton> OnSlotPressed;
+        /// <summary>우주선 칸 누름.</summary>
+        public event Action<SpaceshipAsset> OnSpaceshipPressed;
 
-        /// <summary>패널 밖 누름. 인자는 누른 버튼.</summary>
-        public event Action<PointerEventData.InputButton> OnOutsidePressed;
+        /// <summary>포탑 줄 누름.</summary>
+        public event Action<RecipeAsset> OnTurretPressed;
 
         private UnityEvent _exit;
 
-        // 칸 번호 순으로 펴 둔 칸. 목록 / 지역 번호 환산을 Build 에서 한 번만 하게 함
-        private readonly List<InventorySlotElement> elements = new List<InventorySlotElement>();
+        // 분류별로 칸에 보여준 기종. Build 에서 채움
+        private readonly List<SpaceshipAsset>[] spaceships =
+            new List<SpaceshipAsset>[Enum.GetValues(typeof(SpaceshipCategory)).Length];
 
-        // 각 목록의 첫 칸 번호
-        private int[] offsets;
+        // 포탑 줄에 보여준 제작법
+        private List<RecipeAsset> recipes;
 
-        // 아이콘 좌표 환산용 캔버스
-        private Canvas cv;
+        // 목록을 만들어 둠. 언어가 바뀌면 다시 만듦
+        private bool isBuilt;
 
-        public int Count => elements.Count;
+        // 외곽선 이미지의 원래 머티리얼. 감도별 사본의 원본
+        private Material outlineMaterial;
+
+        /// <summary>포탑 상점을 연 포탑 칸 번호. 0 이 주 포탑.</summary>
+        public int SelectedSlot { get; private set; }
 
         protected override void Awake()
         {
             base.Awake();
 
             _exit = new UnityEvent();
-            cv = GetComponentInParent<Canvas>();
-            offsets = new int[lists.Length];
 
-            for (int i = 0; i < lists.Length; i++)
+            for (int i = 0; i < category_lists.Length; i++)
             {
-                int listId = i;
-                lists[i].OnPressed += (local, button) => RelaySlotPress(offsets[listId] + local, button);
+                int category = i;
+                spaceships[i] = new List<SpaceshipAsset>();
+                category_lists[i].OnSelected += index => RelaySpaceship(category, index);
             }
+
+            turret_list.OnSelected += RelayTurret;
+            turretSlot_list.OnSelected += OnTurretSlotPress;
         }
 
         public override void Dispose()
         {
             base.Dispose();
 
-            OnSlotPressed = null;
-            OnOutsidePressed = null;
+            OnSpaceshipPressed = null;
+            OnTurretPressed = null;
             _exit?.RemoveAllListeners();
             _exit = null;
-            elements.Clear();
         }
 
         protected override void OnEnable()
         {
             base.OnEnable();
             exit_btn.onClick.AddListener(OnExitBtnPress);
+            LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
             exit_btn.onClick.RemoveListener(OnExitBtnPress);
-            held_img.gameObject.SetActive(false);
+            LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
         }
 
         /// <summary>
@@ -96,82 +122,134 @@ namespace GalaxyIO.Tools.PopupUI.Window
         public void AddListener(UnityAction _onExit) => _exit.AddListener(_onExit);
 
         /// <summary>
-        /// 인벤토리 칸 구성대로 칸을 만듦. 칸 수가 바뀔 때만 호출함.
+        /// 창이 열려 있는 동안 매 프레임 호출됨.
         /// </summary>
-        public void Build(PlayerInventory _inventory)
+        /// <param name="_current">타고 있는 기종. 상점 기종이 아니면 null</param>
+        /// <param name="_turret">주 포탑 칸에 장착한 포탑 아이콘</param>
+        public void Refresh(
+            PlayerInventory _inventory,
+            ItemRegistryAsset _items,
+            SpaceshipRegistryAsset _spaceships,
+            SpaceshipAsset _current,
+            Sprite _turret)
         {
-            elements.Clear();
-
-            int cursor = 0;
-            for (int i = 0; i < lists.Length; i++)
+            if (!isBuilt)
             {
-                offsets[i] = cursor;
+                Build(_items, _spaceships);
+                isBuilt = true;
+            }
 
-                int count = CountOf(_inventory, (SlotType)i);
-                lists[i].SetCount(count);
+            for (int i = 0; i < category_lists.Length; i++)
+                for (int j = 0; j < spaceships[i].Count; j++)
+                    (category_lists[i].Element(j) as ShopItemElement)?.SetCosts(_inventory, false);
 
-                for (int local = 0; local < count; local++)
-                    elements.Add(lists[i].Element(local) as InventorySlotElement);
+            for (int i = 0; i < recipes.Count; i++)
+                (turret_list.Element(i) as ShopItemElement)?.SetCosts(_inventory, _inventory.IsUnlocked(recipes[i].Result.Id));
 
-                cursor += count;
+            for (int i = 0; i < PlayerInventory.Ingredients.Length; i++)
+                (wallet_list.Element(i) as IngredientElement)?.SetAmount(_inventory.Count(PlayerInventory.Ingredients[i]), false);
+
+            RefreshLayout(_current, _turret);
+        }
+
+        private void Build(ItemRegistryAsset _items, SpaceshipRegistryAsset _spaceships)
+        {
+            for (int i = 0; i < category_lists.Length; i++)
+            {
+                spaceships[i].Clear();
+
+                foreach (SpaceshipAsset spaceship in _spaceships.Spaceships)
+                    if (spaceship != null && (int)spaceship.Category == i) spaceships[i].Add(spaceship);
+
+                category_lists[i].SetCount(spaceships[i].Count);
+
+                if (i < category_tmps.Length) category_tmps[i].text = L10n.Get($"Category/{(SpaceshipCategory)i}");
+
+                for (int j = 0; j < spaceships[i].Count; j++)
+                {
+                    SpaceshipAsset spaceship = spaceships[i][j];
+                    var cell = category_lists[i].Element(j) as ShopItemElement;
+                    if (cell == null) continue;
+
+                    cell.SetItem(L10n.Get($"Spaceship/{spaceship.Id}"), spaceship.Sprite, spaceship.Ingredients);
+                    cell.SetOutline(spaceship.OutlineSensitivity);
+                }
+            }
+
+            recipes = _items.Recipes.FindAll(recipe => recipe != null && recipe.Result != null);
+            turret_list.SetCount(recipes.Count);
+
+            for (int i = 0; i < recipes.Count; i++)
+            {
+                ItemAsset turret = recipes[i].Result;
+                (turret_list.Element(i) as ShopItemElement)?.SetItem(
+                    L10n.Get($"Item/{turret.Id}"), turret.Sprite, recipes[i].Ingredients);
+            }
+
+            wallet_list.SetCount(PlayerInventory.Ingredients.Length);
+
+            for (int i = 0; i < PlayerInventory.Ingredients.Length; i++)
+            {
+                ItemAsset item = _items.Find(PlayerInventory.Ingredients[i]);
+                (wallet_list.Element(i) as IngredientElement)?.SetItem(
+                    item != null ? item.Sprite : null, L10n.Get($"Item/{PlayerInventory.Ingredients[i]}"));
             }
         }
 
-        public InventorySlotElement Element(int _index)
-            => _index >= 0 && _index < elements.Count ? elements[_index] : null;
-
-        public void SetSlot(int _index, SlotView _view, Sprite _badge, int _count, string _typeLabel, bool _isHeld)
+        // 외곽선과 포탑 칸. 0 번 칸만 주 포탑. 자동 포탑 칸은 서버가 아직 장착하지 않아 비워 둠
+        private void RefreshLayout(SpaceshipAsset _current, Sprite _turret)
         {
-            InventorySlotElement element = Element(_index);
-            if (element == null) return;
+            Sprite sprite = _current != null ? _current.Sprite : null;
 
-            element.SetSlot(_view, _badge, _count, _typeLabel, _isHeld);
+            layout_img.sprite = sprite;
+            layout_img.enabled = sprite != null;
+
+            int slots = sprite != null ? _current.TurretSlots.Count : 0;
+            turretSlot_list.SetCount(slots);
+
+            if (sprite == null) return;
+
+            if (outlineMaterial == null) outlineMaterial = layout_img.material;
+            layout_img.material = OutlineMaterials.Get(outlineMaterial, _current.OutlineSensitivity);
+
+            for (int i = 0; i < slots; i++)
+            {
+                SlotElement slot = turretSlot_list.Element(i);
+                ((RectTransform)slot.transform).anchoredPosition = _current.TurretSlotIn(i, layout_img.rectTransform.rect.size);
+
+                // 빈 칸도 누를 수 있어야 하므로 IsEmpty 는 쓰지 않음
+                slot.SetView(new SlotView { Icon = i == 0 ? _turret : null, IsEnabled = true });
+            }
         }
 
-        /// <summary>
-        /// 집어 든 묶음 표시. 아이콘이 없으면 숨김.
-        /// </summary>
-        public void SetHeld(Sprite _icon, int _count)
+        private void ShowTurretMarket(bool _isShown)
         {
-            held_img.gameObject.SetActive(_icon != null);
-            if (_icon == null) return;
-
-            held_img.sprite = _icon;
-            heldCount_tmp.text = _count > 1 ? _count.ToString() : string.Empty;
-
-            Follow();
+            spaceshipMarket_obj.SetActive(!_isShown);
+            turretMarket_obj.SetActive(_isShown);
         }
 
-        // 칸 종류는 일반 -> 포탑 -> 폭탄 순으로 이어져 있음. lists 순서도 이와 같음
-        private static int CountOf(PlayerInventory _inventory, SlotType _type)
-        {
-            int count = 0;
+        private void OnLocaleChanged(Locale _locale) => isBuilt = false;
 
-            for (int i = 0; i < _inventory.Length; i++)
-                if (_inventory[i].Type == _type) count++;
-
-            return count;
-        }
-
-        // 커서를 따라감. 캔버스 배율이 해상도마다 달라지므로 월드 좌표로 환산함
-        private void Follow()
-        {
-            if (Mouse.current == null || cv == null) return;
-
-            //GalaxyIO.Camera 네임스페이스가 있어 Camera 가 타입으로 안 잡힘
-            UnityEngine.Camera cam = cv.renderMode == RenderMode.ScreenSpaceOverlay ? null : cv.worldCamera;
-
-            if (RectTransformUtility.ScreenPointToWorldPointInRectangle(
-                    (RectTransform)held_img.transform.parent, Mouse.current.position.ReadValue(), cam,
-                    out Vector3 position))
-                held_img.rectTransform.position = position;
-        }
-
-        private void RelaySlotPress(int _index, PointerEventData.InputButton _button)
+        private void RelaySpaceship(int _category, int _index)
         {
             if (!IsActive() || !IsOpen()) return;
 
-            OnSlotPressed?.Invoke(_index, _button);
+            OnSpaceshipPressed?.Invoke(spaceships[_category][_index]);
+        }
+
+        private void RelayTurret(int _index)
+        {
+            if (!IsActive() || !IsOpen()) return;
+
+            OnTurretPressed?.Invoke(recipes[_index]);
+        }
+
+        private void OnTurretSlotPress(int _slot)
+        {
+            if (!IsActive()) return;
+
+            SelectedSlot = _slot;
+            ShowTurretMarket(true);
         }
 
         private void OnExitBtnPress()
@@ -180,14 +258,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
             _exit?.Invoke();
         }
 
-        // 칸이 아닌 곳을 누름. 패널 밖이면 집어 든 묶음을 버림
+        // 버튼이 아닌 곳을 누름. 우주선 상점으로 돌아감
         public void OnPointerDown(PointerEventData _eventData)
         {
             if (!IsActive() || !IsOpen()) return;
-            if (RectTransformUtility.RectangleContainsScreenPoint(panel_rt, _eventData.position, _eventData.pressEventCamera))
-                return;
 
-            OnOutsidePressed?.Invoke(_eventData.button);
+            ShowTurretMarket(false);
         }
     }
 }

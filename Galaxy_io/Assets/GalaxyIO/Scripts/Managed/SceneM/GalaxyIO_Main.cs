@@ -319,7 +319,7 @@ namespace GalaxyIO.Main
             // 다른 팝업이 위에 떠 있으면 그 팝업이 입력을 가짐
             if (!PopupOrderStack.IsTop(inventoryUI)) return;
 
-            // 인벤토리 안에서는 E 를 ESC 와 같게 씀. 제작 창이 열려 있으면 그것만 닫음
+            // 인벤토리 안에서는 E 를 ESC 와 같게 씀. 사양 창이 열려 있으면 그것만 닫음
             inventoryUI.TryCancel();
         }
 

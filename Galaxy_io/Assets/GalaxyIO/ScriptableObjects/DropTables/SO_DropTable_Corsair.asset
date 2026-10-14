@@ -20,21 +20,9 @@ MonoBehaviour:
       Weight: 1
   - Chance: 0.1
     Entries:
-    - Item: {fileID: 11400000, guid: 22941d23f0b649e583a80c7af199c8eb, type: 2}
-      CountRange: {x: 1, y: 1}
-      Weight: 1
-    - Item: {fileID: 11400000, guid: a602aab2a6f53bf2590ac9a1af1d7e2c, type: 2}
-      CountRange: {x: 1, y: 1}
-      Weight: 1
-    - Item: {fileID: 11400000, guid: 0ef525a858ab3e6a3d6f489ae95bf949, type: 2}
-      CountRange: {x: 1, y: 1}
-      Weight: 1
-    - Item: {fileID: 11400000, guid: 5cbffac41e28a73b78b949486de3600b, type: 2}
-      CountRange: {x: 1, y: 1}
-      Weight: 1
-    - Item: {fileID: 11400000, guid: 17719f533632c49ae32248650b4a91a0, type: 2}
-      CountRange: {x: 1, y: 1}
-      Weight: 1
-    - Item: {fileID: 11400000, guid: 45805548407e438e04eebbf9a94410cd, type: 2}
+    - Item: {fileID: 11400000, guid: 8732664549d665f46b7f109f4b9e4889, type: 2}
+      CountRange: {x: 1, y: 2}
+      Weight: 3
+    - Item: {fileID: 11400000, guid: 1da41d2b708f4e148bdd3772cad27889, type: 2}
       CountRange: {x: 1, y: 1}
       Weight: 1

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
+using GalaxyIO.DOTS.Authoring;
 using GalaxyIO.DOTS.Authoring.Config;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.DOTS.Components.Singleton;
-using GalaxyIO.DOTS.Spaceship;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -21,6 +21,7 @@ namespace GalaxyIO.DOTS.Inventory
     {
         private readonly EntityManager entityManager;
         private readonly EntityQuery registryQuery;
+        private readonly EntityQuery spaceshipRegistryQuery;
         private readonly EntityQuery configQuery;
         private readonly EntityQuery prefabQuery;
         private readonly EntityQuery shipQuery;
@@ -43,6 +44,10 @@ namespace GalaxyIO.DOTS.Inventory
                 ComponentType.ReadWrite<ItemRegistryElement>(),
                 ComponentType.ReadWrite<TurretSpecElement>()
             );
+            spaceshipRegistryQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<SpaceshipRegistryAssetComponent>(),
+                ComponentType.ReadOnly<SpaceshipRegistryElement>()
+            );
             configQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<ItemConfigComponent>());
             prefabQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<PrefabRegistryElement>());
             shipQuery = entityManager.CreateEntityQuery(
@@ -58,70 +63,16 @@ namespace GalaxyIO.DOTS.Inventory
         private ItemRegistryAsset Items => registryQuery.GetSingleton<ItemRegistryAssetComponent>().Value;
 
         /// <summary>
-        /// 넣은 개수를 반환. 인벤토리가 없으면 0.
+        /// 넣은 개수를 반환. 인벤토리가 없거나 재료가 아니면 0.
         /// </summary>
         public int Insert(int networkId, ItemId id, int count)
         {
-            return inventories.TryGetValue(networkId, out PlayerInventory inventory) ? inventory.Insert(Items, id, count) : 0;
-        }
-
-        public void Move(int networkId, InventoryMoveRPC rpc)
-        {
-            if (!inventories.TryGetValue(networkId, out PlayerInventory inventory)
-                || !inventory.Move(Items, rpc.From, rpc.To, rpc.Count))
-            {
-                return;
-            }
-
-            if (inventory[rpc.From].Type == SlotType.Turret || inventory[rpc.To].Type == SlotType.Turret)
-            {
-                RefreshTurret(networkId, inventory);
-            }
+            return inventories.TryGetValue(networkId, out PlayerInventory inventory) ? inventory.Insert(id, count) : 0;
         }
 
         /// <summary>
-        /// 한 칸에서 아이템을 꺼내 기수 방향으로 던짐. 포탑 칸에서 던지면 장착 포탑도 뺌.
-        /// </summary>
-        public void Drop(int networkId, InventoryDropRPC rpc)
-        {
-            Entity ship = FindShip(networkId);
-
-            if (ship == Entity.Null
-                || !inventories.TryGetValue(networkId, out PlayerInventory inventory)
-                || rpc.Slot >= inventory.Length
-                || inventory[rpc.Slot].Id == ItemId.None)
-            {
-                return;
-            }
-
-            ItemSlot slot = inventory[rpc.Slot];
-            int count = math.min(rpc.Count, slot.Count);
-            LocalTransform shipTransform = entityManager.GetComponentData<LocalTransform>(ship);
-
-            if (!Spawn(slot.Id, count, shipTransform.Position, SpaceshipHeading.FromRotation(shipTransform.Rotation), true))
-            {
-                return;
-            }
-
-            inventory.Set(rpc.Slot, slot.Id, slot.Count - count);
-
-            if (slot.Type == SlotType.Turret)
-            {
-                RefreshTurret(networkId, inventory);
-            }
-        }
-
-        public void Craft(int networkId, CraftRPC rpc)
-        {
-            if (inventories.TryGetValue(networkId, out PlayerInventory inventory))
-            {
-                inventory.Craft(Items, rpc.Slot);
-            }
-        }
-
-        /// <summary>
-        /// 강화 모듈을 소모해 우주선의 능력치를 한 단계 올림.
-        /// 최대 단계거나 모듈이 모자라면 아무것도 안 함.
+        /// 파워 셀을 소모해 우주선의 능력치를 한 단계 올림.
+        /// 최대 단계거나 파워 셀이 모자라면 아무것도 안 함.
         /// </summary>
         public void Upgrade(int networkId, UpgradeRPC rpc)
         {
@@ -140,17 +91,117 @@ namespace GalaxyIO.DOTS.Inventory
             int cost = Components.Actor.Upgrade.Cost(level);
 
             if (level >= entityManager.GetBuffer<UpgradeElement>(ship, true)[stat].MaxLevel
-                || inventory.Count(ItemId.UpgradeModule) < cost)
+                || inventory.Count(ItemId.PowerCell) < cost)
             {
                 return;
             }
 
-            inventory.Remove(ItemId.UpgradeModule, cost);
+            inventory.Set(ItemId.PowerCell, inventory.Count(ItemId.PowerCell) - cost);
             entityManager.GetBuffer<UpgradeLevelElement>(ship).ElementAt(stat).Value = (byte)(level + 1);
         }
 
         /// <summary>
-        /// 서버 틱마다 호출. 인벤토리 생성, 사망 드랍, 접속 종료 정리, 바뀐 칸 전송을 처리함.
+        /// 포탑을 장착함. 잠금 해제하지 않은 포탑은 제작법의 재료를 소모해 잠금 해제부터 함.
+        /// 이미 장착한 포탑이거나 재료가 모자라면 아무것도 안 함.
+        /// </summary>
+        public void EquipTurret(int networkId, TurretEquipRPC rpc)
+        {
+            Entity ship = FindShip(networkId);
+            RecipeAsset recipe = Items.FindRecipe(rpc.Turret);
+
+            // 주 포탑 칸만 장착함. 나머지 칸은 자동 포탑(AI 조종) 자리.
+            // 자동 포탑 시스템을 만들 때 칸별 장착 상태를 우주선에 두고 여기서 채울 것.
+            if (ship == Entity.Null
+                || rpc.Slot != 0
+                || recipe == null
+                || !inventories.TryGetValue(networkId, out PlayerInventory inventory)
+                || entityManager.GetComponentData<EquippedTurretComponent>(ship).Value == rpc.Turret)
+            {
+                return;
+            }
+
+            if (!inventory.IsUnlocked(rpc.Turret))
+            {
+                if (!inventory.Consume(recipe.Ingredients))
+                {
+                    return;
+                }
+
+                inventory.Unlock(rpc.Turret);
+            }
+
+            Entity registryEntity = registryQuery.GetSingletonEntity();
+            EquippedTurretComponent equipped = entityManager.GetComponentData<EquippedTurretComponent>(ship);
+
+            TurretEquip.Refresh(
+                rpc.Turret,
+                entityManager.GetBuffer<ItemRegistryElement>(registryEntity),
+                entityManager.GetBuffer<TurretSpecElement>(registryEntity),
+                ref equipped,
+                entityManager.GetBuffer<TurretCooldownElement>(ship)
+            );
+
+            entityManager.SetComponentData(ship, equipped);
+        }
+
+        /// <summary>
+        /// 재료를 소모해 같은 자리에서 다른 기종으로 바꿔 탐. 장착한 포탑은 그대로 옮기고 강화는 처음부터.
+        /// 이미 탄 기종이거나 프리팹이 없거나 재료가 모자라면 아무것도 안 함.
+        /// </summary>
+        public void PurchaseSpaceship(int networkId, SpaceshipPurchaseRPC rpc)
+        {
+            Entity ship = FindShip(networkId);
+
+            if (ship == Entity.Null || spaceshipRegistryQuery.IsEmpty)
+            {
+                return;
+            }
+
+            Entity prefab = spaceshipRegistryQuery.GetSingletonBuffer<SpaceshipRegistryElement>(true).Find(rpc.Spaceship);
+            SpaceshipAsset spaceship = spaceshipRegistryQuery.GetSingleton<SpaceshipRegistryAssetComponent>().Value.Find(rpc.Spaceship);
+
+            if (prefab == Entity.Null
+                || spaceship == null
+                || !inventories.TryGetValue(networkId, out PlayerInventory inventory)
+                || entityManager.GetComponentData<SpaceshipKindComponent>(ship).Value == rpc.Spaceship
+                || !inventory.Consume(spaceship.Ingredients))
+            {
+                return;
+            }
+
+            LocalTransform oldTransform = entityManager.GetComponentData<LocalTransform>(ship);
+            ItemId turret = entityManager.GetComponentData<EquippedTurretComponent>(ship).Value;
+            PlayerNameComponent playerName = entityManager.GetComponentData<PlayerNameComponent>(ship);
+
+            // 크기는 프리팹 값, 위치와 회전은 타던 우주선 값.
+            LocalTransform transform = entityManager.GetComponentData<LocalTransform>(prefab);
+            transform.Position = oldTransform.Position;
+            transform.Rotation = oldTransform.Rotation;
+
+            Entity newShip = entityManager.Instantiate(prefab);
+            entityManager.SetComponentData(newShip, new GhostOwner { NetworkId = networkId });
+            entityManager.SetComponentData(newShip, playerName);
+            entityManager.SetComponentData(newShip, transform);
+
+            Entity registryEntity = registryQuery.GetSingletonEntity();
+            EquippedTurretComponent equipped = entityManager.GetComponentData<EquippedTurretComponent>(newShip);
+
+            TurretEquip.Refresh(
+                turret,
+                entityManager.GetBuffer<ItemRegistryElement>(registryEntity),
+                entityManager.GetBuffer<TurretSpecElement>(registryEntity),
+                ref equipped,
+                entityManager.GetBuffer<TurretCooldownElement>(newShip)
+            );
+
+            entityManager.SetComponentData(newShip, equipped);
+
+            // 파괴 연출 없이 지움. 인벤토리는 NetworkId 로 이어짐.
+            entityManager.DestroyEntity(ship);
+        }
+
+        /// <summary>
+        /// 서버 틱마다 호출. 인벤토리 생성, 사망 드랍, 접속 종료 정리, 바뀐 개수 전송을 처리함.
         /// 우주선이 파괴되기 전에 불러야 사망 드랍이 동작함.
         /// </summary>
         public void Update()
@@ -163,11 +214,12 @@ namespace GalaxyIO.DOTS.Inventory
                 {
                     int networkId = entityManager.GetComponentData<GhostOwner>(ship).NetworkId;
 
-                    // 새 우주선은 프리팹에 장착된 포탑을 첫 포탑 칸에 넣은 채로 시작함.
+                    // 새 우주선은 프리팹에 장착된 포탑을 잠금 해제한 채로 시작함.
                     if (!inventories.ContainsKey(networkId))
                     {
-                        ItemId turret = entityManager.GetComponentData<EquippedTurretComponent>(ship).Value;
-                        inventories[networkId] = new PlayerInventory(config, turret);
+                        var inventory = new PlayerInventory();
+                        inventory.Unlock(entityManager.GetComponentData<EquippedTurretComponent>(ship).Value);
+                        inventories[networkId] = inventory;
                         created.Add(networkId);
                     }
 
@@ -176,26 +228,22 @@ namespace GalaxyIO.DOTS.Inventory
                         continue;
                     }
 
-                    // 사망: 칸마다 떨어뜨릴지 굴리고, 떨어뜨릴 칸은 아이템 하나하나 남길지 다시 굴림.
-                    // 장착한 포탑(포탑 칸)은 떨어뜨리지 않음. 남은 아이템은 인벤토리와 함께 사라짐.
-                    PlayerInventory inventory = inventories[networkId];
+                    // 사망: 재료 종류마다 떨어뜨릴지 굴리고, 떨어뜨릴 재료는 하나하나 남길지 다시 굴림.
+                    // 남은 재료와 잠금 해제한 포탑은 인벤토리와 함께 사라짐.
+                    PlayerInventory dead = inventories[networkId];
                     float3 position = entityManager.GetComponentData<LocalTransform>(ship).Position;
                     inventories.Remove(networkId);
 
-                    for (int i = 0; i < inventory.Length; i++)
+                    foreach (ItemId id in PlayerInventory.Ingredients)
                     {
-                        ItemSlot slot = inventory[i];
-
-                        if (slot.Id == ItemId.None
-                            || slot.Type == SlotType.Turret
-                            || random.NextFloat() >= config.PlayerSlotDropChance)
+                        if (dead.Count(id) == 0 || random.NextFloat() >= config.PlayerKindDropChance)
                         {
                             continue;
                         }
 
                         int count = 0;
 
-                        for (int n = 0; n < slot.Count; n++)
+                        for (int n = 0; n < dead.Count(id); n++)
                         {
                             if (random.NextFloat() < config.PlayerStackDropChance)
                             {
@@ -205,7 +253,7 @@ namespace GalaxyIO.DOTS.Inventory
 
                         if (count > 0)
                         {
-                            Spawn(slot.Id, count, position, random.NextFloat2Direction() * random.NextFloat(0.5F, 1.0F), false);
+                            Spawn(id, count, position, random.NextFloat2Direction() * random.NextFloat(0.5F, 1.0F));
                         }
                     }
                 }
@@ -238,17 +286,21 @@ namespace GalaxyIO.DOTS.Inventory
                     SendRpc(new InventoryResetRPC(), connection);
                 }
 
-                for (int i = 0; i < inventory.Length; i++)
+                foreach (ItemId id in PlayerInventory.Ingredients)
                 {
-                    if (inventory.TakeDirty(i))
+                    if (inventory.TakeDirty(id))
                     {
-                        SendRpc(new InventorySlotRPC
+                        SendRpc(new InventoryCountRPC
                         {
-                            Slot  = (byte)i,
-                            Id    = inventory[i].Id,
-                            Count = (byte)inventory[i].Count,
+                            Id    = id,
+                            Count = (ushort)inventory.Count(id),
                         }, connection);
                     }
+                }
+
+                while (inventory.TakeUnlock(out ItemId turret))
+                {
+                    SendRpc(new TurretUnlockRPC { Turret = turret }, connection);
                 }
             }
 
@@ -264,30 +316,6 @@ namespace GalaxyIO.DOTS.Inventory
             Entity entity = entityManager.CreateEntity();
             entityManager.AddComponentData(entity, rpc);
             entityManager.AddComponentData(entity, new SendRpcCommandRequest { TargetConnection = connection });
-        }
-
-        // 장착 포탑이 달라졌으면 바꾸고 쿨다운을 채움.
-        private void RefreshTurret(int networkId, PlayerInventory inventory)
-        {
-            Entity ship = FindShip(networkId);
-
-            if (ship == Entity.Null)
-            {
-                return;
-            }
-
-            Entity registryEntity = registryQuery.GetSingletonEntity();
-            EquippedTurretComponent equipped = entityManager.GetComponentData<EquippedTurretComponent>(ship);
-
-            TurretEquip.Refresh(
-                inventory.EquippedTurret(Items),
-                entityManager.GetBuffer<ItemRegistryElement>(registryEntity),
-                entityManager.GetBuffer<TurretSpecElement>(registryEntity),
-                ref equipped,
-                entityManager.GetBuffer<TurretCooldownElement>(ship)
-            );
-
-            entityManager.SetComponentData(ship, equipped);
         }
 
         private Entity FindShip(int networkId)
@@ -306,27 +334,24 @@ namespace GalaxyIO.DOTS.Inventory
         }
 
         /// <summary>
-        /// 아이템 Entity 를 스폰함. 던지면 direction 방향으로 던지는 속력, 아니면 direction 크기만큼 미끄러지는 속력을 줌.
-        /// 레지스트리에 아이템 Entity 나 아이템이 없으면 false.
+        /// 아이템 Entity 를 스폰함. direction 크기만큼 미끄러지는 속력을 줌.
+        /// 레지스트리에 아이템 Entity 나 아이템이 없으면 아무것도 안 함.
         /// </summary>
-        private bool Spawn(ItemId id, int count, float3 position, float2 direction, bool thrown)
+        private void Spawn(ItemId id, int count, float3 position, float2 direction)
         {
             Entity prefab = prefabQuery.GetSingletonBuffer<PrefabRegistryElement>(true).Find(PrefabId.ItemEntity);
             DynamicBuffer<ItemRegistryElement> registry = registryQuery.GetSingletonBuffer<ItemRegistryElement>(true);
 
             if (prefab == Entity.Null || !registry.Contains(id))
             {
-                return false;
+                return;
             }
 
             // 프리팹의 설정값과 회전/크기는 그대로 쓰고 아이템 종류, 속도, 위치만 바꿈.
             ItemComponent item = entityManager.GetComponentData<ItemComponent>(prefab);
             item.Id = id;
             item.Count = count;
-            item.Launch(
-                direction * (thrown ? item.ThrowSpeed : item.SlideSpeed),
-                thrown ? item.ThrowPickupDelay : item.DropPickupDelay
-            );
+            item.Launch(direction * item.SlideSpeed, item.DropPickupDelay);
 
             ColliderComponent collider = entityManager.GetComponentData<ColliderComponent>(prefab);
             collider.Extents = registry[(int)id].HalfExtents;
@@ -338,7 +363,6 @@ namespace GalaxyIO.DOTS.Inventory
             entityManager.SetComponentData(entity, item);
             entityManager.SetComponentData(entity, collider);
             entityManager.SetComponentData(entity, transform);
-            return true;
         }
     }
 }

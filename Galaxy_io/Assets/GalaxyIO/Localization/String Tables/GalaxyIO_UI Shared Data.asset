@@ -279,34 +279,6 @@ MonoBehaviour:
     m_Key: Resume/Button
     m_Metadata:
       m_Items: []
-  - m_Id: 2300000000000001
-    m_Key: Item/UpgradeModule
-    m_Metadata:
-      m_Items: []
-  - m_Id: 2300000000000002
-    m_Key: Item/BoreBlueprint
-    m_Metadata:
-      m_Items: []
-  - m_Id: 2300000000000003
-    m_Key: Item/BrakkarBlueprint
-    m_Metadata:
-      m_Items: []
-  - m_Id: 2300000000000004
-    m_Key: Item/PyronBlueprint
-    m_Metadata:
-      m_Items: []
-  - m_Id: 2300000000000005
-    m_Key: Item/RaptorBlueprint
-    m_Metadata:
-      m_Items: []
-  - m_Id: 2300000000000006
-    m_Key: Item/VeylanceBlueprint
-    m_Metadata:
-      m_Items: []
-  - m_Id: 2300000000000007
-    m_Key: Item/VraxxBlueprint
-    m_Metadata:
-      m_Items: []
   - m_Id: 2300000000000008
     m_Key: Item/Bore
     m_Metadata:
@@ -333,10 +305,6 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 2300000000000014
     m_Key: Item/CorsairTurret
-    m_Metadata:
-      m_Items: []
-  - m_Id: 2300000000000015
-    m_Key: Inventory/BlueprintHint
     m_Metadata:
       m_Items: []
   - m_Id: 2400000000000001
@@ -397,6 +365,186 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 2300000000000023
     m_Key: Upgrade/RadarSweep
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906483400704
+    m_Key: Item/PowerCell
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732352
+    m_Key: Item/OverchargedPowerCell
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732353
+    m_Key: Item/Reactor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732354
+    m_Key: Category/Corvette
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732355
+    m_Key: Category/Frigate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732356
+    m_Key: Category/Cruiser
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732357
+    m_Key: Category/Carrier
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732358
+    m_Key: Spaceship/Vex
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732359
+    m_Key: Spaceship/Vulture
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732360
+    m_Key: Spaceship/Nighthawk
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732361
+    m_Key: Spaceship/Vanguard
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732362
+    m_Key: Spaceship/Sentinel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732363
+    m_Key: Spaceship/Halberd
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732364
+    m_Key: Spaceship/Leviathan
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732365
+    m_Key: Spaceship/Paladin
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732366
+    m_Key: Spaceship/Behemoth
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732367
+    m_Key: Spaceship/Sovereign
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732368
+    m_Key: Shop/Equip
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732369
+    m_Key: Shop/Equipped
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732370
+    m_Key: Shop/Cancel
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732371
+    m_Key: Shop/NoSpec
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732372
+    m_Key: Spec/Offensive
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732373
+    m_Key: Spec/Durability
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732374
+    m_Key: Spec/Movement
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732375
+    m_Key: Spec/Radar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732376
+    m_Key: Turret/Type
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732377
+    m_Key: Turret/Projectile
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732378
+    m_Key: Turret/Beam
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732379
+    m_Key: Turret/Damage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732380
+    m_Key: Turret/Explosion
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732381
+    m_Key: Turret/RPS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732382
+    m_Key: Turret/Accuracy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732383
+    m_Key: Turret/Velocity
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732384
+    m_Key: Turret/Heat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732385
+    m_Key: Turret/PerShot
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732386
+    m_Key: Turret/PerSecond
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732387
+    m_Key: Tooltip/Bore
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732388
+    m_Key: Tooltip/Raptor
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732389
+    m_Key: Tooltip/Brakkar
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732390
+    m_Key: Tooltip/Pyron
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732391
+    m_Key: Tooltip/Vraxx
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7162906533732392
+    m_Key: Tooltip/Veylance
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7175748808908800
+    m_Key: Shop/Unlock
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7175748842463232
+    m_Key: Shop/Unlocked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7185463601307648
+    m_Key: Spec/MaxLevel
     m_Metadata:
       m_Items: []
   m_Metadata:
