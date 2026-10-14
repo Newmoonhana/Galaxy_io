@@ -302,7 +302,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 4241
+  frames: 4440
 --- !u!1 &3008422010975996906
 GameObject:
   m_ObjectHideFlags: 0
@@ -1052,7 +1052,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 3006
+  frames: 3562
 --- !u!1 &4152777156386802529
 GameObject:
   m_ObjectHideFlags: 0
@@ -1098,7 +1098,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 3ef96c71666fd2943893060546448c65, type: 3}
+  m_Resource: {fileID: 8300000, guid: a3835cf5ebbcf0c469fc5b2693428825, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
@@ -2914,7 +2914,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 3c3d1a477bb49fa43baefe621e73012f, type: 3}
+  m_Resource: {fileID: 8300000, guid: 49441abe60a3162448ff88eb0714e155, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1
@@ -3704,7 +3704,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 2141
+  frames: 2537
 --- !u!1 &7991672988859557561
 GameObject:
   m_ObjectHideFlags: 0
@@ -3851,7 +3851,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: eb2f3fd0354f71547bbbc929b7facc0f, type: 3}
+  m_Resource: {fileID: 8300000, guid: d7dcb4ac7daccc3428c48b9ddad3a051, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 1
   m_Pitch: 1.2
@@ -4197,7 +4197,7 @@ AudioSource:
   serializedVersion: 4
   OutputAudioMixerGroup: {fileID: 0}
   m_audioClip: {fileID: 0}
-  m_Resource: {fileID: 8300000, guid: 319a9917a4a37f64caa52fba44402a51, type: 3}
+  m_Resource: {fileID: 8300000, guid: a0127d68c8dc0fe40b3a6be6b281c264, type: 3}
   m_PlayOnAwake: 0
   m_Volume: 0.75
   m_Pitch: -0.3
@@ -4497,7 +4497,7 @@ MonoBehaviour:
   soundPlayedCustomEvent: 
   willCleanUpDelegatesAfterStop: 1
   addressableUnusedSecondsLifespan: 0
-  frames: 2442
+  frames: 2791
 --- !u!1001 &1346475385440773938
 PrefabInstance:
   m_ObjectHideFlags: 0
