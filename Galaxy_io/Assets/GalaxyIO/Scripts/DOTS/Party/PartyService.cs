@@ -56,8 +56,8 @@ namespace GalaxyIO.DOTS.Party
             );
             shipQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<GhostOwner>(),
-                ComponentType.ReadWrite<FactionComponent>(),
-                ComponentType.ReadWrite<PartyMasterComponent>()
+                ComponentType.ReadOnly<PlayerNameComponent>(),
+                ComponentType.ReadWrite<FactionComponent>()
             );
         }
 
@@ -116,13 +116,12 @@ namespace GalaxyIO.DOTS.Party
                     party.Members.Add(inviter);
                     parties[inviter] = party;
                     invites.RemoveWhere(invite => invite.Invitee == inviter);
-                    Send(inviter, new PartyStateRPC { InParty = true });
                 }
 
                 party.Members.Add(sender);
                 parties[sender] = party;
                 invites.RemoveWhere(invite => invite.Invitee == sender);
-                Send(sender, new PartyStateRPC { InParty = true });
+                SendRoster(party);
                 Notify(party, "Party/Joined", Name(sender));
 
                 return;
@@ -160,6 +159,7 @@ namespace GalaxyIO.DOTS.Party
 
                     current.Master = target;
                     current.Authorized.Remove(target);
+                    SendRoster(current);
                     Notify(current, "Party/MasterChanged", rpc.Target);
                     break;
 
@@ -184,6 +184,7 @@ namespace GalaxyIO.DOTS.Party
                     }
 
                     current.Authorized.Add(target);
+                    SendRoster(current);
                     Notify(current, "Party/Authorized", rpc.Target);
                     break;
 
@@ -200,6 +201,7 @@ namespace GalaxyIO.DOTS.Party
                         break;
                     }
 
+                    SendRoster(current);
                     Notify(current, "Party/Revoked", rpc.Target);
                     break;
             }
@@ -223,7 +225,7 @@ namespace GalaxyIO.DOTS.Party
         }
 
         /// <summary>
-        /// 서버 틱마다 호출. 플레이어 우주선에 파티와 파티장 여부를 씀.
+        /// 서버 틱마다 호출. 플레이어 우주선에 파티를 씀.
         /// 리스폰, 기종 변경으로 우주선이 새로 생기므로 틱마다 맞추고, 바뀐 값만 씀.
         /// </summary>
         public void Update()
@@ -243,13 +245,6 @@ namespace GalaxyIO.DOTS.Party
                     faction.Party = id;
                     entityManager.SetComponentData(ship, faction);
                 }
-
-                bool master = party != null && party.Master == networkId;
-
-                if (entityManager.GetComponentData<PartyMasterComponent>(ship).Value != master)
-                {
-                    entityManager.SetComponentData(ship, new PartyMasterComponent { Value = master });
-                }
             }
         }
 
@@ -266,7 +261,7 @@ namespace GalaxyIO.DOTS.Party
             parties.Remove(networkId);
             party.Members.Remove(networkId);
             party.Authorized.Remove(networkId);
-            Send(networkId, new PartyStateRPC { InParty = false });
+            Send(networkId, new PartyRosterRPC());
 
             if (party.Members.Count < 2)
             {
@@ -274,7 +269,7 @@ namespace GalaxyIO.DOTS.Party
                 {
                     parties.Remove(member);
                     Notice(member, "Party/Disbanded");
-                    Send(member, new PartyStateRPC { InParty = false });
+                    Send(member, new PartyRosterRPC());
                 }
 
                 return;
@@ -285,6 +280,29 @@ namespace GalaxyIO.DOTS.Party
                 party.Master = party.Members[0];
                 party.Authorized.Remove(party.Master);
                 Notify(party, "Party/MasterChanged", Name(party.Master));
+            }
+
+            SendRoster(party);
+        }
+
+        // 바뀐 파티 구성을 파티원 모두에게 보냄.
+        private void SendRoster(Party party)
+        {
+            var roster = new PartyRosterRPC { Master = party.Master };
+
+            foreach (int member in party.Members)
+            {
+                roster.Members.Add(member);
+            }
+
+            foreach (int authorized in party.Authorized)
+            {
+                roster.Authorized.Add(authorized);
+            }
+
+            foreach (int member in party.Members)
+            {
+                Send(member, roster);
             }
         }
 

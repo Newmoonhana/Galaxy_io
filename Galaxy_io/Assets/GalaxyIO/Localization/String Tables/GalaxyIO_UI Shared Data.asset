@@ -631,6 +631,26 @@ MonoBehaviour:
     m_Key: Party/Revoked
     m_Metadata:
       m_Items: []
+  - m_Id: 2500000000000023
+    m_Key: Chat/PartyDelegate
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000024
+    m_Key: Chat/PartyKick
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000025
+    m_Key: Chat/PartyAuthorize
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000026
+    m_Key: Chat/PartyRevoke
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000027
+    m_Key: Chat/PartyQuit
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

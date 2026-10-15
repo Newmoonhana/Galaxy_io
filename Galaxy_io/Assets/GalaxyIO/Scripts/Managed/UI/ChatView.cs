@@ -26,6 +26,24 @@ namespace GalaxyIO.Scripts.Managed.UI
         // 파티 초대 안내문의 [수락] 링크 ID. 뒤에 초대한 플레이어의 NetworkId 가 붙음.
         private const string AcceptLink = "accept:";
 
+        // 닉네임 링크 ID. 뒤에 그 플레이어의 NetworkId 가 붙음.
+        private const string NameLink = "name:";
+
+        // 본문 글자의 Sprite Asset 에 들어 있는 파티장 / 권한자 아이콘 이름
+        private const string CrownSprite = "Crown";
+        private const string AuthSprite = "Auth";
+
+        // 닉네임 메뉴의 파티 명령어 항목 하나
+        [System.Serializable]
+        private struct PartyOption
+        {
+            public PartyCommand Command;
+            public Button Button;
+
+            [Tooltip("항목 글자의 번역 키")]
+            public string Label;
+        }
+
         [Header("Layout")]
 
         [SerializeField]
@@ -71,8 +89,8 @@ namespace GalaxyIO.Scripts.Managed.UI
         private Button whisperOption;
 
         [SerializeField]
-        [Tooltip("메뉴의 파티 초대 항목. 고른 플레이어를 파티에 초대함.")]
-        private Button partyInviteOption;
+        [Tooltip("메뉴의 파티 명령어 항목. 고른 플레이어에게 쓸 수 있는 명령어만 보임.")]
+        private PartyOption[] partyOptions;
 
         [SerializeField]
         [Tooltip("채팅을 보낸 우주선 위에 띄우는 말풍선")]
@@ -134,7 +152,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private EntityManager entityManager;
         private EntityQuery messageQuery;
-        private EntityQuery partyStateQuery;
+        private EntityQuery partyRosterQuery;
         private EntityQuery stateQuery;
         private EntityQuery inGameQuery;
         private EntityQuery connectionQuery;
@@ -163,6 +181,17 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         // 메뉴를 띄운 닉네임
         private string menuName;
+
+        // 메뉴를 띄운 닉네임의 NetworkId
+        private int menuNetworkId;
+
+        // 마지막으로 받은 파티 구성. 파티가 없으면 Members 가 비어 있음.
+        private PartyRosterRPC partyRoster;
+
+        /// <summary>
+        /// 마지막으로 받은 로컬 플레이어의 파티 구성. 파티가 없으면 Members 가 비어 있음.
+        /// </summary>
+        public PartyRosterRPC PartyRoster => partyRoster;
 
         private Channel publicChannel;
 
@@ -201,8 +230,8 @@ namespace GalaxyIO.Scripts.Managed.UI
                 ComponentType.ReadOnly<ChatRPC>(),
                 ComponentType.ReadOnly<ReceiveRpcCommandRequest>()
             );
-            partyStateQuery = entityManager.CreateEntityQuery(
-                ComponentType.ReadOnly<PartyStateRPC>(),
+            partyRosterQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<PartyRosterRPC>(),
                 ComponentType.ReadOnly<ReceiveRpcCommandRequest>()
             );
             stateQuery = entityManager.CreateEntityQuery(ComponentType.ReadWrite<PlayerStateComponent>());
@@ -222,11 +251,15 @@ namespace GalaxyIO.Scripts.Managed.UI
             input.characterLimit = ChatRPC.MaxLength;
             input.onSubmit.AddListener(Submit);
             whisperOption.onClick.AddListener(() => Select(GetWhisper(menuName)));
-            partyInviteOption.onClick.AddListener(() =>
+            foreach (PartyOption option in partyOptions)
             {
-                SendParty(PartyCommand.Invite, menuName);
-                nameMenu.gameObject.SetActive(false);
-            });
+                option.Button.onClick.AddListener(() =>
+                {
+                    // 나가기는 대상이 없음.
+                    SendParty(option.Command, option.Command == PartyCommand.Quit ? string.Empty : menuName);
+                    nameMenu.gameObject.SetActive(false);
+                });
+            }
 
             publicChannel = AddChannel(string.Empty, false);
             Select(publicChannel);
@@ -260,13 +293,14 @@ namespace GalaxyIO.Scripts.Managed.UI
                 return;
             }
 
-            // 파티에 들어가면 파티 탭을 만들고, 나오면 지움. 같은 프레임에 여러 개면 마지막 상태만 봄.
-            if (!partyStateQuery.IsEmpty)
+            // 파티에 들어가면 파티 탭을 만들고, 나오면 지움. 같은 프레임에 여러 개면 마지막 구성만 봄.
+            if (!partyRosterQuery.IsEmpty)
             {
-                using var states = partyStateQuery.ToComponentDataArray<PartyStateRPC>(Allocator.Temp);
-                bool inParty = states[states.Length - 1].InParty;
+                using var rosters = partyRosterQuery.ToComponentDataArray<PartyRosterRPC>(Allocator.Temp);
+                partyRoster = rosters[rosters.Length - 1];
+                bool inParty = partyRoster.Members.Length > 0;
 
-                entityManager.DestroyEntity(partyStateQuery);
+                entityManager.DestroyEntity(partyRosterQuery);
 
                 if (inParty && partyChannel == null)
                 {
@@ -282,25 +316,21 @@ namespace GalaxyIO.Scripts.Managed.UI
             if (!messageQuery.IsEmpty && !connectionQuery.IsEmpty)
             {
                 using var messages = messageQuery.ToComponentDataArray<ChatRPC>(Allocator.Temp);
-                int localNetworkId = connectionQuery.GetSingleton<NetworkId>().Value;
 
                 entityManager.DestroyEntity(messageQuery);
 
                 foreach (ChatRPC message in messages)
                 {
-                    // 자신의 닉네임은 누를 수 없음.
-                    bool mine = message.SenderNetworkId == localNetworkId;
-
                     switch (message.Channel)
                     {
                         case ChatChannel.Public:
-                            Push(publicChannel, Format(publicHex, message, mine));
+                            Push(publicChannel, Format(publicHex, message));
                             bubbles.Show(message.SenderNetworkId, message.Text.ToString(), Color.white);
                             break;
 
                         // 공개 탭에도 같은 줄을 쌓음.
                         case ChatChannel.Party:
-                            string partyLine = Format(partyHex, message, mine);
+                            string partyLine = Format(partyHex, message);
 
                             if (partyChannel != null)
                             {
@@ -315,7 +345,7 @@ namespace GalaxyIO.Scripts.Managed.UI
                             // 내가 보낸 귓속말의 사본은 받는 쪽 이름의 탭에 쌓음.
                             Channel channel = GetWhisper((message.Echo ? message.Target : message.Sender).ToString());
 
-                            string line = Format(whisperHex, message, mine);
+                            string line = Format(whisperHex, message);
 
                             // 공개 탭에도 같은 줄을 쌓음.
                             Push(channel, line);
@@ -461,7 +491,18 @@ namespace GalaxyIO.Scripts.Managed.UI
                     : TMP_TextUtilities.FindIntersectingLink(body, cursor, canvas.worldCamera);
 
                 TMP_LinkInfo info = link >= 0 ? body.textInfo.linkInfo[link] : default;
-                bool accept = link >= 0 && info.GetLinkID().StartsWith(AcceptLink);
+                string linkId = link >= 0 ? info.GetLinkID() : string.Empty;
+                bool accept = linkId.StartsWith(AcceptLink);
+                int linkNetworkId = linkId.StartsWith(NameLink) ? int.Parse(linkId.Substring(NameLink.Length)) : 0;
+
+                int me = connectionQuery.IsEmpty ? 0 : connectionQuery.GetSingleton<NetworkId>().Value;
+                bool inParty = partyRoster.Members.Length > 0;
+
+                // 자신의 닉네임은 파티에 있을 때만 누를 수 있음. (파티 나가기)
+                if (linkNetworkId != 0 && linkNetworkId == me && !inParty)
+                {
+                    link = -1;
+                }
 
                 nameHighlight.gameObject.SetActive(link >= 0);
 
@@ -485,11 +526,36 @@ namespace GalaxyIO.Scripts.Managed.UI
 
                     if (pressed && accept)
                     {
-                        SendParty(PartyCommand.Accept, string.Empty, int.Parse(info.GetLinkID().Substring(AcceptLink.Length)));
+                        SendParty(PartyCommand.Accept, string.Empty, int.Parse(linkId.Substring(AcceptLink.Length)));
                     }
                     else if (pressed)
                     {
                         menuName = info.GetLinkText();
+                        menuNetworkId = linkNetworkId;
+
+                        bool self = menuNetworkId == me;
+                        bool member = partyRoster.Members.Contains(menuNetworkId);
+                        bool master = partyRoster.Master == me;
+                        bool manage = master || partyRoster.Authorized.Contains(me);
+                        bool authorized = partyRoster.Authorized.Contains(menuNetworkId);
+                        bool targetMaster = partyRoster.Master == menuNetworkId;
+
+                        // 자신의 닉네임에는 파티 나가기만 띄움.
+                        whisperOption.gameObject.SetActive(!self);
+
+                        // 서버와 같은 권한 규칙. 상대가 다른 파티 소속인지는 모르므로 초대는 서버가 거름.
+                        foreach (PartyOption option in partyOptions)
+                        {
+                            option.Button.gameObject.SetActive(self ? option.Command == PartyCommand.Quit : option.Command switch
+                            {
+                                PartyCommand.Invite    => !member && (!inParty || manage),
+                                PartyCommand.Delegate  => member && master,
+                                PartyCommand.Kick      => member && manage && !targetMaster && (!authorized || master),
+                                PartyCommand.Authorize => member && manage && !targetMaster && !authorized,
+                                PartyCommand.Revoke    => member && master && authorized,
+                                _                      => false,
+                            });
+                        }
 
                         RectTransformUtility.ScreenPointToWorldPointInRectangle(
                             (RectTransform)transform, cursor, canvas.worldCamera, out Vector3 position);
@@ -573,7 +639,10 @@ namespace GalaxyIO.Scripts.Managed.UI
                 partyChannel.Name = L10n.Get("Chat/Party");
                 partyChannel.Tab.SetTitle(partyChannel.Name);
             }
-            partyInviteOption.GetComponentInChildren<TMP_Text>().text = L10n.Get("Chat/PartyInvite");
+            foreach (PartyOption option in partyOptions)
+            {
+                option.Button.GetComponentInChildren<TMP_Text>().text = L10n.Get(option.Label);
+            }
             channelLabel.text = $"[{current.Name}]:";
         }
 
@@ -679,17 +748,17 @@ namespace GalaxyIO.Scripts.Managed.UI
             Push(current, $"<color=#{systemHex}>{Escape(text)}</color>");
         }
 
-        // {Nickname}: {Message}. 다른 플레이어의 닉네임은 누를 수 있게 link 로 감쌈.
-        private static string Format(string nameHex, in ChatRPC message, bool mine)
+        // {Icon}{Nickname}: {Message}. 닉네임은 누를 수 있게 NetworkId 를 단 link 로 감쌈.
+        // 같은 파티의 파티장, 권한자는 닉네임 앞에 아이콘을 붙임. 받은 시점의 역할임.
+        private string Format(string nameHex, in ChatRPC message)
         {
-            string name = $"<color=#{nameHex}>{Escape(message.Sender.ToString())}</color>";
+            int sender = message.SenderNetworkId;
+            string icon = partyRoster.Master == sender ? $"<sprite name=\"{CrownSprite}\">"
+                : partyRoster.Authorized.Contains(sender) ? $"<sprite name=\"{AuthSprite}\">"
+                : string.Empty;
 
-            if (!mine)
-            {
-                name = $"<link=\"name\">{name}</link>";
-            }
-
-            return $"{name}: {Escape(message.Text.ToString())}";
+            return $"{icon}<link=\"{NameLink}{sender}\"><color=#{nameHex}>{Escape(message.Sender.ToString())}</color></link>: "
+                + Escape(message.Text.ToString());
         }
 
         // 유저가 친 글자가 리치 텍스트 태그로 읽히지 않게 함.
