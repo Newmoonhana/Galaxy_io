@@ -14,7 +14,7 @@ namespace GalaxyIO.Scripts.Managed.UI
     /// <summary>
     /// 플레이어 우주선 아래에 이름을 그리는 클라이언트 전용 뷰.
     /// 회전한 선체 충돌체의 아래쪽 끝에 붙이고, 선체 두께(Thickness)만큼 크게 그림.
-    /// 로컬 플레이어와 같은 파티원 이름은 초록색으로 칠하고, 파티장은 이름 왼쪽에 왕관을 붙임.
+    /// 로컬 플레이어와 같은 파티원 이름은 초록색으로 칠하고, 그 파티의 파티장은 이름 왼쪽에 왕관을 붙임.
     /// </summary>
     public sealed class SpaceshipNameLabels : MonoBehaviour
     {
@@ -156,12 +156,12 @@ namespace GalaxyIO.Scripts.Managed.UI
                     label.ForceMeshUpdate();
                 }
 
-                label.color = Faction.IsSameParty(party, entityManager.GetComponentData<FactionComponent>(spaceship).Party)
-                    ? partyColor
-                    : baseColor;
+                bool partyMember = Faction.IsSameParty(party, entityManager.GetComponentData<FactionComponent>(spaceship).Party);
+                label.color = partyMember ? partyColor : baseColor;
 
+                // 왕관은 같은 파티원에게만 보임.
                 SpriteRenderer crown = crowns[index];
-                bool master = entityManager.GetComponentData<PartyMasterComponent>(spaceship).Value;
+                bool master = partyMember && entityManager.GetComponentData<PartyMasterComponent>(spaceship).Value;
 
                 crown.gameObject.SetActive(master);
 

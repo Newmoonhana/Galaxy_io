@@ -123,7 +123,7 @@ MonoBehaviour:
   ManeuverAcceleration: 3600
   ManeuverDeceleration: 3600
   ManeuverPenalty: 0.84
-  MaxHealth: 140
+  MaxHealth: 14000
   Repair: 6
   RepairDelay: 3
   Thickness: 1.2
