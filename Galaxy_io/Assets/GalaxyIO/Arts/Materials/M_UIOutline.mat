@@ -30,7 +30,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _ColorMask: 15
-    - _Sensitivity: 0.155
+    - _Sensitivity: 0.352
     - _Stencil: 0
     - _StencilComp: 8
     - _StencilOp: 0

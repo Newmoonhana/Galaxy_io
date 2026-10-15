@@ -14,13 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.SpaceshipAsset
   Id: 3
   Category: 0
-  Prefab: {fileID: 0}
-  Sprite: {fileID: 0}
-  TurretSlot: {x: 0.5, y: 0.6}
+  Prefab: {fileID: -6648208624474899887, guid: 59a27bd311d74ee3a65d7fb665a7ef81, type: 3}
+  Sprite: {fileID: 21300000, guid: 44903c295c8aea54c80a68afe4c9248f, type: 3}
+  OutlineSensitivity: 0.685
+  TurretSlots:
+  - {x: 0.5, y: 0.6}
   Ingredients:
   - Item: {fileID: 11400000, guid: a12592c859254e13b0b09fe57c6e0454, type: 2}
-    Count: 20
+    Count: 15
   - Item: {fileID: 11400000, guid: 8732664549d665f46b7f109f4b9e4889, type: 2}
-    Count: 1
-  - Item: {fileID: 11400000, guid: 1da41d2b708f4e148bdd3772cad27889, type: 2}
     Count: 1
