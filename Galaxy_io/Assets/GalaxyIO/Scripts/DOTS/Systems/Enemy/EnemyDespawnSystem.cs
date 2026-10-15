@@ -11,7 +11,7 @@ using Unity.Transforms;
 namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
-    /// 모든 플레이어 레이더 밖에 있는 적 우주선을 제거하는 시스템.
+    /// 모든 플레이어의 스폰 영역이 닿는 거리 밖에 있는 적 우주선을 제거하는 시스템.
     /// </summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
@@ -25,10 +25,11 @@ namespace GalaxyIO.DOTS.Systems
         public void OnCreate(ref SystemState state)
         {
             connectionQuery = SystemAPI.QueryBuilder()
-                .WithAll<GhostConnectionPosition, NetworkStreamInGame>()
+                .WithAll<GhostConnectionPosition, RelevancyRadiusComponent, NetworkStreamInGame>()
                 .Build();
 
             state.RequireForUpdate<RelevancyConfigComponent>();
+            state.RequireForUpdate<EnemySpawnConfigComponent>();
             state.RequireForUpdate<EndPredictedSimulationEntityCommandBufferSystem.Singleton>();
             state.RequireForUpdate(
                 SystemAPI.QueryBuilder()
@@ -43,29 +44,44 @@ namespace GalaxyIO.DOTS.Systems
         {
             RelevancyConfigComponent config = SystemAPI.GetSingleton<RelevancyConfigComponent>();
 
-            // Ghost 복제 범위와 같은 바깥 반경. 경계를 오가는 적이 바로 사라지는 것 방지.
-            float outerRadius = config.Radius + config.Hysteresis;
+            // 스폰 영역 바깥 원이 최대로 치우쳤을 때 닿는 가장 먼 거리.
+            // 레이더 밖 스폰 영역의 적을 지우지 않도록 레이더 반경에 곱함.
+            float areaScale = 2.0F * SystemAPI.GetSingleton<EnemySpawnConfigComponent>().SpawnAreaScale - 1.0F;
 
-            // 칸 한 변 = 바깥 반경. 3x3 칸만 보면 반경 안의 레이더를 모두 찾음.
-            var radars = new NativeParallelMultiHashMap<int2, float2>(
+            // Hysteresis 는 경계를 오가는 적이 바로 사라지는 것 방지.
+            float maxRadius = 1.0F;
+
+            foreach (
+                var radius in
+                SystemAPI.Query<RefRO<RelevancyRadiusComponent>>()
+                    .WithAll<GhostConnectionPosition, NetworkStreamInGame>()
+            ) {
+                maxRadius = math.max(maxRadius, radius.ValueRO.Value * areaScale);
+            }
+
+            // 칸 한 변 = 가장 큰 바깥 반경. 3x3 칸만 보면 반경 안의 레이더를 모두 찾음.
+            float cellSize = maxRadius + config.Hysteresis;
+
+            // 칸 -> (레이더 중심, 바깥 반경)
+            var radars = new NativeParallelMultiHashMap<int2, float3>(
                 math.max(connectionQuery.CalculateEntityCount(), 1),
                 Allocator.TempJob
             );
 
             foreach (
-                var position in
-                SystemAPI.Query<RefRO<GhostConnectionPosition>>().WithAll<NetworkStreamInGame>()
+                var (position, radius) in
+                SystemAPI.Query<RefRO<GhostConnectionPosition>, RefRO<RelevancyRadiusComponent>>()
+                    .WithAll<NetworkStreamInGame>()
             ) {
                 float2 xy = position.ValueRO.Position.xy;
 
-                radars.Add(SpatialHash.ToCell(xy, outerRadius), xy);
+                radars.Add(SpatialHash.ToCell(xy, cellSize), new float3(xy, radius.ValueRO.Value * areaScale + config.Hysteresis));
             }
 
             state.Dependency = new EnemyDespawnJob
             {
                 Radars        = radars,
-                CellSize      = outerRadius,
-                OuterRadiusSq = outerRadius * outerRadius,
+                CellSize      = cellSize,
                 CommandBuffer = SystemAPI
                     .GetSingleton<EndPredictedSimulationEntityCommandBufferSystem.Singleton>()
                     .CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
@@ -84,10 +100,9 @@ namespace GalaxyIO.DOTS.Systems
     public partial struct EnemyDespawnJob : IJobEntity
     {
         [ReadOnly]
-        public NativeParallelMultiHashMap<int2, float2> Radars;
+        public NativeParallelMultiHashMap<int2, float3> Radars;
 
         public float CellSize;
-        public float OuterRadiusSq;
 
         public EntityCommandBuffer.ParallelWriter CommandBuffer;
 
@@ -102,7 +117,7 @@ namespace GalaxyIO.DOTS.Systems
                 {
                     if (!Radars.TryGetFirstValue(
                             center + new int2(x, y),
-                            out float2 radar,
+                            out float3 radar,
                             out NativeParallelMultiHashMapIterator<int2> iterator))
                     {
                         continue;
@@ -110,7 +125,7 @@ namespace GalaxyIO.DOTS.Systems
 
                     do
                     {
-                        if (math.distancesq(position, radar) <= OuterRadiusSq)
+                        if (math.distancesq(position, radar.xy) <= radar.z * radar.z)
                         {
                             return;
                         }

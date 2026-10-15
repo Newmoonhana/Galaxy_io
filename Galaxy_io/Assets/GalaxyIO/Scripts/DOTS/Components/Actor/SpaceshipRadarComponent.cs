@@ -9,6 +9,9 @@ namespace GalaxyIO.DOTS.Components.Actor
     /// </summary>
     public struct SpaceshipRadarComponent : IComponentData
     {
+        // 탐지 거리. Ghost 복제 반경으로도 씀.
+        public float Range;
+
         // 스캐너 회전 속도(도/초)
         public float SweepSpeed;
 

@@ -48,6 +48,14 @@ namespace GalaxyIO.DOTS.Authoring
         // 회전 속도(Degree/초)
         public float Maneuver;
 
+        // 회전 가속도(도/초²). 회전 속도가 Maneuver 까지 붙는 빠르기. 클수록 즉각적.
+        [Min(1.0F)]
+        public float ManeuverAcceleration = 3600.0F;
+
+        // 회전 감속도(도/초²). 목표 방향에 가까워지면 이 값으로 회전을 멈춤. 작을수록 묵직하게 멈춤.
+        [Min(1.0F)]
+        public float ManeuverDeceleration = 3600.0F;
+
         // 고속 선회 억제: 최대 속력일 때 회전 속도가 깎이는 비율.
         [Range(0.0F, 1.0F)]
         public float ManeuverPenalty = 0.6F;
@@ -62,7 +70,8 @@ namespace GalaxyIO.DOTS.Authoring
         [Min(0.0F)]
         public float RepairDelay = 3.0F;
 
-        // 선체 두께. 관통 투사체가 이 우주선을 지날 때 관통력이 이만큼 줄어듦.
+        // 선체 두께. 보이는 선체 크기(지름)에 맞출 것.
+        // 관통 투사체가 이 우주선을 지날 때 관통력이 이만큼 줄어들고, AI 는 이 절반만큼 더 떨어져서 싸움.
         [Min(0.0F)]
         public float Thickness = 1.0F;
 
@@ -70,9 +79,54 @@ namespace GalaxyIO.DOTS.Authoring
         [Min(0.0F)]
         public float MaxHeat = 20.0F;
 
+        [Header("Turn Brake")]
+
+        // 기준 회전속도(도/초). 기준 속력에서 이 속도로 돌 때 TurnBrakeDeceleration 만큼 감속함. 플레이어만.
+        [Min(1.0F)]
+        public float TurnBrakeTurnRate = 270.0F;
+
+        // 기준 속력에서 기준 회전속도로 돌 때 초당 줄어드는 속력
+        [Min(0.0F)]
+        public float TurnBrakeDeceleration = 30.0F;
+
+        // 곡선의 휘는 정도. 1이면 직선, 클수록 느린 선회는 덜 깎이고 빠른 선회에서 급격히 커짐.
+        [Min(1.0F)]
+        public float TurnBrakeExponent = 3.0F;
+
+        // 제동이 걸리기 시작하는 비행 속력. 이 이하에서는 감속하지 않음.
+        [Min(0.0F)]
+        public float TurnBrakeStartSpeed = 15.0F;
+
+        // 기준 속력. StartSpeed 부터 선형으로 커져 이 속력에서 Deceleration 그대로 걸리고, 그 위로도 계속 커짐.
+        [Min(0.0F)]
+        public float TurnBrakeReferenceSpeed = 30.0F;
+
+        // 회전 관성. 선회 제동이 셀수록 속도가 기수를 덜 따라 돌아 돌기 전 방향으로 밀려남.
+        // 0이면 밀리지 않고, 1이면 기준 제동에서 기수를 전혀 따라 돌지 않음. 무거운 기체일수록 크게.
+        [Min(0.0F)]
+        public float Inertia = 1.0F;
+
+        // 기수와 어긋난 옆 방향 속도가 초당 줄어드는 양
+        [Min(0.0F)]
+        public float InertiaDeceleration = 20.0F;
+
+        // 뒤처진 속도 방향이 기수 방향을 따라 도는 속도(도/초)
+        [Min(0.0F)]
+        public float InertiaTurnRate = 180.0F;
+
+        [Header("Camera")]
+
+        // 가장 멀리 축소했을 때의 시야 크기(Orthographic Size). 플레이어만.
+        [Min(1.0F)]
+        public float MaxOrthographicSize = 15.0F;
+
         [Header("Radar")]
 
-        // 레이더 스캐너 회전 속도(도/초). 탐지 거리는 Ghost 복제 반경(RelevancyConfig)을 따름.
+        // 레이더 탐지 거리. Ghost 복제 반경으로도 씀. 화면 대각선 절반보다 크게 잡을 것.
+        [Min(1.0F)]
+        public float RadarRange = 64.0F;
+
+        // 레이더 스캐너 회전 속도(도/초)
         [Min(0.0F)]
         public float RadarSweepSpeed = 120.0F;
 
@@ -131,6 +185,7 @@ namespace GalaxyIO.DOTS.Authoring
 
             AddComponent(entity, new SpaceshipRadarComponent
             {
+                Range        = authoring.RadarRange,
                 SweepSpeed   = authoring.RadarSweepSpeed,
                 ResponseTime = authoring.RadarResponseTime,
             });

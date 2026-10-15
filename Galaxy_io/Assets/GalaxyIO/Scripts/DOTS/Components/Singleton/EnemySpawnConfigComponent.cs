@@ -1,6 +1,5 @@
 using GalaxyIO.DOTS.Authoring.Config;
 using Unity.Entities;
-using Unity.Mathematics;
 
 namespace GalaxyIO.DOTS.Components.Singleton
 {
@@ -21,10 +20,7 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 레이더 하나 안의 적 수 상한
         public int RadarCap;
 
-        // 플레이어 기준 스폰 거리 (최소, 최대)
-        public float2 SpawnDistanceRange;
-
-        // 플레이어 시야 사각형의 반크기. 이 안에는 스폰하지 않음.
-        public float2 ViewHalfExtents;
+        // 스폰 영역 바깥 원 반지름 = 레이더 탐지 거리 x 이 값. 항상 1보다 큼.
+        public float SpawnAreaScale;
     }
 }

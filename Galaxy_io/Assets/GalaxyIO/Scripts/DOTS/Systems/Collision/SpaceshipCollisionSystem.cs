@@ -106,7 +106,8 @@ namespace GalaxyIO.DOTS.Systems
 
             for (int i = 0; i < messages.Length; i++)
             {
-                CollisionMessage message = messages[i].Message;
+                SpaceshipCollisionElement element = messages[i];
+                CollisionMessage message = element.Message;
                 float hit = 0.0F;
 
                 // 이번 틱에 파괴된 상대는 이동 정보가 없음. 밀어내기만 남김.
@@ -139,9 +140,9 @@ namespace GalaxyIO.DOTS.Systems
                     DamageRecord.Add(records, otherOwner.NetworkId, hit, ElapsedTime);
                 }
 
-                // 깊이의 절반씩 서로 물러나면 딱 맞닿음.
+                // 두께로 나눈 몫만큼 서로 물러나면 딱 맞닿음. 두께가 같으면 절반씩.
                 // 빠를수록 한 틱에 깊이 박히므로 밀려나는 양도 자동으로 커짐.
-                push += message.Normal * (message.Depth * 0.5F);
+                push += message.Normal * (message.Depth * element.PushShare);
             }
 
             // 판정에 쓴 위치는 밀어내기 전 위치라, 계산 순서에 관계없이 결과가 같음.

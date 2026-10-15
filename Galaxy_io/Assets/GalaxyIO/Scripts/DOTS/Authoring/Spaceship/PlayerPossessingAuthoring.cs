@@ -44,8 +44,30 @@ namespace GalaxyIO.DOTS.Authoring
                 Acceleration         = spaceship.Acceleration,
                 Deceleration         = spaceship.Deceleration,
                 Maneuver             = spaceship.Maneuver,
+                ManeuverAcceleration = spaceship.ManeuverAcceleration,
+                ManeuverDeceleration = spaceship.ManeuverDeceleration,
                 ManeuverPenalty      = spaceship.ManeuverPenalty,
                 HoveringManeuver     = spaceship.HoveringManeuver,
+            });
+
+            AddComponent(entity, new TurnBrakeComponent
+            {
+                TurnRate     = spaceship.TurnBrakeTurnRate,
+                Deceleration = spaceship.TurnBrakeDeceleration,
+                Exponent     = spaceship.TurnBrakeExponent,
+                StartSpeed   = spaceship.TurnBrakeStartSpeed,
+
+                // StartSpeed 와 같거나 작으면 나눌 수 없음.
+                ReferenceSpeed = Mathf.Max(spaceship.TurnBrakeReferenceSpeed, spaceship.TurnBrakeStartSpeed + 0.01F),
+
+                Inertia             = spaceship.Inertia,
+                InertiaDeceleration = spaceship.InertiaDeceleration,
+                InertiaTurnRate     = spaceship.InertiaTurnRate,
+            });
+
+            AddComponent(entity, new SpaceshipCameraComponent
+            {
+                MaxOrthographicSize = spaceship.MaxOrthographicSize,
             });
 
             AddComponent(entity, new TurretHeatComponent

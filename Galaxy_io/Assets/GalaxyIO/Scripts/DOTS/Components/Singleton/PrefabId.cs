@@ -9,8 +9,8 @@
         // 값을 지정하지 않은 인스펙터 슬롯이 실제 프리팹을 가리키지 않게 하는 기본값.
         None = 0,
 
-        // 플레이어 최초 스폰 / 리스폰용 기본 기체
-        PlayerDefaultShip = 1,
+        // 플레이어 우주선. 기본 기체는 PlayerSpawnConfigAuthoring 이 정함.
+        Vex = 1,
 
         // 우주선 파괴 폭발 연출
         ExplosionEffect = 2,
@@ -23,5 +23,8 @@
 
         // 폭발 투사체 명중 연출
         ProjectileExplosionEffect = 5,
+
+        // 플레이어 우주선
+        Colossus = 6,
     }
 }

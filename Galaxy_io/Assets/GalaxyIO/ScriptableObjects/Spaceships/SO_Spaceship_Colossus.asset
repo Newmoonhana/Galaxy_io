@@ -10,13 +10,18 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 0c494036ba80d79469ff8c7eca8de989, type: 3}
-  m_Name: SO_Spaceship_Sovereign
+  m_Name: SO_Spaceship_Colossus
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.SpaceshipAsset
   Id: 10
   Category: 3
-  Prefab: {fileID: 0}
-  Sprite: {fileID: 0}
-  TurretSlot: {x: 0.5, y: 0.6}
+  Prefab: {fileID: -6648208624474899887, guid: 328bac3ed695339469506267d64809e0, type: 3}
+  Sprite: {fileID: 21300000, guid: 58208f39f731dbe47b3a59708110c1fd, type: 3}
+  OutlineSensitivity: 0.8
+  TurretSlots:
+  - {x: 0.5, y: 0.5}
+  - {x: 0.5, y: 0.5}
+  - {x: 0.5, y: 0.5}
+  - {x: 0.5, y: 0.5}
   Ingredients:
   - Item: {fileID: 11400000, guid: a12592c859254e13b0b09fe57c6e0454, type: 2}
     Count: 120

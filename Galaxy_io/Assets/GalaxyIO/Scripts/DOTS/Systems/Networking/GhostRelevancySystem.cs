@@ -20,7 +20,7 @@ namespace GalaxyIO.DOTS.Systems
         public int NetworkId;
         public float2 Position;
 
-        // 이 접속의 복제 반경. 레이더 탐지 거리 강화만큼 늘어남.
+        // 이 접속의 복제 반경. 탄 우주선의 레이더 탐지 거리.
         public float Radius;
     }
 
@@ -40,7 +40,7 @@ namespace GalaxyIO.DOTS.Systems
         public void OnCreate(ref SystemState state)
         {
             connectionQuery = SystemAPI.QueryBuilder()
-                .WithAll<GhostConnectionPosition, NetworkId, NetworkStreamInGame>()
+                .WithAll<GhostConnectionPosition, RelevancyRadiusComponent, NetworkId, NetworkStreamInGame>()
                 .Build();
 
             state.RequireForUpdate<GhostRelevancy>();
@@ -55,46 +55,55 @@ namespace GalaxyIO.DOTS.Systems
 
             relevancy.ValueRW.GhostRelevancyMode = GhostRelevancyMode.SetIsRelevant;
 
-            // 접속 초점을 소유한 우주선 위치로 옮김. 우주선이 없으면 마지막 위치를 유지함.
+            // 접속 초점과 복제 반경을 소유한 우주선 위치와 레이더 탐지 거리로 옮김.
+            // 우주선이 없으면 마지막 값을 유지함.
             var ships = new NativeHashMap<int, float3>(8, Allocator.Temp);
 
-            // NetworkId -> 레이더 탐지 거리 강화로 늘어난 복제 반경
+            // NetworkId -> 레이더 탐지 거리(강화 포함)
             var ranges = new NativeHashMap<int, float>(8, Allocator.Temp);
-            float maxRange = 0.0F;
 
             foreach (
-                var (owner, transform, ship) in SystemAPI.Query<RefRO<GhostOwner>, RefRO<LocalTransform>>()
+                var (owner, transform, radar, ship) in
+                SystemAPI.Query<RefRO<GhostOwner>, RefRO<LocalTransform>, RefRO<SpaceshipRadarComponent>>()
                     .WithAll<PlayerSpaceshipMovementComponent>()
                     .WithEntityAccess()
             ) {
                 ships[owner.ValueRO.NetworkId] = transform.ValueRO.Position;
 
+                float range = radar.ValueRO.Range;
+
                 if (SystemAPI.HasBuffer<UpgradeParamElement>(ship))
                 {
-                    float range = Upgrade.Value(
+                    range += Upgrade.Value(
                         SystemAPI.GetBuffer<UpgradeParamElement>(ship),
                         SystemAPI.GetBuffer<UpgradeLevelElement>(ship),
                         UpgradeParam.RadarRange
                     );
-
-                    ranges[owner.ValueRO.NetworkId] = range;
-                    maxRange = math.max(maxRange, range);
                 }
+
+                ranges[owner.ValueRO.NetworkId] = range;
             }
 
+            float maxRadius = 0.0F;
+
             foreach (
-                var (position, networkId) in SystemAPI.Query<RefRW<GhostConnectionPosition>, RefRO<NetworkId>>()
+                var (position, radius, networkId) in
+                SystemAPI.Query<RefRW<GhostConnectionPosition>, RefRW<RelevancyRadiusComponent>, RefRO<NetworkId>>()
             ) {
                 if (ships.TryGetValue(networkId.ValueRO.Value, out float3 shipPosition))
                 {
                     position.ValueRW.Position = shipPosition;
+                    radius.ValueRW.Value = ranges[networkId.ValueRO.Value];
                 }
+
+                maxRadius = math.max(maxRadius, radius.ValueRO.Value);
             }
 
             ships.Dispose();
+            ranges.Dispose();
 
             // 칸 한 변 = 가장 큰 바깥 반경. 3x3 칸만 보면 반경 안의 접속을 모두 찾음.
-            float outerRadius = config.Radius + maxRange + config.Hysteresis;
+            float outerRadius = math.max(maxRadius, 1.0F) + config.Hysteresis;
 
             var focuses = new NativeParallelMultiHashMap<int2, RelevancyFocus>(
                 math.max(connectionQuery.CalculateEntityCount(), 1),
@@ -102,24 +111,21 @@ namespace GalaxyIO.DOTS.Systems
             );
 
             foreach (
-                var (position, networkId, connection) in
-                SystemAPI.Query<RefRO<GhostConnectionPosition>, RefRO<NetworkId>>()
+                var (position, radius, networkId, connection) in
+                SystemAPI.Query<RefRO<GhostConnectionPosition>, RefRO<RelevancyRadiusComponent>, RefRO<NetworkId>>()
                     .WithAll<NetworkStreamInGame>()
                     .WithEntityAccess()
             ) {
                 float2 xy = position.ValueRO.Position.xy;
-                ranges.TryGetValue(networkId.ValueRO.Value, out float range);
 
                 focuses.Add(SpatialHash.ToCell(xy, outerRadius), new RelevancyFocus
                 {
                     Connection = connection,
                     NetworkId  = networkId.ValueRO.Value,
                     Position   = xy,
-                    Radius     = config.Radius + range,
+                    Radius     = radius.ValueRO.Value,
                 });
             }
-
-            ranges.Dispose();
 
             var relevant = new NativeQueue<RelevantGhostForConnection>(Allocator.TempJob);
 

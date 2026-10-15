@@ -17,10 +17,13 @@ namespace GalaxyIO.DOTS.Components.Actor
         // CurrentTarget 의 이번 틱 위치. 대상이 없으면 의미 없음.
         public float2 TargetPosition;
 
+        // CurrentTarget 의 선체 두께(SpaceshipSpecComponent.Thickness). 모르면 0.
+        public float TargetThickness;
+
         // 부채꼴 시야. 이 충돌체에 겹친 적대 진영 우주선을 대상으로 삼음.
         public ColliderComponent Sight;
 
-        // 대상과의 거리가 이보다 멀어지면 대상을 놓침.
+        // 대상 선체 바깥과의 거리가 이보다 멀어지면 대상을 놓침.
         public float ChaseDistance;
 
         // 새 대상으로 삼을 진영 마스크. FactionID 의 OR.

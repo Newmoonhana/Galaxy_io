@@ -25,6 +25,7 @@ namespace GalaxyIO.DOTS.Systems
         {
             state.RequireForUpdate<NetworkTime>();
             state.RequireForUpdate<PrefabRegistryElement>();
+            state.RequireForUpdate<PlayerSpawnConfigComponent>();
             state.RequireForUpdate<SpawnRequestRPC>();
         }
 
@@ -32,7 +33,7 @@ namespace GalaxyIO.DOTS.Systems
         {
             Entity shipPrefab = SystemAPI
                 .GetSingletonBuffer<PrefabRegistryElement>(true)
-                .Find(PrefabId.PlayerDefaultShip);
+                .Find(SystemAPI.GetSingleton<PlayerSpawnConfigComponent>().DefaultSpaceship);
 
             // 레지스트리에 기체가 없으면 베이킹 설정 문제. 스폰할 것이 없음.
             if (shipPrefab == Entity.Null)
@@ -123,6 +124,12 @@ namespace GalaxyIO.DOTS.Systems
 
                 // Ghost 복제 범위의 중심. 이미 있으면 값만 덮어씀. (리스폰)
                 ecb.AddComponent(connectionEntity, new GhostConnectionPosition { Position = spawnPosition });
+
+                // 복제 반경. 강화는 GhostRelevancySystem 이 다음 틱부터 반영함.
+                ecb.AddComponent(connectionEntity, new RelevancyRadiusComponent
+                {
+                    Value = SystemAPI.GetComponent<SpaceshipRadarComponent>(shipPrefab).Range,
+                });
 
                 // 스폰이 완료되었으니 RPC Entity 제거
                 ecb.DestroyEntity(rpcEntity);

@@ -33,6 +33,7 @@ namespace GalaxyIO.DOTS.Systems
             {
                 Transforms = SystemAPI.GetComponentLookup<LocalTransform>(true),
                 Colliders  = SystemAPI.GetComponentLookup<ColliderComponent>(true),
+                Specs      = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
             }.ScheduleParallel(state.Dependency);
         }
     }
@@ -51,6 +52,9 @@ namespace GalaxyIO.DOTS.Systems
         [ReadOnly]
         public ComponentLookup<ColliderComponent> Colliders;
 
+        [ReadOnly]
+        public ComponentLookup<SpaceshipSpecComponent> Specs;
+
         private void Execute(
             in DynamicBuffer<SightOverlapElement> overlaps,
             in LocalTransform transform,
@@ -58,13 +62,19 @@ namespace GalaxyIO.DOTS.Systems
         {
             float2 position = transform.Position.xy;
 
-            // 사라졌으면 놓침. 추격 거리 밖이면 놓침. 피격으로 정한 대상도 있으므로 진영은 보지 않음.
+            // 사라졌으면 놓침. 추격 거리(대상 선체 바깥부터) 밖이면 놓침. 피격으로 정한 대상도 있으므로 진영은 보지 않음.
             if (perception.CurrentTarget != Entity.Null)
             {
+                float thickness = Specs.TryGetComponent(perception.CurrentTarget, out SpaceshipSpecComponent spec)
+                    ? spec.Thickness
+                    : 0.0F;
+                float chaseDistance = perception.ChaseDistance + thickness * 0.5F;
+
                 if (TryGetCenter(perception.CurrentTarget, out float2 center)
-                    && math.distancesq(position, center) <= perception.ChaseDistance * perception.ChaseDistance)
+                    && math.distancesq(position, center) <= chaseDistance * chaseDistance)
                 {
                     perception.TargetPosition = center;
+                    perception.TargetThickness = thickness;
 
                     return;
                 }
@@ -84,6 +94,9 @@ namespace GalaxyIO.DOTS.Systems
 
                 perception.CurrentTarget = message.Other;
                 perception.TargetPosition = center;
+                perception.TargetThickness = Specs.TryGetComponent(message.Other, out SpaceshipSpecComponent otherSpec)
+                    ? otherSpec.Thickness
+                    : 0.0F;
 
                 return;
             }

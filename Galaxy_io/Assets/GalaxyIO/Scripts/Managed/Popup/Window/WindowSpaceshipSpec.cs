@@ -36,8 +36,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
         /// <summary>
         /// 열 때 호출. 보여줄 기종을 정함.
         /// </summary>
-        /// <param name="_detectRange">레이더 기본 탐지 거리. Ghost 복제 반경</param>
-        public void SetSpaceship(SpaceshipAsset _spaceship, float _detectRange)
+        public void SetSpaceship(SpaceshipAsset _spaceship)
         {
             spaceship = _spaceship;
 
@@ -102,7 +101,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             sb.AppendLine();
 
             sb.AppendLine(L10n.Get("Spec/Radar"));
-            Stat(UpgradeStat.RadarRange, _detectRange, upgrade != null ? upgrade.RadarRange.Range : 0.0F, upgrade != null ? upgrade.RadarRange.MaxLevel : 0);
+            Stat(UpgradeStat.RadarRange, ship.RadarRange, upgrade != null ? upgrade.RadarRange.Range : 0.0F, upgrade != null ? upgrade.RadarRange.MaxLevel : 0);
             Stat(UpgradeStat.RadarSweep, ship.RadarSweepSpeed, upgrade != null ? upgrade.RadarSweep.SweepSpeed : 0.0F, upgrade != null ? upgrade.RadarSweep.MaxLevel : 0);
 
             spec_tmp.text = sb.ToString().TrimEnd();

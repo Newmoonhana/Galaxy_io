@@ -1,6 +1,5 @@
 using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Entities;
-using Unity.Mathematics;
 using UnityEngine;
 
 namespace GalaxyIO.DOTS.Authoring.Config
@@ -21,22 +20,20 @@ namespace GalaxyIO.DOTS.Authoring.Config
         public float SpawnInterval = 5.0F;
 
         [SerializeField]
-        [Tooltip("스폰 주기마다 레이더 하나에 스폰하는 적 수")]
+        [Tooltip("스폰 주기마다 플레이어 하나의 스폰 영역에 스폰하는 적 수")]
         [Min(0)]
         public int SpawnPerRadar = 1;
 
         [SerializeField]
-        [Tooltip("레이더 하나 안의 적 수 상한. 넘으면 그 레이더에는 스폰하지 않음.")]
+        [Tooltip("스폰 영역 바깥 원 하나 안의 적 수 상한. 넘으면 그 플레이어 주변에는 스폰하지 않음.")]
         [Min(0)]
         public int RadarCap = 8;
 
         [SerializeField]
-        [Tooltip("플레이어 기준 스폰 거리 (최소, 최대). 최대는 RelevancyConfigAuthoring.Radius 를 넘지 않음.")]
-        public Vector2 SpawnDistanceRange = new Vector2(40.0F, 64.0F);
-
-        [SerializeField]
-        [Tooltip("플레이어 시야 사각형의 반크기. 이 안에는 스폰하지 않음. 카메라 앞서감 거리를 포함할 것.")]
-        public Vector2 ViewHalfExtents = new Vector2(50.0F, 30.0F);
+        [Tooltip("스폰 영역 바깥 원 반지름 = 레이더 탐지 거리 x 이 값. 레이더 원 밖, 바깥 원 안에 스폰함. " +
+                 "바깥 원은 속력에 비례해 진행 방향으로 치우치고, 최대 속력이면 레이더 원이 뒤쪽 끝에 맞닿음.")]
+        [Min(1.01F)]
+        public float SpawnAreaScale = 1.5F;
     }
 
     public sealed class EnemySpawnConfigBaker : Baker<EnemySpawnConfigAuthoring>
@@ -51,11 +48,7 @@ namespace GalaxyIO.DOTS.Authoring.Config
                 SpawnInterval      = authoring.SpawnInterval,
                 SpawnPerRadar      = authoring.SpawnPerRadar,
                 RadarCap           = authoring.RadarCap,
-                SpawnDistanceRange = new float2(
-                    math.min(authoring.SpawnDistanceRange.x, authoring.SpawnDistanceRange.y),
-                    math.max(authoring.SpawnDistanceRange.x, authoring.SpawnDistanceRange.y)
-                ),
-                ViewHalfExtents    = math.abs(new float2(authoring.ViewHalfExtents.x, authoring.ViewHalfExtents.y)),
+                SpawnAreaScale     = authoring.SpawnAreaScale,
             });
         }
     }

@@ -39,14 +39,12 @@ namespace GalaxyIO.DOTS.Systems
         {
             // 복제 범위 안의 접속과 소유자에게만 보냄.
             RelevancyConfigComponent config = SystemAPI.GetSingleton<RelevancyConfigComponent>();
-            float outerRadius = config.Radius + config.Hysteresis;
-            float outerRadiusSq = outerRadius * outerRadius;
 
             var focuses = new NativeList<RelevancyFocus>(4, Allocator.Temp);
 
             foreach (
-                var (position, networkId, connection) in
-                SystemAPI.Query<RefRO<GhostConnectionPosition>, RefRO<NetworkId>>()
+                var (position, radius, networkId, connection) in
+                SystemAPI.Query<RefRO<GhostConnectionPosition>, RefRO<RelevancyRadiusComponent>, RefRO<NetworkId>>()
                     .WithAll<NetworkStreamInGame>()
                     .WithEntityAccess()
             ) {
@@ -55,6 +53,9 @@ namespace GalaxyIO.DOTS.Systems
                     Connection = connection,
                     NetworkId  = networkId.ValueRO.Value,
                     Position   = position.ValueRO.Position.xy,
+
+                    // 바깥 반경
+                    Radius = radius.ValueRO.Value + config.Hysteresis,
                 });
             }
 
@@ -90,7 +91,7 @@ namespace GalaxyIO.DOTS.Systems
                 for (int i = 0; i < focuses.Length; i++)
                 {
                     if (focuses[i].NetworkId == message.OwnerNetworkId
-                        || math.distancesq(focuses[i].Position, message.Position) <= outerRadiusSq)
+                        || math.distancesq(focuses[i].Position, message.Position) <= focuses[i].Radius * focuses[i].Radius)
                     {
                         Send(ecb, message, focuses[i].Connection);
                     }

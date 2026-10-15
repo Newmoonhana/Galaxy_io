@@ -15,7 +15,7 @@ namespace GalaxyIO.Camera
     /// <summary>
     /// DOTS 오브젝트인 플레이어 우주선을 따라다니는 카메라 로직.
     /// 우주선을 화면 중앙에 고정하지 않고 진행 방향 쪽으로 카메라를 밀어 시야를 확보함.
-    /// 마우스 휠로 시야 크기를 조절함.
+    /// 마우스 휠로 시야 크기를 조절함. 축소 한계는 우주선마다의 최대 시야 크기를 따름.
     /// </summary>
     public sealed class FollowPlayerEntity : MonoBehaviour
     {
@@ -30,9 +30,9 @@ namespace GalaxyIO.Camera
         private float smoothSpeed = 10F;
 
         [SerializeField]
-        [Tooltip("최대로 확대했을 때의 시야 크기(Orthographic Size). 축소는 카메라의 기본 크기까지만 됨.")]
-        [Min(0.1F)]
-        private float minZoom = 8F;
+        [Tooltip("최대로 확대했을 때의 시야 크기 비율. 우주선의 최대 시야 크기(SpaceshipAuthoring.MaxOrthographicSize) 기준.")]
+        [Range(0.05F, 1.0F)]
+        private float minZoomRatio = 0.5333F;
 
         [SerializeField]
         [Tooltip("휠 한 칸당 시야 크기 변화 비율")]
@@ -50,11 +50,11 @@ namespace GalaxyIO.Camera
 
         private UnityEngine.Camera targetCamera;
 
-        // 카메라의 기본 시야 크기. 이보다 축소하지 않음.
+        // 탄 우주선의 최대 시야 크기. 우주선이 없으면 마지막 값을 유지함.
         private float maxZoom;
 
-        // 휠로 정한 목표 시야 크기. 실제 크기는 매 프레임 수렴함.
-        private float targetZoom;
+        // 휠로 정한 최대 시야 크기 대비 비율. 우주선을 바꿔도 휠 단계가 그대로 유지됨.
+        private float zoomRatio = 1F;
 
         // 현재 적용 중인 오프셋. 목표 오프셋을 향해 매 프레임 수렴함.
         private Vector2 currentLookAhead;
@@ -85,13 +85,13 @@ namespace GalaxyIO.Camera
             playerQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<GhostOwnerIsLocal>(),
                 ComponentType.ReadOnly<LocalTransform>(),
-                ComponentType.ReadOnly<PlayerSpaceshipMovementComponent>()
+                ComponentType.ReadOnly<PlayerSpaceshipMovementComponent>(),
+                ComponentType.ReadOnly<SpaceshipCameraComponent>()
             );
             stateQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<PlayerStateComponent>());
 
             targetCamera = GetComponent<UnityEngine.Camera>();
             maxZoom = targetCamera.orthographicSize;
-            targetZoom = maxZoom;
         }
 
         private void LateUpdate()
@@ -114,27 +114,31 @@ namespace GalaxyIO.Camera
                 // 휠 위 = 확대. 비율로 바꿔 어느 배율에서도 한 칸의 체감이 같음.
                 if (scroll != 0.0F)
                 {
-                    targetZoom = Mathf.Clamp(
-                        targetZoom * (1F - Mathf.Sign(scroll) * zoomStep),
-                        Mathf.Min(minZoom, maxZoom),
-                        maxZoom
-                    );
+                    zoomRatio = Mathf.Clamp(zoomRatio * (1F - Mathf.Sign(scroll) * zoomStep), minZoomRatio, 1F);
                 }
             }
 
+            Entity player = Entity.Null;
+
+            if (!playerQuery.IsEmpty)
+            {
+                using var players = playerQuery.ToEntityArray(Allocator.Temp);
+                player = players[0];
+                maxZoom = entityManager.GetComponentData<SpaceshipCameraComponent>(player).MaxOrthographicSize;
+            }
+
+            // 우주선을 바꾸면 새 최대 시야 크기로 보간됨.
             targetCamera.orthographicSize = Mathf.Lerp(
                 targetCamera.orthographicSize,
-                targetZoom,
+                maxZoom * zoomRatio,
                 1F - Mathf.Exp(-zoomSmoothSpeed * Time.deltaTime)
             );
 
-            if (playerQuery.IsEmpty)
+            if (player == Entity.Null)
             {
                 return;
             }
 
-            using var players = playerQuery.ToEntityArray(Allocator.Temp);
-            Entity player = players[0];
             LocalTransform playerTransform = entityManager.GetComponentData<LocalTransform>(player);
             PlayerSpaceshipMovementComponent movement =
                 entityManager.GetComponentData<PlayerSpaceshipMovementComponent>(player);

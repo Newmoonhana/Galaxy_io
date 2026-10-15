@@ -17,7 +17,7 @@ GameObject:
   - component: {fileID: 9019164426144977794}
   - component: {fileID: 1535958598976819572}
   m_Layer: 0
-  m_Name: CorsairSpaceship
+  m_Name: Cosair
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

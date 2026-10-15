@@ -28,6 +28,12 @@ namespace GalaxyIO.DOTS.Components.Actor
     public struct SpaceshipCollisionElement : IBufferElementData
     {
         public CollisionMessage Message;
+
+        // 튕겨 나가는 속도 배율. Min(상대 두께 / 내 두께, 1). 큰 우주선일수록 덜 튕김.
+        public float Repulsion;
+
+        // 겹친 깊이 중 내가 물러나는 비율. 두 우주선의 몫을 합치면 1.
+        public float PushShare;
     }
 
     /// <summary>

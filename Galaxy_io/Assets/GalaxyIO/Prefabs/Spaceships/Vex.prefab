@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 3345718978926545676}
   - component: {fileID: 6412773190475893041}
   m_Layer: 0
-  m_Name: VexSpaceship
+  m_Name: Vex
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -120,12 +120,14 @@ MonoBehaviour:
   Acceleration: 10
   Deceleration: 20
   Maneuver: 360
-  ManeuverPenalty: 0.9
+  ManeuverPenalty: 0.845
   MaxHealth: 100
   Repair: 5
   RepairDelay: 3
   Thickness: 1
   MaxHeat: 100
+  RadarSweepSpeed: 120
+  RadarResponseTime: 0.1
   Faction: 1
   Muzzles:
   - {fileID: 1279712499970898616}
