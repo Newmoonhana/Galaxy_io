@@ -10,6 +10,9 @@ namespace GalaxyIO.DOTS.Components.Message
 
         // 서버 안내문. 서버만 보냄.
         System,
+
+        // 파티원에게만 보내는 채팅
+        Party,
     }
 
     /// <summary>
@@ -25,7 +28,8 @@ namespace GalaxyIO.DOTS.Components.Message
         // 보낸 플레이어. 서버가 채움.
         public FixedString64Bytes Sender;
 
-        // 보낸 플레이어의 NetworkId. 서버가 채움. 받은 쪽이 자신의 글인지 가리는 데 씀.
+        // 보낸 플레이어의 NetworkId. 서버가 채움. 받은 쪽이 자신의 글인지 가리고 말풍선을 띄울 우주선을 찾는 데 씀.
+        // 파티 초대 안내문에서는 초대한 플레이어.
         public int SenderNetworkId;
 
         // 귓속말을 받는 플레이어. 서버가 채움. 안내문에서는 번역문의 {0} 에 들어갈 값.

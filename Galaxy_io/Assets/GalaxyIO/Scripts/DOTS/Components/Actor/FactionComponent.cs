@@ -27,6 +27,10 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 투사체 진영은 서버가 발사 시점에 정함. 클라이언트 명중 연출에 쓰려고 복제함.
         [GhostField]
         public FactionID Value;
+
+        // 소속 파티. 0 이면 파티 없음. 플레이어 우주선은 서버의 PartyService 가 채움.
+        [GhostField]
+        public uint Party;
     }
 
     /// <summary>
@@ -41,6 +45,18 @@ namespace GalaxyIO.DOTS.Components.Actor
         public static bool IsAllied(FactionID lhs, FactionID rhs)
         {
             return lhs == rhs && ((uint)lhs & SelfHostile) == 0;
+        }
+
+        // 같은 파티인지. 같은 파티끼리는 투사체가 통과하고 서로 데미지를 주지 않음.
+        public static bool IsSameParty(uint lhs, uint rhs)
+        {
+            return lhs != 0 && lhs == rhs;
+        }
+
+        // 서로 데미지를 주지 않는 사이인지.
+        public static bool IsFriendly(in FactionComponent lhs, in FactionComponent rhs)
+        {
+            return IsAllied(lhs.Value, rhs.Value) || IsSameParty(lhs.Party, rhs.Party);
         }
     }
 }

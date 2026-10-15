@@ -21,6 +21,7 @@ namespace GalaxyIO.DOTS.Authoring
 
             // 값은 스폰 시 서버가 채움.
             AddComponent<PlayerNameComponent>(entity);
+            AddComponent<PartyMasterComponent>(entity);
 
             // 킬 로그용 피격 기록과 막타. 서버만 채움.
             AddBuffer<DamageRecordElement>(entity);

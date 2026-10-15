@@ -140,6 +140,7 @@ namespace GalaxyIO.DOTS.Systems
                 Collider = world,
                 Bounds   = ColliderBounds.ToAabb(world),
                 Faction  = faction.Value,
+                Party    = faction.Party,
                 Ignore   = shared.Owner,
             };
 

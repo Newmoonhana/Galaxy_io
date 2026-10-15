@@ -1,6 +1,9 @@
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Message;
+using GalaxyIO.DOTS.Components.Singleton;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
@@ -16,6 +19,7 @@ namespace GalaxyIO.Scripts.Managed.Chat
         private EntityManager entityManager;
         private EntityQuery requestQuery;
         private EntityQuery playerQuery;
+        private EntityQuery partyQuery;
 
         // 캐시한 쿼리가 속한 서버 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World serverWorld;
@@ -41,6 +45,7 @@ namespace GalaxyIO.Scripts.Managed.Chat
                 ComponentType.ReadOnly<NetworkId>(),
                 ComponentType.ReadOnly<PlayerNameComponent>()
             );
+            partyQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<PartyServiceComponent>());
         }
 
         private void LateUpdate()
@@ -81,6 +86,31 @@ namespace GalaxyIO.Scripts.Managed.Chat
                 if (chat.Channel == ChatChannel.Public)
                 {
                     Send(chat, Entity.Null);
+                    continue;
+                }
+
+                // 보낸 사람을 포함한 파티원 모두에게 보냄.
+                if (chat.Channel == ChatChannel.Party)
+                {
+                    IReadOnlyList<int> members = partyQuery.IsEmpty
+                        ? null
+                        : entityManager.GetComponentObject<PartyServiceComponent>(partyQuery.GetSingletonEntity())
+                            .Value.Members(chat.SenderNetworkId);
+
+                    if (members == null)
+                    {
+                        Send(new ChatRPC { Channel = ChatChannel.System, Text = "Party/NotInParty" }, sender);
+                        continue;
+                    }
+
+                    for (int j = 0; j < players.Length; j++)
+                    {
+                        if (members.Contains(entityManager.GetComponentData<NetworkId>(players[j]).Value))
+                        {
+                            Send(chat, players[j]);
+                        }
+                    }
+
                     continue;
                 }
 
