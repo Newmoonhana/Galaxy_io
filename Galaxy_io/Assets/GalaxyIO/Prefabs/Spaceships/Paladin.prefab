@@ -94,7 +94,7 @@ SpriteRenderer:
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 0.9912537, y: 1}
+  m_Size: {x: 13.7143, y: 13.7143}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -111,33 +111,33 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba5f85943ed340039e28b4335d174b2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.SpaceshipAuthoring
-  Kind: 0
-  Speed: 20
-  HoveringSpeed: 3
-  HoveringAcceleration: 3
-  HoveringDeceleration: 3
-  HoveringManeuver: 1
-  Acceleration: 1
-  Deceleration: 3
-  Maneuver: 35
-  ManeuverAcceleration: 20
-  ManeuverDeceleration: 25
-  ManeuverPenalty: 0.959
-  MaxHealth: 3000
-  Repair: 15
+  Kind: 8
+  Speed: 22
+  HoveringSpeed: 4
+  HoveringAcceleration: 5.5
+  HoveringDeceleration: 5
+  HoveringManeuver: 3.5
+  Acceleration: 3.5
+  Deceleration: 7
+  Maneuver: 75
+  ManeuverAcceleration: 130
+  ManeuverDeceleration: 160
+  ManeuverPenalty: 0.93
+  MaxHealth: 1400
+  Repair: 14
   RepairDelay: 3
-  Thickness: 20
-  MaxHeat: 1000
-  TurnBrakeTurnRate: 35
-  TurnBrakeDeceleration: 8
+  Thickness: 11
+  MaxHeat: 450
+  TurnBrakeTurnRate: 75
+  TurnBrakeDeceleration: 13
   TurnBrakeExponent: 2
-  TurnBrakeStartSpeed: 8
-  TurnBrakeReferenceSpeed: 20
-  Inertia: 20
-  InertiaDeceleration: 4
-  InertiaTurnRate: 25
-  MaxOrthographicSize: 25
-  RadarRange: 96
+  TurnBrakeStartSpeed: 10
+  TurnBrakeReferenceSpeed: 22
+  Inertia: 9
+  InertiaDeceleration: 7
+  InertiaTurnRate: 55
+  MaxOrthographicSize: 21
+  RadarRange: 80
   RadarSweepSpeed: 120
   RadarResponseTime: 0.1
   Faction: 1
@@ -209,8 +209,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b81e4e8540b4e94dbc07f7b0499c275, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.BoxColliderAuthoring
-  Center: {x: 0.00000047683716, y: -0.30470848}
-  Size: {x: 13.196309, y: 19.900063}
+  Center: {x: 0, y: 0.429}
+  Size: {x: 9.3, y: 12.1}
 --- !u!1 &2225960894660375326
 GameObject:
   m_ObjectHideFlags: 0
@@ -236,7 +236,7 @@ Transform:
   m_GameObject: {fileID: 2225960894660375326}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0.953, z: 0}
+  m_LocalPosition: {x: 0, y: 6.929, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -267,7 +267,7 @@ Transform:
   m_GameObject: {fileID: 4079496504209129029}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: -0.23, y: 0.7, z: 0}
+  m_LocalPosition: {x: -0.23, y: 6.679, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -298,7 +298,7 @@ Transform:
   m_GameObject: {fileID: 6766743962313914150}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.23, y: 0.7, z: 0}
+  m_LocalPosition: {x: 0.23, y: 6.679, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

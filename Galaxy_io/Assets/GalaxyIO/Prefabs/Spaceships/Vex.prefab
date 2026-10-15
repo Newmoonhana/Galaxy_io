@@ -120,12 +120,24 @@ MonoBehaviour:
   Acceleration: 10
   Deceleration: 20
   Maneuver: 360
+  ManeuverAcceleration: 3600
+  ManeuverDeceleration: 3600
   ManeuverPenalty: 0.845
   MaxHealth: 100
   Repair: 5
   RepairDelay: 3
   Thickness: 1
   MaxHeat: 100
+  TurnBrakeTurnRate: 270
+  TurnBrakeDeceleration: 30
+  TurnBrakeExponent: 3
+  TurnBrakeStartSpeed: 15
+  TurnBrakeReferenceSpeed: 30
+  Inertia: 1
+  InertiaDeceleration: 20
+  InertiaTurnRate: 180
+  MaxOrthographicSize: 13
+  RadarRange: 64
   RadarSweepSpeed: 120
   RadarResponseTime: 0.1
   Faction: 1

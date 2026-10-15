@@ -26,5 +26,13 @@
 
         // 플레이어 우주선
         Colossus = 6,
+        Vulture = 7,
+        Nighthawk = 8,
+        Vanguard = 9,
+        Sentinel = 10,
+        Halberd = 11,
+        Leviathan = 12,
+        Paladin = 13,
+        Behemoth = 14,
     }
 }
