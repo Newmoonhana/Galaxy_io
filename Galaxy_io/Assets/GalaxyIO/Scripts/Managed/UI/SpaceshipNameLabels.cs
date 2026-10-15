@@ -1,5 +1,6 @@
 ﻿using GalaxyIO.DOTS.Collision;
 using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.Tools;
 using System.Collections.Generic;
 using TMPro;
@@ -8,13 +9,15 @@ using Unity.Entities;
 using Unity.NetCode;
 using Unity.Transforms;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace GalaxyIO.Scripts.Managed.UI
 {
     /// <summary>
     /// 플레이어 우주선 아래에 이름을 그리는 클라이언트 전용 뷰.
     /// 회전한 선체 충돌체의 아래쪽 끝에 붙이고, 선체 두께(Thickness)만큼 크게 그림.
-    /// 로컬 플레이어와 같은 파티원 이름은 초록색으로 칠하고, 그 파티의 파티장은 이름 왼쪽에 왕관을 붙임.
+    /// 로컬 플레이어와 같은 파티원 이름은 초록색으로 칠하고, 파티장과 권한자는 이름 왼쪽에 아이콘을 붙임.
+    /// 파티 구성은 <see cref="ChatView"/>가 받은 것을 씀. 다른 파티의 구성은 모르므로 보이지 않음.
     /// </summary>
     public sealed class SpaceshipNameLabels : MonoBehaviour
     {
@@ -32,6 +35,10 @@ namespace GalaxyIO.Scripts.Managed.UI
         private float scalePerThickness = 0.1F;
 
         [SerializeField]
+        [Tooltip("파티 구성을 받는 채팅창")]
+        private ChatView chat;
+
+        [SerializeField]
         [Tooltip("로컬 플레이어와 같은 파티원의 이름 색")]
         private Color partyColor = Color.green;
 
@@ -40,13 +47,19 @@ namespace GalaxyIO.Scripts.Managed.UI
         private Sprite crownSprite;
 
         [SerializeField]
-        [Tooltip("왕관 높이. 이름표 기준 단위라 두께 배율이 함께 곱해짐.")]
-        [Min(0.0F)]
-        private float crownSize = 0.5F;
+        [Tooltip("권한자 이름 왼쪽에 붙는 아이콘")]
+        private Sprite authSprite;
 
         [SerializeField]
-        [Tooltip("이름 글자와 왕관 사이 간격. 이름표 기준 단위.")]
-        private float crownGap = 0.05F;
+        [Tooltip("아이콘 높이. 이름표 기준 단위라 두께 배율이 함께 곱해짐.")]
+        [Min(0.0F)]
+        [FormerlySerializedAs("crownSize")]
+        private float iconSize = 0.5F;
+
+        [SerializeField]
+        [Tooltip("이름 글자와 아이콘 사이 간격. 이름표 기준 단위.")]
+        [FormerlySerializedAs("crownGap")]
+        private float iconGap = 0.05F;
 
         // 프리팹 크기. 두께 배율의 기준.
         private Vector3 baseScale;
@@ -56,13 +69,12 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private EntityManager entityManager;
         private EntityQuery spaceshipQuery;
-        private EntityQuery playerQuery;
 
         // 우주선 수만큼 늘어나는 이름표 풀
         private readonly List<TMP_Text> labels = new List<TMP_Text>();
 
-        // 이름표마다 하나씩 붙은 왕관. 이름표의 자식.
-        private readonly List<SpriteRenderer> crowns = new List<SpriteRenderer>();
+        // 이름표마다 하나씩 붙은 파티장 / 권한자 아이콘. 이름표의 자식.
+        private readonly List<SpriteRenderer> icons = new List<SpriteRenderer>();
 
         // 이름표마다 표시 중인 이름. 바뀔 때만 문자열을 만들어 GC 할당을 막음.
         private readonly List<FixedString64Bytes> shownNames = new List<FixedString64Bytes>();
@@ -83,16 +95,10 @@ namespace GalaxyIO.Scripts.Managed.UI
             entityManager = clientWorld.EntityManager;
             spaceshipQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<PlayerNameComponent>(),
-                ComponentType.ReadOnly<PartyMasterComponent>(),
-                ComponentType.ReadOnly<FactionComponent>(),
+                ComponentType.ReadOnly<GhostOwner>(),
                 ComponentType.ReadOnly<SpaceshipSpecComponent>(),
                 ComponentType.ReadOnly<ColliderComponent>(),
                 ComponentType.ReadOnly<LocalTransform>()
-            );
-            playerQuery = entityManager.CreateEntityQuery(
-                ComponentType.ReadOnly<GhostOwnerIsLocal>(),
-                ComponentType.ReadOnly<SpaceshipSpecComponent>(),
-                ComponentType.ReadOnly<FactionComponent>()
             );
             baseScale = labelPrefab.transform.localScale;
             baseColor = labelPrefab.color;
@@ -107,14 +113,7 @@ namespace GalaxyIO.Scripts.Managed.UI
                 return;
             }
 
-            // 죽어 있는 동안엔 로컬 우주선이 없어 파티원 색도 꺼짐.
-            uint party = 0;
-
-            if (!playerQuery.IsEmpty)
-            {
-                using var players = playerQuery.ToComponentDataArray<FactionComponent>(Allocator.Temp);
-                party = players[0].Party;
-            }
+            PartyRosterRPC roster = chat.PartyRoster;
 
             using var spaceships = spaceshipQuery.ToEntityArray(Allocator.Temp);
 
@@ -152,26 +151,29 @@ namespace GalaxyIO.Scripts.Managed.UI
                     shownNames[index] = playerName;
                     label.text = playerName.ToString();
 
-                    // 왕관 위치에 쓸 글자 범위를 바로 갱신함.
+                    // 아이콘 위치에 쓸 글자 범위를 바로 갱신함.
                     label.ForceMeshUpdate();
                 }
 
-                bool partyMember = Faction.IsSameParty(party, entityManager.GetComponentData<FactionComponent>(spaceship).Party);
-                label.color = partyMember ? partyColor : baseColor;
+                int networkId = entityManager.GetComponentData<GhostOwner>(spaceship).NetworkId;
+                label.color = roster.Members.Contains(networkId) ? partyColor : baseColor;
 
-                // 왕관은 같은 파티원에게만 보임.
-                SpriteRenderer crown = crowns[index];
-                bool master = partyMember && entityManager.GetComponentData<PartyMasterComponent>(spaceship).Value;
+                Sprite sprite = roster.Master == networkId ? crownSprite
+                    : roster.Authorized.Contains(networkId) ? authSprite
+                    : null;
 
-                crown.gameObject.SetActive(master);
+                SpriteRenderer icon = icons[index];
+                icon.gameObject.SetActive(sprite != null);
 
-                if (master)
+                if (sprite != null)
                 {
-                    // 피벗이 가운데라 왕관 너비의 절반만큼 더 밀어냄.
+                    // 스프라이트마다 크기가 달라도 높이를 맞춤. 피벗이 가운데라 너비의 절반만큼 더 밀어냄.
+                    float size = iconSize / sprite.bounds.size.y;
                     Bounds text = label.textBounds;
-                    float halfWidth = crownSize * crownSprite.bounds.extents.x / crownSprite.bounds.size.y;
 
-                    crown.transform.localPosition = new Vector3(text.min.x - crownGap - halfWidth, text.center.y, 0.0F);
+                    icon.sprite = sprite;
+                    icon.transform.localScale = Vector3.one * size;
+                    icon.transform.localPosition = new Vector3(text.min.x - iconGap - sprite.bounds.extents.x * size, text.center.y, 0.0F);
                 }
             }
 
@@ -189,15 +191,13 @@ namespace GalaxyIO.Scripts.Managed.UI
                 TMP_Text label = Instantiate(labelPrefab, transform);
                 Renderer labelRenderer = label.GetComponent<Renderer>();
 
-                SpriteRenderer crown = new GameObject("Crown").AddComponent<SpriteRenderer>();
-                crown.transform.SetParent(label.transform, false);
-                crown.transform.localScale = Vector3.one * (crownSize / crownSprite.bounds.size.y);
-                crown.sprite = crownSprite;
-                crown.sortingLayerID = labelRenderer.sortingLayerID;
-                crown.sortingOrder = labelRenderer.sortingOrder;
+                SpriteRenderer icon = new GameObject("PartyIcon").AddComponent<SpriteRenderer>();
+                icon.transform.SetParent(label.transform, false);
+                icon.sortingLayerID = labelRenderer.sortingLayerID;
+                icon.sortingOrder = labelRenderer.sortingOrder;
 
                 labels.Add(label);
-                crowns.Add(crown);
+                icons.Add(icon);
                 shownNames.Add(default);
             }
 

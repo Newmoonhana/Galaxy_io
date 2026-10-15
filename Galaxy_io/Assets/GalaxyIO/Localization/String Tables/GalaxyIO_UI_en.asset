@@ -643,6 +643,26 @@ MonoBehaviour:
     m_Localized: "{0}'s party authority was revoked."
     m_Metadata:
       m_Items: []
+  - m_Id: 2500000000000023
+    m_Localized: "Make Party Master"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000024
+    m_Localized: "Kick from Party"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000025
+    m_Localized: "Give Party Authority"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000026
+    m_Localized: "Revoke Party Authority"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000027
+    m_Localized: "Leave Party"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []
