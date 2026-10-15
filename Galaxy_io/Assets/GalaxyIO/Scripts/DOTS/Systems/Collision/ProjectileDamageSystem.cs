@@ -39,8 +39,8 @@ namespace GalaxyIO.DOTS.Systems
         public float2 Center;
         public float Radius;
 
-        // 투사체 진영. 동맹은 맞지 않음.
-        public FactionID Faction;
+        // 투사체 진영과 파티. 동맹과 같은 파티는 맞지 않음.
+        public FactionComponent Faction;
 
         // 직격 피해를 입은 우주선. 폭발 데미지에서 제외.
         public Entity DirectHit;
@@ -196,7 +196,7 @@ namespace GalaxyIO.DOTS.Systems
                     {
                         Center    = projectile.HitPosition,
                         Radius    = projectile.ExplosionRadius,
-                        Faction   = faction.Value,
+                        Faction   = faction,
                         DirectHit = message.Other,
                         Damage    = damage,
                     });
@@ -255,10 +255,10 @@ namespace GalaxyIO.DOTS.Systems
             {
                 ProjectileExplosion explosion = Explosions[i];
 
-                // 직격당한 우주선, 쏜 우주선, 동맹은 제외.
+                // 직격당한 우주선, 쏜 우주선, 동맹, 같은 파티는 제외.
                 if (entity == explosion.DirectHit
                     || entity == explosion.Damage.Instigator
-                    || Faction.IsAllied(explosion.Faction, faction.Value))
+                    || Faction.IsFriendly(explosion.Faction, faction))
                 {
                     continue;
                 }

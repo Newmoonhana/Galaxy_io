@@ -40,6 +40,7 @@ namespace GalaxyIO.DOTS.Systems
             state.Dependency = new SpaceshipCollisionJob
             {
                 Movements    = SystemAPI.GetComponentLookup<SpaceshipMovementComponent>(true),
+                Factions     = SystemAPI.GetComponentLookup<FactionComponent>(true),
                 Owners       = SystemAPI.GetComponentLookup<GhostOwner>(true),
                 EnemyNames   = SystemAPI.GetComponentLookup<EnemyNameComponent>(true),
                 Records      = SystemAPI.GetBufferLookup<DamageRecordElement>(),
@@ -65,12 +66,16 @@ namespace GalaxyIO.DOTS.Systems
 
     /// <summary>
     /// 두 우주선의 상대 속력으로 데미지를 줌. 식이 대칭이라 각 우주선이 자기 몫만 계산함.
+    /// 같은 파티끼리는 밀어내기만 하고 데미지는 없음.
     /// </summary>
     [BurstCompile]
     public partial struct SpaceshipCollisionJob : IJobEntity
     {
         [ReadOnly]
         public ComponentLookup<SpaceshipMovementComponent> Movements;
+
+        [ReadOnly]
+        public ComponentLookup<FactionComponent> Factions;
 
         [ReadOnly]
         public ComponentLookup<GhostOwner> Owners;
@@ -95,7 +100,8 @@ namespace GalaxyIO.DOTS.Systems
             in DynamicBuffer<SpaceshipCollisionElement> messages,
             ref LocalTransform transform,
             ref SpaceshipSpecComponent spec,
-            in SpaceshipMovementComponent movement)
+            in SpaceshipMovementComponent movement,
+            in FactionComponent faction)
         {
             float2 push = float2.zero;
             float damage = 0.0F;
@@ -110,8 +116,9 @@ namespace GalaxyIO.DOTS.Systems
                 CollisionMessage message = element.Message;
                 float hit = 0.0F;
 
-                // 이번 틱에 파괴된 상대는 이동 정보가 없음. 밀어내기만 남김.
-                if (Movements.TryGetComponent(message.Other, out SpaceshipMovementComponent other))
+                // 이번 틱에 파괴된 상대는 이동 정보가 없음. 같은 파티와 함께 밀어내기만 남김.
+                if (Movements.TryGetComponent(message.Other, out SpaceshipMovementComponent other)
+                    && !Faction.IsSameParty(faction.Party, Factions[message.Other].Party))
                 {
                     float2 relative = movement.DeltaMovement - other.DeltaMovement;
 

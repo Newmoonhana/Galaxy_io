@@ -201,12 +201,12 @@ namespace GalaxyIO.DOTS.Client.Systems
                     Extents = new float2(halfWidth, range * 0.5F),
                 };
 
-                FactionID faction = entityManager.GetComponentData<FactionComponent>(beam.Owner).Value;
+                FactionComponent faction = entityManager.GetComponentData<FactionComponent>(beam.Owner);
                 float reach = range;
 
                 for (int i = 0; i < hulls.Length; i++)
                 {
-                    if (hulls[i] == beam.Owner || Faction.IsAllied(faction, hullFactions[i].Value))
+                    if (hulls[i] == beam.Owner || Faction.IsFriendly(faction, hullFactions[i]))
                     {
                         continue;
                     }

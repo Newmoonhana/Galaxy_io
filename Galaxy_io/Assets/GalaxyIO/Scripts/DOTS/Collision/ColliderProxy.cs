@@ -43,6 +43,9 @@ namespace GalaxyIO.DOTS.Collision
         // 소속 진영
         public FactionID Faction;
 
+        // 소속 파티. 0 이면 파티 없음.
+        public uint Party;
+
         // 시야, 아이템이 대상으로 삼을 진영 마스크. 시야, 아이템 충돌체만 채움.
         public uint HostileFactions;
 
@@ -72,10 +75,20 @@ namespace GalaxyIO.DOTS.Collision
                 return false;
             }
 
-            // 시야, 아이템은 마스크의 진영만 봄. 선체와 투사체는 동맹이 아니면 부딪힘.
-            return receiver.Layer == CollisionLayer.Sight || receiver.Layer == CollisionLayer.Item
-                ? ((uint)target.Faction & receiver.HostileFactions) != 0
-                : !Faction.IsAllied(receiver.Faction, target.Faction);
+            // 시야, 아이템은 마스크의 진영만 봄.
+            if (receiver.Layer == CollisionLayer.Sight || receiver.Layer == CollisionLayer.Item)
+            {
+                return ((uint)target.Faction & receiver.HostileFactions) != 0;
+            }
+
+            // 투사체는 같은 파티를 통과함. 선체끼리는 같은 파티여도 부딪힘.
+            if (receiver.Layer == CollisionLayer.Projectile && Faction.IsSameParty(receiver.Party, target.Party))
+            {
+                return false;
+            }
+
+            // 선체와 투사체는 동맹이 아니면 부딪힘.
+            return !Faction.IsAllied(receiver.Faction, target.Faction);
         }
     }
 }

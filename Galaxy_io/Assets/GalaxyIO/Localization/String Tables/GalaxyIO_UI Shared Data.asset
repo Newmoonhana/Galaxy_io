@@ -547,6 +547,90 @@ MonoBehaviour:
     m_Key: Spec/MaxLevel
     m_Metadata:
       m_Items: []
+  - m_Id: 2500000000000001
+    m_Key: Chat/PartyInvite
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000002
+    m_Key: Party/Usage
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000003
+    m_Key: Party/SelfInvite
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000004
+    m_Key: Party/NoPermission
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000005
+    m_Key: Party/AlreadyInParty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000006
+    m_Key: Party/InviteSent
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000007
+    m_Key: Party/Invited
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000008
+    m_Key: Party/NoInvite
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000010
+    m_Key: Party/InviteExpired
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000011
+    m_Key: Party/Joined
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000012
+    m_Key: Party/NotInParty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000013
+    m_Key: Party/Left
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000014
+    m_Key: Party/NotMember
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000015
+    m_Key: Party/MasterChanged
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000016
+    m_Key: Party/Kicked
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000017
+    m_Key: Party/Authorized
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000018
+    m_Key: Party/Disbanded
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000019
+    m_Key: Chat/Party
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000020
+    m_Key: Party/Accept
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000021
+    m_Key: Party/NotAuthorized
+    m_Metadata:
+      m_Items: []
+  - m_Id: 2500000000000022
+    m_Key: Party/Revoked
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

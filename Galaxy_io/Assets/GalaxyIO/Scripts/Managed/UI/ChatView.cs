@@ -23,6 +23,9 @@ namespace GalaxyIO.Scripts.Managed.UI
     /// </summary>
     public sealed class ChatView : MonoBehaviour
     {
+        // 파티 초대 안내문의 [수락] 링크 ID. 뒤에 초대한 플레이어의 NetworkId 가 붙음.
+        private const string AcceptLink = "accept:";
+
         [Header("Layout")]
 
         [SerializeField]
@@ -68,6 +71,14 @@ namespace GalaxyIO.Scripts.Managed.UI
         private Button whisperOption;
 
         [SerializeField]
+        [Tooltip("메뉴의 파티 초대 항목. 고른 플레이어를 파티에 초대함.")]
+        private Button partyInviteOption;
+
+        [SerializeField]
+        [Tooltip("채팅을 보낸 우주선 위에 띄우는 말풍선")]
+        private ChatBubbles bubbles;
+
+        [SerializeField]
         [Tooltip("입력창 열기 (Enter)")]
         private InputActionReference chatAction;
 
@@ -106,10 +117,13 @@ namespace GalaxyIO.Scripts.Managed.UI
         [SerializeField]
         private Color systemColor = Color.red;
 
+        [SerializeField]
+        private Color partyColor = Color.green;
+
         // 탭 하나의 대화 기록
         private sealed class Channel
         {
-            // 귓속말 상대 이름. 공개 채널은 번역된 채널 이름.
+            // 귓속말 상대 이름. 공개, 파티 채널은 번역된 채널 이름.
             public string Name;
             public ChatTab Tab;
 
@@ -120,6 +134,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private EntityManager entityManager;
         private EntityQuery messageQuery;
+        private EntityQuery partyStateQuery;
         private EntityQuery stateQuery;
         private EntityQuery inGameQuery;
         private EntityQuery connectionQuery;
@@ -127,6 +142,7 @@ namespace GalaxyIO.Scripts.Managed.UI
         private string publicHex;
         private string whisperHex;
         private string systemHex;
+        private string partyHex;
 
         private readonly ChatCommands commands = new ChatCommands();
 
@@ -149,6 +165,9 @@ namespace GalaxyIO.Scripts.Managed.UI
         private string menuName;
 
         private Channel publicChannel;
+
+        // 파티에 있는 동안만 생김.
+        private Channel partyChannel;
 
         // 보고 있는 채널
         private Channel current;
@@ -182,6 +201,10 @@ namespace GalaxyIO.Scripts.Managed.UI
                 ComponentType.ReadOnly<ChatRPC>(),
                 ComponentType.ReadOnly<ReceiveRpcCommandRequest>()
             );
+            partyStateQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<PartyStateRPC>(),
+                ComponentType.ReadOnly<ReceiveRpcCommandRequest>()
+            );
             stateQuery = entityManager.CreateEntityQuery(ComponentType.ReadWrite<PlayerStateComponent>());
             inGameQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkStreamInGame>());
             connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
@@ -189,14 +212,21 @@ namespace GalaxyIO.Scripts.Managed.UI
             publicHex  = ColorUtility.ToHtmlStringRGB(publicColor);
             whisperHex = ColorUtility.ToHtmlStringRGB(whisperColor);
             systemHex  = ColorUtility.ToHtmlStringRGB(systemColor);
+            partyHex   = ColorUtility.ToHtmlStringRGB(partyColor);
 
             commands.Register("w", Whisper);
+            commands.Register("p", Party);
 
             canvas = GetComponentInParent<Canvas>();
 
             input.characterLimit = ChatRPC.MaxLength;
             input.onSubmit.AddListener(Submit);
             whisperOption.onClick.AddListener(() => Select(GetWhisper(menuName)));
+            partyInviteOption.onClick.AddListener(() =>
+            {
+                SendParty(PartyCommand.Invite, menuName);
+                nameMenu.gameObject.SetActive(false);
+            });
 
             publicChannel = AddChannel(string.Empty, false);
             Select(publicChannel);
@@ -230,6 +260,25 @@ namespace GalaxyIO.Scripts.Managed.UI
                 return;
             }
 
+            // 파티에 들어가면 파티 탭을 만들고, 나오면 지움. 같은 프레임에 여러 개면 마지막 상태만 봄.
+            if (!partyStateQuery.IsEmpty)
+            {
+                using var states = partyStateQuery.ToComponentDataArray<PartyStateRPC>(Allocator.Temp);
+                bool inParty = states[states.Length - 1].InParty;
+
+                entityManager.DestroyEntity(partyStateQuery);
+
+                if (inParty && partyChannel == null)
+                {
+                    partyChannel = AddChannel(L10n.Get("Chat/Party"), false);
+                }
+                else if (!inParty && partyChannel != null)
+                {
+                    RemoveChannel(partyChannel);
+                    partyChannel = null;
+                }
+            }
+
             if (!messageQuery.IsEmpty && !connectionQuery.IsEmpty)
             {
                 using var messages = messageQuery.ToComponentDataArray<ChatRPC>(Allocator.Temp);
@@ -246,6 +295,20 @@ namespace GalaxyIO.Scripts.Managed.UI
                     {
                         case ChatChannel.Public:
                             Push(publicChannel, Format(publicHex, message, mine));
+                            bubbles.Show(message.SenderNetworkId, message.Text.ToString(), Color.white);
+                            break;
+
+                        // 공개 탭에도 같은 줄을 쌓음.
+                        case ChatChannel.Party:
+                            string partyLine = Format(partyHex, message, mine);
+
+                            if (partyChannel != null)
+                            {
+                                Push(partyChannel, partyLine);
+                            }
+
+                            Push(publicChannel, partyLine);
+                            bubbles.Show(message.SenderNetworkId, message.Text.ToString(), partyColor);
                             break;
 
                         case ChatChannel.Whisper:
@@ -257,6 +320,7 @@ namespace GalaxyIO.Scripts.Managed.UI
                             // 공개 탭에도 같은 줄을 쌓음.
                             Push(channel, line);
                             Push(publicChannel, line);
+                            bubbles.Show(message.SenderNetworkId, message.Text.ToString(), whisperColor);
 
                             if (message.Echo)
                             {
@@ -277,7 +341,20 @@ namespace GalaxyIO.Scripts.Managed.UI
 
                         // 본문은 번역 키, Target 은 번역문의 {0}.
                         case ChatChannel.System:
-                            PushSystem(string.Format(L10n.Get(message.Text.ToString()), message.Target));
+                            string key = message.Text.ToString();
+                            string text = string.Format(L10n.Get(key), message.Target);
+
+                            // 초대 안내문 끝에 누르면 파티에 들어가는 [수락] 링크를 붙임.
+                            if (key == "Party/Invited")
+                            {
+                                Push(current, $"<color=#{systemHex}>{Escape(text)}</color> "
+                                    + $"<link=\"{AcceptLink}{message.SenderNetworkId}\"><color=#{partyHex}>{L10n.Get("Party/Accept")}</color></link>");
+                            }
+                            else
+                            {
+                                PushSystem(text);
+                            }
+
                             break;
                     }
                 }
@@ -383,17 +460,19 @@ namespace GalaxyIO.Scripts.Managed.UI
                     ? -1
                     : TMP_TextUtilities.FindIntersectingLink(body, cursor, canvas.worldCamera);
 
+                TMP_LinkInfo info = link >= 0 ? body.textInfo.linkInfo[link] : default;
+                bool accept = link >= 0 && info.GetLinkID().StartsWith(AcceptLink);
+
                 nameHighlight.gameObject.SetActive(link >= 0);
 
                 // 메뉴 밖을 누르면 메뉴를 닫음. 닉네임을 눌렀으면 그 자리에 다시 띄움.
                 if (pressed && !overMenu)
                 {
-                    nameMenu.gameObject.SetActive(link >= 0);
+                    nameMenu.gameObject.SetActive(link >= 0 && !accept);
                 }
 
                 if (link >= 0)
                 {
-                    TMP_LinkInfo info = body.textInfo.linkInfo[link];
                     TMP_CharacterInfo first = body.textInfo.characterInfo[info.linkTextfirstCharacterIndex];
                     TMP_CharacterInfo last = body.textInfo.characterInfo[
                         info.linkTextfirstCharacterIndex + info.linkTextLength - 1];
@@ -404,7 +483,11 @@ namespace GalaxyIO.Scripts.Managed.UI
                     nameHighlight.position = body.transform.TransformPoint((min + max) * 0.5F);
                     nameHighlight.sizeDelta = max - min;
 
-                    if (pressed)
+                    if (pressed && accept)
+                    {
+                        SendParty(PartyCommand.Accept, string.Empty, int.Parse(info.GetLinkID().Substring(AcceptLink.Length)));
+                    }
+                    else if (pressed)
                     {
                         menuName = info.GetLinkText();
 
@@ -484,6 +567,13 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             ((TMP_Text)input.placeholder).text = L10n.Get("Chat/Placeholder");
             whisperOption.GetComponentInChildren<TMP_Text>().text = L10n.Get("Chat/Whisper");
+
+            if (partyChannel != null)
+            {
+                partyChannel.Name = L10n.Get("Chat/Party");
+                partyChannel.Tab.SetTitle(partyChannel.Name);
+            }
+            partyInviteOption.GetComponentInChildren<TMP_Text>().text = L10n.Get("Chat/PartyInvite");
             channelLabel.text = $"[{current.Name}]:";
         }
 
@@ -517,22 +607,29 @@ namespace GalaxyIO.Scripts.Managed.UI
                     Select(channel);
                     SetOpened(true);
                 },
-                () =>
-                {
-                    if (channel == current)
-                    {
-                        Select(publicChannel);
-                    }
-
-                    whispers.Remove(name);
-                    channels.Remove(channel);
-                    Destroy(channel.Tab.gameObject);
-                }
+                () => RemoveChannel(channel)
             );
             channels.Add(channel);
             Refresh(channel);
 
             return channel;
+        }
+
+        private void RemoveChannel(Channel channel)
+        {
+            if (channel == current)
+            {
+                Select(publicChannel);
+            }
+
+            // 파티 탭과 이름이 같은 귓속말 탭은 건드리지 않음.
+            if (whispers.TryGetValue(channel.Name, out Channel whisper) && whisper == channel)
+            {
+                whispers.Remove(channel.Name);
+            }
+
+            channels.Remove(channel);
+            Destroy(channel.Tab.gameObject);
         }
 
         private void Select(Channel channel)
@@ -549,7 +646,9 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             Refresh(channel);
             channelLabel.text = $"[{channel.Name}]:";
-            channelLabel.color = channel == publicChannel ? publicColor : whisperColor;
+            channelLabel.color = channel == publicChannel ? publicColor
+                : channel == partyChannel ? partyColor
+                : whisperColor;
             body.text = string.Join("\n", channel.Lines);
             bodyUpdateTime = Time.time;
             nameMenu.gameObject.SetActive(false);
@@ -623,19 +722,25 @@ namespace GalaxyIO.Scripts.Managed.UI
                 history.RemoveAt(0);
             }
 
-            // 귓속말 탭에서 친 일반 채팅은 귓속말 명령어로 바꿈.
-            if (text[0] != ChatCommands.Prefix && current != publicChannel)
+            // 일반 채팅은 보고 있는 탭의 채널로 보냄. 귓속말은 "{받는 이름} {본문}".
+            if (text[0] == ChatCommands.Prefix)
             {
-                text = $"{ChatCommands.Prefix}w {current.Name} {text}";
+                if (!commands.Execute(text))
+                {
+                    PushSystem(L10n.Get("Chat/UnknownCommand"));
+                }
             }
-
-            if (text[0] != ChatCommands.Prefix)
+            else if (current == publicChannel)
             {
                 Send(ChatChannel.Public, text);
             }
-            else if (!commands.Execute(text))
+            else if (current == partyChannel)
             {
-                PushSystem(L10n.Get("Chat/UnknownCommand"));
+                Send(ChatChannel.Party, text);
+            }
+            else
+            {
+                Send(ChatChannel.Whisper, $"{current.Name} {text}");
             }
 
             body.rectTransform.anchoredPosition = Vector2.zero;
@@ -651,6 +756,42 @@ namespace GalaxyIO.Scripts.Managed.UI
             }
 
             Send(ChatChannel.Whisper, args);
+        }
+
+        // `/p {inv|delegate|kick|auth|revoke|quit} {Username}`. 권한과 대상은 서버가 확인함.
+        private void Party(string args)
+        {
+            int space = args.IndexOf(' ');
+            string name = space < 0 ? string.Empty : args.Substring(space + 1).Trim();
+
+            PartyCommand? command = (space < 0 ? args : args.Substring(0, space)).ToLowerInvariant() switch
+            {
+                "inv"      => PartyCommand.Invite,
+                "delegate" => PartyCommand.Delegate,
+                "kick"     => PartyCommand.Kick,
+                "auth"     => PartyCommand.Authorize,
+                "revoke"   => PartyCommand.Revoke,
+                "quit"     => PartyCommand.Quit,
+                _          => null,
+            };
+
+            // Quit 만 대상 이름이 없음.
+            if (command == null || (name.Length == 0 && command != PartyCommand.Quit))
+            {
+                PushSystem(L10n.Get("Party/Usage"));
+                return;
+            }
+
+            SendParty(command.Value, name);
+        }
+
+        private void SendParty(PartyCommand command, string name, int inviter = 0)
+        {
+            var rpc = new PartyCommandRPC { Command = command, Inviter = inviter };
+            rpc.Target.CopyFromTruncated(name);
+
+            Entity rpcEntity = entityManager.CreateEntity(typeof(PartyCommandRPC), typeof(SendRpcCommandRequest));
+            entityManager.SetComponentData(rpcEntity, rpc);
         }
 
         private void Send(ChatChannel channel, string text)
