@@ -83,7 +83,6 @@ namespace GalaxyIO.Scripts.Managed.UI
         private EntityManager entityManager;
         private EntityQuery playerQuery;
         private EntityQuery targetQuery;
-        private EntityQuery rangeQuery;
 
         private Material material;
         private Material backgroundMaterial;
@@ -92,7 +91,7 @@ namespace GalaxyIO.Scripts.Managed.UI
         // 스캐너 회전 속도(도/초)는 시계 방향.
         private float sweepSpeed;
         private float sweepBonus;
-        private float rangeBonus;
+        private float range;
         private float response;
         private float fadeOut;
 
@@ -131,7 +130,6 @@ namespace GalaxyIO.Scripts.Managed.UI
                 .WithAll<SpaceshipSpecComponent, LocalTransform>()
                 .WithNone<GhostOwnerIsLocal>()
                 .Build(entityManager);
-            rangeQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<RelevancyConfigComponent>());
 
             // 각도, 점 목록은 이 뷰 전용이라 머티리얼을 복제함.
             material = new Material(scanner.material);
@@ -172,8 +170,8 @@ namespace GalaxyIO.Scripts.Managed.UI
 
                 sweepSpeed = radar.SweepSpeed;
                 response = radar.ResponseTime;
+                range = radar.Range;
                 sweepBonus = 0.0F;
-                rangeBonus = 0.0F;
 
                 // 강화가 없는 기체는 기본값 그대로.
                 if (entityManager.HasBuffer<UpgradeParamElement>(players[0]))
@@ -182,7 +180,7 @@ namespace GalaxyIO.Scripts.Managed.UI
                     var levels = entityManager.GetBuffer<UpgradeLevelElement>(players[0], true);
 
                     sweepBonus = Upgrade.Value(parameters, levels, UpgradeParam.RadarSweep);
-                    rangeBonus = Upgrade.Value(parameters, levels, UpgradeParam.RadarRange);
+                    range += Upgrade.Value(parameters, levels, UpgradeParam.RadarRange);
                     response = Mathf.Max(response - Upgrade.Value(parameters, levels, UpgradeParam.RadarResponse), 0.0F);
                 }
 
@@ -230,11 +228,10 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             // 격자 간격과 위치를 레이더 좌표로 환산. 스캐너 반지름 = 탐지 거리.
             // 격자는 월드 좌표에 고정이라 우주선이 움직인 만큼 밀림. 우주선이 없으면 마지막 위치를 유지함.
-            if (!rangeQuery.IsEmpty && !playerQuery.IsEmpty)
+            if (range > 0.0F && !playerQuery.IsEmpty)
             {
                 using var players = playerQuery.ToComponentDataArray<LocalTransform>(Allocator.Temp);
 
-                float range = rangeQuery.GetSingleton<RelevancyConfigComponent>().Radius + rangeBonus;
                 float scale = material.GetFloat(RadiusId) / range;
                 float spacing = gridCellSize * scale;
 
@@ -277,7 +274,7 @@ namespace GalaxyIO.Scripts.Managed.UI
         // from ~ to 각도 사이를 지나간 우주선을 점으로 예약함.
         private void Sweep(float from, float to)
         {
-            if (playerQuery.IsEmpty || rangeQuery.IsEmpty)
+            if (playerQuery.IsEmpty)
             {
                 return;
             }
@@ -286,7 +283,6 @@ namespace GalaxyIO.Scripts.Managed.UI
             using var targets = targetQuery.ToEntityArray(Allocator.Temp);
 
             Vector2 center = players[0].Position.xy;
-            float range = rangeQuery.GetSingleton<RelevancyConfigComponent>().Radius + rangeBonus;
             float swept = to - from;
 
             foreach (Entity target in targets)

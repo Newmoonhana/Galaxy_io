@@ -52,7 +52,7 @@ namespace GalaxyIO.DOTS.Authoring
         public float SightAngle = 120.0F;
 
         [SerializeField]
-        [Tooltip("대상을 놓치는 거리. 시야 반지름보다 작으면 시야 반지름을 씀.")]
+        [Tooltip("대상을 놓치는 거리. 대상 선체 바깥(Thickness 절반)부터 잼. 시야 반지름보다 작으면 시야 반지름을 씀.")]
         [Min(0.0F)]
         public float ChaseDistance = 20.0F;
 
@@ -88,7 +88,7 @@ namespace GalaxyIO.DOTS.Authoring
         public Vector2 StrafeDistanceRange = new Vector2(3.0F, 6.0F);
 
         [SerializeField]
-        [Tooltip("이보다 멀면 좌/우 이동을 멈추고 추격")]
+        [Tooltip("이보다 멀면 좌/우 이동을 멈추고 추격. 대상 선체 바깥(Thickness 절반)부터 잼.")]
         [Min(0.0F)]
         public float ChaseRadius = 12.0F;
     }

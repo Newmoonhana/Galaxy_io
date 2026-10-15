@@ -103,10 +103,6 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         private EntityQuery inventoryQuery;
         private EntityQuery registryQuery;
         private EntityQuery spaceshipRegistryQuery;
-        private EntityQuery relevancyQuery;
-
-        // 레이더 기본 탐지 거리. 우주선 사양 창에 넘김.
-        private float detectRange;
 
         // 강화, 장착 대상인 로컬 우주선
         private EntityQuery shipQuery;
@@ -141,7 +137,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
 
             stateM.Add(stateInventory, new InventoryState(inventory_win));
             stateM.Add(stateSpaceship, new SpecState(inventory_win, spaceship_win,
-                data => spaceship_win.SetSpaceship((SpaceshipAsset)data, detectRange)));
+                data => spaceship_win.SetSpaceship((SpaceshipAsset)data)));
             stateM.Add(stateTurret, new SpecState(inventory_win, turret_win,
                 data => turret_win.SetRecipe((RecipeAsset)data)));
             stateM.Change(stateInventory);
@@ -158,7 +154,6 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             inventoryQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<LocalInventoryComponent>());
             registryQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<ItemRegistryAssetComponent>());
             spaceshipRegistryQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<SpaceshipRegistryAssetComponent>());
-            relevancyQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<RelevancyConfigComponent>());
             shipQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<GhostOwnerIsLocal>(),
                 ComponentType.ReadOnly<SpaceshipKindComponent>(),
@@ -232,8 +227,6 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             // 자동 포탑 칸은 아직 장착할 수 없어 비어 있음
             if (stateM.CurrentToString == stateTurret)
                 turret_win.Refresh(inventory, inventory_win.SelectedSlot == 0 ? turret : ItemId.None);
-
-            if (!relevancyQuery.IsEmpty) detectRange = relevancyQuery.GetSingleton<RelevancyConfigComponent>().Radius;
 
             // 강화 사양이 없는 기체는 강화 창을 비움
             if (!entityManager.HasBuffer<UpgradeElement>(ships[0])) return;

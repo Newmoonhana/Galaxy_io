@@ -25,23 +25,22 @@ namespace GalaxyIO.DOTS.Systems
         {
             state.RequireForUpdate<PlayerInputComponent>();
             state.RequireForUpdate<ItemRegistryElement>();
-            state.RequireForUpdate<TurnBrakeConfigComponent>();
         }
 
         // 플레이어 입력 > 우주선의 기수 회전, DeltaMovement 수정
         public void OnUpdate(ref SystemState state)
         {
             DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetSingletonBuffer<ItemRegistryElement>(true);
-            TurnBrakeConfigComponent turnBrake = SystemAPI.GetSingleton<TurnBrakeConfigComponent>();
 
             foreach (
-                var (transform, inputRequest, movement, playerMovement, turretSwitch, equipped) in
+                var (transform, inputRequest, movement, playerMovement, turnBrakeRef, turretSwitch, equipped) in
                 SystemAPI
                     .Query<
                         RefRW<LocalTransform>,
                         RefRO<PlayerInputComponent>,
                         RefRW<SpaceshipMovementComponent>,
                         RefRW<PlayerSpaceshipMovementComponent>,
+                        RefRO<TurnBrakeComponent>,
                         RefRO<TurretSwitchComponent>,
                         RefRO<EquippedTurretComponent>
                     >()
@@ -49,6 +48,7 @@ namespace GalaxyIO.DOTS.Systems
             )
             {
                 float deltaTime = SystemAPI.Time.DeltaTime;
+                TurnBrakeComponent turnBrake = turnBrakeRef.ValueRO;
                 bool accelerating = inputRequest.ValueRO.AccelerationTriggered;
 
                 // 기수 방향은 항상 마우스 커서가 잡음.
@@ -64,7 +64,7 @@ namespace GalaxyIO.DOTS.Systems
                 float speed = math.length(velocity);
                 float maxSpeed = playerMovement.ValueRO.MaxSpeed;
 
-                // 회전: 목표 방향까지 Maneuver 한계 내에서 접근.
+                // 회전: 회전속도를 가감속해 목표 방향으로 접근. 최대 회전속도는 Maneuver.
                 float2 currentForward = math.normalizesafe(
                     SpaceshipHeading.FromRotation(transform.ValueRO.Rotation),
                     new float2(1.0F, 0.0F)
@@ -86,13 +86,49 @@ namespace GalaxyIO.DOTS.Systems
                     TurretSwitch.ManeuverScale(turretSwitch.ValueRO, registry.Get(equipped.ValueRO.Value))
                 );
 
-                float maxAngleDelta = math.radians(playerMovement.ValueRO.Maneuver) * maneuverScale * deltaTime;
-                float2 nextForward = SpaceshipHeading.RotateTowards(currentForward, desiredForward, maxAngleDelta);
+                float maxTurnRate = playerMovement.ValueRO.Maneuver * maneuverScale;
+                float maneuverDeceleration = playerMovement.ValueRO.ManeuverDeceleration;
+                float angularVelocity = playerMovement.ValueRO.AngularVelocity;
 
-                float turnAngle = math.abs(math.atan2(
-                    currentForward.x * nextForward.y - currentForward.y * nextForward.x,
-                    math.dot(currentForward, nextForward)
+                // 남은 각도(도). +는 반시계 방향.
+                float remaining = math.degrees(math.atan2(
+                    currentForward.x * desiredForward.y - currentForward.y * desiredForward.x,
+                    math.dot(currentForward, desiredForward)
                 ));
+
+                // 감속도로 딱 멈출 수 있는 회전속도까지만 냄. 이번 틱에 지나치지 않도록 남은 각도로도 자름.
+                float desiredTurnRate = math.sign(remaining) * math.min(
+                    maxTurnRate,
+                    math.min(math.sqrt(2.0F * maneuverDeceleration * math.abs(remaining)), math.abs(remaining) / deltaTime)
+                );
+
+                // 같은 방향으로 더 빨라질 때만 가속도, 그 외(감속, 반대 방향)는 감속도.
+                bool speedingUp = desiredTurnRate * angularVelocity >= 0.0F
+                                  && math.abs(desiredTurnRate) > math.abs(angularVelocity);
+                float maxRateDelta = (speedingUp ? playerMovement.ValueRO.ManeuverAcceleration : maneuverDeceleration)
+                                     * deltaTime;
+
+                angularVelocity += math.clamp(desiredTurnRate - angularVelocity, -maxRateDelta, maxRateDelta);
+
+                float turnStep = angularVelocity * deltaTime;
+
+                // 목표를 지나치면 목표에 멈춤.
+                if (turnStep * remaining > 0.0F && math.abs(turnStep) > math.abs(remaining))
+                {
+                    turnStep = remaining;
+                    angularVelocity = 0.0F;
+                }
+
+                math.sincos(math.radians(turnStep), out float turnSin, out float turnCos);
+                float2 nextForward = math.normalizesafe(
+                    new float2(
+                        currentForward.x * turnCos - currentForward.y * turnSin,
+                        currentForward.x * turnSin + currentForward.y * turnCos
+                    ),
+                    currentForward
+                );
+
+                float turnAngle = math.radians(math.abs(turnStep));
 
                 float hoveringSpeed = playerMovement.ValueRO.HoveringSpeed;
 
@@ -168,6 +204,7 @@ namespace GalaxyIO.DOTS.Systems
                 }
 
                 playerMovement.ValueRW.Velocity = velocity;
+                playerMovement.ValueRW.AngularVelocity = angularVelocity;
                 transform.ValueRW.Rotation = SpaceshipHeading.ToRotation(nextForward);
                 movement.ValueRW.DeltaMovement = velocity;
             }

@@ -113,6 +113,7 @@ namespace GalaxyIO.DOTS.Systems
                     TickEngaging(
                         position,
                         perception.TargetPosition,
+                        perception.TargetThickness,
                         forward,
                         enemyMovement.HoveringSpeed,
                         math.length(enemyMovement.Velocity) * DeltaTime,
@@ -187,6 +188,9 @@ namespace GalaxyIO.DOTS.Systems
                         {
                             perception.CurrentTarget = e.Instigator;
                             perception.TargetPosition = e.InstigatorPosition;
+
+                            // 다음 틱 인지 시스템이 채움.
+                            perception.TargetThickness = 0.0F;
                         }
                         break;
                 }
@@ -252,11 +256,12 @@ namespace GalaxyIO.DOTS.Systems
         }
 
         /// <summary>
-        /// 대상을 바라보며 좌/우로 이동. 너무 멀면 추격.
+        /// 대상을 바라보며 좌/우로 이동. 너무 멀면 추격. 거리는 대상 선체 바깥부터 잼.
         /// </summary>
         private static void TickEngaging(
             float2 position,
             float2 targetPosition,
+            float targetThickness,
             float2 forward,
             float hoveringSpeed,
             float travelled,
@@ -272,7 +277,7 @@ namespace GalaxyIO.DOTS.Systems
             // 이동 방향과 무관하게 항상 대상을 바라봄.
             desiredForward = radial;
 
-            if (distance > strafing.ChaseRadius)
+            if (distance > strafing.ChaseRadius + targetThickness * 0.5F)
             {
                 desiredVelocity = radial * hoveringSpeed;
                 return;

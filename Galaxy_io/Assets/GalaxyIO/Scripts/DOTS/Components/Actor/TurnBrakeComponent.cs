@@ -1,12 +1,12 @@
-using GalaxyIO.DOTS.Authoring.Config;
+using GalaxyIO.DOTS.Authoring;
 using Unity.Entities;
 
-namespace GalaxyIO.DOTS.Components.Singleton
+namespace GalaxyIO.DOTS.Components.Actor
 {
     /// <summary>
-    /// <see cref="TurnBrakeConfigAuthoring"/>의 DOTS 구조체. 월드당 한 개.
+    /// <see cref="SpaceshipAuthoring"/>의 선회 제동, 회전 관성 값. 플레이어 우주선만.
     /// </summary>
-    public struct TurnBrakeConfigComponent : IComponentData
+    public struct TurnBrakeComponent : IComponentData
     {
         // 기준 회전속도(도/초)
         public float TurnRate;

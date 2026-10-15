@@ -1,4 +1,5 @@
-﻿using GalaxyIO.DOTS.Components.Actor;
+﻿using GalaxyIO.DOTS.Collision;
+using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.Tools;
 using System.Collections.Generic;
 using TMPro;
@@ -12,6 +13,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 {
     /// <summary>
     /// 플레이어 우주선 아래에 이름을 그리는 클라이언트 전용 뷰.
+    /// 회전한 선체 충돌체의 아래쪽 끝에 붙이고, 선체 두께(Thickness)만큼 크게 그림.
     /// </summary>
     public sealed class SpaceshipNameLabels : MonoBehaviour
     {
@@ -20,8 +22,16 @@ namespace GalaxyIO.Scripts.Managed.UI
         private TMP_Text labelPrefab;
 
         [SerializeField]
-        [Tooltip("우주선 중심 기준 이름표 위치. 체력바 아래에 둠.")]
-        private float offsetY = -0.85F;
+        [Tooltip("선체 아래쪽 끝과 이름표 사이 간격. 체력바 아래에 둠. 두께 배율이 함께 곱해짐.")]
+        private float gap = 0.35F;
+
+        [SerializeField]
+        [Tooltip("두께 1 당 늘어나는 크기 배율. 두께 1이면 프리팹 크기 그대로.")]
+        [Min(0.0F)]
+        private float scalePerThickness = 0.1F;
+
+        // 프리팹 크기. 두께 배율의 기준.
+        private Vector3 baseScale;
 
         private EntityManager entityManager;
         private EntityQuery spaceshipQuery;
@@ -48,8 +58,11 @@ namespace GalaxyIO.Scripts.Managed.UI
             entityManager = clientWorld.EntityManager;
             spaceshipQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<PlayerNameComponent>(),
+                ComponentType.ReadOnly<SpaceshipSpecComponent>(),
+                ComponentType.ReadOnly<ColliderComponent>(),
                 ComponentType.ReadOnly<LocalTransform>()
             );
+            baseScale = labelPrefab.transform.localScale;
         }
 
         private void LateUpdate()
@@ -76,13 +89,19 @@ namespace GalaxyIO.Scripts.Managed.UI
                 }
 
                 var transformData = entityManager.GetComponentData<LocalTransform>(spaceship);
+                float thickness = entityManager.GetComponentData<SpaceshipSpecComponent>(spaceship).Thickness;
+                Aabb bounds = ColliderBounds.ToAabb(
+                    ColliderOverlap.ToWorld(entityManager.GetComponentData<ColliderComponent>(spaceship), transformData)
+                );
+                float scale = 1.0F + Mathf.Max(thickness - 1.0F, 0.0F) * scalePerThickness;
 
                 int index = shown++;
                 TMP_Text label = Rent(index);
 
+                label.transform.localScale = baseScale * scale;
                 label.transform.position = new Vector3(
                     transformData.Position.x,
-                    transformData.Position.y + offsetY,
+                    bounds.Min.y - gap * scale,
                     transformData.Position.z
                 );
 

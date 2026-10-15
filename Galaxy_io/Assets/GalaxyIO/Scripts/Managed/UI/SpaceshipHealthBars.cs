@@ -1,4 +1,5 @@
-﻿using GalaxyIO.DOTS.Components.Actor;
+﻿using GalaxyIO.DOTS.Collision;
+using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.Tools;
 using System.Collections.Generic;
 using Unity.Collections;
@@ -11,7 +12,7 @@ using UnityEngine;
 namespace GalaxyIO.Scripts.Managed.UI
 {
     /// <summary>
-    /// 우주선 아래에 체력바를 그리는 클라이언트 전용 뷰.
+    /// 우주선 선체 아래에 체력바를 그리는 클라이언트 전용 뷰.
     /// </summary>
     public sealed class SpaceshipHealthBars : MonoBehaviour
     {
@@ -20,8 +21,8 @@ namespace GalaxyIO.Scripts.Managed.UI
         private HealthBarView barPrefab;
 
         [SerializeField]
-        [Tooltip("우주선 중심 기준 체력바 위치")]
-        private float offsetY = -0.7F;
+        [Tooltip("선체 아래쪽 끝과 체력바 사이 간격")]
+        private float gap = 0.2F;
 
         private EntityManager entityManager;
         private EntityQuery spaceshipQuery;
@@ -45,6 +46,7 @@ namespace GalaxyIO.Scripts.Managed.UI
             entityManager = clientWorld.EntityManager;
             spaceshipQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<SpaceshipSpecComponent>(),
+                ComponentType.ReadOnly<ColliderComponent>(),
                 ComponentType.ReadOnly<LocalTransform>()
             );
         }
@@ -74,10 +76,15 @@ namespace GalaxyIO.Scripts.Managed.UI
 
                 var transformData = entityManager.GetComponentData<LocalTransform>(spaceship);
 
+                // 이름표와 같이 회전한 선체의 아래쪽 끝에 붙임.
+                Aabb bounds = ColliderBounds.ToAabb(
+                    ColliderOverlap.ToWorld(entityManager.GetComponentData<ColliderComponent>(spaceship), transformData)
+                );
+
                 HealthBarView bar = Rent(shown++);
                 bar.transform.position = new Vector3(
                     transformData.Position.x,
-                    transformData.Position.y + offsetY,
+                    bounds.Min.y - gap,
                     transformData.Position.z
                 );
 

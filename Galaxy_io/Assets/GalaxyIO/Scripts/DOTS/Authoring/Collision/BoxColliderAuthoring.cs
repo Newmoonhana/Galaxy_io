@@ -9,6 +9,9 @@ namespace GalaxyIO.DOTS.Authoring
     /// </summary>
     public sealed class BoxColliderAuthoring : ColliderAuthoring
     {
+        // Scene 뷰 와이어프레임, 편집 핸들 색
+        public static readonly Color GizmoColor = new Color(0.4F, 1.0F, 0.5F, 0.8F);
+
         [SerializeField]
         [Tooltip("충돌체의 가로 / 세로 크기")]
         public Vector2 Size = Vector2.one;
@@ -23,11 +26,11 @@ namespace GalaxyIO.DOTS.Authoring
             };
         }
 
-        // Scene 뷰 와이어프레임. 드래그 핸들은 BoxColliderAuthoringEditor가 그림.
+        // Scene 뷰 와이어프레임. 드래그 핸들은 BoxColliderAuthoringTool 이 그림.
         private void OnDrawGizmosSelected()
         {
             Gizmos.matrix = transform.localToWorldMatrix;
-            Gizmos.color = new Color(0.4F, 1.0F, 0.5F, 0.8F);
+            Gizmos.color = GizmoColor;
             Gizmos.DrawWireCube(Center, new Vector3(Size.x, Size.y, 0.0F));
         }
     }

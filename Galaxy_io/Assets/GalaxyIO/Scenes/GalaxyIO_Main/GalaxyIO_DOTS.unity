@@ -134,7 +134,7 @@ GameObject:
   - component: {fileID: 163557126}
   - component: {fileID: 163557128}
   - component: {fileID: 163557129}
-  - component: {fileID: 163557130}
+  - component: {fileID: 163557131}
   m_Layer: 0
   m_Name: Config
   m_TagString: Untagged
@@ -202,8 +202,7 @@ MonoBehaviour:
   SpawnInterval: 2
   SpawnPerRadar: 4
   RadarCap: 20
-  SpawnDistanceRange: {x: 40, y: 64}
-  ViewHalfExtents: {x: 50, y: 30}
+  SpawnAreaScale: 1.5
 --- !u!114 &163557127
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -233,7 +232,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 860e5571e9f86ab4fb57fc0530ae1107, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.RelevancyConfigAuthoring
-  Radius: 64
   Hysteresis: 8
 --- !u!114 &163557129
 MonoBehaviour:
@@ -253,7 +251,7 @@ MonoBehaviour:
   NoFireStandbyTime: 1.7
   CoolingTime: 1.5
   OverheatCoolingTime: 3
---- !u!114 &163557130
+--- !u!114 &163557131
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -262,17 +260,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 163557122}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 944da5d691744d319efac95fe1f6dabc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.TurnBrakeConfigAuthoring
-  TurnRate: 270
-  Deceleration: 30
-  Exponent: 3
-  StartSpeed: 15
-  ReferenceSpeed: 30
-  Inertia: 1
-  InertiaDeceleration: 20
-  InertiaTurnRate: 180
+  m_Script: {fileID: 11500000, guid: a3ed56091dd64ef7af51460c10ecad57, type: 3}
+  m_Name:
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.PlayerSpawnConfigAuthoring
+  DefaultSpaceship: 6
 --- !u!1 &1598268223
 GameObject:
   m_ObjectHideFlags: 0

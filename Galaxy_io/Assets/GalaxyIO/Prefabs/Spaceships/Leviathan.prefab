@@ -16,7 +16,7 @@ GameObject:
   - component: {fileID: 3345718978926545676}
   - component: {fileID: 6412773190475893041}
   m_Layer: 0
-  m_Name: PlayerSpaceship2
+  m_Name: Leviathan
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -89,7 +89,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 21300000, guid: 5dcadad921c38d8469a5c87eaaa9f1c4, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 8f9b7ea1d4ce1d24eb8797324a648b74, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -111,20 +111,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ba5f85943ed340039e28b4335d174b2c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.SpaceshipAuthoring
+  Kind: 0
   Speed: 20
   HoveringSpeed: 3
   HoveringAcceleration: 3
   HoveringDeceleration: 3
   HoveringManeuver: 1
-  Acceleration: 3
-  Deceleration: 6
-  Maneuver: 60
-  ManeuverPenalty: 0.68
+  Acceleration: 1
+  Deceleration: 3
+  Maneuver: 35
+  ManeuverAcceleration: 20
+  ManeuverDeceleration: 25
+  ManeuverPenalty: 0.959
   MaxHealth: 3000
   Repair: 15
   RepairDelay: 3
-  Thickness: 10
+  Thickness: 20
   MaxHeat: 1000
+  TurnBrakeTurnRate: 35
+  TurnBrakeDeceleration: 8
+  TurnBrakeExponent: 2
+  TurnBrakeStartSpeed: 8
+  TurnBrakeReferenceSpeed: 20
+  Inertia: 20
+  InertiaDeceleration: 4
+  InertiaTurnRate: 25
+  MaxOrthographicSize: 25
+  RadarRange: 96
+  RadarSweepSpeed: 120
+  RadarResponseTime: 0.1
   Faction: 1
   Muzzles:
   - {fileID: 1279712499970898616}
@@ -181,7 +196,7 @@ MonoBehaviour:
   OptimizationMode: 0
   Importance: 250
   MaxSendRate: 0
-  prefabId: 328bac3ed695339469506267d64809e0
+  prefabId: 2ef460845e23b3c4592c59cff17d2ad2
 --- !u!114 &6412773190475893041
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -194,8 +209,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b81e4e8540b4e94dbc07f7b0499c275, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.BoxColliderAuthoring
-  Center: {x: 0, y: 0}
-  Size: {x: 0.9912537, y: 1}
+  Center: {x: 0.00000047683716, y: -0.30470848}
+  Size: {x: 13.196309, y: 19.900063}
 --- !u!1 &2225960894660375326
 GameObject:
   m_ObjectHideFlags: 0

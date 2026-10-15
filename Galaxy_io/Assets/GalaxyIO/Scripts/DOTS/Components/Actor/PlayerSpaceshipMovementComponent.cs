@@ -39,6 +39,14 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 회전속도(도/초)
         public float Maneuver;
 
+        // 회전 가속도, 감속도(도/초²)
+        public float ManeuverAcceleration;
+        public float ManeuverDeceleration;
+
+        // 현재 회전속도(도/초). +는 반시계 방향. 예측 롤백 시 되감아야 하므로 복제함.
+        [GhostField]
+        public float AngularVelocity;
+
         // 고속 선회 억제: 최대 속력일 때 Maneuver가 감소하는 비율(0 ~ 1).
         // 0이면 속력과 무관하게 항상 최대 회전속도, 1이면 최대 속력에서 선회 불가.
         public float ManeuverPenalty;

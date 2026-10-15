@@ -25,6 +25,6 @@ namespace GalaxyIO.DOTS.Components.Singleton
 
         // 모선
         Behemoth = 9,
-        Sovereign = 10,
+        Colossus = 10,
     }
 }

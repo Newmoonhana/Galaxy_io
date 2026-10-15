@@ -69,6 +69,7 @@ namespace GalaxyIO.DOTS.Systems
                 Proxies  = proxies,
                 Cells    = cells,
                 CellSize = config.CellSize,
+                Specs    = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
             }.ScheduleParallel(state.Dependency);
 
             JobHandle projectile = new ProjectileCollisionDetectionJob
@@ -167,6 +168,7 @@ namespace GalaxyIO.DOTS.Systems
 
     /// <summary>
     /// 선체 - 선체 충돌. 겹친 상대를 자기 버퍼에 남김. 양쪽이 각자 자기 몫을 찾음.
+    /// 밀려나는 양은 선체 두께(Thickness)로 나눔.
     /// </summary>
     [BurstCompile]
     [WithAll(typeof(SpaceshipSpecComponent))]
@@ -179,6 +181,9 @@ namespace GalaxyIO.DOTS.Systems
         public NativeParallelMultiHashMap<int2, int> Cells;
 
         public float CellSize;
+
+        [ReadOnly]
+        public ComponentLookup<SpaceshipSpecComponent> Specs;
 
         private void Execute(
             Entity entity,
@@ -202,6 +207,7 @@ namespace GalaxyIO.DOTS.Systems
             };
 
             var candidates = new SpatialHashCandidates(Cells, Proxies, CellSize, receiver.Bounds);
+            float thickness = Specs[entity].Thickness;
 
             while (candidates.Next(out int i))
             {
@@ -213,6 +219,12 @@ namespace GalaxyIO.DOTS.Systems
                     continue;
                 }
 
+                float otherThickness = Specs[target.Entity].Thickness;
+
+                // Min(상대 / 나, 1). 둘 중 하나는 항상 1이라 합이 0이 되지 않음.
+                float mine = thickness <= otherThickness ? 1.0F : otherThickness / thickness;
+                float others = otherThickness <= thickness ? 1.0F : thickness / otherThickness;
+
                 messages.Add(new SpaceshipCollisionElement
                 {
                     Message = new CollisionMessage
@@ -222,6 +234,8 @@ namespace GalaxyIO.DOTS.Systems
                         Normal      = hit.Normal,
                         Depth       = hit.Depth,
                     },
+                    Repulsion = mine,
+                    PushShare = mine / (mine + others),
                 });
             }
         }

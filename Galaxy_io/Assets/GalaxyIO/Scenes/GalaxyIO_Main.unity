@@ -379,10 +379,8 @@ MonoBehaviour:
   scanner: {fileID: 1404916992}
   background: {fileID: 1279052655}
   coordinates: {fileID: 993819519}
-  sweepSpeed: 120
   sweepFadeStartSpeed: 360
   sweepFadeEndSpeed: 5000
-  responseTime: 0.1
   fadeOutTime: 2
   minFadeOutTime: 0.05
   fastestSweepSpeed: 7200
@@ -887,7 +885,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Scripts.Managed.Audio.SoundEffectPlayer
   loopFadeOut: 0.3
-  maxPerKeyPerFrame: 3
 --- !u!1 &350430278
 GameObject:
   m_ObjectHideFlags: 0

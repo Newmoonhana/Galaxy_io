@@ -29,7 +29,7 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 한 번에 좌/우로 이동할 거리 추출 범위. (최소, 최대)
         public float2 StrafeDistanceRange;
 
-        // 대상이 이보다 멀면 좌/우 이동을 멈추고 추격함.
+        // 대상 선체 바깥이 이보다 멀면 좌/우 이동을 멈추고 추격함.
         public float ChaseRadius;
 
         // 현재 좌/우 방향. 1: 대상 기준 왼쪽, -1: 오른쪽.
