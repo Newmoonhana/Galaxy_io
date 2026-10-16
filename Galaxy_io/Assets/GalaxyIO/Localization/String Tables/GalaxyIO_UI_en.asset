@@ -560,107 +560,115 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000001
-    m_Localized: "Invite to Party"
+    m_Localized: Invite to Party
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000002
-    m_Localized: "Usage: /p inv|delegate|kick|auth|revoke|quit {Username}"
+    m_Localized: 'Usage: /p inv|delegate|kick|auth|revoke|quit {Username}'
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000003
-    m_Localized: "You can't invite yourself."
+    m_Localized: You can't invite yourself.
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000004
-    m_Localized: "You don't have permission to do that."
+    m_Localized: You don't have permission to do that.
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000005
-    m_Localized: "{0} belongs to another party."
+    m_Localized: '{0} belongs to another party.'
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000006
-    m_Localized: "Sent a party invitation to {0}."
+    m_Localized: Sent a party invitation to {0}.
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000007
-    m_Localized: "You've been invited to {0}'s party."
+    m_Localized: You've been invited to {0}'s party.
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000008
-    m_Localized: "You have no party invitation."
+    m_Localized: You have no party invitation.
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000010
-    m_Localized: "The invitation has expired."
+    m_Localized: The invitation has expired.
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000011
-    m_Localized: "{0} joined the party."
+    m_Localized: '{0} joined the party.'
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000012
-    m_Localized: "You are not in a party."
+    m_Localized: You are not in a party.
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000013
-    m_Localized: "{0} left the party."
+    m_Localized: '{0} left the party.'
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000014
-    m_Localized: "{0} is not in your party."
+    m_Localized: '{0} is not in your party.'
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000015
-    m_Localized: "{0} is now the party master."
+    m_Localized: '{0} is now the party master.'
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000016
-    m_Localized: "{0} was kicked from the party."
+    m_Localized: '{0} was kicked from the party.'
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000017
-    m_Localized: "{0} was given party authority."
+    m_Localized: '{0} was given party authority.'
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000018
-    m_Localized: "The party has been disbanded."
+    m_Localized: The party has been disbanded.
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000019
-    m_Localized: "Party"
+    m_Localized: Party
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000020
-    m_Localized: "[Accept]"
+    m_Localized: '[Accept]'
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000021
-    m_Localized: "{0} has no party authority."
+    m_Localized: '{0} has no party authority.'
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000022
-    m_Localized: "{0}'s party authority was revoked."
+    m_Localized: '{0}''s party authority was revoked.'
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000023
-    m_Localized: "Make Party Master"
+    m_Localized: Make Party Master
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000024
-    m_Localized: "Kick from Party"
+    m_Localized: Kick from Party
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000025
-    m_Localized: "Give Party Authority"
+    m_Localized: Give Party Authority
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000026
-    m_Localized: "Revoke Party Authority"
+    m_Localized: Revoke Party Authority
     m_Metadata:
       m_Items: []
   - m_Id: 2500000000000027
-    m_Localized: "Leave Party"
+    m_Localized: Leave Party
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7766594600083456
+    m_Localized: Destination
+    m_Metadata:
+      m_Items: []
+  - m_Id: 7766594654609408
+    m_Localized: You are pinging too often. Please wait a moment.
     m_Metadata:
       m_Items: []
   references:
