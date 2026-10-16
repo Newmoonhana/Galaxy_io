@@ -39,10 +39,6 @@ namespace GalaxyIO.Scripts.Managed.UI
         private ChatView chat;
 
         [SerializeField]
-        [Tooltip("로컬 플레이어와 같은 파티원의 이름 색")]
-        private Color partyColor = Color.green;
-
-        [SerializeField]
         [Tooltip("파티장 이름 왼쪽에 붙는 왕관")]
         private Sprite crownSprite;
 
@@ -63,9 +59,6 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         // 프리팹 크기. 두께 배율의 기준.
         private Vector3 baseScale;
-
-        // 프리팹 글자색. 파티원이 아닌 이름의 색.
-        private Color baseColor;
 
         private EntityManager entityManager;
         private EntityQuery spaceshipQuery;
@@ -101,7 +94,6 @@ namespace GalaxyIO.Scripts.Managed.UI
                 ComponentType.ReadOnly<LocalTransform>()
             );
             baseScale = labelPrefab.transform.localScale;
-            baseColor = labelPrefab.color;
         }
 
         private void LateUpdate()
@@ -156,8 +148,6 @@ namespace GalaxyIO.Scripts.Managed.UI
                 }
 
                 int networkId = entityManager.GetComponentData<GhostOwner>(spaceship).NetworkId;
-                label.color = roster.Members.Contains(networkId) ? partyColor : baseColor;
-
                 Sprite sprite = roster.Master == networkId ? crownSprite
                     : roster.Authorized.Contains(networkId) ? authSprite
                     : null;
