@@ -55,6 +55,16 @@
                     "interactions": "",
                     "initialStateCheck": false,
                     "priority": 0
+                },
+                {
+                    "name": "Ping",
+                    "type": "Button",
+                    "id": "3f0d6a52-8c1e-4b7a-9d64-5a2e1c7b9f30",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
                 }
             ],
             "bindings": [
@@ -203,12 +213,12 @@
                 },
                 {
                     "name": "",
-                    "id": "785d17ea-7d3b-412b-abe5-202f5ffb8c38",
+                    "id": "b6e2c9d1-4a7f-4e38-8f15-0c9d3e2a7b64",
                     "path": "<Mouse>/rightButton",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Artillery",
+                    "action": "Ping",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
