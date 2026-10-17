@@ -8,9 +8,11 @@ using GalaxyIO.DOTS.Inventory;
 using GalaxyIO.Tools.PopupUI.Window;
 using Newmoonhana.Runtime.Tools.PopupUI.Popup;
 using Newmoonhana.Runtime.Utils.Pattern;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace GalaxyIO.Tools.PopupUI.Popup
@@ -106,6 +108,9 @@ namespace GalaxyIO.Tools.PopupUI.Popup
 
         // 강화, 장착 대상인 로컬 우주선
         private EntityQuery shipQuery;
+
+        // 포탑 칸 번호별 장착 포탑 아이콘. 매 프레임 다시 채움.
+        private readonly List<Sprite> turretIcons = new List<Sprite>();
 
         // 인벤토리 전체 닫기. 띄운 쪽이 상태 플래그까지 정리함.
         private UnityAction exit;
@@ -217,16 +222,29 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             using NativeArray<Entity> ships = shipQuery.ToEntityArray(Allocator.Temp);
             SpaceshipId kind = entityManager.GetComponentData<SpaceshipKindComponent>(ships[0]).Value;
             ItemId turret = entityManager.GetComponentData<EquippedTurretComponent>(ships[0]).Value;
-            ItemAsset turretItem = items.Find(turret);
+            DynamicBuffer<AutoTurretElement> autoTurrets = entityManager.GetBuffer<AutoTurretElement>(ships[0], true);
             ItemAsset powerCell = items.Find(ItemId.PowerCell);
 
-            inventory_win.Refresh(inventory, items, spaceships, spaceships.Find(kind),
-                turretItem != null ? turretItem.Sprite : null);
+            // 조종 포탑 총구가 없는 기종은 모든 칸이 자동 포탑 칸
+            bool hasMainTurret = entityManager.GetBuffer<TurretElement>(ships[0], true).Length > 0;
+            bool autoSelected = TurretEquip.AutoTurretIndex(inventory_win.SelectedSlot, hasMainTurret) >= 0;
+            ItemId selected = ItemId.None;
+            turretIcons.Clear();
+
+            for (int i = 0; i < (hasMainTurret ? 1 : 0) + autoTurrets.Length; i++)
+            {
+                int auto = TurretEquip.AutoTurretIndex(i, hasMainTurret);
+                ItemId slotTurret = auto < 0 ? turret : autoTurrets[auto].Turret;
+                ItemAsset slotItem = items.Find(slotTurret);
+                turretIcons.Add(slotItem != null ? slotItem.Sprite : null);
+
+                if (i == inventory_win.SelectedSlot) selected = slotTurret;
+            }
+
+            inventory_win.Refresh(inventory, items, spaceships, spaceships.Find(kind), turretIcons, autoSelected);
 
             if (stateM.CurrentToString == stateSpaceship) spaceship_win.Refresh(inventory, kind);
-            // 자동 포탑 칸은 아직 장착할 수 없어 비어 있음
-            if (stateM.CurrentToString == stateTurret)
-                turret_win.Refresh(inventory, inventory_win.SelectedSlot == 0 ? turret : ItemId.None);
+            if (stateM.CurrentToString == stateTurret) turret_win.Refresh(inventory, selected, autoSelected);
 
             // 강화 사양이 없는 기체는 강화 창을 비움
             if (!entityManager.HasBuffer<UpgradeElement>(ships[0])) return;

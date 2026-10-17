@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using GalaxyIO.DOTS.Components.Actor;
-using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Mathematics;
 using UnityEngine;
-using UnityEngine.Serialization;
 
 namespace GalaxyIO.DOTS.Authoring
 {
     /// <summary>
     /// 포탑 아이템. 포탑 상점에서 사면 우주선 총구에 장착됨.
+    /// 포탑 사양은 우주선의 모든 총구에 똑같이 적용됨. 총구 수는 우주선이 정함.
     /// </summary>
     [CreateAssetMenu(fileName = "SO_Item_Turret", menuName = "GalaxyIO/Turret Item")]
     public sealed class TurretItemAsset : ItemAsset
@@ -17,24 +15,19 @@ namespace GalaxyIO.DOTS.Authoring
         [Serializable]
         public struct TurretSpec
         {
-            [Tooltip("발사체. 비우면 이 총구는 쏘지 않음.")]
+            [Tooltip("발사체. 비우면 쏘지 않음.")]
             public GameObject Projectile;
 
-            [Tooltip("초당 발사 수. 따라 쏘는 총구는 쓰지 않음.")]
+            [Tooltip("초당 발사 수")]
             [Min(0.0F)]
             public float RPS;
 
-            [Tooltip("따라 쏠 총구 번호(1부터). 0 이면 혼자 RPS 대로 쏨. 따라 쏘는 총구는 앞 총구가 쏠 때마다 " +
-                     "FollowDelay 뒤에 한 번 쏨(방아쇠를 떼도 쏨). 앞 총구는 따라 쏘는 총구가 아니어야 함.")]
-            [Min(0)]
-            public int FollowMuzzle;
-
-            [Tooltip("따라 쏘는 총구만. 앞 총구가 쏜 뒤 이 총구가 쏘기까지의 시간(초).")]
+            [Tooltip("총구가 여럿일 때 첫 총구가 쏜 뒤 다음 총구가 차례로 쏘는 간격(초). " +
+                     "0 이면 모든 총구가 함께 쏨. 뒤 총구는 방아쇠를 떼도 마저 쏨.")]
             [Min(0.0F)]
-            [FormerlySerializedAs("FirstShotCooldown")]
-            public float FollowDelay;
+            public float MuzzleDelay;
 
-            [Tooltip("한 번에 쏘는 투사체 수. 각자 탄퍼짐, 속력 분포를 따로 받음. 0 은 1 로 취급.")]
+            [Tooltip("총구 하나가 한 번에 쏘는 투사체 수. 각자 탄퍼짐, 속력 분포를 따로 받음. 0 은 1 로 취급.")]
             [Range(0, 32)]
             public int ProjectileCount;
 
@@ -52,17 +45,54 @@ namespace GalaxyIO.DOTS.Authoring
             [Tooltip("발사음")]
             public string ShotSound;
 
-            public bool Armed => Projectile != null && (RPS > 0.0F || FollowMuzzle > 0);
+            public bool Armed => Projectile != null && RPS > 0.0F;
 
-            public float FireCooldown => Armed && RPS > 0.0F ? 1.0F / RPS : 0.0F;
+            public float FireCooldown => Armed ? 1.0F / RPS : 0.0F;
 
             // 탄 퍼짐 정도(Radian)
             public float Spread => Armed ? (1.0F - Accuracy) * math.TORADIANS * 90.0F : 0.0F;
         }
 
+        /// <summary>
+        /// 순양함, 모선의 자동 포탑 칸에 장착했을 때의 사양. 정확도, RPS 는 <see cref="TurretSpec"/>을 따름.
+        /// </summary>
+        [Serializable]
+        public struct AutoTurretSpec
+        {
+            [Tooltip("한 번에 사격하는 시간(초)")]
+            [Min(0.0F)]
+            public float FireDuration;
+
+            [Tooltip("사격 후 휴식 시간 추출 범위(초). (최소, 최대)")]
+            public Vector2 RestDuration;
+
+            [Tooltip("적을 향해 도는 속도(도/초)")]
+            [Min(0.0F)]
+            public float TurningSpeed;
+
+            [Tooltip("포탑이 돌 수 있는 부채꼴 각도(도). 가운데가 처음 방향.")]
+            [Range(0.0F, 360.0F)]
+            public float SightAngle;
+
+            [Tooltip("적을 찾는 거리")]
+            [Min(0.0F)]
+            public float DetectRange;
+        }
+
         [SerializeField]
-        [Tooltip("우주선 총구 순서대로 적용. 우주선 총구보다 많은 항목은 무시함.")]
-        public List<TurretSpec> TurretSpecs = new List<TurretSpec>();
+        [Tooltip("우주선의 모든 총구에 적용하는 사양")]
+        public TurretSpec Spec;
+
+        [SerializeField]
+        [Tooltip("자동 포탑으로 쓸 때의 사양")]
+        public AutoTurretSpec AutoSpec = new AutoTurretSpec
+        {
+            FireDuration = 2.0F,
+            RestDuration = new Vector2(1.0F, 2.0F),
+            TurningSpeed = 180.0F,
+            SightAngle   = 120.0F,
+            DetectRange  = 20.0F,
+        };
 
         [SerializeField]
         [Tooltip("사격 시작/중지 전환 시간(초). 우주선 단위. 전환 중에는 쏠 수 없음.")]

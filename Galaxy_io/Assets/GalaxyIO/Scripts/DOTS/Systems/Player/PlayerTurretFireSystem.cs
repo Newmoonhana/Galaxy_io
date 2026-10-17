@@ -53,7 +53,6 @@ namespace GalaxyIO.DOTS.Systems
 
             Entity registryEntity = SystemAPI.GetSingletonEntity<ItemRegistryElement>();
             DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetBuffer<ItemRegistryElement>(registryEntity);
-            DynamicBuffer<TurretSpecElement> specs = SystemAPI.GetBuffer<TurretSpecElement>(registryEntity);
 
             float deltaTime = SystemAPI.Time.DeltaTime;
             ItemConfigComponent config = SystemAPI.GetSingleton<ItemConfigComponent>();
@@ -89,12 +88,14 @@ namespace GalaxyIO.DOTS.Systems
                 RefRW<TurretStandbyComponent> standby = SystemAPI.GetComponentRW<TurretStandbyComponent>(spaceship);
                 RefRW<TurretHeatComponent> heat = SystemAPI.GetComponentRW<TurretHeatComponent>(spaceship);
                 ItemRegistryElement turret = registry.Get(equipped.ValueRO.Value);
+                TurretSpecData spec = turret.Turret;
 
                 // 사격 시작/중지 전환. 전환 중에는 쏠 수 없음.
-                // 과열 중에는 방아쇠를 뗀 것으로 넘김. 복제된 전환 상태로 다른 클라이언트의 연출, 반복음도 멈춤.
+                // 과열 중이거나 조종 포탑 총구가 없으면 방아쇠를 뗀 것으로 넘김.
+                // 복제된 전환 상태로 다른 클라이언트의 연출, 반복음도 멈춤.
                 bool firing = TurretSwitch.Update(
                     ref turretSwitch.ValueRW,
-                    inputRequest.ValueRO.TurretTriggered && !heat.ValueRO.Overheated,
+                    inputRequest.ValueRO.TurretTriggered && !heat.ValueRO.Overheated && cooldowns.Length > 0,
                     turret.SwitchTime,
                     deltaTime
                 );
@@ -102,9 +103,7 @@ namespace GalaxyIO.DOTS.Systems
                 shots.Clear();
                 TurretCycle.Advance(
                     cooldowns.Reinterpret<float>().AsNativeArray(),
-                    registry,
-                    specs,
-                    equipped.ValueRO.Value,
+                    spec,
                     firing,
                     deltaTime,
                     ref shots
@@ -124,7 +123,6 @@ namespace GalaxyIO.DOTS.Systems
                 foreach (TurretShotRequest request in shots)
                 {
                     int i = request.Muzzle;
-                    TurretSpecElement spec = registry.GetTurretSpec(specs, equipped.ValueRO.Value, i);
 
                     // 각자 발사하는 투사체는 서버만 스폰함. 클라이언트 연출은 LocalProjectileSystem 이 냄.
                     // Ghost Prefab이 등록되기 전에는 예측 스폰한 투사체를 초기화할 수 없음.
@@ -152,7 +150,7 @@ namespace GalaxyIO.DOTS.Systems
                     // 나머지 값은 프리팹 베이킹 결과를 그대로 씀.
                     var shared = SystemAPI.GetComponent<SharedProjectileComponent>(spec.ProjectilePrefab);
                     shared.Owner = spaceship;
-                    shared.TurretIndex = (byte)i;
+                    shared.Turret = equipped.ValueRO.Value;
                     shared.Damage = spec.Damage * damageScale;
                     shared.InterpolationDelay = delay.ValueRO.Delay;
 
@@ -199,12 +197,12 @@ namespace GalaxyIO.DOTS.Systems
 
                 TurretStandby.Update(ref standby.ValueRW, channeling || !shots.IsEmpty, deltaTime, config.NoFireStandbyTime);
 
-                // 한 번 사격에 열 한 번. 총구 수와 따라 쏘는 총구는 세지 않고, 한 틱에 여러 번 쏘면 그만큼 셈.
+                // 한 번 사격에 열 한 번. 첫 총구만 세고, 한 틱에 여러 번 쏘면 그만큼 셈.
                 uint firings = 0;
 
                 foreach (TurretShotRequest request in shots)
                 {
-                    if (registry.GetTurretSpec(specs, equipped.ValueRO.Value, request.Muzzle).FollowMuzzle < 0)
+                    if (request.Muzzle == 0)
                     {
                         firings = math.max(firings, request.Shot + 1);
                     }

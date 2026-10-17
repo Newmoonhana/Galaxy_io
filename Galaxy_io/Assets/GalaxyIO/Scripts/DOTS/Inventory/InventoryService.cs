@@ -41,8 +41,7 @@ namespace GalaxyIO.DOTS.Inventory
 
             registryQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<ItemRegistryAssetComponent>(),
-                ComponentType.ReadWrite<ItemRegistryElement>(),
-                ComponentType.ReadWrite<TurretSpecElement>()
+                ComponentType.ReadWrite<ItemRegistryElement>()
             );
             spaceshipRegistryQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<SpaceshipRegistryAssetComponent>(),
@@ -101,22 +100,60 @@ namespace GalaxyIO.DOTS.Inventory
         }
 
         /// <summary>
-        /// 포탑을 장착함. 잠금 해제하지 않은 포탑은 제작법의 재료를 소모해 잠금 해제부터 함.
-        /// 이미 장착한 포탑이거나 재료가 모자라면 아무것도 안 함.
+        /// 포탑 칸에 포탑을 장착함. 조종 포탑 칸은 잠금 해제하지 않은 포탑만 제작법의 재료를 소모해 잠금 해제부터 함.
+        /// 자동 포탑 칸은 잠금 해제와 관계없이 바꿀 때마다 재료를 소모함.
+        /// 없는 칸이거나 그 칸에 이미 장착한 포탑이거나 재료가 모자라면 아무것도 안 함.
         /// </summary>
         public void EquipTurret(int networkId, TurretEquipRPC rpc)
         {
             Entity ship = FindShip(networkId);
             RecipeAsset recipe = Items.FindRecipe(rpc.Turret);
 
-            // 주 포탑 칸만 장착함. 나머지 칸은 자동 포탑(AI 조종) 자리.
-            // 자동 포탑 시스템을 만들 때 칸별 장착 상태를 우주선에 두고 여기서 채울 것.
             if (ship == Entity.Null
-                || rpc.Slot != 0
                 || recipe == null
-                || !inventories.TryGetValue(networkId, out PlayerInventory inventory)
-                || entityManager.GetComponentData<EquippedTurretComponent>(ship).Value == rpc.Turret)
+                || !inventories.TryGetValue(networkId, out PlayerInventory inventory))
             {
+                return;
+            }
+
+            // 음수면 조종 포탑 칸.
+            int auto = TurretEquip.AutoTurretIndex(rpc.Slot, entityManager.GetBuffer<TurretElement>(ship, true).Length > 0);
+            DynamicBuffer<AutoTurretElement> autoTurrets = entityManager.GetBuffer<AutoTurretElement>(ship, true);
+
+            if (auto >= autoTurrets.Length)
+            {
+                return;
+            }
+
+            ItemId current = auto < 0
+                ? entityManager.GetComponentData<EquippedTurretComponent>(ship).Value
+                : autoTurrets[auto].Turret;
+
+            if (current == rpc.Turret)
+            {
+                return;
+            }
+
+            Entity registryEntity = registryQuery.GetSingletonEntity();
+            ItemRegistryElement element = entityManager.GetBuffer<ItemRegistryElement>(registryEntity, true).Get(rpc.Turret);
+
+            if (auto >= 0)
+            {
+                if (!inventory.Consume(recipe.Ingredients))
+                {
+                    return;
+                }
+
+                // 발사 간격만큼 기다렸다가 사격부터 시작함.
+                ref AutoTurretElement autoTurret = ref entityManager.GetBuffer<AutoTurretElement>(ship).ElementAt(auto);
+                autoTurret.Turret = rpc.Turret;
+                autoTurret.Firing = false;
+
+                ref AutoTurretMountElement mount = ref entityManager.GetBuffer<AutoTurretMountElement>(ship).ElementAt(auto);
+                mount.Cooldown = element.Turret.MaxFireCooldown;
+                mount.Resting = false;
+                mount.CycleRemaining = element.AutoTurret.FireDuration;
+
                 return;
             }
 
@@ -130,13 +167,11 @@ namespace GalaxyIO.DOTS.Inventory
                 inventory.Unlock(rpc.Turret);
             }
 
-            Entity registryEntity = registryQuery.GetSingletonEntity();
             EquippedTurretComponent equipped = entityManager.GetComponentData<EquippedTurretComponent>(ship);
 
             TurretEquip.Refresh(
                 rpc.Turret,
                 entityManager.GetBuffer<ItemRegistryElement>(registryEntity),
-                entityManager.GetBuffer<TurretSpecElement>(registryEntity),
                 ref equipped,
                 entityManager.GetBuffer<TurretCooldownElement>(ship)
             );
@@ -146,6 +181,7 @@ namespace GalaxyIO.DOTS.Inventory
 
         /// <summary>
         /// 재료를 소모해 같은 자리에서 다른 기종으로 바꿔 탐. 장착한 포탑은 그대로 옮기고 강화는 처음부터.
+        /// 자동 포탑은 옮기지 않음. 새 기종의 자동 포탑 칸은 비어 있음.
         /// 이미 탄 기종이거나 프리팹이 없거나 재료가 모자라면 아무것도 안 함.
         /// </summary>
         public void PurchaseSpaceship(int networkId, SpaceshipPurchaseRPC rpc)
@@ -189,7 +225,6 @@ namespace GalaxyIO.DOTS.Inventory
             TurretEquip.Refresh(
                 turret,
                 entityManager.GetBuffer<ItemRegistryElement>(registryEntity),
-                entityManager.GetBuffer<TurretSpecElement>(registryEntity),
                 ref equipped,
                 entityManager.GetBuffer<TurretCooldownElement>(newShip)
             );

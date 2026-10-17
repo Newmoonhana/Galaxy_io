@@ -21,22 +21,22 @@ namespace GalaxyIO.DOTS.Components.Actor
     public static class TurretEquip
     {
         /// <summary>
-        /// 모든 총구가 새 포탑의 발사 간격만큼 기다리게 함. 바꿔 끼우자마자 쏘는 것 방지.
-        /// 따라 쏘는 총구는 앞 총구가 쏠 때까지 기다림.
+        /// 인벤토리 포탑 칸 번호의 자동 포탑 순번. 조종 포탑 총구가 있는 기종은 0 번 칸이 조종 포탑이라 -1.
         /// </summary>
-        public static void ResetCooldown(
-            DynamicBuffer<TurretCooldownElement> cooldowns,
-            DynamicBuffer<ItemRegistryElement> registry,
-            DynamicBuffer<TurretSpecElement> specs,
-            ItemId turret)
+        public static int AutoTurretIndex(int slot, bool hasMainTurret)
+        {
+            return hasMainTurret ? slot - 1 : slot;
+        }
+
+        /// <summary>
+        /// 첫 총구가 새 포탑의 발사 간격만큼 기다리게 함. 바꿔 끼우자마자 쏘는 것 방지.
+        /// 뒤 총구는 첫 총구가 쏠 때까지 기다림.
+        /// </summary>
+        public static void ResetCooldown(DynamicBuffer<TurretCooldownElement> cooldowns, in TurretSpecData spec)
         {
             for (int i = 0; i < cooldowns.Length; i++)
             {
-                TurretSpecElement spec = registry.GetTurretSpec(specs, turret, i);
-                cooldowns[i] = new TurretCooldownElement
-                {
-                    Value = spec.FollowMuzzle >= 0 ? TurretCycle.Waiting : spec.MaxFireCooldown,
-                };
+                cooldowns[i] = new TurretCooldownElement { Value = i == 0 ? spec.MaxFireCooldown : TurretCycle.Waiting };
             }
         }
 
@@ -46,7 +46,6 @@ namespace GalaxyIO.DOTS.Components.Actor
         public static void Refresh(
             ItemId turret,
             DynamicBuffer<ItemRegistryElement> registry,
-            DynamicBuffer<TurretSpecElement> specs,
             ref EquippedTurretComponent equipped,
             DynamicBuffer<TurretCooldownElement> cooldowns)
         {
@@ -56,7 +55,6 @@ namespace GalaxyIO.DOTS.Components.Actor
             }
 
             equipped.Value = turret;
-            ResetCooldown(cooldowns, registry, specs, turret);
-        }
-    }
+            ResetCooldown(cooldowns, registry.Get(turret).Turret);
+        }    }
 }

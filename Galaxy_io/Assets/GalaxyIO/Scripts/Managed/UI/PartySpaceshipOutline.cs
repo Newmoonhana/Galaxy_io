@@ -10,7 +10,7 @@ using UnityEngine;
 namespace GalaxyIO.Scripts.Managed.UI
 {
     /// <summary>
-    /// 로컬 플레이어와 같은 파티원 우주선의 스프라이트에 외곽선 머티리얼을 입히는 클라이언트 전용 뷰.
+    /// 로컬 플레이어와 같은 파티원 우주선의 스프라이트(선체, 자동 포탑)에 외곽선 머티리얼을 입히는 클라이언트 전용 뷰.
     /// 로컬 우주선은 <see cref="LocalSpaceshipOutline"/>이 맡음.
     /// </summary>
     public sealed class PartySpaceshipOutline : MonoBehaviour
@@ -31,6 +31,9 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         // 파괴된 스프라이트. originals 에서 지울 목록.
         private readonly List<SpriteRenderer> destroyed = new List<SpriteRenderer>();
+
+        // 우주선 하나의 스프라이트. 우주선마다 다시 채움.
+        private readonly List<SpriteRenderer> sprites = new List<SpriteRenderer>();
 
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
@@ -75,17 +78,20 @@ namespace GalaxyIO.Scripts.Managed.UI
             // Companion 스프라이트. 리스폰하면 새 인스턴스가 생기므로 매 프레임 확인함.
             foreach (Entity spaceship in spaceships)
             {
-                var sprite = entityManager.GetComponentObject<SpriteRenderer>(spaceship);
                 bool outlined = roster.Members.Contains(entityManager.GetComponentData<GhostOwner>(spaceship).NetworkId);
+                SpaceshipSprites.Collect(entityManager, spaceship, sprites);
 
-                if (outlined && sprite.sharedMaterial != outlineMaterial)
+                foreach (SpriteRenderer sprite in sprites)
                 {
-                    originals[sprite] = sprite.sharedMaterial;
-                    sprite.sharedMaterial = outlineMaterial;
-                }
-                else if (!outlined && originals.Remove(sprite, out Material original))
-                {
-                    sprite.sharedMaterial = original;
+                    if (outlined && sprite.sharedMaterial != outlineMaterial)
+                    {
+                        originals[sprite] = sprite.sharedMaterial;
+                        sprite.sharedMaterial = outlineMaterial;
+                    }
+                    else if (!outlined && originals.Remove(sprite, out Material original))
+                    {
+                        sprite.sharedMaterial = original;
+                    }
                 }
             }
 

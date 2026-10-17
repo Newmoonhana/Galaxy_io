@@ -10,7 +10,7 @@ namespace GalaxyIO.DOTS.Components.Actor
 {
     /// <summary>
     /// 우주선 총구 하나. 사양(발사체, 발사 간격, 탄퍼짐, 발사음)은
-    /// <see cref="EquippedTurretComponent"/>의 포탑에서 총구 번호로 찾음.
+    /// <see cref="EquippedTurretComponent"/>의 포탑에서 찾음. 모든 총구가 같은 사양으로 쏨.
     /// 쿨다운은 같은 번호의 <see cref="TurretCooldownElement"/>에 있음.
     /// </summary>
     public struct TurretElement : IBufferElementData
@@ -42,12 +42,13 @@ namespace GalaxyIO.DOTS.Components.Actor
 
     /// <summary>
     /// 총구 쿨다운 진행 규칙. 서버/예측 발사와 클라이언트 연출 발사가 같이 씀.
-    /// 혼자 쏘는 총구는 RPS 대로 쏘고, 따라 쏘는 총구는 앞 총구가 쏠 때마다 FollowDelay 뒤에 한 번 쏨(방아쇠를 떼도 쏨).
-    /// 따라 쏘는 총구는 자기 타이머가 없어 앞 총구와의 간격이 어긋나지 않음.
+    /// 첫 총구가 RPS 대로 쏘고, 나머지 총구는 첫 총구가 쏠 때 함께 쏨.
+    /// MuzzleDelay 가 있으면 첫 총구가 쏜 뒤 차례로 MuzzleDelay 씩 늦게 쏨(방아쇠를 떼도 쏨).
+    /// 뒤 총구는 자기 타이머로 RPS 를 세지 않아 첫 총구와의 간격이 어긋나지 않음.
     /// </summary>
     public static class TurretCycle
     {
-        // 따라 쏘는 총구가 앞 총구를 기다리는 중. 줄어들지 않음.
+        // 뒤 총구가 첫 총구를 기다리는 중. 줄어들지 않음.
         public const float Waiting = float.PositiveInfinity;
 
         /// <summary>
@@ -55,69 +56,59 @@ namespace GalaxyIO.DOTS.Components.Actor
         /// </summary>
         public static void Advance(
             NativeArray<float> cooldowns,
-            DynamicBuffer<ItemRegistryElement> registry,
-            DynamicBuffer<TurretSpecElement> specs,
-            ItemId turret,
+            in TurretSpecData spec,
             bool firing,
             float deltaTime,
             ref NativeList<TurretShotRequest> shots)
         {
-            // 따라 쏘는 총구 먼저. 이번 틱에 앞 총구가 건 대기는 다음 틱부터 줄어듦.
-            for (int i = 0; i < cooldowns.Length; i++)
+            // 발사 간격이 없는 포탑(RPS 0)은 쏠 수 없음.
+            if (cooldowns.Length == 0 || spec.ProjectilePrefab == Entity.Null || spec.MaxFireCooldown <= 0.0F)
             {
-                TurretSpecElement spec = registry.GetTurretSpec(specs, turret, i);
+                return;
+            }
 
-                if (spec.ProjectilePrefab == Entity.Null || spec.FollowMuzzle < 0)
+            // 늦게 쏘는 뒤 총구 먼저. 이번 틱에 첫 총구가 건 대기는 다음 틱부터 줄어듦.
+            if (spec.MuzzleDelay > 0.0F)
+            {
+                for (int i = 1; i < cooldowns.Length; i++)
                 {
-                    continue;
-                }
+                    cooldowns[i] -= deltaTime;
 
-                // 앞 총구가 쏜 뒤 걸린 따라 쏘기는 방아쇠를 떼도 마저 쏨.
-                cooldowns[i] -= deltaTime;
-
-                if (cooldowns[i] <= 0.0F)
-                {
-                    shots.Add(new TurretShotRequest { Muzzle = i });
-                    cooldowns[i] = Waiting;
+                    if (cooldowns[i] <= 0.0F)
+                    {
+                        shots.Add(new TurretShotRequest { Muzzle = i });
+                        cooldowns[i] = Waiting;
+                    }
                 }
             }
 
-            for (int i = 0; i < cooldowns.Length; i++)
+            cooldowns[0] -= deltaTime;
+
+            // 쏘지 않는 동안은 0 아래로 쌓아 두지 않음. 다시 쏠 때 몰아 쏘는 것 방지.
+            if (!firing)
             {
-                TurretSpecElement spec = registry.GetTurretSpec(specs, turret, i);
+                cooldowns[0] = math.max(cooldowns[0], 0.0F);
+                return;
+            }
 
-                // 발사 간격이 없는 총구(RPS 0)는 혼자 쏠 수 없음.
-                if (spec.ProjectilePrefab == Entity.Null || spec.FollowMuzzle >= 0 || spec.MaxFireCooldown <= 0.0F)
+            // 발사 간격이 한 틱보다 짧으면 한 틱에 여러 번 쏨.
+            for (uint shot = 0; cooldowns[0] <= 0.0F; shot++)
+            {
+                // 0 아래로 내려간 만큼이 틱 안에서 실제로 쏜 뒤 지난 시간. 뒤 총구 대기에서 뺌.
+                float late = cooldowns[0];
+
+                cooldowns[0] += spec.MaxFireCooldown;
+                shots.Add(new TurretShotRequest { Muzzle = 0, Shot = shot });
+
+                for (int i = 1; i < cooldowns.Length; i++)
                 {
-                    continue;
-                }
-
-                cooldowns[i] -= deltaTime;
-
-                // 쏘지 않는 동안은 0 아래로 쌓아 두지 않음. 다시 쏠 때 몰아 쏘는 것 방지.
-                if (!firing)
-                {
-                    cooldowns[i] = math.max(cooldowns[i], 0.0F);
-                    continue;
-                }
-
-                // 발사 간격이 한 틱보다 짧으면 한 틱에 여러 번 쏨.
-                for (uint shot = 0; cooldowns[i] <= 0.0F; shot++)
-                {
-                    // 0 아래로 내려간 만큼이 틱 안에서 실제로 쏜 뒤 지난 시간. 따라 쏘는 총구 대기에서 뺌.
-                    float late = cooldowns[i];
-
-                    cooldowns[i] += spec.MaxFireCooldown;
-                    shots.Add(new TurretShotRequest { Muzzle = i, Shot = shot });
-
-                    for (int f = 0; f < cooldowns.Length; f++)
+                    if (spec.MuzzleDelay > 0.0F)
                     {
-                        TurretSpecElement follower = registry.GetTurretSpec(specs, turret, f);
-
-                        if (follower.FollowMuzzle == i && follower.ProjectilePrefab != Entity.Null)
-                        {
-                            cooldowns[f] = follower.FollowDelay + late;
-                        }
+                        cooldowns[i] = spec.MuzzleDelay * i + late;
+                    }
+                    else
+                    {
+                        shots.Add(new TurretShotRequest { Muzzle = i, Shot = shot });
                     }
                 }
             }
@@ -132,7 +123,7 @@ namespace GalaxyIO.DOTS.Components.Actor
         /// <summary>
         /// 총구 방향을 탄퍼짐만큼 돌리고 속력 배율을 정함. 같은 시드면 클라이언트와 서버가 같은 값을 냄.
         /// </summary>
-        public static LocalTransform Aim(LocalTransform muzzle, in TurretSpecElement spec, uint seed, out float speedScale)
+        public static LocalTransform Aim(LocalTransform muzzle, in TurretSpecData spec, uint seed, out float speedScale)
         {
             var random = Random.CreateFromIndex(seed & 0x7FFFFFFFu);
             float halfSpread = spec.Spread * 0.5F;

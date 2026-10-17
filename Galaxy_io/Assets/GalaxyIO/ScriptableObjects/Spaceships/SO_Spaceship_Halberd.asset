@@ -19,7 +19,6 @@ MonoBehaviour:
   OutlineSensitivity: 0.465
   TurretSlots:
   - {x: 0.5, y: 0.62}
-  - {x: 0.5, y: 0.35}
   Ingredients:
   - Item: {fileID: 11400000, guid: a12592c859254e13b0b09fe57c6e0454, type: 2}
     Count: 40

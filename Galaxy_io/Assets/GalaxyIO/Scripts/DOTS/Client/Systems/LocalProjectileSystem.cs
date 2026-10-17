@@ -14,6 +14,7 @@ namespace GalaxyIO.DOTS.Client.Systems
     /// Ghost 가 아닌 투사체를 클라이언트가 직접 발사하고 움직이는 시스템.
     /// 서버는 같은 투사체를 복제하지 않고 데미지 판정에만 씀. 클라이언트는 복제된 사격 전환 상태만 보고
     /// 모든 우주선(자기 우주선 포함)의 투사체를 따로 쏨. 연출 전용이라 서버와 탄 위치가 다를 수 있음.
+    /// 자동 포탑은 복제된 사격 여부(<see cref="AutoTurretElement.Firing"/>)를 보고 쏨.
     /// e.g. Pyron(화염방사기)
     /// </summary>
     [BurstCompile]
@@ -56,12 +57,14 @@ namespace GalaxyIO.DOTS.Client.Systems
 
             Entity registryEntity = SystemAPI.GetSingletonEntity<ItemRegistryElement>();
             DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetBuffer<ItemRegistryElement>(registryEntity);
-            DynamicBuffer<TurretSpecElement> specs = SystemAPI.GetBuffer<TurretSpecElement>(registryEntity);
 
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
             // 우주선마다 비워서 다시 씀.
             var shots = new NativeList<TurretShotRequest>(8, Allocator.Temp);
+
+            // TurretCycle 에 넘길 자동 포탑 총구 하나의 쿨다운.
+            var autoCooldown = new NativeArray<float>(1, Allocator.Temp);
 
             foreach (
                 var (transform, turretSwitch, equipped, faction, launch, cooldowns, spaceship) in
@@ -97,46 +100,78 @@ namespace GalaxyIO.DOTS.Client.Systems
                     cooldowns.Resize(muzzles.Length, NativeArrayOptions.ClearMemory);
                 }
 
+                TurretSpecData spec = registry.Get(equipped.ValueRO.Value).Turret;
+
                 shots.Clear();
                 TurretCycle.Advance(
                     cooldowns.Reinterpret<float>().AsNativeArray(),
-                    registry,
-                    specs,
-                    equipped.ValueRO.Value,
+                    spec,
                     firing,
                     deltaTime,
                     ref shots
                 );
 
-                foreach (TurretShotRequest request in shots)
-                {
-                    int i = request.Muzzle;
-                    TurretSpecElement spec = registry.GetTurretSpec(specs, equipped.ValueRO.Value, i);
+                // 자동 포탑의 발은 총구 번호를 조종 포탑 총구 뒤에 이어 붙임.
+                DynamicBuffer<AutoTurretElement> autoTurrets = SystemAPI.GetBuffer<AutoTurretElement>(spaceship);
+                DynamicBuffer<AutoTurretMountElement> mounts = SystemAPI.GetBuffer<AutoTurretMountElement>(spaceship);
 
-                    // Ghost 투사체는 서버, 예측 발사가 냄.
-                    if (!spec.LocalLaunch)
+                for (int k = 0; k < autoTurrets.Length; k++)
+                {
+                    TurretSpecData autoSpec = registry.Get(autoTurrets[k].Turret).Turret;
+
+                    if (!autoSpec.LocalLaunch)
                     {
                         continue;
                     }
 
-                    LocalTransform muzzleTransform = transform.ValueRO.TransformTransform(muzzles[i].MuzzleLocation);
+                    int start = shots.Length;
 
-                    var shared = SystemAPI.GetComponent<SharedProjectileComponent>(spec.ProjectilePrefab);
+                    autoCooldown[0] = mounts[k].Cooldown;
+                    TurretCycle.Advance(autoCooldown, autoSpec, autoTurrets[k].Firing, deltaTime, ref shots);
+                    mounts.ElementAt(k).Cooldown = autoCooldown[0];
+
+                    for (int s = start; s < shots.Length; s++)
+                    {
+                        shots.ElementAt(s).Muzzle = muzzles.Length + k;
+                    }
+                }
+
+                foreach (TurretShotRequest request in shots)
+                {
+                    int i = request.Muzzle;
+                    int auto = i - muzzles.Length;
+                    TurretSpecData shotSpec = auto >= 0 ? registry.Get(autoTurrets[auto].Turret).Turret : spec;
+
+                    // Ghost 투사체는 서버, 예측 발사가 냄.
+                    if (!shotSpec.LocalLaunch)
+                    {
+                        continue;
+                    }
+
+                    LocalTransform muzzleTransform = transform.ValueRO.TransformTransform(
+                        auto >= 0
+                            ? AutoTurret.MuzzleLocation(mounts[auto], mounts[auto].VisualAngle)
+                            : muzzles[i].MuzzleLocation
+                    );
+
+                    // 자동 포탑은 총구 방향으로 나아가는 성분을 물려줌.
+                    float inheritedSpeed = auto >= 0 ? math.dot(velocity, muzzleTransform.Up().xy) : forwardSpeed;
+
+                    var shared = SystemAPI.GetComponent<SharedProjectileComponent>(shotSpec.ProjectilePrefab);
                     shared.Owner = spaceship;
-                    shared.TurretIndex = (byte)i;
-                    shared.Damage = spec.Damage;
+                    shared.Damage = shotSpec.Damage;
 
-                    bool straight = SystemAPI.HasComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab);
+                    bool straight = SystemAPI.HasComponent<StraightforwardProjectileComponent>(shotSpec.ProjectilePrefab);
                     StraightforwardProjectileComponent straightforward = straight
-                        ? SystemAPI.GetComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab)
+                        ? SystemAPI.GetComponent<StraightforwardProjectileComponent>(shotSpec.ProjectilePrefab)
                         : default;
 
-                    for (uint j = 0; j < spec.ProjectileCount; j++)
+                    for (uint j = 0; j < shotSpec.ProjectileCount; j++)
                     {
                         uint seed = math.hash(new uint4((uint)spaceship.Index, frame, (uint)i, request.Shot * 64 + j));
 
-                        Entity projectile = ecb.Instantiate(spec.ProjectilePrefab);
-                        ecb.SetComponent(projectile, TurretShot.Aim(muzzleTransform, spec, seed, out float speedScale));
+                        Entity projectile = ecb.Instantiate(shotSpec.ProjectilePrefab);
+                        ecb.SetComponent(projectile, TurretShot.Aim(muzzleTransform, shotSpec, seed, out float speedScale));
                         ecb.SetComponent(projectile, faction.ValueRO);
                         ecb.SetComponent(projectile, shared);
                         ecb.AddComponent<LocalProjectileTag>(projectile);
@@ -145,7 +180,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                         {
                             StraightforwardProjectileComponent launched = straightforward;
                             launched.Speed = straightforward.Speed * speedScale
-                                             + (straightforward.ReflectOwnerVelocity ? forwardSpeed : 0.0F);
+                                             + (straightforward.ReflectOwnerVelocity ? inheritedSpeed : 0.0F);
                             ecb.SetComponent(projectile, launched);
                         }
                     }

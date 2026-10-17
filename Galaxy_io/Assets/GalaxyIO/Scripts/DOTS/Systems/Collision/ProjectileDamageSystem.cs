@@ -24,7 +24,7 @@ namespace GalaxyIO.DOTS.Systems
         // 판정 시점의 Instigator 위치
         public float2 InstigatorPosition;
 
-        // 투사체 소유자. 쏜 우주선이 파괴돼도 남음. AI 는 -1.
+        // 쏜 우주선의 주인. 투사체 소유자와 다르면(자동 포탑) 쏜 우주선이 남아 있을 때만 앎. AI 는 -1.
         public int InstigatorNetworkId;
 
         // 쏜 AI 의 표시 이름. 플레이어거나 쏜 AI 가 파괴됐으면 비어 있음.
@@ -88,6 +88,7 @@ namespace GalaxyIO.DOTS.Systems
                 Colliders  = SystemAPI.GetComponentLookup<ColliderComponent>(true),
                 EnemyNames = SystemAPI.GetComponentLookup<EnemyNameComponent>(true),
                 Specs      = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
+                Owners     = SystemAPI.GetComponentLookup<GhostOwner>(true),
                 Damages    = damages.AsParallelWriter(),
                 Explosions = explosions.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
@@ -135,6 +136,9 @@ namespace GalaxyIO.DOTS.Systems
         [ReadOnly]
         public ComponentLookup<SpaceshipSpecComponent> Specs;
 
+        [ReadOnly]
+        public ComponentLookup<GhostOwner> Owners;
+
         public NativeQueue<SpaceshipDamage>.ParallelWriter Damages;
 
         public NativeList<ProjectileExplosion>.ParallelWriter Explosions;
@@ -161,7 +165,9 @@ namespace GalaxyIO.DOTS.Systems
                 Amount              = projectile.Damage,
                 Instigator          = instigator,
                 InstigatorPosition  = instigatorPosition,
-                InstigatorNetworkId = owner.NetworkId,
+                InstigatorNetworkId = Owners.TryGetComponent(projectile.Owner, out GhostOwner shooter)
+                    ? shooter.NetworkId
+                    : owner.NetworkId,
                 InstigatorEnemyName = enemyName.Value,
             };
 

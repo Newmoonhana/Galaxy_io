@@ -66,7 +66,6 @@ namespace GalaxyIO.DOTS.Client.Systems
 
             Entity registryEntity = SystemAPI.GetSingletonEntity<ItemRegistryElement>();
             DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetBuffer<ItemRegistryElement>(registryEntity);
-            DynamicBuffer<TurretSpecElement> specs = SystemAPI.GetBuffer<TurretSpecElement>(registryEntity);
 
             var played = new NativeHashSet<ShotSoundKey>(16, Allocator.Temp);
             var ecb = new EntityCommandBuffer(Allocator.Temp);
@@ -94,13 +93,15 @@ namespace GalaxyIO.DOTS.Client.Systems
                 // 쏜 우주선이 복제 범위 밖이거나 이미 사라짐.
                 Entity owner = shared.ValueRO.Owner;
 
-                if (!equippedLookup.TryGetComponent(owner, out EquippedTurretComponent equipped))
+                if (!equippedLookup.HasComponent(owner))
                 {
                     continue;
                 }
 
+                ItemRegistryElement turret = registry.Get(shared.ValueRO.Turret);
+
                 // 반복음이 있는 포탑은 투사체마다 소리를 내지 않음. 반복음은 SoundEffectPlayer 가 냄.
-                if (!registry.Get(equipped.Value).LoopSound.IsEmpty)
+                if (!turret.LoopSound.IsEmpty)
                 {
                     continue;
                 }
@@ -111,8 +112,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                     continue;
                 }
 
-                FixedString64Bytes clip =
-                    registry.GetTurretSpec(specs, equipped.Value, shared.ValueRO.TurretIndex).ShotSound;
+                FixedString64Bytes clip = turret.Turret.ShotSound;
 
                 if (clip.IsEmpty || !played.Add(new ShotSoundKey { Owner = owner, Clip = clip }))
                 {

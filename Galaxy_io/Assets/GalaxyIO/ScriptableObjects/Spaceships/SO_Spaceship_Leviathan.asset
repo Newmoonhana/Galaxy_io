@@ -15,12 +15,11 @@ MonoBehaviour:
   Id: 7
   Category: 2
   Prefab: {fileID: -6648208624474899887, guid: 2ef460845e23b3c4592c59cff17d2ad2, type: 3}
-  Sprite: {fileID: 21300000, guid: 8f9b7ea1d4ce1d24eb8797324a648b74, type: 3}
+  Sprite: {fileID: -157565524, guid: 8f9b7ea1d4ce1d24eb8797324a648b74, type: 3}
   OutlineSensitivity: 0.33
   TurretSlots:
-  - {x: 0.5, y: 0.72}
-  - {x: 0.5, y: 0.48}
-  - {x: 0.5, y: 0.26}
+  - {x: 0.17, y: 0.71}
+  - {x: 0.85, y: 0.71}
   Ingredients:
   - Item: {fileID: 11400000, guid: a12592c859254e13b0b09fe57c6e0454, type: 2}
     Count: 60

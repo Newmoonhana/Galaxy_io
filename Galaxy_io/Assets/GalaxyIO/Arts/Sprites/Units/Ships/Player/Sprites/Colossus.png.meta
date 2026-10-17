@@ -46,7 +46,7 @@ TextureImporter:
   nPOTScale: 0
   lightmap: 0
   compressionQuality: 50
-  spriteMode: 1
+  spriteMode: 2
   spriteExtrude: 1
   spriteMeshType: 1
   alignment: 0
@@ -139,23 +139,45 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: Carrier_0
+      name: Colossus_0
       rect:
         serializedVersion: 2
-        x: 34
-        y: 5
-        width: 188
-        height: 238
-      alignment: 0
-      pivot: {x: 0, y: 0}
+        x: 0
+        y: 237
+        width: 29
+        height: 19
+      alignment: 9
+      pivot: {x: 0.5, y: 0.5263158}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: 5c537b07d73698b50800000000000000
-      internalID: 6595912519673918917
+      spriteID: 07c1ab4c1312b0b438f7822a649da6d7
+      internalID: 1643148912
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: Colossus_1
+      rect:
+        serializedVersion: 2
+        x: 33
+        y: 2
+        width: 190
+        height: 244
+      alignment: 0
+      pivot: {x: 0.5, y: 0.5}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: 0
+      bones: []
+      spriteID: 74dbff121cc88954989901d2d1d09712
+      internalID: -790461118
       vertices: []
       indices: 
       edges: []
@@ -172,8 +194,12 @@ TextureImporter:
     weights: []
     secondaryTextures: []
     spriteCustomMetadata:
-      entries: []
-    nameFileIdTable: {}
+      entries:
+      - key: SpriteEditor.SliceSettings
+        value: '{"sliceOnImport":false,"gridCellCount":{"x":1.0,"y":1.0},"gridSpriteSize":{"x":64.0,"y":64.0},"gridSpriteOffset":{"x":0.0,"y":0.0},"gridSpritePadding":{"x":0.0,"y":0.0},"pivot":{"x":0.5,"y":0.5},"pivotPixels":{"x":0.0,"y":0.0},"autoSlicingMethod":0,"spriteAlignment":0,"pivotUnitMode":0,"slicingType":0,"keepEmptyRects":false,"isAlternate":false}'
+    nameFileIdTable:
+      Colossus_0: 1643148912
+      Colossus_1: -790461118
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

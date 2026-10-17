@@ -48,9 +48,9 @@ namespace GalaxyIO.DOTS.Components.Actor
         [GhostField]
         public Entity Owner;
 
-        // 발사한 총구 번호. 클라이언트가 Owner 의 장착 포탑에서 발사음을 찾는 데 씀.
+        // 이 투사체를 쏜 포탑. 클라이언트가 발사음을 찾는 데 씀.
         [GhostField]
-        public byte TurretIndex;
+        public ItemId Turret;
 
         // 직전 틱 이동 변위. 고속 투사체가 표적을 통과하지 않도록 충돌체를 늘리는 데 씀.
         // 이동 시스템이 매 틱 기록함.
@@ -69,5 +69,12 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 클라이언트가 명중으로 보고 감췄는지. 한 번 감추면 서버가 지울 때까지 그대로 둠.
         // 서버에서는 항상 false.
         public bool Hidden;
+
+        // 클라이언트만. 자기 우주선 자동 포탑 투사체를 옮겨 그리는 거리. Shifted 가 켜진 뒤 고정.
+        public float2 VisualOffset;
+        public bool Shifted;
+
+        // 클라이언트만. 마지막으로 옮긴 위치. 복제가 위치를 다시 쓰지 않은 프레임에는 또 옮기지 않음.
+        public float2 ShiftedPosition;
     }
 }

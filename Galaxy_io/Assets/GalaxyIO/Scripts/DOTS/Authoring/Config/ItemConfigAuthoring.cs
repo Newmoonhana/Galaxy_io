@@ -1,5 +1,6 @@
 ﻿using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -41,6 +42,23 @@ namespace GalaxyIO.DOTS.Authoring.Config
         [Tooltip("과열 시 최대 열에서 0 까지 식는 시간(초). 무사격 대기가 끝난 뒤. 0 이 될 때까지 쏠 수 없음.")]
         [Min(0.01F)]
         public float OverheatCoolingTime = 4.0F;
+
+        [Header("Auto Turret")]
+
+        [SerializeField]
+        [Tooltip("대상이 없을 때 시야각 끝에서 끝으로 훑는 속도(도/초).")]
+        [Min(0.0F)]
+        public float AutoTurretSweepSpeed = 30.0F;
+
+        [SerializeField]
+        [Tooltip("훑다가 시야각 끝에 닿았을 때 기다리는 시간(초).")]
+        [Min(0.0F)]
+        public float AutoTurretSweepWait = 1.0F;
+
+        [SerializeField]
+        [Tooltip("사격을 허용하는 조준 오차(도). 포탑 방향과 대상 방향 사이 각도.")]
+        [Range(0.0F, 180.0F)]
+        public float AutoTurretAimAngle = 5.0F;
     }
 
     public sealed class ItemConfigBaker : Baker<ItemConfigAuthoring>
@@ -57,6 +75,9 @@ namespace GalaxyIO.DOTS.Authoring.Config
                 NoFireStandbyTime     = authoring.NoFireStandbyTime,
                 CoolingTime           = authoring.CoolingTime,
                 OverheatCoolingTime   = authoring.OverheatCoolingTime,
+                AutoTurretSweepSpeed  = math.radians(authoring.AutoTurretSweepSpeed),
+                AutoTurretSweepWait   = authoring.AutoTurretSweepWait,
+                AutoTurretAimAngle    = math.radians(authoring.AutoTurretAimAngle),
             });
         }
     }

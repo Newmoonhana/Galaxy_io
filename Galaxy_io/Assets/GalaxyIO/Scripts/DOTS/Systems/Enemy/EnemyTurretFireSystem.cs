@@ -32,7 +32,6 @@ namespace GalaxyIO.DOTS.Systems
         {
             Entity registryEntity = SystemAPI.GetSingletonEntity<ItemRegistryElement>();
             DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetBuffer<ItemRegistryElement>(registryEntity);
-            DynamicBuffer<TurretSpecElement> specs = SystemAPI.GetBuffer<TurretSpecElement>(registryEntity);
 
             float deltaTime = SystemAPI.Time.DeltaTime;
             float standbyTime = SystemAPI.GetSingleton<ItemConfigComponent>().NoFireStandbyTime;
@@ -80,12 +79,12 @@ namespace GalaxyIO.DOTS.Systems
                     deltaTime
                 );
 
+                TurretSpecData spec = registry.Get(equipped.ValueRO.Value).Turret;
+
                 shots.Clear();
                 TurretCycle.Advance(
                     cooldowns.Reinterpret<float>().AsNativeArray(),
-                    registry,
-                    specs,
-                    equipped.ValueRO.Value,
+                    spec,
                     shooting,
                     deltaTime,
                     ref shots
@@ -97,7 +96,6 @@ namespace GalaxyIO.DOTS.Systems
                 foreach (TurretShotRequest request in shots)
                 {
                     int i = request.Muzzle;
-                    TurretSpecElement spec = registry.GetTurretSpec(specs, equipped.ValueRO.Value, i);
 
                     if (!commandBuffer.IsCreated)
                     {
@@ -111,7 +109,7 @@ namespace GalaxyIO.DOTS.Systems
                     // 서버가 직접 쏘므로 되감을 보간 지연이 없음.
                     var shared = SystemAPI.GetComponent<SharedProjectileComponent>(spec.ProjectilePrefab);
                     shared.Owner = spaceship;
-                    shared.TurretIndex = (byte)i;
+                    shared.Turret = equipped.ValueRO.Value;
                     shared.Damage = spec.Damage;
                     shared.InterpolationDelay = 0;
 
