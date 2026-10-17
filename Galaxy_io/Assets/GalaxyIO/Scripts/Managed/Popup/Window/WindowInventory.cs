@@ -72,7 +72,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
         // 외곽선 이미지의 원래 머티리얼. 감도별 사본의 원본
         private Material outlineMaterial;
 
-        /// <summary>포탑 상점을 연 포탑 칸 번호. 0 이 주 포탑.</summary>
+        /// <summary>포탑 상점을 연 포탑 칸 번호.</summary>
         public int SelectedSlot { get; private set; }
 
         protected override void Awake()
@@ -125,13 +125,15 @@ namespace GalaxyIO.Tools.PopupUI.Window
         /// 창이 열려 있는 동안 매 프레임 호출됨.
         /// </summary>
         /// <param name="_current">타고 있는 기종. 상점 기종이 아니면 null</param>
-        /// <param name="_turret">주 포탑 칸에 장착한 포탑 아이콘</param>
+        /// <param name="_turrets">포탑 칸 번호별 장착 포탑 아이콘. 빈 칸은 null</param>
+        /// <param name="_isAutoSlot">고른 칸이 자동 포탑 칸. 잠금 해제와 관계없이 항상 재료를 보여줌</param>
         public void Refresh(
             PlayerInventory _inventory,
             ItemRegistryAsset _items,
             SpaceshipRegistryAsset _spaceships,
             SpaceshipAsset _current,
-            Sprite _turret)
+            IReadOnlyList<Sprite> _turrets,
+            bool _isAutoSlot)
         {
             if (!isBuilt)
             {
@@ -144,12 +146,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
                     (category_lists[i].Element(j) as ShopItemElement)?.SetCosts(_inventory, false);
 
             for (int i = 0; i < recipes.Count; i++)
-                (turret_list.Element(i) as ShopItemElement)?.SetCosts(_inventory, _inventory.IsUnlocked(recipes[i].Result.Id));
+                (turret_list.Element(i) as ShopItemElement)?.SetCosts(_inventory, !_isAutoSlot && _inventory.IsUnlocked(recipes[i].Result.Id));
 
             for (int i = 0; i < PlayerInventory.Ingredients.Length; i++)
                 (wallet_list.Element(i) as IngredientElement)?.SetAmount(_inventory.Count(PlayerInventory.Ingredients[i]), false);
 
-            RefreshLayout(_current, _turret);
+            RefreshLayout(_current, _turrets);
         }
 
         private void Build(ItemRegistryAsset _items, SpaceshipRegistryAsset _spaceships)
@@ -196,8 +198,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
             }
         }
 
-        // 외곽선과 포탑 칸. 0 번 칸만 주 포탑. 자동 포탑 칸은 서버가 아직 장착하지 않아 비워 둠
-        private void RefreshLayout(SpaceshipAsset _current, Sprite _turret)
+        // 외곽선과 포탑 칸
+        private void RefreshLayout(SpaceshipAsset _current, IReadOnlyList<Sprite> _turrets)
         {
             Sprite sprite = _current != null ? _current.Sprite : null;
 
@@ -218,7 +220,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 ((RectTransform)slot.transform).anchoredPosition = _current.TurretSlotIn(i, layout_img.rectTransform.rect.size);
 
                 // 빈 칸도 누를 수 있어야 하므로 IsEmpty 는 쓰지 않음
-                slot.SetView(new SlotView { Icon = i == 0 ? _turret : null, IsEnabled = true });
+                slot.SetView(new SlotView { Icon = i < _turrets.Count ? _turrets[i] : null, IsEnabled = true });
             }
         }
 

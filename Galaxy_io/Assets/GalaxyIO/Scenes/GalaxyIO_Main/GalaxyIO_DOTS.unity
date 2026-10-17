@@ -251,6 +251,9 @@ MonoBehaviour:
   NoFireStandbyTime: 1.7
   CoolingTime: 1.5
   OverheatCoolingTime: 3
+  AutoTurretSweepSpeed: 30
+  AutoTurretSweepWait: 1
+  AutoTurretAimAngle: 5
 --- !u!114 &163557131
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -263,7 +266,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a3ed56091dd64ef7af51460c10ecad57, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.PlayerSpawnConfigAuthoring
-  DefaultSpaceship: 1
+  DefaultSpaceship: 9
 --- !u!1 &1598268223
 GameObject:
   m_ObjectHideFlags: 0

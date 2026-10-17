@@ -1,5 +1,6 @@
 ﻿using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Singleton;
+using System;
 using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Entities;
@@ -14,6 +15,22 @@ namespace GalaxyIO.DOTS.Authoring
     /// </summary>
     public sealed class SpaceshipAuthoring : MonoBehaviour
     {
+        /// <summary>
+        /// 자동 포탑 칸 하나. 포탑은 부모 기준 처음 회전에서 시야각 절반만큼 양쪽으로 돎.
+        /// </summary>
+        [Serializable]
+        public struct AutoTurretMount
+        {
+            [Tooltip("돌아가는 포탑. 이 위치가 회전 중심.")]
+            public Transform Turret;
+
+            [Tooltip("포탑 그림. 빈 칸이면 감춤.")]
+            public SpriteRenderer Sprite;
+
+            [Tooltip("포탑의 자손. 포탑 회전 중심에서 이 위치로의 방향이 시야각의 가운데.")]
+            public Transform Muzzle;
+        }
+
         // 상점 기종. 상점에서 살 수 없는 기체는 None.
         public SpaceshipId Kind = SpaceshipId.None;
 
@@ -141,8 +158,11 @@ namespace GalaxyIO.DOTS.Authoring
 
         [Header("Turrets")]
 
-        // 총구 위치. 포탑 사양이 이 순서대로 적용됨.
+        // 플레이어가 쏘는 조종 포탑의 총구 위치. 비우면 조종 포탑 칸이 없음.
         public List<Transform> Muzzles;
+
+        // 자동 포탑 칸. 인벤토리 포탑 칸 순서(조종 포탑 칸 다음)와 같음.
+        public List<AutoTurretMount> AutoTurrets;
 
         // 장착한 채로 시작하는 포탑. 아이템 레지스트리에 등록된 포탑이어야 함.
         public TurretItemAsset Turret;
@@ -232,14 +252,28 @@ namespace GalaxyIO.DOTS.Authoring
                     ),
                 });
 
-                // 혼자 쏘는 총구는 바로 쏠 수 있고, 따라 쏘는 총구는 앞 총구를 기다림.
-                cooldowns.Add(new TurretCooldownElement
+                // 첫 총구는 바로 쏠 수 있고, 뒤 총구는 첫 총구를 기다림.
+                cooldowns.Add(new TurretCooldownElement { Value = i == 0 ? 0.0F : TurretCycle.Waiting });
+            }
+
+            // 자동 포탑은 빈 칸으로 시작함.
+            var autoTurrets = AddBuffer<AutoTurretElement>(entity);
+            var mounts = AddBuffer<AutoTurretMountElement>(entity);
+
+            foreach (SpaceshipAuthoring.AutoTurretMount mount in authoring.AutoTurrets)
+            {
+                Vector3 pivot = authoring.transform.InverseTransformPoint(mount.Turret.position);
+                Vector3 muzzle = authoring.transform.InverseTransformPoint(mount.Muzzle.position);
+
+                autoTurrets.Add(default);
+                mounts.Add(new AutoTurretMountElement
                 {
-                    Value = authoring.Turret != null
-                            && i < authoring.Turret.TurretSpecs.Count
-                            && authoring.Turret.TurretSpecs[i].FollowMuzzle > 0
-                        ? TurretCycle.Waiting
-                        : 0.0F,
+                    Turret         = GetEntity(mount.Turret, TransformUsageFlags.Dynamic),
+                    Sprite         = GetEntity(mount.Sprite, TransformUsageFlags.Dynamic),
+                    Rest           = mount.Turret.localRotation,
+                    Pivot          = new float2(pivot.x, pivot.y),
+                    Barrel         = new float2(muzzle.x - pivot.x, muzzle.y - pivot.y),
+                    SweepDirection = 1.0F,
                 });
             }
 

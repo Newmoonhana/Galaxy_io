@@ -25,5 +25,12 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 최대 열에서 0 까지 식는 시간(초). 평소, 과열 시.
         public float CoolingTime;
         public float OverheatCoolingTime;
+
+        // 자동 포탑. 대상이 없을 때 훑는 속도(라디안/초), 시야각 끝에서 기다리는 시간(초). 서버만 씀.
+        public float AutoTurretSweepSpeed;
+        public float AutoTurretSweepWait;
+
+        // 자동 포탑이 사격을 허용하는 조준 오차(라디안). 서버만 씀.
+        public float AutoTurretAimAngle;
     }
 }

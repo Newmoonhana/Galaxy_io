@@ -13,7 +13,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
 {
     /// <summary>
     /// 포탑 상세 사양 창. 아이콘, 필요 재료, 이름, 사양, 설명, 장착 버튼.
-    /// 잠금 해제하지 않은 포탑은 장착 버튼이 재료를 써서 잠금 해제하고 장착함.
+    /// 조종 포탑 칸은 잠금 해제하지 않은 포탑만, 자동 포탑 칸은 항상 장착 버튼이 재료를 씀.
     /// 사양은 포탑 에셋과 총구의 투사체에서 읽음.
     /// </summary>
     public class WindowTurretSpec : WindowSpecBase
@@ -43,9 +43,10 @@ namespace GalaxyIO.Tools.PopupUI.Window
             desc_tmp.text = L10n.Get($"Tooltip/{result.Id}");
             spec_tmp.text = string.Empty;
 
-            // 사양은 첫 번째로 쏘는 총구 기준
-            if (result is TurretItemAsset turret && turret.TurretSpecs.Find(s => s.Armed) is { Armed: true } spec)
+            // 사양은 총구 하나 기준
+            if (result is TurretItemAsset turret && turret.Spec.Armed)
             {
+                TurretItemAsset.TurretSpec spec = turret.Spec;
                 var projectile = spec.Projectile.GetComponent<ProjectileAuthoring>();
                 bool isBeam = projectile != null && projectile.Beam != null;
                 var sb = new StringBuilder();
@@ -88,7 +89,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
         /// 창이 열려 있는 동안 매 프레임 호출됨.
         /// </summary>
         /// <param name="_equipped">고른 포탑 칸에 장착한 포탑</param>
-        public void Refresh(PlayerInventory _inventory, ItemId _equipped)
+        /// <param name="_isAutoSlot">고른 칸이 자동 포탑 칸. 잠금 해제와 관계없이 장착마다 재료를 씀</param>
+        public void Refresh(PlayerInventory _inventory, ItemId _equipped, bool _isAutoSlot)
         {
             List<RecipeAsset.Ingredient> ingredients = recipe.Ingredients;
 
@@ -102,6 +104,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             ItemId turret = recipe.Result.Id;
 
             if (_equipped == turret) SetEquip("Shop/Equipped", false);
+            else if (_isAutoSlot) SetEquip("Shop/Equip", _inventory.HasIngredients(ingredients));
             else if (_inventory.IsUnlocked(turret)) SetEquip("Shop/Equip", true);
             else SetEquip("Shop/Unlock", _inventory.HasIngredients(ingredients));
         }

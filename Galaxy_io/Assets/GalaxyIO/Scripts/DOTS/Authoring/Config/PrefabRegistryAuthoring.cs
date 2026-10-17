@@ -111,8 +111,6 @@ namespace GalaxyIO.DOTS.Authoring.Config
 
             registry.Resize(maxId + 1, NativeArrayOptions.ClearMemory);
 
-            DynamicBuffer<TurretSpecElement> turretSpecs = AddBuffer<TurretSpecElement>(entity);
-
             // 인벤토리, 제작은 에셋을 직접 읽음.
             AddComponentObject(entity, new ItemRegistryAssetComponent { Value = itemRegistry });
 
@@ -134,46 +132,37 @@ namespace GalaxyIO.DOTS.Authoring.Config
 
                 var element = new ItemRegistryElement
                 {
-                    Sprite          = item.Sprite,
-                    HalfExtents     = new float2(extents.x, extents.y),
-                    TurretSpecStart = (ushort)turretSpecs.Length,
+                    Sprite      = item.Sprite,
+                    HalfExtents = new float2(extents.x, extents.y),
                 };
 
                 if (item is TurretItemAsset turret)
                 {
-                    for (int i = 0; i < turret.TurretSpecs.Count; i++)
+                    TurretItemAsset.TurretSpec spec = turret.Spec;
+
+                    element.Turret = new TurretSpecData
                     {
-                        TurretItemAsset.TurretSpec spec = turret.TurretSpecs[i];
+                        ProjectilePrefab = spec.Armed ? GetEntity(spec.Projectile, TransformUsageFlags.Dynamic) : Entity.Null,
+                        LocalLaunch      = spec.Armed && spec.Projectile.GetComponent<GhostAuthoringComponent>() == null,
+                        MaxFireCooldown  = spec.FireCooldown,
+                        MuzzleDelay      = spec.MuzzleDelay,
+                        ProjectileCount  = (byte)Math.Max(spec.ProjectileCount, 1),
+                        Spread           = spec.Spread,
+                        SpeedSpread      = spec.SpeedSpread,
+                        Damage           = spec.Damage,
+                        ShotSound        = spec.ShotSound,
+                    };
 
-                        // 앞 총구는 혼자 쏘는 총구여야 함. 잘못 지정하면 혼자 쏘는 총구로 취급.
-                        int follow = spec.FollowMuzzle - 1;
+                    TurretItemAsset.AutoTurretSpec auto = turret.AutoSpec;
 
-                        if (follow >= 0
-                            && (follow == i
-                                || follow >= turret.TurretSpecs.Count
-                                || turret.TurretSpecs[follow].FollowMuzzle > 0
-                                || !turret.TurretSpecs[follow].Armed))
-                        {
-                            Debug.LogWarning($"ItemRegistry: {turret.name} 총구 {i + 1} 의 FollowMuzzle 이 잘못됨. 혼자 쏘는 총구로 취급.", turret);
-                            follow = -1;
-                        }
-
-                        turretSpecs.Add(new TurretSpecElement
-                        {
-                            ProjectilePrefab  = spec.Armed ? GetEntity(spec.Projectile, TransformUsageFlags.Dynamic) : Entity.Null,
-                            LocalLaunch       = spec.Armed && spec.Projectile.GetComponent<GhostAuthoringComponent>() == null,
-                            MaxFireCooldown   = spec.FireCooldown,
-                            FollowMuzzle      = (sbyte)follow,
-                            FollowDelay       = spec.FollowDelay,
-                            ProjectileCount   = (byte)Math.Max(spec.ProjectileCount, 1),
-                            Spread            = spec.Spread,
-                            SpeedSpread       = spec.SpeedSpread,
-                            Damage            = spec.Damage,
-                            ShotSound         = spec.ShotSound,
-                        });
-                    }
-
-                    element.TurretSpecCount = (byte)turret.TurretSpecs.Count;
+                    element.AutoTurret = new AutoTurretSpecData
+                    {
+                        FireDuration      = auto.FireDuration,
+                        RestDurationRange = new float2(auto.RestDuration.x, auto.RestDuration.y),
+                        TurningSpeed      = math.radians(auto.TurningSpeed),
+                        HalfSightAngle    = math.radians(auto.SightAngle) * 0.5F,
+                        DetectRange       = auto.DetectRange,
+                    };
                     element.SwitchTime      = turret.SwitchTime;
                     element.ManeuverPenalty = turret.ManeuverPenalty;
                     element.Heat            = turret.Heat;

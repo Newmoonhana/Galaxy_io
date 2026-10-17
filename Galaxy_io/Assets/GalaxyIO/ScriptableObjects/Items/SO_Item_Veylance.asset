@@ -14,34 +14,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.TurretItemAsset
   Id: 8
   Sprite: {fileID: 21300000, guid: dcf3ea2429f38924c9d676063ace317c, type: 3}
-  TurretSpecs:
-  - Projectile: {fileID: 0}
-    RPS: 0
-    FollowMuzzle: 0
-    FollowDelay: 0
-    ProjectileCount: 0
-    SpeedSpread: 0
-    Accuracy: 0
-    Damage: 0
-    ShotSound: 
-  - Projectile: {fileID: 0}
-    RPS: 0
-    FollowMuzzle: 0
-    FollowDelay: 0
-    ProjectileCount: 0
-    SpeedSpread: 0
-    Accuracy: 0
-    Damage: 0
-    ShotSound: 
-  - Projectile: {fileID: 6294447569313648705, guid: c33c9092081d0424ca736fe24f332cd6, type: 3}
+  Spec:
+    Projectile: {fileID: 6294447569313648705, guid: c33c9092081d0424ca736fe24f332cd6, type: 3}
     RPS: 20
-    FollowMuzzle: 0
-    FollowDelay: 0
+    MuzzleDelay: 0
     ProjectileCount: 1
     SpeedSpread: 0
     Accuracy: 1
     Damage: 10
     ShotSound: 
+  AutoSpec:
+    FireDuration: 2
+    RestDuration: {x: 1, y: 2}
+    TurningSpeed: 180
+    SightAngle: 120
+    DetectRange: 20
   SwitchTime: 0.4
   ManeuverPenalty: 0.6
   Heat: 28

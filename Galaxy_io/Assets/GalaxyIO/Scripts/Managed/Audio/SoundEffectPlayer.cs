@@ -18,6 +18,7 @@ namespace GalaxyIO.Scripts.Managed.Audio
     /// <summary>
     /// <see cref="SoundMessage"/>를 읽어 효과음을 재생하는 클라이언트 전용 플레이어.
     /// 우주선의 <see cref="TurretSwitchComponent"/>를 보고 포탑 사격 시작음과 반복음도 재생함.
+    /// 자동 포탑은 <see cref="AutoTurretElement.Firing"/>을 봄.
     /// <para/>
     /// 재생은 <see cref="SoundManager"/>를 거침. 거리 감쇠와 음성 풀링은 Master Audio 의
     /// Sound Group 설정이 담당함.
@@ -72,6 +73,9 @@ namespace GalaxyIO.Scripts.Managed.Audio
         private struct TurretSound
         {
             public TurretSwitchState State;
+
+            // 사격 중이던 자동 포탑. 순번별 비트.
+            public uint AutoFiring;
         }
 
         private void Start()
@@ -160,7 +164,25 @@ namespace GalaxyIO.Scripts.Managed.Audio
                         TrackLoopTarget(loop, position, listener);
                     }
 
+                    // 자동 포탑은 사격을 시작할 때 시작음을 내고 사격 중에 반복음을 냄.
+                    DynamicBuffer<AutoTurretElement> autoTurrets = entityManager.GetBuffer<AutoTurretElement>(ships[i], true);
+                    uint autoFiring = 0;
+
+                    for (int k = 0; k < autoTurrets.Length && k < 32; k++)
+                    {
+                        if (!autoTurrets[k].Firing) continue;
+
+                        autoFiring |= 1u << k;
+                        ItemRegistryElement autoTurret = registry.Get(autoTurrets[k].Turret);
+
+                        if (!audible) continue;
+
+                        if ((sound.AutoFiring & (1u << k)) == 0) Play(autoTurret.LaunchSound, position);
+                        if (!autoTurret.LoopSound.IsEmpty) TrackLoopTarget(autoTurret.LoopSound, position, listener);
+                    }
+
                     sound.State = current;
+                    sound.AutoFiring = autoFiring;
                     turretSounds[ships[i]] = sound;
                 }
             }

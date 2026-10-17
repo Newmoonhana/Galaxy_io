@@ -9,8 +9,7 @@ namespace GalaxyIO.DOTS.Components.Message
     /// </summary>
     public struct TurretEquipRPC : IRpcCommand
     {
-        // 포탑 칸 번호. 0 이 플레이어가 쏘는 주 포탑.
-        // 나머지 칸은 자동 포탑(AI 조종) 자리. 자동 포탑 시스템이 생기기 전까지 서버가 장착하지 않음.
+        // 인벤토리 포탑 칸 번호. 조종 포탑 총구가 있는 기종은 0 이 조종 포탑, 나머지는 자동 포탑 칸.
         public byte Slot;
 
         public ItemId Turret;

@@ -55,7 +55,7 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 사격을 멈춰 사라지기까지의 시간(초)
         public float NarrowTime;
 
-        // 쏘는 우주선과 총구 번호
+        // 쏘는 우주선과 총구 번호. 조종 포탑 총구 수 이상이면 그만큼 뺀 순번의 자동 포탑.
         public Entity Owner;
         public int Muzzle;
 

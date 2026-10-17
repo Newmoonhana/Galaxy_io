@@ -18,6 +18,8 @@ namespace GalaxyIO.DOTS.Client.Systems
     /// - 사격(Firing): 광선이 기수 방향으로 늘어나고 양 끝의 구에서 가루가 퍼짐.
     /// - 중지: 광선과 구가 가늘어지다 사라짐.
     /// 광선은 사거리까지 늘어나고 처음 닿는 적 우주선에서 멈춤(클라이언트 판정). 데미지는 서버의 투사체가 줌.
+    /// 자동 포탑은 충전 없이 복제된 사격 여부(<see cref="AutoTurretElement.Firing"/>)를 따름.
+    /// 자동 포탑의 광선은 총구 번호를 조종 포탑 총구 뒤에 이어 붙임.
     /// </summary>
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
@@ -55,42 +57,43 @@ namespace GalaxyIO.DOTS.Client.Systems
 
             Entity registryEntity = SystemAPI.GetSingletonEntity<ItemRegistryElement>();
             DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetBuffer<ItemRegistryElement>(registryEntity);
-            DynamicBuffer<TurretSpecElement> specs = SystemAPI.GetBuffer<TurretSpecElement>(registryEntity);
 
             // 발사했는데 광선이 없는 총구. 스폰은 구조 변경이라 순회 뒤에 처리함.
             NativeArray<BeamComponent> beams = beamQuery.ToComponentDataArray<BeamComponent>(Allocator.Temp);
             var pending = new NativeList<BeamComponent>(Allocator.Temp);
 
             foreach (
-                var (turretSwitch, equipped, muzzles, spaceship) in
-                SystemAPI.Query<RefRO<TurretSwitchComponent>, RefRO<EquippedTurretComponent>, DynamicBuffer<TurretElement>>()
-                    .WithEntityAccess()
+                var (turretSwitch, equipped, muzzles, autoTurrets, spaceship) in
+                SystemAPI.Query<
+                    RefRO<TurretSwitchComponent>,
+                    RefRO<EquippedTurretComponent>,
+                    DynamicBuffer<TurretElement>,
+                    DynamicBuffer<AutoTurretElement>
+                >().WithEntityAccess()
             ) {
-                if (turretSwitch.ValueRO.State != TurretSwitchState.SpinningUp
-                    && turretSwitch.ValueRO.State != TurretSwitchState.Firing)
+                Entity projectile = registry.Get(equipped.ValueRO.Value).Turret.ProjectilePrefab;
+
+                // 총구마다 광선 하나.
+                if ((turretSwitch.ValueRO.State == TurretSwitchState.SpinningUp
+                     || turretSwitch.ValueRO.State == TurretSwitchState.Firing)
+                    && projectile != Entity.Null
+                    && SystemAPI.HasComponent<ProjectileBeamComponent>(projectile))
                 {
-                    continue;
+                    for (int i = 0; i < muzzles.Length; i++)
+                    {
+                        Request(beams, pending, spaceship, i, projectile);
+                    }
                 }
 
-                for (int i = 0; i < muzzles.Length; i++)
+                for (int k = 0; k < autoTurrets.Length; k++)
                 {
-                    Entity projectile = registry.GetTurretSpec(specs, equipped.ValueRO.Value, i).ProjectilePrefab;
+                    Entity autoProjectile = registry.Get(autoTurrets[k].Turret).Turret.ProjectilePrefab;
 
-                    if (projectile == Entity.Null || !SystemAPI.HasComponent<ProjectileBeamComponent>(projectile))
+                    if (autoTurrets[k].Firing
+                        && autoProjectile != Entity.Null
+                        && SystemAPI.HasComponent<ProjectileBeamComponent>(autoProjectile))
                     {
-                        continue;
-                    }
-
-                    bool found = false;
-
-                    foreach (BeamComponent beam in beams)
-                    {
-                        found |= beam.Owner == spaceship && beam.Muzzle == i;
-                    }
-
-                    if (!found)
-                    {
-                        pending.Add(new BeamComponent { Owner = spaceship, Muzzle = i, Projectile = projectile });
+                        Request(beams, pending, spaceship, muzzles.Length + k, autoProjectile);
                     }
                 }
             }
@@ -129,23 +132,41 @@ namespace GalaxyIO.DOTS.Client.Systems
                     continue;
                 }
 
-                LocalTransform muzzle = entityManager.GetComponentData<LocalTransform>(beam.Owner)
-                    .TransformTransform(entityManager.GetBuffer<TurretElement>(beam.Owner, true)[beam.Muzzle].MuzzleLocation);
+                LocalTransform ownerTransform = entityManager.GetComponentData<LocalTransform>(beam.Owner);
+                DynamicBuffer<TurretElement> muzzles = entityManager.GetBuffer<TurretElement>(beam.Owner, true);
+                int auto = beam.Muzzle - muzzles.Length;
+                LocalTransform muzzle;
+                bool charging;
+                bool firing;
 
                 // 포탑을 바꿔 끼우면 사격을 멈춘 것으로 봄.
-                ItemId turret = entityManager.GetComponentData<EquippedTurretComponent>(beam.Owner).Value;
-                TurretSwitchComponent turretSwitch = entityManager.GetComponentData<TurretSwitchComponent>(beam.Owner);
-                bool equipped = registry.GetTurretSpec(specs, turret, beam.Muzzle).ProjectilePrefab == beam.Projectile;
-                bool charging = equipped && turretSwitch.State == TurretSwitchState.SpinningUp;
-                bool firing = equipped && turretSwitch.State == TurretSwitchState.Firing;
-
-                if (charging)
+                if (auto >= 0)
                 {
-                    // 사라지는 중에 다시 쏘면 충전부터 다시 함.
-                    float switchTime = registry.Get(turret).SwitchTime;
-                    beam.Charge = switchTime > 0.0F ? math.saturate(1.0F - turretSwitch.Remaining / switchTime) : 1.0F;
-                    beam.Fired = false;
-                    beam.Length = 0.0F;
+                    AutoTurretElement autoTurret = entityManager.GetBuffer<AutoTurretElement>(beam.Owner, true)[auto];
+                    AutoTurretMountElement mount = entityManager.GetBuffer<AutoTurretMountElement>(beam.Owner, true)[auto];
+
+                    muzzle = ownerTransform.TransformTransform(AutoTurret.MuzzleLocation(mount, mount.VisualAngle));
+                    charging = false;
+                    firing = autoTurret.Firing && registry.Get(autoTurret.Turret).Turret.ProjectilePrefab == beam.Projectile;
+                }
+                else
+                {
+                    ItemId turret = entityManager.GetComponentData<EquippedTurretComponent>(beam.Owner).Value;
+                    TurretSwitchComponent turretSwitch = entityManager.GetComponentData<TurretSwitchComponent>(beam.Owner);
+                    bool equipped = registry.Get(turret).Turret.ProjectilePrefab == beam.Projectile;
+
+                    muzzle = ownerTransform.TransformTransform(muzzles[beam.Muzzle].MuzzleLocation);
+                    charging = equipped && turretSwitch.State == TurretSwitchState.SpinningUp;
+                    firing = equipped && turretSwitch.State == TurretSwitchState.Firing;
+
+                    if (charging)
+                    {
+                        // 사라지는 중에 다시 쏘면 충전부터 다시 함.
+                        float switchTime = registry.Get(turret).SwitchTime;
+                        beam.Charge = switchTime > 0.0F ? math.saturate(1.0F - turretSwitch.Remaining / switchTime) : 1.0F;
+                        beam.Fired = false;
+                        beam.Length = 0.0F;
+                    }
                 }
 
                 if (firing && !beam.Fired)
@@ -346,6 +367,25 @@ namespace GalaxyIO.DOTS.Client.Systems
             hullTransforms.Dispose();
             hullColliders.Dispose();
             hullFactions.Dispose();
+        }
+
+        // 이 총구에 광선이 없으면 스폰 목록에 넣음.
+        private static void Request(
+            NativeArray<BeamComponent> beams,
+            NativeList<BeamComponent> pending,
+            Entity owner,
+            int muzzle,
+            Entity projectile)
+        {
+            foreach (BeamComponent beam in beams)
+            {
+                if (beam.Owner == owner && beam.Muzzle == muzzle)
+                {
+                    return;
+                }
+            }
+
+            pending.Add(new BeamComponent { Owner = owner, Muzzle = muzzle, Projectile = projectile });
         }
     }
 }
