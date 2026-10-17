@@ -143,6 +143,7 @@ MonoBehaviour:
   Muzzles:
   - {fileID: 1279712499970898616}
   - {fileID: 3305843298488137801}
+  AutoTurrets: []
   Turret: {fileID: 11400000, guid: 3037765fa7c4999d2c3d742734c545df, type: 2}
   Upgrade: {fileID: 11400000, guid: 6c18918797304db4cb9324634658d1cd, type: 2}
 --- !u!114 &8909345426696020667
