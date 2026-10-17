@@ -251,8 +251,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3b81e4e8540b4e94dbc07f7b0499c275, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.BoxColliderAuthoring
-  Center: {x: 0.00000047683716, y: -0.30470848}
-  Size: {x: 13.196309, y: 19.900063}
+  Center: {x: 0.01900673, y: 0.30348969}
+  Size: {x: 13.310347, y: 18.91174}
 --- !u!1 &1449139956014179191
 GameObject:
   m_ObjectHideFlags: 0
