@@ -117,10 +117,10 @@ MonoBehaviour:
   HoveringManeuver: 20
   Acceleration: 14
   Deceleration: 18
-  Maneuver: 600
+  Maneuver: 360
   ManeuverAcceleration: 3600
   ManeuverDeceleration: 3600
-  ManeuverPenalty: 0.7
+  ManeuverPenalty: 0.8
   MaxHealth: 80
   Repair: 2
   RepairDelay: 3
@@ -210,7 +210,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.CarriedCraftAuthoring
   DetectRadius: 20
   LeashRadius: 35
-  EngageDistance: 8
+  RetargetCooldown: 3
+  SpreadDistance: 10
   HoverDistance: 2
   FlightDistance: 6
   AttackRadius: 10

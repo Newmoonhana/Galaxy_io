@@ -79,12 +79,12 @@ namespace GalaxyIO.DOTS.Authoring
         public float SlotGap = 3.0F;
 
         [SerializeField]
-        [Tooltip("교전 진형 자리가 고리를 따라 도는 속력")]
+        [Tooltip("공격 명령 중 교전 진형 자리가 고리를 따라 도는 속력. 지역 확보와 호위는 돌지 않음.")]
         [Min(0.0F)]
         public float OrbitSpeed = 4.0F;
 
         [SerializeField]
-        [Tooltip("교전 진형 자리가 도는 방향을 바꾸는 간격(초) (최소, 최대)")]
+        [Tooltip("공격 명령 중 교전 진형 자리가 도는 방향을 바꾸는 간격(초) (최소, 최대)")]
         public Vector2 DodgeInterval = new Vector2(1.0F, 3.0F);
 
         [SerializeField]

@@ -679,14 +679,6 @@ MonoBehaviour:
     m_Key: Upgrade/Assembly
     m_Metadata:
       m_Items: []
-  - m_Id: 8504323503857664
-    m_Key: Order/Approaching
-    m_Metadata:
-      m_Items: []
-  - m_Id: 8504323562577920
-    m_Key: Order/Surrounding
-    m_Metadata:
-      m_Items: []
   - m_Id: 8519519249145856
     m_Key: Order/SecureArea
     m_Metadata:

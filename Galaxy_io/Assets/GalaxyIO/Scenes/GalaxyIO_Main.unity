@@ -1666,53 +1666,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 433758126}
   m_CullTransparentMesh: 1
---- !u!1 &437843501
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 437843502}
-  - component: {fileID: 437843503}
-  m_Layer: 5
-  m_Name: CarriedCraftLabels
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &437843502
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 437843501}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 488558767}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &437843503
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 437843501}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 66faaf6854cd38d418712e54a790a8f0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Scripts.Managed.UI.CarriedCraftLabels
-  labelPrefab: {fileID: 8698955362033139034, guid: 3cfda0a09772b2c478939fe6ce7aae8b, type: 3}
-  gap: 0.35
-  color: {r: 1, g: 0.75, b: 0.3, a: 1}
 --- !u!1 &488028733
 GameObject:
   m_ObjectHideFlags: 0
@@ -1803,7 +1756,6 @@ Transform:
   - {fileID: 2079823844}
   - {fileID: 1444829302}
   - {fileID: 488028734}
-  - {fileID: 437843502}
   - {fileID: 752832491}
   - {fileID: 115784128}
   - {fileID: 2007162045}

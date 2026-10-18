@@ -9,7 +9,7 @@ using UnityEngine;
 namespace GalaxyIO.Scripts.Managed.UI
 {
     /// <summary>
-    /// 로컬 플레이어 우주선의 스프라이트(선체, 자동 포탑)에 외곽선 머티리얼을 입히는 클라이언트 전용 뷰.
+    /// 로컬 플레이어 우주선과 그 함재기의 스프라이트(선체, 자동 포탑)에 외곽선 머티리얼을 입히는 클라이언트 전용 뷰.
     /// </summary>
     public sealed class LocalSpaceshipOutline : MonoBehaviour
     {
@@ -19,6 +19,8 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private EntityManager entityManager;
         private EntityQuery playerQuery;
+        private EntityQuery craftQuery;
+        private EntityQuery connectionQuery;
 
         // 매 프레임 다시 채움.
         private readonly List<SpriteRenderer> sprites = new List<SpriteRenderer>();
@@ -42,6 +44,11 @@ namespace GalaxyIO.Scripts.Managed.UI
                 ComponentType.ReadOnly<SpaceshipSpecComponent>(),
                 ComponentType.ReadOnly<SpriteRenderer>()
             );
+            craftQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<CarriedCraftComponent>(),
+                ComponentType.ReadOnly<SpriteRenderer>()
+            );
+            connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
         }
 
         private void LateUpdate()
@@ -53,15 +60,34 @@ namespace GalaxyIO.Scripts.Managed.UI
                 return;
             }
 
-            if (playerQuery.IsEmpty)
+            // Companion 스프라이트. 리스폰, 출격하면 새 인스턴스가 생기므로 매 프레임 확인함.
+            using var players = playerQuery.ToEntityArray(Allocator.Temp);
+
+            foreach (Entity player in players)
+            {
+                Outline(player);
+            }
+
+            // 함재기는 주인이 바뀌지 않으므로 되돌릴 일이 없음.
+            if (!connectionQuery.TryGetSingleton(out NetworkId networkId))
             {
                 return;
             }
 
-            using var players = playerQuery.ToEntityArray(Allocator.Temp);
+            using var crafts = craftQuery.ToEntityArray(Allocator.Temp);
 
-            // Companion 스프라이트. 리스폰하면 새 인스턴스가 생기므로 매 프레임 확인함.
-            SpaceshipSprites.Collect(entityManager, players[0], sprites);
+            foreach (Entity craft in crafts)
+            {
+                if (entityManager.GetComponentData<CarriedCraftComponent>(craft).OwnerNetworkId == networkId.Value)
+                {
+                    Outline(craft);
+                }
+            }
+        }
+
+        private void Outline(Entity spaceship)
+        {
+            SpaceshipSprites.Collect(entityManager, spaceship, sprites);
 
             foreach (SpriteRenderer sprite in sprites)
             {
