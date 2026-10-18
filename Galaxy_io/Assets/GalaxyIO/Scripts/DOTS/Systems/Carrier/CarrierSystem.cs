@@ -1,3 +1,4 @@
+using GalaxyIO.DOTS.Collision;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.DOTS.Inventory;
@@ -13,7 +14,8 @@ namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
     /// 모선의 함재기 생산, 출격, 흡수와 명령 유지를 담당하는 서버 시스템. 흡수한 함재기의 화물은 주인 인벤토리로 옮김.
-    /// 함재기마다 이번 틱의 명령, 진형 중심, 진형 자리를 채우고, 조종은 <see cref="CarriedCraftBehaviorSystem"/>이 함.
+    /// 함재기마다 이번 틱의 명령, 교전 대상, 진형 중심, 진형 자리를 채우고, 조종은 <see cref="CarriedCraftBehaviorSystem"/>이 함.
+    /// 교전 중인 함재기는 대상을 둘러싼 고리 위를 돎. 지역 확보와 호위는 함재기마다 같은 모선의 다른 함재기가 덜 노리는 적을 고름.
     /// </summary>
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
@@ -90,11 +92,22 @@ namespace GalaxyIO.DOTS.Systems
                 ranges[networkId.ValueRO.Value] = radius.ValueRO.Value;
             }
 
+            var hulls = new Hulls
+            {
+                Transforms = SystemAPI.GetComponentLookup<LocalTransform>(true),
+                Colliders  = SystemAPI.GetComponentLookup<ColliderComponent>(true),
+                Specs      = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
+                Movements  = SystemAPI.GetComponentLookup<SpaceshipMovementComponent>(true),
+            };
+
             // 모선마다 비워서 다시 씀.
             var mine = new NativeList<Entity>(8, Allocator.Temp);
             var states = new NativeList<CarriedCraftComponent>(8, Allocator.Temp);
             var positions = new NativeList<float2>(8, Allocator.Temp);
             var absorbed = new NativeList<bool>(8, Allocator.Temp);
+
+            // 적 -> 그 적을 노리는 같은 모선의 함재기 수
+            var engaged = new NativeHashMap<Entity, int>(8, Allocator.Temp);
 
             foreach (
                 var (carrierRef, transform, spec, movement, faction, owner, entity) in
@@ -137,26 +150,18 @@ namespace GalaxyIO.DOTS.Systems
                     }
                 }
 
-                // 명령 지점과 그 이동 속도, 진형 첫 고리 반지름.
+                // 명령 지점과 그 이동 속도, 지역 확보 / 호위 진형 첫 고리 반지름. 공격 대상의 선체를 감싸는 반지름.
                 float2 anchorVelocity = float2.zero;
                 float firstRadius = craftSpec.SecureRadius;
+                float attackHull = 0.0F;
 
                 switch (carrier.Order)
                 {
                     case CarrierOrder.Attack:
                         // 대상이 사라지거나 격추되면 돌아옴.
-                        if (SystemAPI.HasComponent<LocalTransform>(carrier.Target)
-                            && SystemAPI.HasComponent<SpaceshipSpecComponent>(carrier.Target)
-                            && SystemAPI.GetComponent<SpaceshipSpecComponent>(carrier.Target).Health > 0.0F)
+                        if (hulls.TryGet(carrier.Target, out float2 attackCenter, out attackHull, out anchorVelocity))
                         {
-                            carrier.Position = SystemAPI.GetComponent<LocalTransform>(carrier.Target).Position.xy;
-                            firstRadius = SystemAPI.GetComponent<SpaceshipSpecComponent>(carrier.Target).Thickness * 0.5F
-                                          + craftSpec.AttackRadius;
-
-                            if (SystemAPI.HasComponent<SpaceshipMovementComponent>(carrier.Target))
-                            {
-                                anchorVelocity = SystemAPI.GetComponent<SpaceshipMovementComponent>(carrier.Target).DeltaMovement;
-                            }
+                            carrier.Position = attackCenter;
                         }
                         else
                         {
@@ -173,7 +178,7 @@ namespace GalaxyIO.DOTS.Systems
                 }
 
                 // 명령 지점이 레이더 밖으로 나가면 돌아옴.
-                if ((carrier.Order == CarrierOrder.Attack || carrier.Order == CarrierOrder.HoldPosition)
+                if ((carrier.Order == CarrierOrder.Attack || carrier.Order == CarrierOrder.SecureArea)
                     && math.distancesq(position, carrier.Position) > range * range)
                 {
                     carrier.Order = CarrierOrder.Return;
@@ -290,7 +295,7 @@ namespace GalaxyIO.DOTS.Systems
                     : 1.0F;
 
                 bool deploying = carrier.Order == CarrierOrder.Attack
-                                 || carrier.Order == CarrierOrder.HoldPosition
+                                 || carrier.Order == CarrierOrder.SecureArea
                                  || carrier.Order == CarrierOrder.Escort;
 
                 // 진형에 설 함재기 수. 모선 안의 함재기는 나오는 대로 빈 자리에 섬.
@@ -308,7 +313,7 @@ namespace GalaxyIO.DOTS.Systems
 
                 if (deploying && carrier.Order == CarrierOrder.Attack)
                 {
-                    // 새 명령이면 무작위 자리를 뽑고 이동 거리 합이 가장 짧게 나눔.
+                    // 새 명령이면 대상을 둘러싼 무작위 자리를 뽑고 이동 거리 합이 가장 짧게 나눔.
                     if (carrier.Reassign && active > 0)
                     {
                         var rings = new NativeArray<int>(active, Allocator.Temp);
@@ -332,7 +337,7 @@ namespace GalaxyIO.DOTS.Systems
                             for (int j = 0; j < active; j++)
                             {
                                 float2 slot = carrier.Position + CarrierFormation.Direction(angles[j])
-                                              * CarrierFormation.RingRadius(firstRadius, craftSpec.RingGap, rings[j]);
+                                              * CarrierFormation.RingRadius(attackHull + craftSpec.AttackRadius, craftSpec.RingGap, rings[j]);
                                 cost[row * active + j] = math.distance(positions[i], slot);
                             }
 
@@ -349,11 +354,13 @@ namespace GalaxyIO.DOTS.Systems
                             }
 
                             CarriedCraftComponent craftState = states[i];
+                            craftState.Target = carrier.Target;
+                            craftState.Engaging = true;
+                            craftState.Approaching = true;
                             craftState.Ring = rings[assignment[row]];
                             craftState.Angle = angles[assignment[row]];
                             craftState.Orbit = random.NextBool() ? 1.0F : -1.0F;
                             craftState.DodgeRemaining = random.NextFloat(craftSpec.DodgeInterval.x, craftSpec.DodgeInterval.y);
-                            craftState.Approaching = true;
                             states[i] = craftState;
                             row++;
                         }
@@ -364,54 +371,24 @@ namespace GalaxyIO.DOTS.Systems
                         assignment.Dispose();
                     }
 
-                    // 자리가 고리를 따라 돎. 같은 고리의 자리와 부딪히면 서로 반대로 돎.
-                    for (int i = 0; i < states.Length; i++)
-                    {
-                        CarriedCraftComponent craftState = states[i];
-
-                        if (absorbed[i] || craftState.Returning || craftState.Ring < 0)
-                        {
-                            continue;
-                        }
-
-                        float radius = CarrierFormation.RingRadius(firstRadius, craftSpec.RingGap, craftState.Ring);
-
-                        craftState.DodgeRemaining -= deltaTime;
-
-                        if (craftState.DodgeRemaining <= 0.0F)
-                        {
-                            craftState.Orbit = -craftState.Orbit;
-                            craftState.DodgeRemaining = random.NextFloat(craftSpec.DodgeInterval.x, craftSpec.DodgeInterval.y);
-                        }
-
-                        for (int j = 0; j < states.Length; j++)
-                        {
-                            if (j == i || absorbed[j] || states[j].Returning || states[j].Ring != craftState.Ring)
-                            {
-                                continue;
-                            }
-
-                            // 상대 자리까지의 각도. -π ~ π.
-                            float delta = math.atan2(
-                                math.sin(states[j].Angle - craftState.Angle),
-                                math.cos(states[j].Angle - craftState.Angle)
-                            );
-
-                            if (math.abs(delta) * radius < craftSpec.SlotGap && math.sign(delta) == craftState.Orbit)
-                            {
-                                craftState.Orbit = -craftState.Orbit;
-                            }
-                        }
-
-                        craftState.Angle += craftState.Orbit * craftSpec.OrbitSpeed / radius * deltaTime;
-                        craftState.Slot = carrier.Position + CarrierFormation.Direction(craftState.Angle) * radius;
-                        states[i] = craftState;
-                    }
-
                     carrier.Reassign = false;
                 }
                 else if (deploying)
                 {
+                    if (carrier.Reassign)
+                    {
+                        // 새 명령이면 하던 교전을 그만두고 대상을 새로 고름.
+                        for (int i = 0; i < states.Length; i++)
+                        {
+                            CarriedCraftComponent craftState = states[i];
+                            craftState.Target = Entity.Null;
+                            craftState.Engaging = false;
+                            craftState.Ring = -1;
+                            craftState.RetargetRemaining = 0.0F;
+                            states[i] = craftState;
+                        }
+                    }
+
                     // 새 명령이거나 진형에 설 수가 바뀌면 자리를 다시 나눔. 이동 거리 합이 가장 짧게 나눔.
                     if ((carrier.Reassign || carrier.FormationCount != formationCount) && active > 0)
                     {
@@ -456,6 +433,7 @@ namespace GalaxyIO.DOTS.Systems
                     carrier.FormationCount = formationCount;
                     carrier.Reassign = false;
 
+                    // 교전하지 않는 함재기가 설 진형 자리
                     for (int i = 0; i < states.Length; i++)
                     {
                         CarriedCraftComponent craftState = states[i];
@@ -469,6 +447,157 @@ namespace GalaxyIO.DOTS.Systems
                                           + CarrierFormation.RingSlot(craftState.SlotIndex, formationCount, firstRadius, craftSpec.RingGap, craftSpec.SlotGap);
                         states[i] = craftState;
                     }
+
+                    // 적마다 노리는 함재기 수
+                    engaged.Clear();
+
+                    for (int i = 0; i < states.Length; i++)
+                    {
+                        if (!absorbed[i] && !states[i].Returning && states[i].Engaging)
+                        {
+                            engaged[states[i].Target] = (engaged.TryGetValue(states[i].Target, out int count) ? count : 0) + 1;
+                        }
+                    }
+
+                    // 대상이 사라지거나 멀어지면 바로, 아니면 잠시 뒤 다시 고름.
+                    // 가까울수록, 다른 함재기가 덜 노릴수록 좋은 대상. 지금 대상은 조금 더 쳐줘서 쉽게 바꾸지 않음.
+                    for (int i = 0; i < states.Length; i++)
+                    {
+                        CarriedCraftComponent craftState = states[i];
+
+                        if (absorbed[i] || craftState.Returning || craftState.WindUpRemaining > 0.0F)
+                        {
+                            continue;
+                        }
+
+                        craftState.RetargetRemaining -= deltaTime;
+
+                        float chaseDistance = SystemAPI.GetComponent<EnemyPerceptionComponent>(mine[i]).ChaseDistance;
+                        Entity best = Entity.Null;
+                        float bestScore = float.MaxValue;
+
+                        if (craftState.Engaging
+                            && hulls.TryGet(craftState.Target, out float2 currentCenter, out float currentHull, out _)
+                            && math.distance(positions[i], currentCenter) - currentHull <= chaseDistance
+                            && (carrier.Order != CarrierOrder.Escort || math.distance(currentCenter, position) <= craftSpec.LeashRadius))
+                        {
+                            if (craftState.RetargetRemaining > 0.0F)
+                            {
+                                states[i] = craftState;
+                                continue;
+                            }
+
+                            best = craftState.Target;
+                            bestScore = math.distance(positions[i], currentCenter) - currentHull
+                                        + craftSpec.SpreadDistance * (engaged[craftState.Target] - 1.5F);
+                        }
+
+                        foreach (SightOverlapElement sight in SystemAPI.GetBuffer<SightOverlapElement>(mine[i]))
+                        {
+                            Entity candidate = sight.Message.Other;
+
+                            if (candidate == craftState.Target
+                                || !hulls.TryGet(candidate, out float2 center, out float hull, out _)
+                                || (carrier.Order == CarrierOrder.Escort && math.distance(center, position) > craftSpec.LeashRadius))
+                            {
+                                continue;
+                            }
+
+                            float score = math.distance(positions[i], center) - hull
+                                          + craftSpec.SpreadDistance * (engaged.TryGetValue(candidate, out int others) ? others : 0);
+
+                            if (score < bestScore)
+                            {
+                                best = candidate;
+                                bestScore = score;
+                            }
+                        }
+
+                        craftState.RetargetRemaining = craftSpec.RetargetCooldown;
+
+                        if (best != craftState.Target || !craftState.Engaging)
+                        {
+                            if (craftState.Engaging && engaged.TryGetValue(craftState.Target, out int left))
+                            {
+                                engaged[craftState.Target] = left - 1;
+                            }
+
+                            craftState.Target = best;
+                            craftState.Engaging = best != Entity.Null;
+                            craftState.Ring = -1;
+
+                            if (craftState.Engaging)
+                            {
+                                engaged[best] = (engaged.TryGetValue(best, out int count) ? count : 0) + 1;
+
+                                craftState.Approaching = true;
+                                craftState.Ring = random.NextInt(0, craftSpec.AttackRings);
+                                craftState.Angle = random.NextFloat(0.0F, 2.0F * math.PI);
+                                craftState.Orbit = random.NextBool() ? 1.0F : -1.0F;
+                                craftState.DodgeRemaining = random.NextFloat(craftSpec.DodgeInterval.x, craftSpec.DodgeInterval.y);
+                            }
+                        }
+
+                        states[i] = craftState;
+                    }
+                }
+
+                // 교전 중인 함재기의 자리가 대상을 둘러싼 고리를 따라 돎. 같은 대상, 같은 고리의 자리와 부딪히면 서로 반대로 돎.
+                for (int i = 0; i < states.Length; i++)
+                {
+                    CarriedCraftComponent craftState = states[i];
+
+                    if (absorbed[i] || craftState.Returning || !craftState.Engaging)
+                    {
+                        continue;
+                    }
+
+                    // 대상이 이번 틱에 격추됐으면 다음 틱에 다시 고름.
+                    if (!hulls.TryGet(craftState.Target, out float2 center, out float hull, out float2 targetVelocity))
+                    {
+                        craftState.Target = Entity.Null;
+                        craftState.Engaging = false;
+                        craftState.Ring = -1;
+                        states[i] = craftState;
+                        continue;
+                    }
+
+                    float radius = CarrierFormation.RingRadius(hull + craftSpec.AttackRadius, craftSpec.RingGap, craftState.Ring);
+
+                    craftState.DodgeRemaining -= deltaTime;
+
+                    if (craftState.DodgeRemaining <= 0.0F)
+                    {
+                        craftState.Orbit = -craftState.Orbit;
+                        craftState.DodgeRemaining = random.NextFloat(craftSpec.DodgeInterval.x, craftSpec.DodgeInterval.y);
+                    }
+
+                    for (int j = 0; j < states.Length; j++)
+                    {
+                        if (j == i || absorbed[j] || states[j].Returning || !states[j].Engaging
+                            || states[j].Target != craftState.Target || states[j].Ring != craftState.Ring)
+                        {
+                            continue;
+                        }
+
+                        // 상대 자리까지의 각도. -π ~ π.
+                        float delta = math.atan2(
+                            math.sin(states[j].Angle - craftState.Angle),
+                            math.cos(states[j].Angle - craftState.Angle)
+                        );
+
+                        if (math.abs(delta) * radius < craftSpec.SlotGap && math.sign(delta) == craftState.Orbit)
+                        {
+                            craftState.Orbit = -craftState.Orbit;
+                        }
+                    }
+
+                    craftState.Angle += craftState.Orbit * craftSpec.OrbitSpeed / radius * deltaTime;
+                    craftState.Anchor = center;
+                    craftState.AnchorVelocity = targetVelocity;
+                    craftState.HullRadius = hull;
+                    craftState.Slot = center + CarrierFormation.Direction(craftState.Angle) * radius;
+                    states[i] = craftState;
                 }
 
                 // 한 대씩 내보냄.
@@ -496,11 +625,16 @@ namespace GalaxyIO.DOTS.Systems
 
                     if (carrier.Order == CarrierOrder.Attack)
                     {
+                        launched.Target = carrier.Target;
+                        launched.Engaging = true;
                         launched.Approaching = true;
                         launched.Ring = random.NextInt(0, craftSpec.AttackRings);
                         launched.Angle = random.NextFloat(0.0F, 2.0F * math.PI);
+                        launched.Anchor = carrier.Position;
+                        launched.AnchorVelocity = anchorVelocity;
+                        launched.HullRadius = attackHull;
                         launched.Slot = carrier.Position + CarrierFormation.Direction(launched.Angle)
-                                        * CarrierFormation.RingRadius(firstRadius, craftSpec.RingGap, launched.Ring);
+                                        * CarrierFormation.RingRadius(attackHull + craftSpec.AttackRadius, craftSpec.RingGap, launched.Ring);
                     }
                     else
                     {
@@ -566,6 +700,10 @@ namespace GalaxyIO.DOTS.Systems
 
                     if (craftState.Returning)
                     {
+                        craftState.Target = Entity.Null;
+                        craftState.Engaging = false;
+                        craftState.Ring = -1;
+                        craftState.HullRadius = 0.0F;
                         craftState.Anchor = position;
                         craftState.AnchorVelocity = velocity;
                         craftState.Slot = position;
@@ -590,15 +728,58 @@ namespace GalaxyIO.DOTS.Systems
             states.Dispose();
             positions.Dispose();
             absorbed.Dispose();
+            engaged.Dispose();
         }
 
+        // 교전하지 않는 함재기의 진형 중심은 명령 지점. 교전 중이면 고리 갱신에서 대상으로 채움.
         private static void WriteOrder(ref CarriedCraftComponent craft, in CarrierComponent carrier, float2 anchorVelocity, float2 heading)
         {
             craft.Order = carrier.Order;
-            craft.Target = carrier.Target;
-            craft.Anchor = carrier.Position;
-            craft.AnchorVelocity = anchorVelocity;
             craft.Heading = heading;
+
+            if (!craft.Engaging)
+            {
+                craft.Target = Entity.Null;
+                craft.HullRadius = 0.0F;
+                craft.Anchor = carrier.Position;
+                craft.AnchorVelocity = anchorVelocity;
+            }
+        }
+
+        /// <summary>
+        /// 교전 대상 선체 조회.
+        /// </summary>
+        private struct Hulls
+        {
+            public ComponentLookup<LocalTransform> Transforms;
+            public ComponentLookup<ColliderComponent> Colliders;
+            public ComponentLookup<SpaceshipSpecComponent> Specs;
+            public ComponentLookup<SpaceshipMovementComponent> Movements;
+
+            /// <summary>
+            /// 선체 중심, 감싸는 원의 반지름, 이동 속도. 사라졌거나 격추됐으면 false.
+            /// </summary>
+            public bool TryGet(Entity target, out float2 center, out float radius, out float2 velocity)
+            {
+                center = float2.zero;
+                radius = 0.0F;
+                velocity = float2.zero;
+
+                if (!Transforms.TryGetComponent(target, out LocalTransform transform)
+                    || !Colliders.TryGetComponent(target, out ColliderComponent collider)
+                    || !Specs.TryGetComponent(target, out SpaceshipSpecComponent spec)
+                    || spec.Health <= 0.0F)
+                {
+                    return false;
+                }
+
+                ColliderWorld hull = ColliderOverlap.ToWorld(collider, transform);
+                center = hull.Center;
+                radius = CarrierFormation.HullRadius(hull);
+                velocity = Movements.TryGetComponent(target, out SpaceshipMovementComponent movement) ? movement.DeltaMovement : float2.zero;
+
+                return true;
+            }
         }
     }
 }

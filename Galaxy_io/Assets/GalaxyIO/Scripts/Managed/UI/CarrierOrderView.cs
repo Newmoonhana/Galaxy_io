@@ -20,7 +20,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 {
     /// <summary>
     /// 모선의 함재기 명령을 내리고, 지금 명령을 핑으로 그리는 클라이언트 전용 뷰. 살아 있는 함재기 수도 띄움.
-    /// 적을 누르면 공격, 빈 곳이나 레이더는 지키기, 자기 모선은 호위(호위 중이거나 두 번 누르면 귀환).
+    /// 적을 누르면 공격, 빈 곳이나 레이더는 지역 확보, 자기 모선은 호위(호위 중이거나 두 번 누르면 귀환).
     /// </summary>
     public sealed class CarrierOrderView : MonoBehaviour
     {
@@ -176,7 +176,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
                 if (radar != null && radar.TryGetWorldPoint(cursor, out Vector2 radarPoint))
                 {
-                    order.Order = CarrierOrder.HoldPosition;
+                    order.Order = CarrierOrder.SecureArea;
                     order.Position = radarPoint;
                 }
                 else
@@ -184,8 +184,8 @@ namespace GalaxyIO.Scripts.Managed.UI
                     Vector3 world = mainCamera.ScreenToWorldPoint(new Vector3(cursor.x, cursor.y, -mainCamera.transform.position.z));
                     var point = new float2(world.x, world.y);
 
-                    // 커서 주변 반경에 걸린 우주선 중 중심이 가장 가까운 것. 없으면 그 자리를 지킴.
-                    order.Order = CarrierOrder.HoldPosition;
+                    // 커서 주변 반경에 걸린 우주선 중 중심이 가장 가까운 것. 없으면 그 지역을 확보함.
+                    order.Order = CarrierOrder.SecureArea;
                     order.Position = point;
 
                     // 캔버스 단위 반경을 월드 유닛으로 바꿈.
@@ -257,7 +257,7 @@ namespace GalaxyIO.Scripts.Managed.UI
             UpdateCraftCount(carrier, kind);
 
             bool showing = carrier.Order == CarrierOrder.Attack
-                           || carrier.Order == CarrierOrder.HoldPosition
+                           || carrier.Order == CarrierOrder.SecureArea
                            || carrier.Order == CarrierOrder.Escort;
 
             marker.gameObject.SetActive(showing);

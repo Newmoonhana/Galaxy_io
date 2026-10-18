@@ -1,3 +1,4 @@
+using GalaxyIO.DOTS.Collision;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Spaceship;
 using Unity.Burst;
@@ -9,10 +10,10 @@ using Unity.Transforms;
 namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
-    /// 함재기를 조종하는 시스템. <see cref="CarrierSystem"/>이 채운 진형 자리로 날아가고, 적을 찾으면 진형을 벗어나 교전함.
-    /// 자리에서 멀면 비행 모드, 가까우면 호버링 모드로 움직임. 사격은 <see cref="EnemyTurretFireSystem"/>이 함.
-    /// 공격 명령은 대상에게 곧장 다가가며 쏘다가, 자기 고리에 닿으면 진형을 짜고 돎.
-    /// 출격 직후 잠깐은 쏘지도, 교전하지도 않음.
+    /// 함재기를 조종하는 시스템. <see cref="CarrierSystem"/>이 채운 진형 자리로 날아감.
+    /// 교전 중이면 대상에게 곧장 다가가며 쏘다가, 자기 고리에 닿으면 고리를 따라 돎. 선체를 가로지르는 길은 고리를 따라 돌아감.
+    /// 자리에서 멀면 비행 모드, 가까우면 호버링 모드로 움직이고, 비행 중에는 앞길의 적 선체를 비켜 감.
+    /// 사격은 <see cref="EnemyTurretFireSystem"/>이 함. 출격 직후 잠깐은 쏘지 않음.
     /// </summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
@@ -33,6 +34,7 @@ namespace GalaxyIO.DOTS.Systems
             {
                 DeltaTime = SystemAPI.Time.DeltaTime,
                 Specs     = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
+                Colliders = SystemAPI.GetComponentLookup<ColliderComponent>(true),
             }.ScheduleParallel(state.Dependency);
         }
     }
@@ -44,10 +46,22 @@ namespace GalaxyIO.DOTS.Systems
         // 호버링 중 자리로 붙는 빠르기(1/초). 남은 거리 x 이 값이 목표 속력.
         private const float HoverGain = 2.0F;
 
+        // 최고 속력으로 다가갈 때 선체 바깥에서 고리까지의 거리에 더하는 비율. 빠를수록 일찍 진형을 짜러 흘러감.
+        private const float MaxApproachDrift = 0.5F;
+
+        // 고리를 따라 돌아갈 때 한 번에 앞서 잡는 각도(라디안). 이만큼 떨어진 두 고리 위 점을 이은 길은 선체에서 충분히 멂.
+        private const float ArcStep = math.PI * 0.25F;
+
+        // 앞길의 선체를 살필 때 제동 거리에 더하는 반응 시간(초)
+        private const float AvoidReaction = 0.25F;
+
         public float DeltaTime;
 
         [ReadOnly]
         public ComponentLookup<SpaceshipSpecComponent> Specs;
+
+        [ReadOnly]
+        public ComponentLookup<ColliderComponent> Colliders;
 
         private void Execute(
             ref LocalTransform transform,
@@ -55,39 +69,30 @@ namespace GalaxyIO.DOTS.Systems
             ref EnemySpaceshipMovementComponent hovering,
             ref SpaceshipMovementComponent movement,
             ref CarriedCraftComponent craft,
-            in CarriedCraftSpecComponent spec)
+            in CarriedCraftSpecComponent spec,
+            in SpaceshipSpecComponent self,
+            in DynamicBuffer<SightOverlapElement> sights)
         {
             float2 position = transform.Position.xy;
             float2 forward = math.normalizesafe(SpaceshipHeading.FromRotation(transform.Rotation), new float2(0.0F, 1.0F));
+            float ownRadius = self.Thickness * 0.5F;
 
             craft.WindUpRemaining = math.max(craft.WindUpRemaining - DeltaTime, 0.0F);
 
-            // 귀환 중이거나 출격 직후에는 쏘지 않음. 공격 명령은 지정한 대상만 노림.
-            // 그 밖에는 인지 시스템이 고른 대상을 쓰되, 호위 중에는 모선에서 너무 먼 대상을 놓음.
-            if (craft.Returning || craft.WindUpRemaining > 0.0F)
-            {
-                perception.CurrentTarget = Entity.Null;
-            }
-            else if (craft.Order == CarrierOrder.Attack)
-            {
-                bool alive = Specs.TryGetComponent(craft.Target, out SpaceshipSpecComponent targetSpec);
+            // 교전 대상은 모선이 고름. 귀환 중이거나 출격 직후에는 쏘지 않음.
+            Specs.TryGetComponent(craft.Target, out SpaceshipSpecComponent targetSpec);
+            bool engaging = !craft.Returning && craft.Engaging && craft.Target != Entity.Null && Specs.HasComponent(craft.Target);
 
-                perception.CurrentTarget = alive ? craft.Target : Entity.Null;
-                perception.TargetPosition = craft.Anchor;
-                perception.TargetThickness = alive ? targetSpec.Thickness : 0.0F;
-            }
-            else if (perception.CurrentTarget != Entity.Null
-                     && craft.Order == CarrierOrder.Escort
-                     && math.distancesq(perception.TargetPosition, craft.Anchor) > spec.LeashRadius * spec.LeashRadius)
-            {
-                perception.CurrentTarget = Entity.Null;
-            }
-
-            bool engaging = !craft.Returning && craft.Order != CarrierOrder.Attack && perception.CurrentTarget != Entity.Null;
+            perception.CurrentTarget = engaging && craft.WindUpRemaining <= 0.0F ? craft.Target : Entity.Null;
+            perception.TargetPosition = craft.Anchor;
+            perception.TargetThickness = targetSpec.Thickness;
 
             float2 destination;
             float2 destinationVelocity;
             float2 face;
+
+            // 고리를 따라 도는 중이면 대상 쪽으로 이 반지름 안에 들어가지 않음.
+            float ringClearance = 0.0F;
 
             if (craft.Returning)
             {
@@ -95,16 +100,7 @@ namespace GalaxyIO.DOTS.Systems
                 destinationVelocity = craft.AnchorVelocity;
                 face = forward;
             }
-            else if (engaging)
-            {
-                // 진형을 벗어나 대상 선체 바깥에서 일정 거리를 두고 싸움.
-                float2 away = math.normalizesafe(position - perception.TargetPosition, -forward);
-
-                destination = perception.TargetPosition + away * (spec.EngageDistance + perception.TargetThickness * 0.5F);
-                destinationVelocity = float2.zero;
-                face = perception.TargetPosition - position;
-            }
-            else if (craft.Order == CarrierOrder.Attack && craft.Approaching)
+            else if (engaging && craft.Approaching)
             {
                 // 대상을 바라보며 곧장 다가가 자기 고리 위에서 멈춤.
                 float ringRadius = math.distance(craft.Slot, craft.Anchor);
@@ -113,7 +109,38 @@ namespace GalaxyIO.DOTS.Systems
                 destinationVelocity = craft.AnchorVelocity;
                 face = craft.Anchor - position;
 
-                craft.Approaching = math.distance(position, craft.Anchor) > (ringRadius + spec.HoverDistance);
+                // 선체 바깥에서 고리까지의 거리만 늘림. 큰 대상이라고 더 일찍 멈추지 않음.
+                float closingSpeed = math.max(math.dot(hovering.Velocity - craft.AnchorVelocity, math.normalizesafe(craft.Anchor - position)), 0.0F);
+                float drift = 1.0F + MaxApproachDrift * math.saturate(closingSpeed / spec.Speed);
+                float hull = craft.HullRadius + ownRadius;
+
+                craft.Approaching = math.distance(position, craft.Anchor) > hull + (ringRadius - hull) * drift + spec.HoverDistance;
+            }
+            else if (engaging)
+            {
+                // 고리 위 자리로 감. 곧장 가는 길이 선체를 지나면 고리를 따라 돌아감.
+                float ringRadius = math.distance(craft.Slot, craft.Anchor);
+                float clearance = craft.HullRadius + ownRadius + spec.HoverDistance;
+                float2 fromCenter = position - craft.Anchor;
+                float2 path = craft.Slot - position;
+                float2 closest = fromCenter + path * math.saturate(-math.dot(fromCenter, path) / math.max(math.lengthsq(path), math.EPSILON));
+
+                destination = craft.Slot;
+
+                if (math.length(closest) < clearance)
+                {
+                    float current = CarrierFormation.Angle(fromCenter);
+                    float slotAngle = CarrierFormation.Angle(craft.Slot - craft.Anchor);
+                    float delta = math.atan2(math.sin(slotAngle - current), math.cos(slotAngle - current));
+
+                    destination = craft.Anchor
+                                  + CarrierFormation.Direction(current + math.sign(delta) * math.min(math.abs(delta), ArcStep))
+                                  * math.max(ringRadius, clearance);
+                }
+
+                destinationVelocity = craft.AnchorVelocity;
+                face = craft.Anchor - position;
+                ringClearance = ringRadius - spec.HoverDistance;
             }
             else
             {
@@ -144,10 +171,83 @@ namespace GalaxyIO.DOTS.Systems
             {
                 // 기수 방향으로 날아감. 자리에 멈출 수 있는 속력까지만 내고, 자리가 움직이면 그 속력을 더함.
                 float2 direction = distance > math.EPSILON ? toDestination / distance : forward;
+
+                // 멈출 수 있는 거리 안, 자리에 닿기 전에 적 선체가 있으면 가장 먼저 닿을 선체의 바깥쪽 접선으로 비켜 가고
+                // 그 선체 앞에서 멈출 수 있는 속력까지 줄임. 교전 대상은 그 속도를 빼고 봄. 이미 안쪽이면 곧장 바깥으로 나감.
+                float nearestEntry = float.MaxValue;
+                float speedLimit = float.MaxValue;
+                float2 avoid = direction;
+                bool escaping = false;
+
+                for (int i = 0; i < sights.Length && !escaping; i++)
+                {
+                    Entity other = sights[i].Message.Other;
+
+                    if (!Colliders.TryGetComponent(other, out ColliderComponent obstacle))
+                    {
+                        continue;
+                    }
+
+                    float2 toObstacle = sights[i].Message.OtherCenter - position;
+                    float obstacleDistance = math.length(toObstacle);
+                    float2 toCenter = toObstacle / math.max(obstacleDistance, math.EPSILON);
+                    float clearance = CarrierFormation.HullRadius(new ColliderWorld { Shape = obstacle.Shape, Extents = obstacle.Extents })
+                                      + ownRadius + spec.HoverDistance;
+
+                    // 교전 대상은 고리 안쪽까지 피해서 고리를 따라 돌게 함.
+                    if (other == craft.Target)
+                    {
+                        clearance = math.max(clearance, ringClearance);
+                    }
+
+                    if (obstacleDistance <= clearance)
+                    {
+                        avoid = -toCenter;
+                        speedLimit = float.MaxValue;
+                        escaping = true;
+                        continue;
+                    }
+
+                    float2 obstacleVelocity = other == craft.Target ? craft.AnchorVelocity : float2.zero;
+                    float2 relative = hovering.Velocity - obstacleVelocity;
+                    float relativeSpeed = math.length(relative);
+                    float2 heading = relativeSpeed > math.EPSILON ? relative / relativeSpeed : direction;
+                    float reach = math.min(
+                        distance,
+                        relativeSpeed * relativeSpeed / (2.0F * spec.Deceleration) + relativeSpeed * AvoidReaction + ownRadius
+                    );
+                    float along = math.dot(toObstacle, heading);
+                    float2 side = toObstacle - heading * along;
+                    float miss = math.length(side);
+
+                    if (along <= 0.0F || miss >= clearance)
+                    {
+                        continue;
+                    }
+
+                    float entry = along - math.sqrt(clearance * clearance - miss * miss);
+
+                    if (entry > reach || entry >= nearestEntry)
+                    {
+                        continue;
+                    }
+
+                    // 선체 중심에서 비껴 있는 쪽으로 접선을 그음.
+                    float2 outward = miss > math.EPSILON ? -side / miss : new float2(-heading.y, heading.x);
+                    float sin = clearance / obstacleDistance;
+
+                    nearestEntry = entry;
+                    avoid = toCenter * math.sqrt(1.0F - sin * sin) + outward * sin;
+                    speedLimit = math.sqrt(2.0F * spec.Deceleration * math.max(entry, 0.0F)) + math.max(math.dot(obstacleVelocity, avoid), 0.0F);
+                }
+
+                direction = avoid;
                 float speed = math.min(
                     spec.Speed,
                     math.sqrt(2.0F * spec.Deceleration * distance) + math.max(math.dot(destinationVelocity, direction), 0.0F)
                 );
+
+                speed = math.min(speed, speedLimit);
 
                 nextForward = SpaceshipHeading.RotateTowards(forward, direction, maxTurn);
                 nextVelocity = SpaceshipHovering.Approach(
