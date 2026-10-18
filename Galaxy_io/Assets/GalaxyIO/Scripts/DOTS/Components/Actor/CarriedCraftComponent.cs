@@ -53,10 +53,10 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 한 고리 위 자리 사이의 최소 거리
         public float SlotGap;
 
-        // 교전 진형 자리가 고리를 따라 도는 속력
+        // 공격 명령 중 교전 진형 자리가 고리를 따라 도는 속력. 지역 확보와 호위는 돌지 않음.
         public float OrbitSpeed;
 
-        // 교전 진형 자리가 도는 방향을 바꾸는 간격(초). (최소, 최대)
+        // 공격 명령 중 교전 진형 자리가 도는 방향을 바꾸는 간격(초). (최소, 최대)
         public float2 DodgeInterval;
 
         // 공격 명령 중 체력 비율이 이보다 낮으면 모선으로 돌아감.
@@ -65,14 +65,14 @@ namespace GalaxyIO.DOTS.Components.Actor
 
     /// <summary>
     /// 출격한 함재기의 상태. 명령 정보는 <see cref="CarrierComponent"/>를 가진 모선이 매 틱 채움.
-    /// 주인, 교전 여부, 귀환 여부, 교전 단계만 클라이언트에 복제함.
+    /// 주인만 클라이언트에 복제함.
     /// </summary>
     public struct CarriedCraftComponent : IComponentData
     {
         // 출격시킨 모선
         public Entity Carrier;
 
-        // 모선 주인의 NetworkId. 격추 기록, 주인 화면의 단계 표시에 씀.
+        // 모선 주인의 NetworkId. 격추 기록, 클라이언트의 외곽선 색에 씀.
         [GhostField]
         public int OwnerNetworkId;
 
@@ -85,7 +85,6 @@ namespace GalaxyIO.DOTS.Components.Actor
         public Entity Target;
 
         // 대상을 둘러싼 고리 진형으로 교전 중. 대상이 없으면 false.
-        [GhostField]
         public bool Engaging;
 
         // 진형 중심과 그 이동 속도. 교전 중이면 대상 선체 중심, 귀환 중이면 모선.
@@ -105,7 +104,6 @@ namespace GalaxyIO.DOTS.Components.Actor
         public float2 Slot;
 
         // 모선으로 돌아가는 중. 닿으면 흡수됨.
-        [GhostField]
         public bool Returning;
 
         // 귀환 명령 후 출발까지 남은 시간(초)
@@ -128,7 +126,6 @@ namespace GalaxyIO.DOTS.Components.Actor
         public bool Flying;
 
         // 교전의 접근 단계. 대상을 보고 쏘며 자기 고리까지 다가가고, 닿으면 고리를 따라 돎.
-        [GhostField]
         public bool Approaching;
 
         // 출격 후 쏘기 시작하기까지 남은 시간(초)

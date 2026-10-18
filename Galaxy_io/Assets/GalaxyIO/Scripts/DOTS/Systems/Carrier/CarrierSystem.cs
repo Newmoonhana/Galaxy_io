@@ -15,7 +15,8 @@ namespace GalaxyIO.DOTS.Systems
     /// <summary>
     /// 모선의 함재기 생산, 출격, 흡수와 명령 유지를 담당하는 서버 시스템. 흡수한 함재기의 화물은 주인 인벤토리로 옮김.
     /// 함재기마다 이번 틱의 명령, 교전 대상, 진형 중심, 진형 자리를 채우고, 조종은 <see cref="CarriedCraftBehaviorSystem"/>이 함.
-    /// 교전 중인 함재기는 대상을 둘러싼 고리 위를 돎. 지역 확보와 호위는 함재기마다 같은 모선의 다른 함재기가 덜 노리는 적을 고름.
+    /// 교전 중인 함재기는 대상을 둘러싼 고리 위에 서고, 공격 명령이면 고리를 따라 돎.
+    /// 지역 확보와 호위는 함재기마다 같은 모선의 다른 함재기가 덜 노리는 적을 고름.
     /// </summary>
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
@@ -28,6 +29,9 @@ namespace GalaxyIO.DOTS.Systems
         // 모선이 사라진 뒤 함재기가 터지기까지의 시간 범위(초). 함재기마다 뽑아 한꺼번에 터지지 않게 함.
         private const float MinExplodeDelay = 0.2F;
         private const float MaxExplodeDelay = 0.8F;
+
+        // 지역 확보, 호위 중 고리 위 자리를 고를 때 뽑아 보는 각도 수. 같은 대상의 다른 자리에서 가장 먼 것을 고름.
+        private const int AngleCandidates = 8;
 
         private EntityQuery craftQuery;
 
@@ -532,9 +536,30 @@ namespace GalaxyIO.DOTS.Systems
 
                                 craftState.Approaching = true;
                                 craftState.Ring = random.NextInt(0, craftSpec.AttackRings);
-                                craftState.Angle = random.NextFloat(0.0F, 2.0F * math.PI);
-                                craftState.Orbit = random.NextBool() ? 1.0F : -1.0F;
-                                craftState.DodgeRemaining = random.NextFloat(craftSpec.DodgeInterval.x, craftSpec.DodgeInterval.y);
+
+                                // 자리가 돌지 않으므로 같은 대상, 같은 고리의 다른 자리와 가장 멀리 떨어진 각도를 고름.
+                                float widest = -1.0F;
+
+                                for (int candidate = 0; candidate < AngleCandidates; candidate++)
+                                {
+                                    float angle = random.NextFloat(0.0F, 2.0F * math.PI);
+                                    float nearest = math.PI;
+
+                                    for (int j = 0; j < states.Length; j++)
+                                    {
+                                        if (j != i && !absorbed[j] && !states[j].Returning && states[j].Engaging
+                                            && states[j].Target == best && states[j].Ring == craftState.Ring)
+                                        {
+                                            nearest = math.min(nearest, math.abs(math.atan2(math.sin(states[j].Angle - angle), math.cos(states[j].Angle - angle))));
+                                        }
+                                    }
+
+                                    if (nearest > widest)
+                                    {
+                                        widest = nearest;
+                                        craftState.Angle = angle;
+                                    }
+                                }
                             }
                         }
 
@@ -542,7 +567,9 @@ namespace GalaxyIO.DOTS.Systems
                     }
                 }
 
-                // 교전 중인 함재기의 자리가 대상을 둘러싼 고리를 따라 돎. 같은 대상, 같은 고리의 자리와 부딪히면 서로 반대로 돎.
+                // 교전 중인 함재기의 자리는 대상을 둘러싼 고리 위에 있음.
+                // 공격 명령이면 자리가 고리를 따라 돌고, 같은 대상, 같은 고리의 자리와 부딪히면 서로 반대로 돎.
+                // 지역 확보와 호위는 자리가 멈춰 있어 진득하게 쏨.
                 for (int i = 0; i < states.Length; i++)
                 {
                     CarriedCraftComponent craftState = states[i];
@@ -564,35 +591,39 @@ namespace GalaxyIO.DOTS.Systems
 
                     float radius = CarrierFormation.RingRadius(hull + craftSpec.AttackRadius, craftSpec.RingGap, craftState.Ring);
 
-                    craftState.DodgeRemaining -= deltaTime;
-
-                    if (craftState.DodgeRemaining <= 0.0F)
+                    if (carrier.Order == CarrierOrder.Attack)
                     {
-                        craftState.Orbit = -craftState.Orbit;
-                        craftState.DodgeRemaining = random.NextFloat(craftSpec.DodgeInterval.x, craftSpec.DodgeInterval.y);
-                    }
+                        craftState.DodgeRemaining -= deltaTime;
 
-                    for (int j = 0; j < states.Length; j++)
-                    {
-                        if (j == i || absorbed[j] || states[j].Returning || !states[j].Engaging
-                            || states[j].Target != craftState.Target || states[j].Ring != craftState.Ring)
-                        {
-                            continue;
-                        }
-
-                        // 상대 자리까지의 각도. -π ~ π.
-                        float delta = math.atan2(
-                            math.sin(states[j].Angle - craftState.Angle),
-                            math.cos(states[j].Angle - craftState.Angle)
-                        );
-
-                        if (math.abs(delta) * radius < craftSpec.SlotGap && math.sign(delta) == craftState.Orbit)
+                        if (craftState.DodgeRemaining <= 0.0F)
                         {
                             craftState.Orbit = -craftState.Orbit;
+                            craftState.DodgeRemaining = random.NextFloat(craftSpec.DodgeInterval.x, craftSpec.DodgeInterval.y);
                         }
+
+                        for (int j = 0; j < states.Length; j++)
+                        {
+                            if (j == i || absorbed[j] || states[j].Returning || !states[j].Engaging
+                                || states[j].Target != craftState.Target || states[j].Ring != craftState.Ring)
+                            {
+                                continue;
+                            }
+
+                            // 상대 자리까지의 각도. -π ~ π.
+                            float delta = math.atan2(
+                                math.sin(states[j].Angle - craftState.Angle),
+                                math.cos(states[j].Angle - craftState.Angle)
+                            );
+
+                            if (math.abs(delta) * radius < craftSpec.SlotGap && math.sign(delta) == craftState.Orbit)
+                            {
+                                craftState.Orbit = -craftState.Orbit;
+                            }
+                        }
+
+                        craftState.Angle += craftState.Orbit * craftSpec.OrbitSpeed / radius * deltaTime;
                     }
 
-                    craftState.Angle += craftState.Orbit * craftSpec.OrbitSpeed / radius * deltaTime;
                     craftState.Anchor = center;
                     craftState.AnchorVelocity = targetVelocity;
                     craftState.HullRadius = hull;

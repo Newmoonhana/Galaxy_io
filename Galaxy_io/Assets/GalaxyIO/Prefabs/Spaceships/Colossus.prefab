@@ -267,7 +267,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.CarrierAuthoring
   CarriedCraft: {fileID: 8801728273272061328, guid: 06d297310519ff14d9be41c9473a29f7, type: 3}
-  Capacity: 8
+  Capacity: 9
   InitialCount: 4
   AssemblyTime: 8
   LaunchInterval: 0.75
