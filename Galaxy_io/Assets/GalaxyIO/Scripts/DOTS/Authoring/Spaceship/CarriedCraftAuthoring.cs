@@ -20,14 +20,19 @@ namespace GalaxyIO.DOTS.Authoring
         public float DetectRadius = 20.0F;
 
         [SerializeField]
-        [Tooltip("호위 중에는 모선에서 이보다 먼 적을 쫓지 않음.")]
+        [Tooltip("호위 중에는 모선에서 이보다 먼 적을 노리지 않음.")]
         [Min(0.0F)]
         public float LeashRadius = 25.0F;
 
         [SerializeField]
-        [Tooltip("진형을 벗어나 교전할 때 대상 선체 바깥과 두는 거리")]
+        [Tooltip("지역 확보, 호위 중 대상을 다시 고르기까지의 최소 시간(초). 대상이 사라지면 바로 다시 고름.")]
         [Min(0.0F)]
-        public float EngageDistance = 5.0F;
+        public float RetargetCooldown = 3.0F;
+
+        [SerializeField]
+        [Tooltip("대상을 고를 때 같은 모선의 다른 함재기가 이미 노리는 적 한 대당 더하는 거리. 클수록 고르게 흩어짐.")]
+        [Min(0.0F)]
+        public float SpreadDistance = 10.0F;
 
         [Header("Movement")]
 
@@ -44,17 +49,17 @@ namespace GalaxyIO.DOTS.Authoring
         [Header("Formation")]
 
         [SerializeField]
-        [Tooltip("공격 진형 첫 고리와 대상 선체 바깥 사이 거리")]
+        [Tooltip("교전 진형 첫 고리와 대상 선체 바깥 사이 거리")]
         [Min(0.0F)]
         public float AttackRadius = 10.0F;
 
         [SerializeField]
-        [Tooltip("공격 진형 고리 수. 자리마다 이 중 하나를 무작위로 고름.")]
+        [Tooltip("교전 진형 고리 수. 자리마다 이 중 하나를 무작위로 고름.")]
         [Min(1)]
         public int AttackRings = 3;
 
         [SerializeField]
-        [Tooltip("지키기 진형 첫 고리 반지름")]
+        [Tooltip("지역 확보 진형 첫 고리 반지름")]
         [Min(0.0F)]
         public float SecureRadius = 3.0F;
 
@@ -74,12 +79,12 @@ namespace GalaxyIO.DOTS.Authoring
         public float SlotGap = 3.0F;
 
         [SerializeField]
-        [Tooltip("공격 진형 자리가 고리를 따라 도는 속력")]
+        [Tooltip("교전 진형 자리가 고리를 따라 도는 속력")]
         [Min(0.0F)]
         public float OrbitSpeed = 4.0F;
 
         [SerializeField]
-        [Tooltip("공격 진형 자리가 도는 방향을 바꾸는 간격(초) (최소, 최대)")]
+        [Tooltip("교전 진형 자리가 도는 방향을 바꾸는 간격(초) (최소, 최대)")]
         public Vector2 DodgeInterval = new Vector2(1.0F, 3.0F);
 
         [SerializeField]
@@ -131,7 +136,8 @@ namespace GalaxyIO.DOTS.Authoring
                 LeashRadius    = authoring.LeashRadius,
                 FireRange      = authoring.FireRange,
                 LaunchWindUp   = authoring.LaunchWindUp,
-                EngageDistance = authoring.EngageDistance,
+                RetargetCooldown = authoring.RetargetCooldown,
+                SpreadDistance = authoring.SpreadDistance,
                 AttackRadius   = authoring.AttackRadius,
                 AttackRings    = Mathf.Max(authoring.AttackRings, 1),
                 SecureRadius   = authoring.SecureRadius,

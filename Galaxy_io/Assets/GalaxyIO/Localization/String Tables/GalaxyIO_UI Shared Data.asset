@@ -663,10 +663,6 @@ MonoBehaviour:
     m_Key: Order/Attack
     m_Metadata:
       m_Items: []
-  - m_Id: 8169919329902592
-    m_Key: Order/HoldPosition
-    m_Metadata:
-      m_Items: []
   - m_Id: 8169919329902593
     m_Key: Order/Escort
     m_Metadata:
@@ -681,6 +677,18 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 8169919334096899
     m_Key: Upgrade/Assembly
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8504323503857664
+    m_Key: Order/Approaching
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8504323562577920
+    m_Key: Order/Surrounding
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8519519249145856
+    m_Key: Order/SecureArea
     m_Metadata:
       m_Items: []
   m_Metadata:

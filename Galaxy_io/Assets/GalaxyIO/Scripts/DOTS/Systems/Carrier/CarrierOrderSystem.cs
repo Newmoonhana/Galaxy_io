@@ -124,7 +124,7 @@ namespace GalaxyIO.DOTS.Systems
                         order.Position = EntityManager.GetComponentData<LocalTransform>(order.Target).Position.xy;
                         break;
 
-                    case CarrierOrder.HoldPosition:
+                    case CarrierOrder.SecureArea:
                         order.Target = Entity.Null;
                         break;
 

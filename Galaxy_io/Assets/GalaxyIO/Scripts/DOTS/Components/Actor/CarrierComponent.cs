@@ -16,10 +16,10 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 대상을 둘러싸고 공격
         Attack = 1,
 
-        // 지점으로 가며 만나는 적과 교전하고, 지점에 모여 지킴
-        HoldPosition = 2,
+        // 지점으로 가며 만나는 적을 둘러싸고 교전하고, 지점에 모여 지킴
+        SecureArea = 2,
 
-        // 모선 주변을 지킴
+        // 모선 주변을 지키며 가까운 적을 둘러싸고 교전함
         Escort = 3,
 
         // 모선으로 돌아와 흡수됨

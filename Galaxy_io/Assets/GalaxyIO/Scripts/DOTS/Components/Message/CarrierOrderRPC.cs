@@ -15,7 +15,7 @@ namespace GalaxyIO.DOTS.Components.Message
         // Attack 대상 Ghost
         public Entity Target;
 
-        // HoldPosition 지점
+        // SecureArea 지점
         public float2 Position;
     }
 }

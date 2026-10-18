@@ -1,3 +1,5 @@
+using GalaxyIO.DOTS.Collision;
+using GalaxyIO.DOTS.Components.Actor;
 using Unity.Collections;
 using Unity.Mathematics;
 
@@ -34,6 +36,22 @@ namespace GalaxyIO.DOTS.Spaceship
         {
             math.sincos(angle, out float sin, out float cos);
             return new float2(-sin, cos);
+        }
+
+        /// <summary>
+        /// 방향의 각도. <see cref="Direction"/>의 역.
+        /// </summary>
+        public static float Angle(float2 direction)
+        {
+            return math.atan2(-direction.x, direction.y);
+        }
+
+        /// <summary>
+        /// 선체를 감싸는 원의 반지름. 직사각형은 대각선의 절반.
+        /// </summary>
+        public static float HullRadius(in ColliderWorld hull)
+        {
+            return hull.Shape == ColliderShape.Circle ? hull.Extents.x : math.length(hull.Extents);
         }
 
         /// <summary>
