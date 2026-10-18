@@ -30,6 +30,11 @@ namespace GalaxyIO.DOTS.Authoring.Config
         public float RamDamage = 2.0F;
 
         [SerializeField]
+        [Tooltip("같은 모선에 딸린 함재기끼리 한 틱에 밀어내는 거리, 튕기는 속도의 최대값")]
+        [Min(0.0F)]
+        public float GroupRepulsion = 0.2F;
+
+        [SerializeField]
         [Tooltip("우주선끼리 부딪혔을 때 재생할 효과음")]
         public string CrashSound;
     }
@@ -42,11 +47,12 @@ namespace GalaxyIO.DOTS.Authoring.Config
 
             AddComponent(entity, new CollisionConfigComponent
             {
-                CellSize    = authoring.CellSize,
-                RewindSpeed = authoring.RewindSpeed,
-                Restitution = authoring.Restitution,
-                RamDamage   = authoring.RamDamage,
-                CrashSound  = authoring.CrashSound,
+                CellSize       = authoring.CellSize,
+                RewindSpeed    = authoring.RewindSpeed,
+                Restitution    = authoring.Restitution,
+                RamDamage      = authoring.RamDamage,
+                GroupRepulsion = authoring.GroupRepulsion,
+                CrashSound     = authoring.CrashSound,
             });
         }
     }

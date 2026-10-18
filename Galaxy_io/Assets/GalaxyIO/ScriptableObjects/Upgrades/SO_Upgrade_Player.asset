@@ -18,6 +18,13 @@ MonoBehaviour:
   MaxHeat:
     MaxHeat: 10
     MaxLevel: 10
+  Reinforcement:
+    Damage: 0.1
+    MaxHealth: 0.1
+    MaxLevel: 10
+  Assembly:
+    AssemblyTime: 0.25
+    MaxLevel: 20
   MaxHealth:
     MaxHealth: 10
     MaxLevel: 25

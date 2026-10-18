@@ -28,7 +28,7 @@ MonoBehaviour:
     RestDuration: {x: 1, y: 2}
     TurningSpeed: 180
     SightAngle: 120
-    DetectRange: 20
+    DetectRange: 28
   SwitchTime: 0
   ManeuverPenalty: 0
   Heat: 25.1

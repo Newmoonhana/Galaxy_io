@@ -56,16 +56,48 @@ namespace GalaxyIO.DOTS.Systems
                 {
                     Entity picker = overlaps[i].Message.Other;
 
-                    if (!overlaps[i].Contact || !SystemAPI.HasComponent<PlayerNameComponent>(picker))
+                    if (!overlaps[i].Contact)
                     {
                         continue;
                     }
 
-                    int inserted = inventories.Insert(
-                        SystemAPI.GetComponent<GhostOwner>(picker).NetworkId,
-                        item.ValueRO.Id,
-                        item.ValueRO.Count
-                    );
+                    int inserted;
+                    int networkId;
+
+                    if (SystemAPI.HasBuffer<CarriedItemElement>(picker))
+                    {
+                        if (!PlayerInventory.IsIngredient(item.ValueRO.Id))
+                        {
+                            continue;
+                        }
+
+                        // 같은 재료가 있으면 그 개수에 더함.
+                        DynamicBuffer<CarriedItemElement> cargo = SystemAPI.GetBuffer<CarriedItemElement>(picker);
+                        int slot = 0;
+
+                        while (slot < cargo.Length && cargo[slot].Id != item.ValueRO.Id)
+                        {
+                            slot++;
+                        }
+
+                        if (slot == cargo.Length)
+                        {
+                            cargo.Add(new CarriedItemElement { Id = item.ValueRO.Id });
+                        }
+
+                        inserted = item.ValueRO.Count;
+                        cargo.ElementAt(slot).Count += inserted;
+                        networkId = SystemAPI.GetComponent<CarriedCraftComponent>(picker).OwnerNetworkId;
+                    }
+                    else if (SystemAPI.HasComponent<PlayerNameComponent>(picker))
+                    {
+                        networkId = SystemAPI.GetComponent<GhostOwner>(picker).NetworkId;
+                        inserted = inventories.Insert(networkId, item.ValueRO.Id, item.ValueRO.Count);
+                    }
+                    else
+                    {
+                        continue;
+                    }
 
                     if (inserted == 0)
                     {
@@ -74,8 +106,8 @@ namespace GalaxyIO.DOTS.Systems
 
                     item.ValueRW.Count -= inserted;
 
-                    // 줍기 효과음은 주운 본인만 들음.
-                    if (connections.TryGetValue(SystemAPI.GetComponent<GhostOwner>(picker).NetworkId, out Entity target))
+                    // 줍기 효과음은 주운 본인(함재기는 모선 주인)만 들음.
+                    if (connections.TryGetValue(networkId, out Entity target))
                     {
                         Entity rpcEntity = ecb.CreateEntity();
 

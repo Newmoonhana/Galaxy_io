@@ -142,6 +142,8 @@ namespace GalaxyIO.DOTS.Authoring
                 FireDuration      = authoring.FireDuration,
                 RestDurationRange = SortRange(authoring.RestDurationRange),
                 AimCosine         = math.cos(math.radians(authoring.AimTolerance)),
+                // 적은 거리 제한 없이 대상을 정하면 쏨.
+                FireRange         = float.MaxValue,
                 CycleRemaining    = authoring.FireDuration,
                 Resting           = false,
             });

@@ -22,6 +22,9 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 상대 속력 1당 충돌 데미지
         public float RamDamage;
 
+        // 같은 모선에 딸린 함재기끼리 한 틱에 밀어내는 거리, 튕기는 속도의 최대값
+        public float GroupRepulsion;
+
         // 선체끼리 부딪혔을 때 재생할 효과음. 클라이언트만 씀.
         public FixedString64Bytes CrashSound;
     }

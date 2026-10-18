@@ -5,7 +5,7 @@ using Unity.Mathematics;
 namespace GalaxyIO.DOTS.Components.Actor
 {
     /// <summary>
-    /// <see cref="EnemyAuthoring"/>의 DOTS 구조체. 터렛 RPS 와 별개로 도는 우주선 단위 사격/휴식 주기.
+    /// <see cref="EnemyAuthoring"/>, <see cref="CarriedCraftAuthoring"/>의 DOTS 구조체. 터렛 RPS 와 별개로 도는 우주선 단위 사격/휴식 주기.
     /// 모든 터렛이 이 주기 하나를 공유함.
     /// </summary>
     public struct EnemyTurretComponent : IComponentData
@@ -18,6 +18,9 @@ namespace GalaxyIO.DOTS.Components.Actor
 
         // 사격을 허용하는 조준 오차. 기수와 대상 방향 사이 각도의 cos 값.
         public float AimCosine;
+
+        // 대상 선체 바깥이 이 거리 안이어야 쏨.
+        public float FireRange;
 
         // 현재 주기(사격/휴식)의 남은 시간
         public float CycleRemaining;

@@ -24,7 +24,7 @@ namespace GalaxyIO.DOTS.Systems
         // 판정 시점의 Instigator 위치
         public float2 InstigatorPosition;
 
-        // 쏜 우주선의 주인. 투사체 소유자와 다르면(자동 포탑) 쏜 우주선이 남아 있을 때만 앎. AI 는 -1.
+        // 쏜 우주선의 주인. 투사체 소유자와 다르면(자동 포탑, 함재기) 쏜 우주선이 남아 있을 때만 앎. AI 는 -1.
         public int InstigatorNetworkId;
 
         // 쏜 AI 의 표시 이름. 플레이어거나 쏜 AI 가 파괴됐으면 비어 있음.
@@ -89,6 +89,7 @@ namespace GalaxyIO.DOTS.Systems
                 EnemyNames = SystemAPI.GetComponentLookup<EnemyNameComponent>(true),
                 Specs      = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
                 Owners     = SystemAPI.GetComponentLookup<GhostOwner>(true),
+                Crafts     = SystemAPI.GetComponentLookup<CarriedCraftComponent>(true),
                 Damages    = damages.AsParallelWriter(),
                 Explosions = explosions.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
@@ -139,6 +140,9 @@ namespace GalaxyIO.DOTS.Systems
         [ReadOnly]
         public ComponentLookup<GhostOwner> Owners;
 
+        [ReadOnly]
+        public ComponentLookup<CarriedCraftComponent> Crafts;
+
         public NativeQueue<SpaceshipDamage>.ParallelWriter Damages;
 
         public NativeList<ProjectileExplosion>.ParallelWriter Explosions;
@@ -160,14 +164,24 @@ namespace GalaxyIO.DOTS.Systems
 
             EnemyNames.TryGetComponent(projectile.Owner, out EnemyNameComponent enemyName);
 
+            // 함재기가 쏜 것은 모선 주인의 몫.
+            int instigatorNetworkId = owner.NetworkId;
+
+            if (Crafts.TryGetComponent(projectile.Owner, out CarriedCraftComponent craft))
+            {
+                instigatorNetworkId = craft.OwnerNetworkId;
+            }
+            else if (Owners.TryGetComponent(projectile.Owner, out GhostOwner shooter))
+            {
+                instigatorNetworkId = shooter.NetworkId;
+            }
+
             var damage = new SpaceshipDamage
             {
                 Amount              = projectile.Damage,
                 Instigator          = instigator,
                 InstigatorPosition  = instigatorPosition,
-                InstigatorNetworkId = Owners.TryGetComponent(projectile.Owner, out GhostOwner shooter)
-                    ? shooter.NetworkId
-                    : owner.NetworkId,
+                InstigatorNetworkId = instigatorNetworkId,
                 InstigatorEnemyName = enemyName.Value,
             };
 

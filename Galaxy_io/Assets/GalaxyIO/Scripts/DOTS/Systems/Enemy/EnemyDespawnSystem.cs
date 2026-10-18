@@ -34,7 +34,7 @@ namespace GalaxyIO.DOTS.Systems
             state.RequireForUpdate(
                 SystemAPI.QueryBuilder()
                     .WithAll<EnemyPerceptionComponent, LocalTransform>()
-                    .WithNone<PermanentSpaceshipTag>()
+                    .WithNone<PermanentSpaceshipTag, CarriedCraftComponent>()
                     .Build()
             );
         }
@@ -93,10 +93,11 @@ namespace GalaxyIO.DOTS.Systems
 
     /// <summary>
     /// 주변 칸의 레이더를 찾아 반경 안에 하나도 없으면 제거함. 크기는 보지 않고 중심점만 판정함.
+    /// 함재기는 모선이 정리함.
     /// </summary>
     [BurstCompile]
     [WithAll(typeof(EnemyPerceptionComponent))]
-    [WithNone(typeof(PermanentSpaceshipTag))]
+    [WithNone(typeof(PermanentSpaceshipTag), typeof(CarriedCraftComponent))]
     public partial struct EnemyDespawnJob : IJobEntity
     {
         [ReadOnly]

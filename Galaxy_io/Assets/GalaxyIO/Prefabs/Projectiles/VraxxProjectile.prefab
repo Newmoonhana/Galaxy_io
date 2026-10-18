@@ -52,6 +52,7 @@ MonoBehaviour:
   ExplosionRadius: 0
   SpawnOnHit: 0
   Visual: {fileID: 6977692746202840440, guid: f25e177623c69ad40887959f244332ec, type: 3}
+  Beam: {fileID: 0}
   Speed: 60
   Acceleration: 1000
   ReflectOwnerVelocity: 1
@@ -80,7 +81,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.BoxColliderAuthoring
   Center: {x: 0, y: 0}
-  Size: {x: 0.4, y: 0.4}
+  Size: {x: 0.4, y: 1.0430937}
 --- !u!114 &5267809910738853519
 MonoBehaviour:
   m_ObjectHideFlags: 0

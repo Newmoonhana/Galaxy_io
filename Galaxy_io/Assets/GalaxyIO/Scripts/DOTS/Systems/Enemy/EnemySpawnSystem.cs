@@ -27,7 +27,8 @@ namespace GalaxyIO.DOTS.Systems
 
         public void OnCreate(ref SystemState state)
         {
-            enemyQuery = SystemAPI.QueryBuilder().WithAll<EnemyPerceptionComponent>().Build();
+            // 함재기도 AI 인지 컴포넌트를 쓰지만 적이 아님.
+            enemyQuery = SystemAPI.QueryBuilder().WithAll<EnemyPerceptionComponent>().WithNone<CarriedCraftComponent>().Build();
 
             state.RequireForUpdate<NetworkTime>();
             state.RequireForUpdate<PrefabRegistryElement>();
@@ -113,7 +114,7 @@ namespace GalaxyIO.DOTS.Systems
 
             foreach (
                 var transform in
-                SystemAPI.Query<RefRO<LocalTransform>>().WithAll<EnemyPerceptionComponent>()
+                SystemAPI.Query<RefRO<LocalTransform>>().WithAll<EnemyPerceptionComponent>().WithNone<CarriedCraftComponent>()
             ) {
                 float2 xy = transform.ValueRO.Position.xy;
 

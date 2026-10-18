@@ -15,11 +15,13 @@ namespace GalaxyIO.DOTS.Collision
         /// 속도에 더할 값. 상대 쪽으로 파고드는 성분만 밀려난 방향으로 되돌림.
         /// restitution 이 0이면 미끄러지듯 지나가고, 1이면 그만큼 튕겨 나감.
         /// 상대보다 두꺼우면 <see cref="SpaceshipCollisionElement.Repulsion"/>만큼 덜 되돌림.
+        /// 같은 모선에 딸린 사이는 groupLimit 까지만 되돌림.
         /// </summary>
         public static float2 Impulse(
             float2 velocity,
             in DynamicBuffer<SpaceshipCollisionElement> messages,
-            float restitution)
+            float restitution,
+            float groupLimit)
         {
             float2 impulse = float2.zero;
 
@@ -36,7 +38,8 @@ namespace GalaxyIO.DOTS.Collision
                     continue;
                 }
 
-                impulse += normal * (-into * (1.0F + restitution) * element.Repulsion);
+                float amount = -into * (1.0F + restitution) * element.Repulsion;
+                impulse += normal * (element.Grouped ? math.min(amount, groupLimit) : amount);
             }
 
             return impulse;

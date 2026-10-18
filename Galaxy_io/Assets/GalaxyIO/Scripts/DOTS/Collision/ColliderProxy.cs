@@ -49,7 +49,7 @@ namespace GalaxyIO.DOTS.Collision
         // 시야, 아이템이 대상으로 삼을 진영 마스크. 시야, 아이템 충돌체만 채움.
         public uint HostileFactions;
 
-        // 이 Entity 와는 쌍을 만들지 않음. (투사체를 쏜 우주선)
+        // 이 Entity 와는 쌍을 만들지 않음. (투사체를 쏜 우주선, 함재기의 모선)
         public Entity Ignore;
     }
 
@@ -75,10 +75,11 @@ namespace GalaxyIO.DOTS.Collision
                 return false;
             }
 
-            // 시야, 아이템은 마스크의 진영만 봄.
+            // 시야, 아이템은 마스크의 진영만 봄. 시야는 같은 파티를 보지 않음.
             if (receiver.Layer == CollisionLayer.Sight || receiver.Layer == CollisionLayer.Item)
             {
-                return ((uint)target.Faction & receiver.HostileFactions) != 0;
+                return ((uint)target.Faction & receiver.HostileFactions) != 0
+                       && !Faction.IsSameParty(receiver.Party, target.Party);
             }
 
             // 투사체는 같은 파티를 통과함. 선체끼리는 같은 파티여도 부딪힘.

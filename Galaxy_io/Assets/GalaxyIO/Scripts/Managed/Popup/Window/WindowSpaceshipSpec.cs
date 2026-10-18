@@ -81,13 +81,26 @@ namespace GalaxyIO.Tools.PopupUI.Window
             void Stat(UpgradeStat _stat, float _base, float _amount, int _maxLevel, string _unit = "")
             {
                 sb.Append($"{L10n.Get($"Upgrade/{_stat}")}: {_base:0.###}{_unit}");
-                if (upgrade != null) sb.Append($"(+{_amount:0.###}{_unit}), {string.Format(maxLevel, _maxLevel)}");
+                if (upgrade != null) sb.Append($"({_amount:+0.###;-0.###}{_unit}), {string.Format(maxLevel, _maxLevel)}");
                 sb.AppendLine();
             }
 
+            // 모선은 피해, 포탑 열 대신 함재기를 강화함
+            CarrierAuthoring carrier = ship.GetComponent<CarrierAuthoring>();
+
             sb.AppendLine(L10n.Get("Spec/Offensive"));
-            Stat(UpgradeStat.Damage, 0.0F, upgrade != null ? upgrade.Damage.Damage * 100.0F : 0.0F, upgrade != null ? upgrade.Damage.MaxLevel : 0, "%");
-            Stat(UpgradeStat.MaxHeat, ship.MaxHeat, upgrade != null ? upgrade.MaxHeat.MaxHeat : 0.0F, upgrade != null ? upgrade.MaxHeat.MaxLevel : 0);
+
+            if (carrier != null)
+            {
+                Stat(UpgradeStat.Reinforcement, 0.0F, upgrade != null ? upgrade.Reinforcement.Damage * 100.0F : 0.0F, upgrade != null ? upgrade.Reinforcement.MaxLevel : 0, "%");
+                Stat(UpgradeStat.Assembly, carrier.AssemblyTime, upgrade != null ? -upgrade.Assembly.AssemblyTime : 0.0F, upgrade != null ? upgrade.Assembly.MaxLevel : 0, "s");
+            }
+            else
+            {
+                Stat(UpgradeStat.Damage, 0.0F, upgrade != null ? upgrade.Damage.Damage * 100.0F : 0.0F, upgrade != null ? upgrade.Damage.MaxLevel : 0, "%");
+                Stat(UpgradeStat.MaxHeat, ship.MaxHeat, upgrade != null ? upgrade.MaxHeat.MaxHeat : 0.0F, upgrade != null ? upgrade.MaxHeat.MaxLevel : 0);
+            }
+
             sb.AppendLine();
 
             sb.AppendLine(L10n.Get("Spec/Durability"));

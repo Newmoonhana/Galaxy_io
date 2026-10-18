@@ -77,7 +77,8 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             public float ShowTime;
 
-            public bool IsPlayer;
+            // 셰이더에 넘기는 점 종류. 0: AI, 1: 다른 플레이어와 그 함재기, 2: 같은 편(파티원, 함재기)
+            public float Kind;
         }
 
         private EntityManager entityManager;
@@ -108,6 +109,46 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
+
+        /// <summary>
+        /// 강화를 반영한 레이더 탐지 거리. 로컬 우주선이 없으면 마지막 값.
+        /// </summary>
+        public float Range => range;
+
+        /// <summary>
+        /// 화면 좌표가 레이더 원 안이면 그 자리의 월드 좌표를 줌.
+        /// </summary>
+        public bool TryGetWorldPoint(Vector2 screen, out Vector2 world)
+        {
+            world = Vector2.zero;
+
+            if (!ClientWorldScope.IsAlive(clientWorld) || playerQuery.IsEmpty || range <= 0.0F)
+            {
+                return false;
+            }
+
+            Canvas canvas = scanner.canvas;
+            UnityEngine.Camera uiCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
+
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(scanner.rectTransform, screen, uiCamera, out Vector2 local))
+            {
+                return false;
+            }
+
+            // 셰이더와 같은 좌표. 이미지 중심이 원점, 가장자리가 1. 레이더 원 반지름은 _Radius.
+            Vector2 point = Rect.PointToNormalized(scanner.rectTransform.rect, local) * 2.0F - Vector2.one;
+            float radius = material.GetFloat(RadiusId);
+
+            if (point.magnitude > radius)
+            {
+                return false;
+            }
+
+            using var players = playerQuery.ToComponentDataArray<LocalTransform>(Allocator.Temp);
+            world = (Vector2)players[0].Position.xy + point / radius * range;
+
+            return true;
+        }
 
         private void Start()
         {
@@ -263,7 +304,7 @@ namespace GalaxyIO.Scripts.Managed.UI
                     blip.Offset.x,
                     blip.Offset.y,
                     1.0F - elapsed / fadeOut,
-                    blip.IsPlayer ? 1.0F : 0.0F
+                    blip.Kind
                 );
             }
 
@@ -279,10 +320,11 @@ namespace GalaxyIO.Scripts.Managed.UI
                 return;
             }
 
-            using var players = playerQuery.ToComponentDataArray<LocalTransform>(Allocator.Temp);
+            using var players = playerQuery.ToEntityArray(Allocator.Temp);
             using var targets = targetQuery.ToEntityArray(Allocator.Temp);
 
-            Vector2 center = players[0].Position.xy;
+            Vector2 center = entityManager.GetComponentData<LocalTransform>(players[0]).Position.xy;
+            uint party = entityManager.GetComponentData<FactionComponent>(players[0]).Party;
             float swept = to - from;
 
             foreach (Entity target in targets)
@@ -312,7 +354,10 @@ namespace GalaxyIO.Scripts.Managed.UI
                 {
                     Offset   = offset / range,
                     ShowTime = Time.time + response,
-                    IsPlayer = entityManager.HasComponent<PlayerNameComponent>(target),
+                    Kind     = Faction.IsSameParty(party, entityManager.GetComponentData<FactionComponent>(target).Party) ? 2.0F
+                        : entityManager.HasComponent<PlayerNameComponent>(target)
+                          || entityManager.HasComponent<CarriedCraftComponent>(target) ? 1.0F
+                        : 0.0F,
                 });
             }
         }

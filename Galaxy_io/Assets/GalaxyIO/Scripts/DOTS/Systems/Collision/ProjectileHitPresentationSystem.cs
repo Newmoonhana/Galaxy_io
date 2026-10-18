@@ -48,6 +48,7 @@ namespace GalaxyIO.DOTS.Systems
             state.Dependency = new GatherSpaceshipProxyJob
             {
                 Proxies = proxies,
+                Crafts  = SystemAPI.GetComponentLookup<CarriedCraftComponent>(true),
             }.Schedule(state.Dependency);
 
             state.Dependency = new BuildSpatialHashJob
