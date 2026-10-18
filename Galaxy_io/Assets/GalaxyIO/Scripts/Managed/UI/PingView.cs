@@ -217,7 +217,7 @@ namespace GalaxyIO.Scripts.Managed.UI
                 Vector2 cursor = Mouse.current.position.ReadValue();
 
                 // 자신의 핑을 다시 누르면 지움.
-                if (own != null && Vector2.Distance(cursor, MarkerAnchor(mainCamera, own.Position, scale, out _)) <= clickRadius * scale)
+                if (own != null && Vector2.Distance(cursor, PingMarkerView.Anchor(mainCamera, own.Position, edgeMargin * scale, out _)) <= clickRadius * scale)
                 {
                     pings.Remove(localId);
                     own = null;
@@ -311,7 +311,7 @@ namespace GalaxyIO.Scripts.Managed.UI
                 int index = shown++;
                 PingMarkerView marker = Rent(index);
 
-                Vector2 anchor = MarkerAnchor(mainCamera, ping.Position, scale, out Vector2 direction);
+                Vector2 anchor = PingMarkerView.Anchor(mainCamera, ping.Position, edgeMargin * scale, out Vector2 direction);
                 RectTransformUtility.ScreenPointToWorldPointInRectangle(
                     (RectTransform)transform, anchor, canvas.worldCamera, out Vector3 position);
 
@@ -333,25 +333,6 @@ namespace GalaxyIO.Scripts.Managed.UI
             {
                 markers[i].gameObject.SetActive(false);
             }
-        }
-
-        // 표시 기준점의 화면 좌표와 화살표 방향. 가장자리 여백 안이면 핑 자리(원의 중심)이고 방향은 0,
-        // 밖이면 여백 경계에 붙인 화살표 끝과 핑 쪽 방향.
-        private Vector2 MarkerAnchor(UnityEngine.Camera mainCamera, Vector2 worldPosition, float scale, out Vector2 direction)
-        {
-            Vector2 screen = mainCamera.WorldToScreenPoint(worldPosition);
-            Vector2 center = new Vector2(Screen.width, Screen.height) * 0.5F;
-            Vector2 half = Vector2.Max(center - Vector2.one * (edgeMargin * scale), Vector2.one);
-            Vector2 offset = screen - center;
-
-            if (Mathf.Abs(offset.x) <= half.x && Mathf.Abs(offset.y) <= half.y)
-            {
-                direction = Vector2.zero;
-                return screen;
-            }
-
-            direction = offset.normalized;
-            return center + offset * Mathf.Min(half.x / Mathf.Abs(offset.x), half.y / Mathf.Abs(offset.y));
         }
 
         private void SendPing(in PingRPC ping)

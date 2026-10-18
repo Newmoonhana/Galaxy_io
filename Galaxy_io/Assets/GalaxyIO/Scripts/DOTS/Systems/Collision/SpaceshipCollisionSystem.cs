@@ -46,6 +46,7 @@ namespace GalaxyIO.DOTS.Systems
                 Records      = SystemAPI.GetBufferLookup<DamageRecordElement>(),
                 KillingBlows = SystemAPI.GetComponentLookup<KillingBlowComponent>(),
                 RamDamage    = config.RamDamage,
+                GroupLimit   = config.GroupRepulsion,
                 ElapsedTime  = SystemAPI.Time.ElapsedTime,
             }.ScheduleParallel(state.Dependency);
 
@@ -53,11 +54,13 @@ namespace GalaxyIO.DOTS.Systems
             JobHandle player = new PlayerCollisionResponseJob
             {
                 Restitution = restitution,
+                GroupLimit  = config.GroupRepulsion,
             }.ScheduleParallel(state.Dependency);
 
             JobHandle enemy = new EnemyCollisionResponseJob
             {
                 Restitution = restitution,
+                GroupLimit  = config.GroupRepulsion,
             }.ScheduleParallel(state.Dependency);
 
             state.Dependency = JobHandle.CombineDependencies(player, enemy);
@@ -92,6 +95,9 @@ namespace GalaxyIO.DOTS.Systems
 
         // 상대 속력 1당 데미지
         public float RamDamage;
+
+        // 같은 모선에 딸린 사이가 한 틱에 밀어내는 최대 거리
+        public float GroupLimit;
 
         public double ElapsedTime;
 
@@ -148,8 +154,9 @@ namespace GalaxyIO.DOTS.Systems
                 }
 
                 // 두께로 나눈 몫만큼 서로 물러나면 딱 맞닿음. 두께가 같으면 절반씩.
-                // 빠를수록 한 틱에 깊이 박히므로 밀려나는 양도 자동으로 커짐.
-                push += message.Normal * (message.Depth * element.PushShare);
+                // 빠를수록 한 틱에 깊이 박히므로 밀려나는 양도 자동으로 커짐. 같은 모선에 딸린 사이는 조금만 밀어냄.
+                float pushed = message.Depth * element.PushShare;
+                push += message.Normal * (element.Grouped ? math.min(pushed, GroupLimit) : pushed);
             }
 
             // 판정에 쓴 위치는 밀어내기 전 위치라, 계산 순서에 관계없이 결과가 같음.
@@ -187,13 +194,14 @@ namespace GalaxyIO.DOTS.Systems
     public partial struct PlayerCollisionResponseJob : IJobEntity
     {
         public float Restitution;
+        public float GroupLimit;
 
         private void Execute(
             in DynamicBuffer<SpaceshipCollisionElement> messages,
             in SpaceshipMovementComponent movement,
             ref PlayerSpaceshipMovementComponent player)
         {
-            player.Velocity += CollisionResponse.Impulse(movement.DeltaMovement, messages, Restitution);
+            player.Velocity += CollisionResponse.Impulse(movement.DeltaMovement, messages, Restitution, GroupLimit);
         }
     }
 
@@ -205,13 +213,14 @@ namespace GalaxyIO.DOTS.Systems
     public partial struct EnemyCollisionResponseJob : IJobEntity
     {
         public float Restitution;
+        public float GroupLimit;
 
         private void Execute(
             in DynamicBuffer<SpaceshipCollisionElement> messages,
             in SpaceshipMovementComponent movement,
             ref EnemySpaceshipMovementComponent enemy)
         {
-            enemy.Velocity += CollisionResponse.Impulse(movement.DeltaMovement, messages, Restitution);
+            enemy.Velocity += CollisionResponse.Impulse(movement.DeltaMovement, messages, Restitution, GroupLimit);
         }
     }
 }

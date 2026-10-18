@@ -80,7 +80,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 4121013417902855725, guid: 17f1f201d1908de4a91e369e3841e7ab, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -172,7 +172,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 4121013417902855725, guid: 17f1f201d1908de4a91e369e3841e7ab, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -230,6 +230,7 @@ GameObject:
   - component: {fileID: 5889587866788096847}
   - component: {fileID: 3345718978926545676}
   - component: {fileID: 6412773190475893041}
+  - component: {fileID: 3272569169370780234}
   m_Layer: 0
   m_Name: Behemoth
   m_TagString: Untagged
@@ -303,7 +304,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: -1280547643, guid: 17f1f201d1908de4a91e369e3841e7ab, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -437,6 +438,25 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.BoxColliderAuthoring
   Center: {x: -0.00000023841858, y: -0.34803963}
   Size: {x: 8.610516, y: 19.78872}
+--- !u!114 &3272569169370780234
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1177794197835979121}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 669780d128979874d845b98535fd77ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.CarrierAuthoring
+  CarriedCraft: {fileID: 2305099622475078434, guid: 258cff7fedc92c94985ed7f1cdec4046, type: 3}
+  Capacity: 8
+  InitialCount: 4
+  AssemblyTime: 8
+  LaunchInterval: 0.75
+  OrderCooldown: 1
+  ReturnDelay: 1.5
 --- !u!1 &1198532127860021435
 GameObject:
   m_ObjectHideFlags: 0
@@ -644,7 +664,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 4121013417902855725, guid: 17f1f201d1908de4a91e369e3841e7ab, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -799,7 +819,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 1
+  m_SortingOrder: 2
   m_MaskInteraction: 0
   m_Sprite: {fileID: 4121013417902855725, guid: 17f1f201d1908de4a91e369e3841e7ab, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}

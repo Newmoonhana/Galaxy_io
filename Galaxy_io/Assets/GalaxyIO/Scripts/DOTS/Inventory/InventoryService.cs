@@ -25,6 +25,7 @@ namespace GalaxyIO.DOTS.Inventory
         private readonly EntityQuery configQuery;
         private readonly EntityQuery prefabQuery;
         private readonly EntityQuery shipQuery;
+        private readonly EntityQuery craftQuery;
         private readonly EntityQuery connectionQuery;
 
         // NetworkId -> 인벤토리
@@ -55,6 +56,12 @@ namespace GalaxyIO.DOTS.Inventory
                 ComponentType.ReadOnly<SpaceshipSpecComponent>(),
                 ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadWrite<EquippedTurretComponent>()
+            );
+            craftQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<CarriedCraftComponent>(),
+                ComponentType.ReadOnly<SpaceshipSpecComponent>(),
+                ComponentType.ReadOnly<LocalTransform>(),
+                ComponentType.ReadWrite<CarriedItemElement>()
             );
             connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
         }
@@ -236,7 +243,7 @@ namespace GalaxyIO.DOTS.Inventory
         }
 
         /// <summary>
-        /// 서버 틱마다 호출. 인벤토리 생성, 사망 드랍, 접속 종료 정리, 바뀐 개수 전송을 처리함.
+        /// 서버 틱마다 호출. 인벤토리 생성, 사망 드랍(함재기 포함), 접속 종료 정리, 바뀐 개수 전송을 처리함.
         /// 우주선이 파괴되기 전에 불러야 사망 드랍이 동작함.
         /// </summary>
         public void Update()
@@ -263,33 +270,36 @@ namespace GalaxyIO.DOTS.Inventory
                         continue;
                     }
 
-                    // 사망: 재료 종류마다 떨어뜨릴지 굴리고, 떨어뜨릴 재료는 하나하나 남길지 다시 굴림.
-                    // 남은 재료와 잠금 해제한 포탑은 인벤토리와 함께 사라짐.
+                    // 사망: 떨어뜨리지 않은 재료와 잠금 해제한 포탑은 인벤토리와 함께 사라짐.
                     PlayerInventory dead = inventories[networkId];
                     float3 position = entityManager.GetComponentData<LocalTransform>(ship).Position;
                     inventories.Remove(networkId);
 
                     foreach (ItemId id in PlayerInventory.Ingredients)
                     {
-                        if (dead.Count(id) == 0 || random.NextFloat() >= config.PlayerKindDropChance)
-                        {
-                            continue;
-                        }
+                        Drop(id, dead.Count(id), position, config);
+                    }
+                }
+            }
 
-                        int count = 0;
+            // 격추된 함재기의 화물도 같은 규칙으로 떨어뜨림. 터지기 전까지 남아 있으므로 비워서 한 번만 떨어뜨림.
+            using (NativeArray<Entity> crafts = craftQuery.ToEntityArray(Allocator.Temp))
+            {
+                foreach (Entity craft in crafts)
+                {
+                    if (entityManager.GetComponentData<SpaceshipSpecComponent>(craft).Health > 0.0F)
+                    {
+                        continue;
+                    }
 
-                        for (int n = 0; n < dead.Count(id); n++)
-                        {
-                            if (random.NextFloat() < config.PlayerStackDropChance)
-                            {
-                                count++;
-                            }
-                        }
+                    float3 position = entityManager.GetComponentData<LocalTransform>(craft).Position;
 
-                        if (count > 0)
-                        {
-                            Spawn(id, count, position, random.NextFloat2Direction() * random.NextFloat(0.5F, 1.0F));
-                        }
+                    using NativeArray<CarriedItemElement> cargo = entityManager.GetBuffer<CarriedItemElement>(craft).ToNativeArray(Allocator.Temp);
+                    entityManager.GetBuffer<CarriedItemElement>(craft).Clear();
+
+                    foreach (CarriedItemElement carried in cargo)
+                    {
+                        Drop(carried.Id, carried.Count, position, config);
                     }
                 }
             }
@@ -366,6 +376,32 @@ namespace GalaxyIO.DOTS.Inventory
             }
 
             return Entity.Null;
+        }
+
+        /// <summary>
+        /// 사망 드랍. 재료 종류마다 떨어뜨릴지 굴리고, 떨어뜨릴 재료는 하나하나 남길지 다시 굴림.
+        /// </summary>
+        private void Drop(ItemId id, int owned, float3 position, in ItemConfigComponent config)
+        {
+            if (owned == 0 || random.NextFloat() >= config.PlayerKindDropChance)
+            {
+                return;
+            }
+
+            int count = 0;
+
+            for (int n = 0; n < owned; n++)
+            {
+                if (random.NextFloat() < config.PlayerStackDropChance)
+                {
+                    count++;
+                }
+            }
+
+            if (count > 0)
+            {
+                Spawn(id, count, position, random.NextFloat2Direction() * random.NextFloat(0.5F, 1.0F));
+            }
         }
 
         /// <summary>

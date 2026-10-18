@@ -671,6 +671,30 @@ MonoBehaviour:
     m_Localized: You are pinging too often. Please wait a moment.
     m_Metadata:
       m_Items: []
+  - m_Id: 8169919279570944
+    m_Localized: Attack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8169919329902592
+    m_Localized: Hold Position
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8169919329902593
+    m_Localized: Escort
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8169919334096897
+    m_Localized: Carried Craft
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8169919334096898
+    m_Localized: Reinforcement
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8169919334096899
+    m_Localized: Assembly
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

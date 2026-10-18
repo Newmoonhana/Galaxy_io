@@ -15,6 +15,7 @@ Shader "GalaxyIO/UI-RadarScanner"
         _EdgeColor ("Edge Color", Color) = (0.7, 1, 1, 1)
         _BlipColor ("Blip Color", Color) = (0.2, 1, 1, 1)
         _PlayerBlipColor ("Player Blip Color", Color) = (1, 0.6, 0.2, 1)
+        _FriendlyBlipColor ("Friendly Blip Color", Color) = (0.35, 1, 0.5, 1)
 
         _BeamWidth ("Beam Width (Degree)", Float) = 20
         _BeamAlpha ("Beam Alpha", Float) = 0.8
@@ -57,6 +58,7 @@ Shader "GalaxyIO/UI-RadarScanner"
                 half4 _EdgeColor;
                 half4 _BlipColor;
                 half4 _PlayerBlipColor;
+                half4 _FriendlyBlipColor;
                 float _BeamWidth;
                 float _BeamAlpha;
                 float _TrailLength;
@@ -100,6 +102,7 @@ Shader "GalaxyIO/UI-RadarScanner"
 
                 half blips = 0.0;
                 half playerBlips = 0.0;
+                half friendlyBlips = 0.0;
 
                 [loop]
                 for (int i = 0; i < MAX_BLIPS; i++)
@@ -115,7 +118,12 @@ Shader "GalaxyIO/UI-RadarScanner"
 
                     half blip = saturate(blipDot + blipHalo) * _Blips[i].z;
 
-                    if (_Blips[i].w > 0.5)
+                    // w: 0 적, 1 다른 플레이어, 2 같은 편
+                    if (_Blips[i].w > 1.5)
+                    {
+                        friendlyBlips = max(friendlyBlips, blip);
+                    }
+                    else if (_Blips[i].w > 0.5)
                     {
                         playerBlips = max(playerBlips, blip);
                     }
@@ -127,9 +135,11 @@ Shader "GalaxyIO/UI-RadarScanner"
 
                 blips *= inside;
                 playerBlips *= inside;
+                friendlyBlips *= inside;
 
                 half3 rgb = _ScanColor.rgb * sweep + _EdgeColor.rgb * lines
-                          + _BlipColor.rgb * blips + _PlayerBlipColor.rgb * playerBlips;
+                          + _BlipColor.rgb * blips + _PlayerBlipColor.rgb * playerBlips
+                          + _FriendlyBlipColor.rgb * friendlyBlips;
 
                 // 가산 합성. Image 색의 알파로 전체 밝기 조절.
                 return half4(rgb * input.color.rgb * input.color.a, 0.0);

@@ -49,6 +49,27 @@ namespace GalaxyIO.Scripts.Managed.UI
         private bool? circle;
 
         /// <summary>
+        /// 표시 기준점의 화면 좌표와 화살표 방향. 화면 가장자리 여백(margin, 픽셀) 안이면 핑 자리(원의 중심)이고 방향은 0,
+        /// 밖이면 여백 경계에 붙인 화살표 끝과 핑 쪽 방향.
+        /// </summary>
+        public static Vector2 Anchor(UnityEngine.Camera mainCamera, Vector2 worldPosition, float margin, out Vector2 direction)
+        {
+            Vector2 screen = mainCamera.WorldToScreenPoint(worldPosition);
+            Vector2 center = new Vector2(Screen.width, Screen.height) * 0.5F;
+            Vector2 half = Vector2.Max(center - Vector2.one * margin, Vector2.one);
+            Vector2 offset = screen - center;
+
+            if (Mathf.Abs(offset.x) <= half.x && Mathf.Abs(offset.y) <= half.y)
+            {
+                direction = Vector2.zero;
+                return screen;
+            }
+
+            direction = offset.normalized;
+            return center + offset * Mathf.Min(half.x / Mathf.Abs(offset.x), half.y / Mathf.Abs(offset.y));
+        }
+
+        /// <summary>
         /// direction 이 0 이면 원을, 아니면 그쪽을 향한 화살표를 그림.
         /// 글자는 side.x 쪽 옆에 붙이고, side.y 가 양수면 위 끝을, 음수면 아래 끝을 그림과 맞춤.
         /// </summary>

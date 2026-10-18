@@ -659,6 +659,30 @@ MonoBehaviour:
     m_Key: Ping/TooMany
     m_Metadata:
       m_Items: []
+  - m_Id: 8169919279570944
+    m_Key: Order/Attack
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8169919329902592
+    m_Key: Order/HoldPosition
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8169919329902593
+    m_Key: Order/Escort
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8169919334096897
+    m_Key: Order/CarriedCraft
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8169919334096898
+    m_Key: Upgrade/Reinforcement
+    m_Metadata:
+      m_Items: []
+  - m_Id: 8169919334096899
+    m_Key: Upgrade/Assembly
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

@@ -5,7 +5,7 @@ namespace GalaxyIO.DOTS.Authoring
 {
     /// <summary>
     /// 우주선 기종 하나의 강화 사양. <see cref="SpaceshipAuthoring"/>이 참조함.
-    /// 값은 모두 한 단계마다 바뀌는 양.
+    /// 값은 모두 한 단계마다 바뀌는 양. 모선은 Damage, MaxHeat 대신 Reinforcement, Assembly 를 씀.
     /// </summary>
     [CreateAssetMenu(fileName = "SO_Upgrade", menuName = "GalaxyIO/Spaceship Upgrade")]
     public sealed class SpaceshipUpgradeAsset : ScriptableObject
@@ -28,6 +28,29 @@ namespace GalaxyIO.DOTS.Authoring
 
             [Range(0, 255)]
             public int MaxLevel = 10;
+        }
+
+        [Serializable]
+        public sealed class ReinforcementUpgrade
+        {
+            [Tooltip("함재기 피해 배율 증가 (0.1 = 10%)")]
+            public float Damage = 0.1F;
+
+            [Tooltip("함재기 최대 체력 배율 증가 (0.1 = 10%)")]
+            public float MaxHealth = 0.1F;
+
+            [Range(0, 255)]
+            public int MaxLevel = 10;
+        }
+
+        [Serializable]
+        public sealed class AssemblyUpgrade
+        {
+            [Tooltip("함재기 생산 시간(초) 감소")]
+            public float AssemblyTime = 0.25F;
+
+            [Range(0, 255)]
+            public int MaxLevel = 20;
         }
 
         [Serializable]
@@ -116,6 +139,8 @@ namespace GalaxyIO.DOTS.Authoring
 
         public DamageUpgrade Damage = new DamageUpgrade();
         public MaxHeatUpgrade MaxHeat = new MaxHeatUpgrade();
+        public ReinforcementUpgrade Reinforcement = new ReinforcementUpgrade();
+        public AssemblyUpgrade Assembly = new AssemblyUpgrade();
         public MaxHealthUpgrade MaxHealth = new MaxHealthUpgrade();
         public RepairUpgrade Repair = new RepairUpgrade();
         public SpeedUpgrade Speed = new SpeedUpgrade();

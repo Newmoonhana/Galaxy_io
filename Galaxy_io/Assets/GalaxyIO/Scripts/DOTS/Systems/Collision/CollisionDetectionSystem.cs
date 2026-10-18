@@ -48,6 +48,7 @@ namespace GalaxyIO.DOTS.Systems
             state.Dependency = new GatherSpaceshipProxyJob
             {
                 Proxies = proxies,
+                Crafts  = SystemAPI.GetComponentLookup<CarriedCraftComponent>(true),
             }.Schedule(state.Dependency);
 
             state.Dependency = new BuildSpatialHashJob
@@ -70,6 +71,7 @@ namespace GalaxyIO.DOTS.Systems
                 Cells    = cells,
                 CellSize = config.CellSize,
                 Specs    = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
+                Crafts   = SystemAPI.GetComponentLookup<CarriedCraftComponent>(true),
             }.ScheduleParallel(state.Dependency);
 
             JobHandle projectile = new ProjectileCollisionDetectionJob
@@ -110,12 +112,16 @@ namespace GalaxyIO.DOTS.Systems
     /// <summary>
     /// 우주선 선체 충돌체를 프록시 배열에 모음.
     /// 표적은 예측 대상이 아닌 우주선도 포함해야 하므로 Simulate로 거르지 않음.
+    /// 함재기는 자기 모선과 부딪히지 않음.
     /// </summary>
     [BurstCompile]
     [WithAll(typeof(SpaceshipSpecComponent))]
     public partial struct GatherSpaceshipProxyJob : IJobEntity
     {
         public NativeList<ColliderProxy> Proxies;
+
+        [ReadOnly]
+        public ComponentLookup<CarriedCraftComponent> Crafts;
 
         private void Execute(
             Entity entity,
@@ -133,7 +139,7 @@ namespace GalaxyIO.DOTS.Systems
                 Bounds   = ColliderBounds.ToAabb(world),
                 Faction  = faction.Value,
                 Party    = faction.Party,
-                Ignore   = Entity.Null,
+                Ignore   = CarriedCraft.IgnoredCarrier(Crafts, entity),
             });
         }
     }
@@ -186,6 +192,9 @@ namespace GalaxyIO.DOTS.Systems
         [ReadOnly]
         public ComponentLookup<SpaceshipSpecComponent> Specs;
 
+        [ReadOnly]
+        public ComponentLookup<CarriedCraftComponent> Crafts;
+
         private void Execute(
             Entity entity,
             DynamicBuffer<SpaceshipCollisionElement> messages,
@@ -205,7 +214,7 @@ namespace GalaxyIO.DOTS.Systems
                 Bounds   = ColliderBounds.ToAabb(world),
                 Faction  = faction.Value,
                 Party    = faction.Party,
-                Ignore   = Entity.Null,
+                Ignore   = CarriedCraft.IgnoredCarrier(Crafts, entity),
             };
 
             var candidates = new SpatialHashCandidates(Cells, Proxies, CellSize, receiver.Bounds);
@@ -238,6 +247,7 @@ namespace GalaxyIO.DOTS.Systems
                     },
                     Repulsion = mine,
                     PushShare = mine / (mine + others),
+                    Grouped   = CarriedCraft.SameGroup(Crafts, entity, target.Entity),
                 });
             }
         }
@@ -422,6 +432,7 @@ namespace GalaxyIO.DOTS.Systems
                 Collider        = sight,
                 Bounds          = ColliderBounds.ToAabb(sight),
                 Faction         = faction.Value,
+                Party           = faction.Party,
                 HostileFactions = perception.HostileFactions,
                 Ignore          = Entity.Null,
             };
@@ -480,7 +491,7 @@ namespace GalaxyIO.DOTS.Systems
     }
 
     /// <summary>
-    /// 아이템 감지 원 - 플레이어 선체 충돌. 원에 겹친 플레이어를 남기고, 본체까지 닿았는지 표시함.
+    /// 아이템 감지 원 - 플레이어 선체 충돌. 원에 겹친 플레이어(함재기 포함)를 남기고, 본체까지 닿았는지 표시함.
     /// </summary>
     [BurstCompile]
     public partial struct ItemCollisionDetectionJob : IJobEntity

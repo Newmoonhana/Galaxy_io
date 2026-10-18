@@ -11,7 +11,7 @@ using Random = Unity.Mathematics.Random;
 namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
-    /// AI 의 대상을 향해 터렛 투사체를 생성하는 시스템.
+    /// AI(적, 함재기)의 대상을 향해 터렛 투사체를 생성하는 시스템.
     /// 터렛 RPS 위에 <see cref="EnemyTurretComponent"/>의 사격/휴식 주기를 얹음.
     /// 총구 사양은 <see cref="EquippedTurretComponent"/>의 포탑에서 찾음.
     /// </summary>
@@ -110,7 +110,11 @@ namespace GalaxyIO.DOTS.Systems
                     var shared = SystemAPI.GetComponent<SharedProjectileComponent>(spec.ProjectilePrefab);
                     shared.Owner = spaceship;
                     shared.Turret = equipped.ValueRO.Value;
-                    shared.Damage = spec.Damage;
+
+                    // 함재기는 모선의 함재기 강화만큼 세짐.
+                    shared.Damage = spec.Damage * (SystemAPI.HasComponent<CarriedCraftComponent>(spaceship)
+                        ? SystemAPI.GetComponent<CarriedCraftComponent>(spaceship).DamageScale
+                        : 1.0F);
                     shared.InterpolationDelay = 0;
 
                     bool straight = SystemAPI.HasComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab);
@@ -167,6 +171,12 @@ namespace GalaxyIO.DOTS.Systems
             {
                 enemyTurret.Resting = false;
                 enemyTurret.CycleRemaining = enemyTurret.FireDuration;
+                return false;
+            }
+
+            // 사거리 밖이면 주기를 멈추고 기다림.
+            if (math.distance(position, perception.TargetPosition) - perception.TargetThickness * 0.5F > enemyTurret.FireRange)
+            {
                 return false;
             }
 

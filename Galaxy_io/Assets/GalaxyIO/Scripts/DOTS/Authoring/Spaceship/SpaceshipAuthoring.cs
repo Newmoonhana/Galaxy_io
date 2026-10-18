@@ -286,10 +286,18 @@ namespace GalaxyIO.DOTS.Authoring
 
             SpaceshipUpgradeAsset upgrade = authoring.Upgrade;
 
+            // 모선은 직접 쏘지 않으므로 피해, 포탑 열 대신 함재기를 강화함. 최대 단계 0 은 강화 창에서 빠짐.
+            CarrierAuthoring carrier = GetComponent<CarrierAuthoring>();
+            DependsOn(carrier);
+
+            bool isCarrier = carrier != null;
+
             // UpgradeStat 순서
             var upgrades = AddBuffer<UpgradeElement>(entity);
-            upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.Damage.MaxLevel });
-            upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.MaxHeat.MaxLevel });
+            upgrades.Add(new UpgradeElement { MaxLevel = (byte)(isCarrier ? 0 : upgrade.Damage.MaxLevel) });
+            upgrades.Add(new UpgradeElement { MaxLevel = (byte)(isCarrier ? 0 : upgrade.MaxHeat.MaxLevel) });
+            upgrades.Add(new UpgradeElement { MaxLevel = (byte)(isCarrier ? upgrade.Reinforcement.MaxLevel : 0) });
+            upgrades.Add(new UpgradeElement { MaxLevel = (byte)(isCarrier ? upgrade.Assembly.MaxLevel : 0) });
             upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.MaxHealth.MaxLevel });
             upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.Repair.MaxLevel });
             upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.Speed.MaxLevel });
@@ -317,6 +325,9 @@ namespace GalaxyIO.DOTS.Authoring
             Add(parameters, UpgradeStat.RadarRange, 0.0F, upgrade.RadarRange.Range);
             Add(parameters, UpgradeStat.RadarSweep, 0.0F, upgrade.RadarSweep.SweepSpeed);
             Add(parameters, UpgradeStat.RadarSweep, 0.0F, upgrade.RadarSweep.ResponseTime);
+            Add(parameters, UpgradeStat.Reinforcement, 1.0F, upgrade.Reinforcement.Damage);
+            Add(parameters, UpgradeStat.Reinforcement, 1.0F, upgrade.Reinforcement.MaxHealth);
+            Add(parameters, UpgradeStat.Assembly, 0.0F, upgrade.Assembly.AssemblyTime);
         }
 
         private static void Add(DynamicBuffer<UpgradeParamElement> parameters, UpgradeStat stat, float baseValue, float amount)

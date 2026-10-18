@@ -225,7 +225,7 @@ namespace GalaxyIO.DOTS.Party
         }
 
         /// <summary>
-        /// 서버 틱마다 호출. 플레이어 우주선에 파티를 씀.
+        /// 서버 틱마다 호출. 플레이어 우주선에 파티를 씀. 파티가 없으면 혼자만의 번호를 씀.
         /// 리스폰, 기종 변경으로 우주선이 새로 생기므로 틱마다 맞추고, 바뀐 값만 씀.
         /// </summary>
         public void Update()
@@ -238,7 +238,7 @@ namespace GalaxyIO.DOTS.Party
                 parties.TryGetValue(networkId, out Party party);
 
                 FactionComponent faction = entityManager.GetComponentData<FactionComponent>(ship);
-                uint id = party?.Id ?? 0;
+                uint id = party?.Id ?? Faction.SoloParty(networkId);
 
                 if (faction.Party != id)
                 {

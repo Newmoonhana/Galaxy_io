@@ -34,6 +34,9 @@ namespace GalaxyIO.DOTS.Components.Actor
 
         // 겹친 깊이 중 내가 물러나는 비율. 두 우주선의 몫을 합치면 1.
         public float PushShare;
+
+        // 같은 모선에 딸린 사이. 밀어내는 거리와 튕기는 속도를 작게 묶음.
+        public bool Grouped;
     }
 
     /// <summary>

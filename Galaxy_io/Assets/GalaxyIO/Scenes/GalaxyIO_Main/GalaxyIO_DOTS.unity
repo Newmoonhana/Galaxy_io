@@ -219,6 +219,7 @@ MonoBehaviour:
   RewindSpeed: 16
   Restitution: 1
   RamDamage: 2
+  GroupRepulsion: 0.2
   CrashSound: Crash
 --- !u!114 &163557128
 MonoBehaviour:
