@@ -84,6 +84,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                     : float2.zero;
 
                 launch.ValueRW.LastPosition = position;
+                launch.ValueRW.Velocity = velocity;
                 launch.ValueRW.Tracked = true;
 
                 // 기수 방향으로 나아가는 성분만 투사체에 물려줌.

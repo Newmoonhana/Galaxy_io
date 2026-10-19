@@ -13,6 +13,9 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 직전 프레임 위치. 복제되지 않는 우주선 속도를 위치 변화로 구함.
         public float2 LastPosition;
 
+        // 위치 변화로 구한 우주선 속도. 발사 연출(ShotPresentationSystem)도 씀.
+        public float2 Velocity;
+
         // LastPosition 이 채워졌는지
         public bool Tracked;
     }

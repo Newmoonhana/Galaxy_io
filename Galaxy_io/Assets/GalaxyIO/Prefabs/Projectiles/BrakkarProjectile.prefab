@@ -110,8 +110,10 @@ MonoBehaviour:
   Lifetime: 1
   Pierce: 0
   ExplosionRadius: 2.5
-  SpawnOnHit: 5
+  SpawnOnHit: {fileID: 6977692746202840440, guid: 11feee5025194c3391f5819b09ddc153, type: 3}
+  ShotEffect: {fileID: 1756703243802028873, guid: 2f8399caa7ee6c5499a37450896e1cf2, type: 3}
   Visual: {fileID: 0}
+  Beam: {fileID: 0}
   Speed: 50
   Acceleration: 0
   ReflectOwnerVelocity: 1

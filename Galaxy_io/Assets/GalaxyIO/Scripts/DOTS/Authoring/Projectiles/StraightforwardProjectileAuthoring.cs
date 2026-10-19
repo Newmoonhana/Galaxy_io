@@ -34,7 +34,8 @@ namespace GalaxyIO.DOTS.Authoring
                 Lifetime        = authoring.Lifetime,
                 Pierce          = authoring.Pierce,
                 ExplosionRadius = authoring.ExplosionRadius,
-                SpawnOnHit      = authoring.SpawnOnHit,
+                SpawnOnHit      = authoring.SpawnOnHit != null ? GetEntity(authoring.SpawnOnHit, TransformUsageFlags.Dynamic) : Entity.Null,
+                ShotEffect      = authoring.ShotEffect != null ? GetEntity(authoring.ShotEffect, TransformUsageFlags.Dynamic) : Entity.Null,
             });
 
             AddComponent(entity, new StraightforwardProjectileComponent
@@ -81,8 +82,8 @@ namespace GalaxyIO.DOTS.Authoring
                 });
             }
 
-            // 켜진 채로 스폰됨. 클라이언트가 발사음 재생 후 끔.
-            AddComponent<ShotSoundPendingTag>(entity);
+            // 켜진 채로 스폰됨. 클라이언트가 발사 연출/발사음 처리 후 끔.
+            AddComponent<ShotPendingTag>(entity);
         }
     }
 }
