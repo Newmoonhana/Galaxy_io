@@ -286,24 +286,11 @@ namespace GalaxyIO.DOTS.Authoring
 
             SpaceshipUpgradeAsset upgrade = authoring.Upgrade;
 
-            // 모선은 직접 쏘지 않으므로 피해, 포탑 열 대신 함재기를 강화함. 최대 단계 0 은 강화 창에서 빠짐.
-            CarrierAuthoring carrier = GetComponent<CarrierAuthoring>();
-            DependsOn(carrier);
-
-            bool isCarrier = carrier != null;
-
-            // UpgradeStat 순서
+            // UpgradeStat 순서. 지원하지 않는 강화는 최대 단계 0 이라 강화 창에서 빠짐.
             var upgrades = AddBuffer<UpgradeElement>(entity);
-            upgrades.Add(new UpgradeElement { MaxLevel = (byte)(isCarrier ? 0 : upgrade.Damage.MaxLevel) });
-            upgrades.Add(new UpgradeElement { MaxLevel = (byte)(isCarrier ? 0 : upgrade.MaxHeat.MaxLevel) });
-            upgrades.Add(new UpgradeElement { MaxLevel = (byte)(isCarrier ? upgrade.Reinforcement.MaxLevel : 0) });
-            upgrades.Add(new UpgradeElement { MaxLevel = (byte)(isCarrier ? upgrade.Assembly.MaxLevel : 0) });
-            upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.MaxHealth.MaxLevel });
-            upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.Repair.MaxLevel });
-            upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.Speed.MaxLevel });
-            upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.Maneuver.MaxLevel });
-            upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.RadarRange.MaxLevel });
-            upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.RadarSweep.MaxLevel });
+
+            for (int i = 0; i < Upgrade.Count; i++)
+                upgrades.Add(new UpgradeElement { MaxLevel = (byte)upgrade.Get((UpgradeStat)i).SupportedMaxLevel });
 
             AddBuffer<UpgradeLevelElement>(entity).Resize(Upgrade.Count, NativeArrayOptions.ClearMemory);
 
@@ -325,8 +312,8 @@ namespace GalaxyIO.DOTS.Authoring
             Add(parameters, UpgradeStat.RadarRange, 0.0F, upgrade.RadarRange.Range);
             Add(parameters, UpgradeStat.RadarSweep, 0.0F, upgrade.RadarSweep.SweepSpeed);
             Add(parameters, UpgradeStat.RadarSweep, 0.0F, upgrade.RadarSweep.ResponseTime);
-            Add(parameters, UpgradeStat.Reinforcement, 1.0F, upgrade.Reinforcement.Damage);
-            Add(parameters, UpgradeStat.Reinforcement, 1.0F, upgrade.Reinforcement.MaxHealth);
+            Add(parameters, UpgradeStat.Reinforcement, 0.0F, upgrade.Reinforcement.Damage);
+            Add(parameters, UpgradeStat.Reinforcement, 0.0F, upgrade.Reinforcement.MaxHealth);
             Add(parameters, UpgradeStat.Assembly, 0.0F, upgrade.Assembly.AssemblyTime);
         }
 

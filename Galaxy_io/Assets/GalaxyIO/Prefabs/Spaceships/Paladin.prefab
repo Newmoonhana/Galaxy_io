@@ -337,7 +337,7 @@ MonoBehaviour:
     Sprite: {fileID: 60256650130744417}
     Muzzle: {fileID: 7129144679037183097}
   Turret: {fileID: 11400000, guid: 2e7494f6410a0a4a1c0a258320c5fd2c, type: 2}
-  Upgrade: {fileID: 11400000, guid: 6c18918797304db4cb9324634658d1cd, type: 2}
+  Upgrade: {fileID: 11400000, guid: 73007c91687c4b7a8b1e50e539a58238, type: 2}
 --- !u!114 &8909345426696020667
 MonoBehaviour:
   m_ObjectHideFlags: 0

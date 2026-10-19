@@ -6,7 +6,7 @@ namespace GalaxyIO.DOTS.Components.Actor
 {
     /// <summary>
     /// 우주선 강화 종류. 값이 곧 <see cref="UpgradeElement"/>, <see cref="UpgradeLevelElement"/>의 인덱스.
-    /// 강화 창은 최대 단계가 0 인 종류를 빼고 이 순서로 보여줌. 모선은 Damage, MaxHeat 대신 Reinforcement, Assembly 를 씀.
+    /// 강화 창은 최대 단계가 0 인(지원하지 않는) 종류를 빼고 이 순서로 보여줌.
     /// </summary>
     public enum UpgradeStat : byte
     {
@@ -73,7 +73,7 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 레이더 점이 나타나기까지의 시간(초)에서 빼는 값
         RadarResponse = 15,
 
-        // 함재기 피해 배율, 최대 체력 배율
+        // 함재기 투사체 피해, 최대 체력에 더하는 값
         CraftDamage = 16,
         CraftMaxHealth = 17,
 

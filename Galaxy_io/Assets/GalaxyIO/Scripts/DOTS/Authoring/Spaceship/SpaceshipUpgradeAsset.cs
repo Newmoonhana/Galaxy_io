@@ -1,80 +1,96 @@
 using System;
+using GalaxyIO.DOTS.Components.Actor;
 using UnityEngine;
 
 namespace GalaxyIO.DOTS.Authoring
 {
     /// <summary>
     /// 우주선 기종 하나의 강화 사양. <see cref="SpaceshipAuthoring"/>이 참조함.
-    /// 값은 모두 한 단계마다 바뀌는 양. 모선은 Damage, MaxHeat 대신 Reinforcement, Assembly 를 씀.
+    /// 값은 모두 한 단계마다 바뀌는 양.
     /// </summary>
     [CreateAssetMenu(fileName = "SO_Upgrade", menuName = "GalaxyIO/Spaceship Upgrade")]
     public sealed class SpaceshipUpgradeAsset : ScriptableObject
     {
+        /// <summary>
+        /// 강화 종류 하나의 공통 사양.
+        /// </summary>
         [Serializable]
-        public sealed class DamageUpgrade
+        public abstract class Entry
+        {
+            [Tooltip("이 기종이 쓰는 강화인지. 끄면 강화 창과 사양 창에서 빠짐")]
+            public bool Supported = true;
+
+            [Range(0, 255)]
+            public int MaxLevel;
+
+            protected Entry(int maxLevel)
+            {
+                MaxLevel = maxLevel;
+            }
+
+            // 지원하지 않으면 0
+            public int SupportedMaxLevel => Supported ? MaxLevel : 0;
+        }
+
+        [Serializable]
+        public sealed class DamageUpgrade : Entry
         {
             [Tooltip("포탑 피해 배율 증가 (0.1 = 10%)")]
             public float Damage = 0.1F;
 
-            [Range(0, 255)]
-            public int MaxLevel = 10;
+            public DamageUpgrade() : base(10) { }
         }
 
         [Serializable]
-        public sealed class MaxHeatUpgrade
+        public sealed class MaxHeatUpgrade : Entry
         {
             [Tooltip("포탑 최대 열 증가")]
             public float MaxHeat = 10.0F;
 
-            [Range(0, 255)]
-            public int MaxLevel = 10;
+            public MaxHeatUpgrade() : base(10) { }
         }
 
         [Serializable]
-        public sealed class ReinforcementUpgrade
+        public sealed class ReinforcementUpgrade : Entry
         {
-            [Tooltip("함재기 피해 배율 증가 (0.1 = 10%)")]
-            public float Damage = 0.1F;
+            [Tooltip("함재기 투사체 피해 증가")]
+            public float Damage = 0.7F;
 
-            [Tooltip("함재기 최대 체력 배율 증가 (0.1 = 10%)")]
-            public float MaxHealth = 0.1F;
+            [Tooltip("함재기 최대 체력 증가")]
+            public float MaxHealth = 8.0F;
 
-            [Range(0, 255)]
-            public int MaxLevel = 10;
+            public ReinforcementUpgrade() : base(10) { }
         }
 
         [Serializable]
-        public sealed class AssemblyUpgrade
+        public sealed class AssemblyUpgrade : Entry
         {
             [Tooltip("함재기 생산 시간(초) 감소")]
             public float AssemblyTime = 0.25F;
 
-            [Range(0, 255)]
-            public int MaxLevel = 20;
+            public AssemblyUpgrade() : base(20) { }
         }
 
         [Serializable]
-        public sealed class MaxHealthUpgrade
+        public sealed class MaxHealthUpgrade : Entry
         {
             [Tooltip("최대 체력 증가")]
             public float MaxHealth = 10.0F;
 
-            [Range(0, 255)]
-            public int MaxLevel = 25;
+            public MaxHealthUpgrade() : base(25) { }
         }
 
         [Serializable]
-        public sealed class RepairUpgrade
+        public sealed class RepairUpgrade : Entry
         {
             [Tooltip("초당 자가 수리량 증가")]
             public float Repair = 2.0F;
 
-            [Range(0, 255)]
-            public int MaxLevel = 25;
+            public RepairUpgrade() : base(25) { }
         }
 
         [Serializable]
-        public sealed class SpeedUpgrade
+        public sealed class SpeedUpgrade : Entry
         {
             [Tooltip("비행 최대 이동속도 증가")]
             public float MaxSpeed = 2.0F;
@@ -94,12 +110,11 @@ namespace GalaxyIO.DOTS.Authoring
             [Tooltip("호버링 감속도 증가")]
             public float HoveringDeceleration = 0.03F;
 
-            [Range(0, 255)]
-            public int MaxLevel = 25;
+            public SpeedUpgrade() : base(25) { }
         }
 
         [Serializable]
-        public sealed class ManeuverUpgrade
+        public sealed class ManeuverUpgrade : Entry
         {
             [Tooltip("회전 속도(도/초) 증가")]
             public float Maneuver = 4.0F;
@@ -110,22 +125,20 @@ namespace GalaxyIO.DOTS.Authoring
             [Tooltip("호버링 방향 전환 가속도 증가")]
             public float HoveringManeuver = 0.1F;
 
-            [Range(0, 255)]
-            public int MaxLevel = 25;
+            public ManeuverUpgrade() : base(25) { }
         }
 
         [Serializable]
-        public sealed class RadarRangeUpgrade
+        public sealed class RadarRangeUpgrade : Entry
         {
             [Tooltip("레이더 탐지 거리 증가")]
             public float Range = 10.0F;
 
-            [Range(0, 255)]
-            public int MaxLevel = 25;
+            public RadarRangeUpgrade() : base(25) { }
         }
 
         [Serializable]
-        public sealed class RadarSweepUpgrade
+        public sealed class RadarSweepUpgrade : Entry
         {
             [Tooltip("레이더 스캐너 회전 속도(도/초) 증가")]
             public float SweepSpeed = 10.0F;
@@ -133,8 +146,7 @@ namespace GalaxyIO.DOTS.Authoring
             [Tooltip("스캐너가 지나간 뒤 점이 나타나기까지의 시간(초) 감소")]
             public float ResponseTime = 0.08F;
 
-            [Range(0, 255)]
-            public int MaxLevel = 25;
+            public RadarSweepUpgrade() : base(25) { }
         }
 
         public DamageUpgrade Damage = new DamageUpgrade();
@@ -147,5 +159,26 @@ namespace GalaxyIO.DOTS.Authoring
         public ManeuverUpgrade Maneuver = new ManeuverUpgrade();
         public RadarRangeUpgrade RadarRange = new RadarRangeUpgrade();
         public RadarSweepUpgrade RadarSweep = new RadarSweepUpgrade();
+
+        /// <summary>
+        /// 강화 종류 하나의 사양.
+        /// </summary>
+        public Entry Get(UpgradeStat stat)
+        {
+            return stat switch
+            {
+                UpgradeStat.Damage        => Damage,
+                UpgradeStat.MaxHeat       => MaxHeat,
+                UpgradeStat.Reinforcement => Reinforcement,
+                UpgradeStat.Assembly      => Assembly,
+                UpgradeStat.MaxHealth     => MaxHealth,
+                UpgradeStat.Repair        => Repair,
+                UpgradeStat.Speed         => Speed,
+                UpgradeStat.Maneuver      => Maneuver,
+                UpgradeStat.RadarRange    => RadarRange,
+                UpgradeStat.RadarSweep    => RadarSweep,
+                _                         => throw new ArgumentOutOfRangeException(nameof(stat), stat, null),
+            };
+        }
     }
 }

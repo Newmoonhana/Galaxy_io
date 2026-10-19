@@ -262,8 +262,8 @@ namespace GalaxyIO.DOTS.Systems
 
                 // 강화 수치. 강화가 없는 기체는 기본값.
                 float assemblyBonus = 0.0F;
-                float damageScale = 1.0F;
-                float healthScale = 1.0F;
+                float damageBonus = 0.0F;
+                float healthBonus = 0.0F;
 
                 if (SystemAPI.HasBuffer<UpgradeParamElement>(entity))
                 {
@@ -271,8 +271,8 @@ namespace GalaxyIO.DOTS.Systems
                     DynamicBuffer<UpgradeLevelElement> levels = SystemAPI.GetBuffer<UpgradeLevelElement>(entity);
 
                     assemblyBonus = Upgrade.Value(parameters, levels, UpgradeParam.AssemblyTime);
-                    damageScale = Upgrade.Value(parameters, levels, UpgradeParam.CraftDamage);
-                    healthScale = Upgrade.Value(parameters, levels, UpgradeParam.CraftMaxHealth);
+                    damageBonus = Upgrade.Value(parameters, levels, UpgradeParam.CraftDamage);
+                    healthBonus = Upgrade.Value(parameters, levels, UpgradeParam.CraftMaxHealth);
                 }
 
                 // 최대 수보다 적으면 만듦.
@@ -643,7 +643,7 @@ namespace GalaxyIO.DOTS.Systems
                     {
                         Carrier        = entity,
                         OwnerNetworkId = owner.ValueRO.NetworkId,
-                        DamageScale    = damageScale,
+                        DamageBonus    = damageBonus,
                         SlotIndex      = -1,
                         Ring           = -1,
                         Orbit          = random.NextBool() ? 1.0F : -1.0F,
@@ -700,7 +700,7 @@ namespace GalaxyIO.DOTS.Systems
                     craftTransform.Rotation = transform.ValueRO.Rotation;
 
                     SpaceshipSpecComponent craftHealth = SystemAPI.GetComponent<SpaceshipSpecComponent>(carrier.CraftPrefab);
-                    craftHealth.MaxHealth *= healthScale;
+                    craftHealth.MaxHealth += healthBonus;
                     craftHealth.Health = craftHealth.MaxHealth;
 
                     EnemySpaceshipMovementComponent craftMovement = SystemAPI.GetComponent<EnemySpaceshipMovementComponent>(carrier.CraftPrefab);
