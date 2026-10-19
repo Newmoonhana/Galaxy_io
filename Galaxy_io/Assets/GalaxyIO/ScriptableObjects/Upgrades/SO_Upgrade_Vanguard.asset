@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3e931273543f1f42af2e566e535732e, type: 3}
+  m_Name: SO_Upgrade_Vanguard
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.SpaceshipUpgradeAsset
+  Damage:
+    Supported: 1
+    MaxLevel: 25
+    Damage: 0.1
+  MaxHeat:
+    Supported: 1
+    MaxLevel: 25
+    MaxHeat: 10
+  Reinforcement:
+    Supported: 0
+    MaxLevel: 10
+    Damage: 0.7
+    MaxHealth: 8
+  Assembly:
+    Supported: 0
+    MaxLevel: 20
+    AssemblyTime: 0.25
+  MaxHealth:
+    Supported: 1
+    MaxLevel: 10
+    MaxHealth: 10
+  Repair:
+    Supported: 1
+    MaxLevel: 10
+    Repair: 2
+  Speed:
+    Supported: 1
+    MaxLevel: 25
+    MaxSpeed: 2
+    Acceleration: 0.2
+    Deceleration: 0.15
+    HoveringSpeed: 0.1
+    HoveringAcceleration: 0.05
+    HoveringDeceleration: 0.03
+  Maneuver:
+    Supported: 1
+    MaxLevel: 25
+    Maneuver: 4
+    ManeuverPenalty: 0.1
+    HoveringManeuver: 1
+  RadarRange:
+    Supported: 1
+    MaxLevel: 10
+    Range: 10
+  RadarSweep:
+    Supported: 1
+    MaxLevel: 10
+    SweepSpeed: 20
+    ResponseTime: 0.08

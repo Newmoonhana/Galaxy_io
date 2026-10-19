@@ -76,8 +76,8 @@ namespace GalaxyIO.DOTS.Components.Actor
         [GhostField]
         public int OwnerNetworkId;
 
-        // 함재기 강화로 늘어난 피해 배율
-        public float DamageScale;
+        // 함재기 강화로 투사체 피해에 더하는 값
+        public float DamageBonus;
 
         public CarrierOrder Order;
 

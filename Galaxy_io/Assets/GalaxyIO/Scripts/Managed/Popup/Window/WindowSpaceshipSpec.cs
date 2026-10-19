@@ -12,7 +12,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
 {
     /// <summary>
     /// 우주선 상세 사양 창. 외곽선, 포탑 칸, 필요 재료, 이름, 능력치, 장착 버튼.
-    /// 능력치는 "기본값(+강화 한 단계당 증가량), 최대 단계"로 프리팹과 강화 에셋에서 읽음.
+    /// 능력치는 "기본값(+강화 한 단계당 증가량), 최대 단계"로 프리팹과 강화 에셋에서 읽음. 지원하지 않는 강화는 빼고, 강화 사양이 없는 기종은 능력치를 띄우지 않음.
     /// </summary>
     public class WindowSpaceshipSpec : WindowSpecBase
     {
@@ -73,49 +73,57 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             SpaceshipAuthoring ship = _spaceship.Prefab;
             SpaceshipUpgradeAsset upgrade = ship.Upgrade;
+
+            // 강화 사양이 없는 기종은 능력치 목록을 띄우지 않음
+            if (upgrade == null)
+            {
+                spec_tmp.text = string.Empty;
+                return;
+            }
+
             var sb = new StringBuilder();
 
             string maxLevel = L10n.Get("Spec/MaxLevel");
 
-            // "이름: 기본값(+단계당 증가량), 최대 Lv. n". 강화 사양이 없으면 기본값만 씀
-            void Stat(UpgradeStat _stat, float _base, float _amount, int _maxLevel, string _unit = "")
+            // 분류 제목. 그 분류의 첫 줄을 쓸 때 붙임. 지원하는 강화가 없는 분류는 통째로 빠짐
+            string section = null;
+
+            // "이름: 기본값(+단계당 증가량), 최대 Lv. n". 지원하지 않는 강화는 뺌
+            void Stat(UpgradeStat _stat, float _base, float _amount, string _unit = "")
             {
-                sb.Append($"{L10n.Get($"Upgrade/{_stat}")}: {_base:0.###}{_unit}");
-                if (upgrade != null) sb.Append($"({_amount:+0.###;-0.###}{_unit}), {string.Format(maxLevel, _maxLevel)}");
-                sb.AppendLine();
+                SpaceshipUpgradeAsset.Entry entry = upgrade.Get(_stat);
+
+                if (!entry.Supported) return;
+
+                if (section != null)
+                {
+                    if (sb.Length > 0) sb.AppendLine();
+                    sb.AppendLine(section);
+                    section = null;
+                }
+
+                sb.AppendLine($"{L10n.Get($"Upgrade/{_stat}")}: {_base:0.###}{_unit}({_amount:+0.###;-0.###}{_unit}), {string.Format(maxLevel, entry.MaxLevel)}");
             }
 
-            // 모선은 피해, 포탑 열 대신 함재기를 강화함
             CarrierAuthoring carrier = ship.GetComponent<CarrierAuthoring>();
 
-            sb.AppendLine(L10n.Get("Spec/Offensive"));
+            section = L10n.Get("Spec/Offensive");
+            Stat(UpgradeStat.Damage, 0.0F, upgrade.Damage.Damage * 100.0F, "%");
+            Stat(UpgradeStat.MaxHeat, ship.MaxHeat, upgrade.MaxHeat.MaxHeat);
+            Stat(UpgradeStat.Reinforcement, 0.0F, upgrade.Reinforcement.Damage);
+            Stat(UpgradeStat.Assembly, carrier != null ? carrier.AssemblyTime : 0.0F, -upgrade.Assembly.AssemblyTime, "s");
 
-            if (carrier != null)
-            {
-                Stat(UpgradeStat.Reinforcement, 0.0F, upgrade != null ? upgrade.Reinforcement.Damage * 100.0F : 0.0F, upgrade != null ? upgrade.Reinforcement.MaxLevel : 0, "%");
-                Stat(UpgradeStat.Assembly, carrier.AssemblyTime, upgrade != null ? -upgrade.Assembly.AssemblyTime : 0.0F, upgrade != null ? upgrade.Assembly.MaxLevel : 0, "s");
-            }
-            else
-            {
-                Stat(UpgradeStat.Damage, 0.0F, upgrade != null ? upgrade.Damage.Damage * 100.0F : 0.0F, upgrade != null ? upgrade.Damage.MaxLevel : 0, "%");
-                Stat(UpgradeStat.MaxHeat, ship.MaxHeat, upgrade != null ? upgrade.MaxHeat.MaxHeat : 0.0F, upgrade != null ? upgrade.MaxHeat.MaxLevel : 0);
-            }
+            section = L10n.Get("Spec/Durability");
+            Stat(UpgradeStat.MaxHealth, ship.MaxHealth, upgrade.MaxHealth.MaxHealth);
+            Stat(UpgradeStat.Repair, ship.Repair, upgrade.Repair.Repair);
 
-            sb.AppendLine();
+            section = L10n.Get("Spec/Movement");
+            Stat(UpgradeStat.Speed, ship.Speed, upgrade.Speed.MaxSpeed);
+            Stat(UpgradeStat.Maneuver, ship.Maneuver, upgrade.Maneuver.Maneuver);
 
-            sb.AppendLine(L10n.Get("Spec/Durability"));
-            Stat(UpgradeStat.MaxHealth, ship.MaxHealth, upgrade != null ? upgrade.MaxHealth.MaxHealth : 0.0F, upgrade != null ? upgrade.MaxHealth.MaxLevel : 0);
-            Stat(UpgradeStat.Repair, ship.Repair, upgrade != null ? upgrade.Repair.Repair : 0.0F, upgrade != null ? upgrade.Repair.MaxLevel : 0);
-            sb.AppendLine();
-
-            sb.AppendLine(L10n.Get("Spec/Movement"));
-            Stat(UpgradeStat.Speed, ship.Speed, upgrade != null ? upgrade.Speed.MaxSpeed : 0.0F, upgrade != null ? upgrade.Speed.MaxLevel : 0);
-            Stat(UpgradeStat.Maneuver, ship.Maneuver, upgrade != null ? upgrade.Maneuver.Maneuver : 0.0F, upgrade != null ? upgrade.Maneuver.MaxLevel : 0);
-            sb.AppendLine();
-
-            sb.AppendLine(L10n.Get("Spec/Radar"));
-            Stat(UpgradeStat.RadarRange, ship.RadarRange, upgrade != null ? upgrade.RadarRange.Range : 0.0F, upgrade != null ? upgrade.RadarRange.MaxLevel : 0);
-            Stat(UpgradeStat.RadarSweep, ship.RadarSweepSpeed, upgrade != null ? upgrade.RadarSweep.SweepSpeed : 0.0F, upgrade != null ? upgrade.RadarSweep.MaxLevel : 0);
+            section = L10n.Get("Spec/Radar");
+            Stat(UpgradeStat.RadarRange, ship.RadarRange, upgrade.RadarRange.Range);
+            Stat(UpgradeStat.RadarSweep, ship.RadarSweepSpeed, upgrade.RadarSweep.SweepSpeed);
 
             spec_tmp.text = sb.ToString().TrimEnd();
         }

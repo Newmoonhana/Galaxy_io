@@ -10,44 +10,54 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a3e931273543f1f42af2e566e535732e, type: 3}
-  m_Name: SO_Upgrade_Player
+  m_Name: SO_Upgrade_Paladin
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.SpaceshipUpgradeAsset
   Damage:
+    Supported: 1
+    MaxLevel: 25
     Damage: 0.1
-    MaxLevel: 10
   MaxHeat:
+    Supported: 1
+    MaxLevel: 25
     MaxHeat: 10
-    MaxLevel: 10
   Reinforcement:
-    Damage: 0.1
-    MaxHealth: 0.1
+    Supported: 0
     MaxLevel: 10
+    Damage: 0.7
+    MaxHealth: 8
   Assembly:
-    AssemblyTime: 0.25
+    Supported: 0
     MaxLevel: 20
+    AssemblyTime: 0.25
   MaxHealth:
-    MaxHealth: 10
+    Supported: 1
     MaxLevel: 25
+    MaxHealth: 25
   Repair:
-    Repair: 2
+    Supported: 1
     MaxLevel: 25
+    Repair: 3
   Speed:
+    Supported: 1
+    MaxLevel: 10
     MaxSpeed: 2
     Acceleration: 0.2
     Deceleration: 0.15
     HoveringSpeed: 0.1
     HoveringAcceleration: 0.05
     HoveringDeceleration: 0.03
-    MaxLevel: 25
   Maneuver:
+    Supported: 1
+    MaxLevel: 10
     Maneuver: 4
     ManeuverPenalty: 0.1
     HoveringManeuver: 1
-    MaxLevel: 25
   RadarRange:
+    Supported: 1
+    MaxLevel: 10
     Range: 10
-    MaxLevel: 25
   RadarSweep:
+    Supported: 1
+    MaxLevel: 10
     SweepSpeed: 20
     ResponseTime: 0.08
-    MaxLevel: 25

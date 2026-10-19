@@ -145,7 +145,7 @@ MonoBehaviour:
   - {fileID: 3305843298488137801}
   AutoTurrets: []
   Turret: {fileID: 11400000, guid: 3037765fa7c4999d2c3d742734c545df, type: 2}
-  Upgrade: {fileID: 11400000, guid: 6c18918797304db4cb9324634658d1cd, type: 2}
+  Upgrade: {fileID: 11400000, guid: b5283f10be73424689d7ef861aa6fa02, type: 2}
 --- !u!114 &8909345426696020667
 MonoBehaviour:
   m_ObjectHideFlags: 0

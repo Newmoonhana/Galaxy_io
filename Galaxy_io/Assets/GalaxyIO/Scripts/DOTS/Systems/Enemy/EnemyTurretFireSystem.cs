@@ -112,9 +112,9 @@ namespace GalaxyIO.DOTS.Systems
                     shared.Turret = equipped.ValueRO.Value;
 
                     // 함재기는 모선의 함재기 강화만큼 세짐.
-                    shared.Damage = spec.Damage * (SystemAPI.HasComponent<CarriedCraftComponent>(spaceship)
-                        ? SystemAPI.GetComponent<CarriedCraftComponent>(spaceship).DamageScale
-                        : 1.0F);
+                    shared.Damage = spec.Damage + (SystemAPI.HasComponent<CarriedCraftComponent>(spaceship)
+                        ? SystemAPI.GetComponent<CarriedCraftComponent>(spaceship).DamageBonus
+                        : 0.0F);
                     shared.InterpolationDelay = 0;
 
                     bool straight = SystemAPI.HasComponent<StraightforwardProjectileComponent>(spec.ProjectilePrefab);
