@@ -3,7 +3,6 @@ using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Singleton;
-using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -14,12 +13,16 @@ using UnityEngine;
 namespace GalaxyIO.DOTS.Client.Systems
 {
     /// <summary>
-    /// 새로 나타난 투사체의 발사음을 요청하는 시스템.
+    /// 새로 나타난 투사체 자리에 발사 연출을 띄우고 발사음을 요청하는 시스템.
     /// 한 우주선의 같은 발사음은 프레임당 한 번만 재생함.
+    /// 발사 방향으로 움직이던 만큼 우주선 속도를 연출 파티클에 물려줌(Inherit Velocity 모듈).
     /// </summary>
-    [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
-    public partial struct ShotSoundSystem : ISystem
+    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateAfter(typeof(AutoTurretProjectileShiftSystem))]
+    [UpdateAfter(typeof(LocalProjectileSystem))]
+    [UpdateBefore(typeof(TransformSystemGroup))]
+    public partial struct ShotPresentationSystem : ISystem
     {
         // 이보다 오래된 투사체는 발사가 아니라 복제 범위에 새로 들어온 것으로 봄.
         private const int MaxShotAgeTicks = 6;
@@ -31,12 +34,11 @@ namespace GalaxyIO.DOTS.Client.Systems
         private float2 lastListener;
         private bool hasLastListener;
 
-        [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<NetworkTime>();
             state.RequireForUpdate<ItemRegistryElement>();
-            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<ShotSoundPendingTag>().Build());
+            state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<ShotPendingTag>().Build());
 
             // 로컬 투사체도 GhostOwnerIsLocal 을 가지므로 우주선만 고름.
             localShipQuery = SystemAPI.QueryBuilder()
@@ -44,7 +46,6 @@ namespace GalaxyIO.DOTS.Client.Systems
                 .Build();
         }
 
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             // 리스너는 로컬 우주선. 살아 있으면 위치를 갱신하고, 사라지면 마지막 위치를 계속 씀.
@@ -63,6 +64,7 @@ namespace GalaxyIO.DOTS.Client.Systems
 
             NetworkTick interpolationTick = SystemAPI.GetSingleton<NetworkTime>().InterpolationTick;
             ComponentLookup<EquippedTurretComponent> equippedLookup = SystemAPI.GetComponentLookup<EquippedTurretComponent>(true);
+            ComponentLookup<LocalLaunchComponent> launchLookup = SystemAPI.GetComponentLookup<LocalLaunchComponent>(true);
 
             Entity registryEntity = SystemAPI.GetSingletonEntity<ItemRegistryElement>();
             DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetBuffer<ItemRegistryElement>(registryEntity);
@@ -70,13 +72,16 @@ namespace GalaxyIO.DOTS.Client.Systems
             var played = new NativeHashSet<ShotSoundKey>(16, Allocator.Temp);
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
+            // 파티클에 속도를 넣으려면 스폰 직후 Companion 에 접근해야 함. 순회 뒤에 스폰함.
+            var effects = new NativeList<ShotEffectSpawn>(Allocator.Temp);
+
             foreach (
                 var (shared, transform, ghost, pending, entity) in
                 SystemAPI.Query<
                     RefRO<SharedProjectileComponent>,
                     RefRO<LocalTransform>,
                     RefRO<GhostInstance>,
-                    EnabledRefRW<ShotSoundPendingTag>
+                    EnabledRefRW<ShotPendingTag>
                 >().WithEntityAccess()
             ) {
                 pending.ValueRW = false;
@@ -96,6 +101,27 @@ namespace GalaxyIO.DOTS.Client.Systems
                 if (!equippedLookup.HasComponent(owner))
                 {
                     continue;
+                }
+
+                // 투사체가 처음 보이는 자리가 총구. 프리팹의 크기는 그대로 쓰고 위치/회전만 투사체를 따름.
+                Entity shotEffect = shared.ValueRO.ShotEffect;
+
+                if (shotEffect != Entity.Null)
+                {
+                    LocalTransform effectTransform = SystemAPI.GetComponent<LocalTransform>(shotEffect);
+                    effectTransform.Position = transform.ValueRO.Position;
+                    effectTransform.Rotation = transform.ValueRO.Rotation;
+
+                    // 발사 방향과 같은 쪽으로 움직일 때만 물려줌. 앞으로 날며 쏘면 전부, 옆/뒤로 움직이면 0.
+                    float2 shipVelocity = launchLookup[owner].Velocity;
+                    float alignment = math.saturate(math.dot(math.normalizesafe(shipVelocity), transform.ValueRO.Up().xy));
+
+                    effects.Add(new ShotEffectSpawn
+                    {
+                        Prefab = shotEffect,
+                        Transform = effectTransform,
+                        Velocity = shipVelocity * alignment,
+                    });
                 }
 
                 ItemRegistryElement turret = registry.Get(shared.ValueRO.Turret);
@@ -129,6 +155,36 @@ namespace GalaxyIO.DOTS.Client.Systems
             ecb.Playback(state.EntityManager);
             ecb.Dispose();
             played.Dispose();
+
+            EntityManager entityManager = state.EntityManager;
+
+            foreach (ShotEffectSpawn spawn in effects)
+            {
+                Entity effect = entityManager.Instantiate(spawn.Prefab);
+                entityManager.SetComponentData(effect, spawn.Transform);
+
+                // 첫 방출 전에 넣음.
+                var velocity = new Vector3(spawn.Velocity.x, spawn.Velocity.y, 0.0F);
+
+                foreach (EffectPartElement part in entityManager.GetBuffer<EffectPartElement>(effect))
+                {
+                    if (entityManager.HasComponent<ParticleSystem>(part.Value))
+                    {
+                        ParticleSystem.MainModule main = entityManager.GetComponentObject<ParticleSystem>(part.Value).main;
+                        main.emitterVelocityMode = ParticleSystemEmitterVelocityMode.Custom;
+                        main.emitterVelocity = velocity;
+                    }
+                }
+            }
+
+            effects.Dispose();
+        }
+
+        private struct ShotEffectSpawn
+        {
+            public Entity Prefab;
+            public LocalTransform Transform;
+            public float2 Velocity;
         }
 
         private struct ShotSoundKey : IEquatable<ShotSoundKey>

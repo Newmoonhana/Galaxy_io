@@ -1,7 +1,6 @@
 ﻿using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Actor;
-using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -27,7 +26,6 @@ namespace GalaxyIO.DOTS.Client.Systems
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<PrefabRegistryElement>();
             state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<SharedProjectileComponent>().Build());
 
             // 로컬 투사체도 GhostOwnerIsLocal 을 가지므로 우주선만 고름.
@@ -53,8 +51,6 @@ namespace GalaxyIO.DOTS.Client.Systems
             bool hasListener = hasLastListener && !playerState.Dead;
             float2 listener = lastListener;
 
-            DynamicBuffer<PrefabRegistryElement> registry = SystemAPI.GetSingletonBuffer<PrefabRegistryElement>(true);
-
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
             foreach (var shared in SystemAPI.Query<RefRW<SharedProjectileComponent>>())
@@ -66,7 +62,7 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                 shared.ValueRW.PresentedHitCount = shared.ValueRO.HitCount;
 
-                Entity prefab = registry.Find(shared.ValueRO.SpawnOnHit);
+                Entity prefab = shared.ValueRO.SpawnOnHit;
 
                 if (prefab == Entity.Null)
                 {

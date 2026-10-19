@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Entities;
 using UnityEngine;
 
@@ -26,8 +25,12 @@ namespace GalaxyIO.DOTS.Authoring
         public float ExplosionRadius;
 
         [SerializeField]
-        [Tooltip("명중할 때마다 클라이언트가 명중 지점에 띄울 연출(EffectAuthoring). 프리팹 레지스트리에 등록할 것. None 이면 없음.")]
-        public PrefabId SpawnOnHit = PrefabId.None;
+        [Tooltip("명중할 때마다 클라이언트가 명중 지점에 띄울 연출(EffectAuthoring). 비우면 없음.")]
+        public GameObject SpawnOnHit;
+
+        [SerializeField]
+        [Tooltip("발사할 때 클라이언트가 총구에 띄울 연출(EffectAuthoring). 투사체의 회전을 따름(+Y 가 발사 방향). 비우면 없음.")]
+        public GameObject ShotEffect;
 
         [SerializeField]
         [Tooltip("클라이언트가 투사체에 붙여 재생할 연출(EffectAuthoring). 파티클은 재생 속도를 투사체 수명에 맞추고, 트레일은 투사체가 사라진 뒤 꼬리가 줄어들고 사라짐. 비우면 없음.")]

@@ -24,8 +24,11 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 0보다 크면 명중으로 사라질 때 이 반경으로 폭발함.
         public float ExplosionRadius;
 
-        // 명중할 때마다 클라이언트가 명중 지점에 띄울 연출. None 이면 없음.
-        public PrefabId SpawnOnHit;
+        // 명중할 때마다 클라이언트가 명중 지점에 띄울 연출 프리팹. 없으면 Entity.Null.
+        public Entity SpawnOnHit;
+
+        // 발사할 때 클라이언트가 총구에 띄울 연출 프리팹. 없으면 Entity.Null.
+        public Entity ShotEffect;
 
         // 서버가 데미지를 준 명중 수. 클라이언트는 늘어난 것을 보고 명중 연출을 띄움.
         [GhostField]
