@@ -24,5 +24,8 @@ namespace GalaxyIO.DOTS.Components.Singleton
 
         // 적 전용 포탑. 드랍 테이블, 상점에 넣지 않음.
         CorsairTurret = 10,
+
+        // 우주선 고정 포탑(순양함 함포). 드랍 테이블, 상점에 넣지 않음.
+        LeviathanArtillery = 11,
     }
 }

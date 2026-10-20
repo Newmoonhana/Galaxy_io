@@ -13,18 +13,21 @@ namespace GalaxyIO.DOTS.Components.Actor
         Damage = 0,
         MaxHeat = 1,
 
+        // 재장전. 순양함 함포처럼 열 대신 발사 간격으로 쏘는 기종이 MaxHeat 대신 씀.
+        Reload = 2,
+
         // 함재기 강화
-        Reinforcement = 2,
+        Reinforcement = 3,
 
         // 생산성 증대
-        Assembly = 3,
+        Assembly = 4,
 
-        MaxHealth = 4,
-        Repair = 5,
-        Speed = 6,
-        Maneuver = 7,
-        RadarRange = 8,
-        RadarSweep = 9,
+        MaxHealth = 5,
+        Repair = 6,
+        Speed = 7,
+        Maneuver = 8,
+        RadarRange = 9,
+        RadarSweep = 10,
     }
 
     /// <summary>
@@ -79,6 +82,9 @@ namespace GalaxyIO.DOTS.Components.Actor
 
         // 함재기 생산 시간(초)에서 빼는 값
         AssemblyTime = 18,
+
+        // 조종 포탑 발사 간격(초)에서 빼는 값
+        ReloadTime = 19,
     }
 
     /// <summary>
@@ -123,10 +129,10 @@ namespace GalaxyIO.DOTS.Components.Actor
     public static class Upgrade
     {
         // UpgradeStat 종류 수
-        public const int Count = 10;
+        public const int Count = 11;
 
         // UpgradeParam 종류 수
-        public const int ParamCount = 19;
+        public const int ParamCount = 20;
 
         /// <summary>
         /// 현재 단계까지 강화한 능력치 값.

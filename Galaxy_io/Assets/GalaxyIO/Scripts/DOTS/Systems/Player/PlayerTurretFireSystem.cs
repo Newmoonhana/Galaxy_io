@@ -15,6 +15,7 @@ namespace GalaxyIO.DOTS.Systems
     /// 총구 사양은 <see cref="EquippedTurretComponent"/>의 포탑에서 찾음.
     /// 쿨다운은 롤백 재시뮬레이션까지 매 틱 진행해 서버와 같은 틱에 쏨.
     /// 포탑 열(<see cref="TurretHeatComponent"/>)도 같이 계산함. 과열 중에는 방아쇠를 뗀 것으로 다룸.
+    /// 발사 간격은 재장전 강화만큼 줄고, 포탑에 반동이 있으면 우주선 속도를 발사 반대 방향으로 밂.
     /// 클라이언트와 서버가 같은 틱에 각자 투사체를 만들고
     /// <see cref="ProjectileSpawnClassificationSystem"/>이 둘을 짝지음.
     /// </summary>
@@ -100,6 +101,28 @@ namespace GalaxyIO.DOTS.Systems
                     deltaTime
                 );
 
+                // 강화한 피해 배율, 발사 간격 감소량. 강화가 없는 기체는 1, 0.
+                float damageScale = 1.0F;
+                float reloadBonus = 0.0F;
+
+                if (SystemAPI.HasBuffer<UpgradeParamElement>(spaceship))
+                {
+                    DynamicBuffer<UpgradeParamElement> parameters = SystemAPI.GetBuffer<UpgradeParamElement>(spaceship);
+                    DynamicBuffer<UpgradeLevelElement> levels = SystemAPI.GetBuffer<UpgradeLevelElement>(spaceship);
+                    damageScale = Upgrade.Value(parameters, levels, UpgradeParam.Damage);
+                    reloadBonus = Upgrade.Value(parameters, levels, UpgradeParam.ReloadTime);
+                }
+
+                // 다음 발사부터 줄어든 간격으로 기다림. 쏠 수 없는 포탑(간격 0)은 그대로 둠.
+                // 0 이하로 줄면 쿨다운 없이 매 틱 쏨. 원래 한 틱보다 짧은 포탑은 원래 간격까지만 줄어듦.
+                if (spec.MaxFireCooldown > 0.0F && reloadBonus > 0.0F)
+                {
+                    spec.MaxFireCooldown = math.max(
+                        spec.MaxFireCooldown - reloadBonus,
+                        math.min(spec.MaxFireCooldown, deltaTime)
+                    );
+                }
+
                 shots.Clear();
                 TurretCycle.Advance(
                     cooldowns.Reinterpret<float>().AsNativeArray(),
@@ -109,20 +132,23 @@ namespace GalaxyIO.DOTS.Systems
                     ref shots
                 );
 
-                // 강화한 피해 배율. 강화가 없는 기체는 1.
-                float damageScale = SystemAPI.HasBuffer<UpgradeParamElement>(spaceship)
-                    ? Upgrade.Value(
-                        SystemAPI.GetBuffer<UpgradeParamElement>(spaceship),
-                        SystemAPI.GetBuffer<UpgradeLevelElement>(spaceship),
-                        UpgradeParam.Damage)
-                    : 1.0F;
-
                 // 총구 위치. 쿨다운과 같은 순서.
                 DynamicBuffer<TurretElement> muzzles = SystemAPI.GetBuffer<TurretElement>(spaceship);
 
                 foreach (TurretShotRequest request in shots)
                 {
                     int i = request.Muzzle;
+
+                    // 터렛의 로컬 좌표를 월드 좌표로 합성. 원본 Transform은 수정하지 않음.
+                    LocalTransform muzzleTransform = transform.ValueRO.TransformTransform(muzzles[i].MuzzleLocation);
+
+                    // 반동. 속도는 예측 대상이라 스폰 여부와 관계없이 롤백 재시뮬레이션에서도 같게 줌.
+                    if (turret.Recoil > 0.0F)
+                    {
+                        RefRW<PlayerSpaceshipMovementComponent> playerMovement =
+                            SystemAPI.GetComponentRW<PlayerSpaceshipMovementComponent>(spaceship);
+                        playerMovement.ValueRW.Velocity -= muzzleTransform.Up().xy * turret.Recoil;
+                    }
 
                     // 각자 발사하는 투사체는 서버만 스폰함. 클라이언트 연출은 LocalProjectileSystem 이 냄.
                     // Ghost Prefab이 등록되기 전에는 예측 스폰한 투사체를 초기화할 수 없음.
@@ -142,9 +168,6 @@ namespace GalaxyIO.DOTS.Systems
                             .GetSingleton<EndPredictedSimulationEntityCommandBufferSystem.Singleton>()
                             .CreateCommandBuffer(state.WorldUnmanaged);
                     }
-
-                    // 터렛의 로컬 좌표를 월드 좌표로 합성. 원본 Transform은 수정하지 않음.
-                    LocalTransform muzzleTransform = transform.ValueRO.TransformTransform(muzzles[i].MuzzleLocation);
 
                     // 발사한 우주선과 그 시점의 보간 지연을 기록.
                     // 나머지 값은 프리팹 베이킹 결과를 그대로 씀.

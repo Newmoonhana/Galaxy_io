@@ -225,8 +225,8 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             DynamicBuffer<AutoTurretElement> autoTurrets = entityManager.GetBuffer<AutoTurretElement>(ships[0], true);
             ItemAsset powerCell = items.Find(ItemId.PowerCell);
 
-            // 조종 포탑 총구가 없는 기종은 모든 칸이 자동 포탑 칸
-            bool hasMainTurret = entityManager.GetBuffer<TurretElement>(ships[0], true).Length > 0;
+            // 조종 포탑 칸이 없는 기종(총구가 없거나 고정 포탑)은 모든 칸이 자동 포탑 칸
+            bool hasMainTurret = TurretEquip.HasMainTurretSlot(entityManager, ships[0]);
             bool autoSelected = TurretEquip.AutoTurretIndex(inventory_win.SelectedSlot, hasMainTurret) >= 0;
             ItemId selected = ItemId.None;
             turretIcons.Clear();

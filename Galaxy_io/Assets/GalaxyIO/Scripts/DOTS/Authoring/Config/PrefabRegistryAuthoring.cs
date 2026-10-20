@@ -167,6 +167,7 @@ namespace GalaxyIO.DOTS.Authoring.Config
                     element.ManeuverPenalty = turret.ManeuverPenalty;
                     element.Heat            = turret.Heat;
                     element.HeatMode        = turret.HeatMode;
+                    element.Recoil          = turret.Recoil;
                     element.LaunchSound     = turret.LaunchSound;
                     element.LoopSound       = turret.LoopSound;
                 }

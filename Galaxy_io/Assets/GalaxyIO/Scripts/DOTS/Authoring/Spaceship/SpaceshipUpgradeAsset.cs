@@ -51,6 +51,19 @@ namespace GalaxyIO.DOTS.Authoring
         }
 
         [Serializable]
+        public sealed class ReloadUpgrade : Entry
+        {
+            [Tooltip("조종 포탑 발사 간격(초) 감소. 간격이 0 이하로 줄면 매 틱 쏨")]
+            public float ReloadTime = 0.1F;
+
+            // 열 대신 발사 간격으로 쏘는 기종(순양함)만 씀
+            public ReloadUpgrade() : base(10)
+            {
+                Supported = false;
+            }
+        }
+
+        [Serializable]
         public sealed class ReinforcementUpgrade : Entry
         {
             [Tooltip("함재기 투사체 피해 증가")]
@@ -151,6 +164,7 @@ namespace GalaxyIO.DOTS.Authoring
 
         public DamageUpgrade Damage = new DamageUpgrade();
         public MaxHeatUpgrade MaxHeat = new MaxHeatUpgrade();
+        public ReloadUpgrade Reload = new ReloadUpgrade();
         public ReinforcementUpgrade Reinforcement = new ReinforcementUpgrade();
         public AssemblyUpgrade Assembly = new AssemblyUpgrade();
         public MaxHealthUpgrade MaxHealth = new MaxHealthUpgrade();
@@ -169,6 +183,7 @@ namespace GalaxyIO.DOTS.Authoring
             {
                 UpgradeStat.Damage        => Damage,
                 UpgradeStat.MaxHeat       => MaxHeat,
+                UpgradeStat.Reload        => Reload,
                 UpgradeStat.Reinforcement => Reinforcement,
                 UpgradeStat.Assembly      => Assembly,
                 UpgradeStat.MaxHealth     => MaxHealth,

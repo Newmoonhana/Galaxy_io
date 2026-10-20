@@ -167,6 +167,9 @@ namespace GalaxyIO.DOTS.Authoring
         // 장착한 채로 시작하는 포탑. 아이템 레지스트리에 등록된 포탑이어야 함.
         public TurretItemAsset Turret;
 
+        // 조종 포탑을 바꿔 낄 수 없음. 인벤토리에 조종 포탑 칸이 없음. e.g. 순양함 함포.
+        public bool FixedTurret;
+
         [Header("Upgrade")]
 
         // 강화 사양. 비우면 강화할 수 없는 기체.
@@ -230,6 +233,11 @@ namespace GalaxyIO.DOTS.Authoring
             }
 
             AddComponent(entity, new EquippedTurretComponent { Value = turret });
+
+            if (authoring.FixedTurret)
+            {
+                AddComponent<FixedTurretTag>(entity);
+            }
 
             AddComponent<TurretStandbyComponent>(entity);
 
@@ -315,6 +323,7 @@ namespace GalaxyIO.DOTS.Authoring
             Add(parameters, UpgradeStat.Reinforcement, 0.0F, upgrade.Reinforcement.Damage);
             Add(parameters, UpgradeStat.Reinforcement, 0.0F, upgrade.Reinforcement.MaxHealth);
             Add(parameters, UpgradeStat.Assembly, 0.0F, upgrade.Assembly.AssemblyTime);
+            Add(parameters, UpgradeStat.Reload, 0.0F, upgrade.Reload.ReloadTime);
         }
 
         private static void Add(DynamicBuffer<UpgradeParamElement> parameters, UpgradeStat stat, float baseValue, float amount)

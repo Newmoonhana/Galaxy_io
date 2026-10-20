@@ -124,7 +124,7 @@ namespace GalaxyIO.DOTS.Inventory
             }
 
             // 음수면 조종 포탑 칸.
-            int auto = TurretEquip.AutoTurretIndex(rpc.Slot, entityManager.GetBuffer<TurretElement>(ship, true).Length > 0);
+            int auto = TurretEquip.AutoTurretIndex(rpc.Slot, TurretEquip.HasMainTurretSlot(entityManager, ship));
             DynamicBuffer<AutoTurretElement> autoTurrets = entityManager.GetBuffer<AutoTurretElement>(ship, true);
 
             if (auto >= autoTurrets.Length)
@@ -187,7 +187,7 @@ namespace GalaxyIO.DOTS.Inventory
         }
 
         /// <summary>
-        /// 재료를 소모해 같은 자리에서 다른 기종으로 바꿔 탐. 장착한 포탑은 그대로 옮기고 강화는 처음부터.
+        /// 재료를 소모해 같은 자리에서 다른 기종으로 바꿔 탐. 장착한 포탑은 그대로 옮기고(고정 포탑 제외) 강화는 처음부터.
         /// 자동 포탑은 옮기지 않음. 새 기종의 자동 포탑 칸은 비어 있음.
         /// 이미 탄 기종이거나 프리팹이 없거나 재료가 모자라면 아무것도 안 함.
         /// </summary>
@@ -226,17 +226,21 @@ namespace GalaxyIO.DOTS.Inventory
             entityManager.SetComponentData(newShip, playerName);
             entityManager.SetComponentData(newShip, transform);
 
-            Entity registryEntity = registryQuery.GetSingletonEntity();
-            EquippedTurretComponent equipped = entityManager.GetComponentData<EquippedTurretComponent>(newShip);
+            // 고정 포탑은 옮기지 않음. 어느 한쪽이라도 고정 포탑이면 새 기종은 프리팹의 포탑을 씀.
+            if (!entityManager.HasComponent<FixedTurretTag>(ship) && !entityManager.HasComponent<FixedTurretTag>(newShip))
+            {
+                Entity registryEntity = registryQuery.GetSingletonEntity();
+                EquippedTurretComponent equipped = entityManager.GetComponentData<EquippedTurretComponent>(newShip);
 
-            TurretEquip.Refresh(
-                turret,
-                entityManager.GetBuffer<ItemRegistryElement>(registryEntity),
-                ref equipped,
-                entityManager.GetBuffer<TurretCooldownElement>(newShip)
-            );
+                TurretEquip.Refresh(
+                    turret,
+                    entityManager.GetBuffer<ItemRegistryElement>(registryEntity),
+                    ref equipped,
+                    entityManager.GetBuffer<TurretCooldownElement>(newShip)
+                );
 
-            entityManager.SetComponentData(newShip, equipped);
+                entityManager.SetComponentData(newShip, equipped);
+            }
 
             // 파괴 연출 없이 지움. 인벤토리는 NetworkId 로 이어짐.
             entityManager.DestroyEntity(ship);

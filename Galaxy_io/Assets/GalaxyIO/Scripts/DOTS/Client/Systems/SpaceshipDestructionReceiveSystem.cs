@@ -19,8 +19,6 @@ namespace GalaxyIO.DOTS.Client.Systems
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
     public partial struct SpaceshipDestructionReceiveSystem : ISystem
     {
-        private EntityQuery localShipQuery;
-
         // 마지막 리스너 위치. 파괴되는 순간의 자기 폭발음을 살리는 데 씀.
         // 리스폰 대기 중(Dead)에는 이 캐시를 쓰지 않음 - 사망 지점 주변 소리까지 들리면 안 됨.
         private float2 lastListener;
@@ -32,20 +30,18 @@ namespace GalaxyIO.DOTS.Client.Systems
             state.RequireForUpdate<PrefabRegistryElement>();
             state.RequireForUpdate<SpaceshipDestroyedRPC>();
             state.RequireForUpdate<PlayerStateComponent>();
-
-            // 로컬 투사체도 GhostOwnerIsLocal 을 가지므로 우주선만 고름.
-            localShipQuery = SystemAPI.QueryBuilder()
-                .WithAll<GhostOwnerIsLocal, PlayerSpaceshipMovementComponent, LocalTransform>()
-                .Build();
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             // 리스너는 로컬 우주선. 살아 있으면 위치를 갱신하고, 사라지면 마지막 위치를 계속 씀.
-            if (!localShipQuery.IsEmpty)
+            // 로컬 투사체도 GhostOwnerIsLocal 을 가지므로 우주선만 고름.
+            // SystemAPI 순회라 LocalTransform 을 쓰는 작업(LocalProjectileSystem)이 끝난 뒤 읽음.
+            foreach (var ship in SystemAPI.Query<RefRO<LocalTransform>>()
+                         .WithAll<GhostOwnerIsLocal, PlayerSpaceshipMovementComponent>())
             {
-                lastListener = localShipQuery.GetSingleton<LocalTransform>().Position.xy;
+                lastListener = ship.ValueRO.Position.xy;
                 hasLastListener = true;
             }
 

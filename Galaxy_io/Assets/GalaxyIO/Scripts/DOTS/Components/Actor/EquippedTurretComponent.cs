@@ -21,7 +21,16 @@ namespace GalaxyIO.DOTS.Components.Actor
     public static class TurretEquip
     {
         /// <summary>
-        /// 인벤토리 포탑 칸 번호의 자동 포탑 순번. 조종 포탑 총구가 있는 기종은 0 번 칸이 조종 포탑이라 -1.
+        /// 인벤토리에 조종 포탑 칸이 있는지. 조종 포탑 총구가 있고 고정 포탑(<see cref="FixedTurretTag"/>)이 아니어야 함.
+        /// </summary>
+        public static bool HasMainTurretSlot(EntityManager entityManager, Entity ship)
+        {
+            return entityManager.GetBuffer<TurretElement>(ship, true).Length > 0
+                   && !entityManager.HasComponent<FixedTurretTag>(ship);
+        }
+
+        /// <summary>
+        /// 인벤토리 포탑 칸 번호의 자동 포탑 순번. 조종 포탑 칸이 있는 기종은 0 번 칸이 조종 포탑이라 -1.
         /// </summary>
         public static int AutoTurretIndex(int slot, bool hasMainTurret)
         {
