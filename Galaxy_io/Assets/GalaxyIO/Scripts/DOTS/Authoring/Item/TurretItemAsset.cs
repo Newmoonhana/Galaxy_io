@@ -113,6 +113,11 @@ namespace GalaxyIO.DOTS.Authoring
         public TurretHeatMode HeatMode;
 
         [SerializeField]
+        [Tooltip("사격마다 우주선을 발사 반대 방향으로 미는 속력. 총구마다 따로 밀림. 플레이어만.")]
+        [Min(0.0F)]
+        public float Recoil;
+
+        [SerializeField]
         [Tooltip("사격을 시작할 때 한 번 재생. 비우면 없음.")]
         public string LaunchSound;
 

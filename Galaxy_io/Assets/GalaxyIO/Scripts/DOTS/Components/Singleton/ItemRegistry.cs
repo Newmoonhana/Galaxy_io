@@ -35,6 +35,9 @@ namespace GalaxyIO.DOTS.Components.Singleton
         public float Heat;
         public TurretHeatMode HeatMode;
 
+        // 포탑만. 사격마다 우주선을 발사 반대 방향으로 미는 속력.
+        public float Recoil;
+
         // 포탑만. 사격 시작음, 사격 중 반복음. 클라이언트만 씀.
         public FixedString64Bytes LaunchSound;
         public FixedString64Bytes LoopSound;

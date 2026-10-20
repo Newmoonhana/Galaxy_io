@@ -110,6 +110,10 @@ namespace GalaxyIO.Tools.PopupUI.Window
             section = L10n.Get("Spec/Offensive");
             Stat(UpgradeStat.Damage, 0.0F, upgrade.Damage.Damage * 100.0F, "%");
             Stat(UpgradeStat.MaxHeat, ship.MaxHeat, upgrade.MaxHeat.MaxHeat);
+
+            // 장착한 채로 시작하는 포탑의 발사 간격 기준
+            float fireCooldown = ship.Turret != null ? ship.Turret.Spec.FireCooldown : 0.0F;
+            Stat(UpgradeStat.Reload, fireCooldown, -upgrade.Reload.ReloadTime, "s");
             Stat(UpgradeStat.Reinforcement, 0.0F, upgrade.Reinforcement.Damage);
             Stat(UpgradeStat.Assembly, carrier != null ? carrier.AssemblyTime : 0.0F, -upgrade.Assembly.AssemblyTime, "s");
 

@@ -32,7 +32,7 @@ namespace GalaxyIO.DOTS.Authoring
 
         [SerializeField]
         [Tooltip("포탑 칸 위치. 스프라이트 사각형 기준 (0, 0) 좌하단 ~ (1, 1) 우상단. " +
-                 "조종 포탑 총구가 있는 기종은 첫 칸이 조종 포탑, 나머지는 SpaceshipAuthoring.AutoTurrets 순서의 자동 포탑 칸.")]
+                 "조종 포탑 칸이 있는 기종(고정 포탑 제외)은 첫 칸이 조종 포탑, 나머지는 SpaceshipAuthoring.AutoTurrets 순서의 자동 포탑 칸.")]
         public List<Vector2> TurretSlots = new List<Vector2> { new Vector2(0.5F, 0.5F) };
 
         [SerializeField]
