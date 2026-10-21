@@ -34,14 +34,9 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             await AddressableAssetsManager.gameObject_lst.LoadData(key);
 
             // 로드를 기다리는 동안 다른 호출이 먼저 띄웠을 수 있음.
-            if (opened != null)
-            {
-                AddressableAssetsManager.gameObject_lst.GetData(key).UnLoad();
-                return;
-            }
+            if (opened != null) return;
 
             Instantiate(AddressableAssetsManager.gameObject_lst.GetData(key).Data);
-            AddressableAssetsManager.gameObject_lst.GetData(key).UnLoad();
         }
 
         protected override void Awake()

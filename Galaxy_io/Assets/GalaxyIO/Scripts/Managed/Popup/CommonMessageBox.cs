@@ -21,7 +21,6 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         {
             await AddressableAssetsManager.gameObject_lst.LoadData(key);
             GameObject winObj = Instantiate(AddressableAssetsManager.gameObject_lst.GetData(key).Data, _parent);
-            AddressableAssetsManager.gameObject_lst.GetData(key).UnLoad();
 
             CommonMessageBox msgBox = winObj.GetComponent<CommonMessageBox>();
             if (msgBox == null) DebugLog.LogError($"프리팹 {key} 등록 안됨!");
@@ -74,5 +73,6 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         {
             msgBox_win.Refresh();
         }
-    }
+
+    }
 }

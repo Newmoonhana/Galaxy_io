@@ -62,6 +62,7 @@ MonoBehaviour:
     - 8a1d30567f9052646b36ad4f0bfa7cba
     - 48ce3528f4924ae4a8caf13dac067f8d
     - 8d0bbd23be847ef4eb336e2d326712c7
+    - 28b1d318494a51241b1ac0fe8d6d9c1b
     values:
     - iconNameOrGuid: Terrain Icon
       colorIndex: 0
@@ -252,6 +253,10 @@ MonoBehaviour:
       isIconRecursive: 0
       isColorRecursive: 0
     - iconNameOrGuid: AudioClip Icon
+      colorIndex: 0
+      isIconRecursive: 0
+      isColorRecursive: 0
+    - iconNameOrGuid: Terrain Icon
       colorIndex: 0
       isIconRecursive: 0
       isColorRecursive: 0

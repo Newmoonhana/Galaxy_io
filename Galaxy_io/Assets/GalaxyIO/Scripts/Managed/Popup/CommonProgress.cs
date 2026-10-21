@@ -84,7 +84,6 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         {
             await AddressableAssetsManager.gameObject_lst.LoadData(key);
             GameObject popupObj = Instantiate(AddressableAssetsManager.gameObject_lst.GetData(key).Data, _parent);
-            AddressableAssetsManager.gameObject_lst.GetData(key).UnLoad();
 
             return popupObj.GetComponent<CommonProgress>();
         }

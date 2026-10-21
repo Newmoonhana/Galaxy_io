@@ -21,10 +21,11 @@ namespace GalaxyIO.Main
 
         private async Awaitable LoadLobbyUI()
         {
-            AddressableAssetsData<GameObject> lobbyUIData = new AddressableAssetsData<GameObject>();
-            await lobbyUIData.Load(lobbyUIKey, true);
-            lobbyUI = Instantiate(lobbyUIData.Data).GetComponent<LobbyUI>();
-            lobbyUIData.UnLoad();
+            //전역 캐시가 핸들을 계속 들고 있음. 여기서 해제하면 같은 번들의
+            //아틀라스 / 폰트 / 셰이더까지 파괴되어 인스턴스가 빈 껍데기가 됨.
+            await AddressableAssetsManager.gameObject_lst.LoadData(lobbyUIKey);
+            lobbyUI = Instantiate(AddressableAssetsManager.gameObject_lst.GetData(lobbyUIKey).Data)
+                .GetComponent<LobbyUI>();
         }
     }
 }
