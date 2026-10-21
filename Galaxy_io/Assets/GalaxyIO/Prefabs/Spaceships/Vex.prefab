@@ -125,7 +125,7 @@ MonoBehaviour:
   Repair: 5
   RepairDelay: 3
   Thickness: 1
-  MaxHeat: 100
+  MaxHeat: 70
   TurnBrakeTurnRate: 270
   TurnBrakeDeceleration: 30
   TurnBrakeExponent: 3
@@ -134,14 +134,16 @@ MonoBehaviour:
   Inertia: 1
   InertiaDeceleration: 20
   InertiaTurnRate: 180
-  MaxOrthographicSize: 13
+  MaxOrthographicSize: 16
   RadarRange: 64
-  RadarSweepSpeed: 120
+  RadarSweepSpeed: 140
   RadarResponseTime: 0.1
   Faction: 1
   Muzzles:
   - {fileID: 8240234519857750097}
+  AutoTurrets: []
   Turret: {fileID: 11400000, guid: 3037765fa7c4999d2c3d742734c545df, type: 2}
+  FixedTurret: 0
   Upgrade: {fileID: 11400000, guid: 9bfc908faec54c5baeba9cfcb2c19f38, type: 2}
 --- !u!114 &8909345426696020667
 MonoBehaviour:

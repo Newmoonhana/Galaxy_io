@@ -336,11 +336,11 @@ MonoBehaviour:
   HoveringManeuver: 1
   Acceleration: 1.2
   Deceleration: 3
-  Maneuver: 38
+  Maneuver: 35
   ManeuverAcceleration: 22
   ManeuverDeceleration: 28
-  ManeuverPenalty: 0.955
-  MaxHealth: 3400
+  ManeuverPenalty: 0.97
+  MaxHealth: 3200
   Repair: 14
   RepairDelay: 3
   Thickness: 17
@@ -350,10 +350,10 @@ MonoBehaviour:
   TurnBrakeExponent: 2
   TurnBrakeStartSpeed: 8
   TurnBrakeReferenceSpeed: 20
-  Inertia: 18
+  Inertia: 25
   InertiaDeceleration: 4
   InertiaTurnRate: 28
-  MaxOrthographicSize: 25
+  MaxOrthographicSize: 28
   RadarRange: 96
   RadarSweepSpeed: 120
   RadarResponseTime: 0.1
@@ -373,6 +373,7 @@ MonoBehaviour:
     Sprite: {fileID: 7696492567371443314}
     Muzzle: {fileID: 1898752288067566838}
   Turret: {fileID: 11400000, guid: 52ddbe9c5873d36434f6db223d1d2007, type: 2}
+  FixedTurret: 0
   Upgrade: {fileID: 11400000, guid: 42f72b1d39c540af9b30ccedf6f32d3d, type: 2}
 --- !u!114 &8909345426696020667
 MonoBehaviour:

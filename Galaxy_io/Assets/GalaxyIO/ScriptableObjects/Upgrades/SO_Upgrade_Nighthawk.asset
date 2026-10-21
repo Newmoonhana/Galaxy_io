@@ -15,11 +15,11 @@ MonoBehaviour:
   Damage:
     Supported: 1
     MaxLevel: 10
-    Damage: 0.1
+    Damage: 0.08
   MaxHeat:
     Supported: 1
     MaxLevel: 10
-    MaxHeat: 10
+    MaxHeat: 3
   Reload:
     Supported: 0
     MaxLevel: 10
@@ -35,11 +35,11 @@ MonoBehaviour:
     AssemblyTime: 0.25
   MaxHealth:
     Supported: 1
-    MaxLevel: 25
+    MaxLevel: 10
     MaxHealth: 7
   Repair:
     Supported: 1
-    MaxLevel: 25
+    MaxLevel: 10
     Repair: 1.4
   Speed:
     Supported: 1

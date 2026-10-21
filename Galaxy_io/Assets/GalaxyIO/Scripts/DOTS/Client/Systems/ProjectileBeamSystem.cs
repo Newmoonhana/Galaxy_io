@@ -17,6 +17,8 @@ namespace GalaxyIO.DOTS.Client.Systems
     /// - 폭발(Firing 진입): 고리와 가루가 터지고 구와 광선이 잠깐 부풀었다 돌아옴.
     /// - 사격(Firing): 광선이 기수 방향으로 늘어나고 양 끝의 구에서 가루가 퍼짐.
     /// - 중지: 광선과 구가 가늘어지다 사라짐.
+    /// 충전 포탑은 몸통 없는 광선 프리팹을 써서 충전 구만 그림. 쏘거나 취소하면 구가 줄어들며 사라짐.
+    /// 충전 중에는 구가 떨리고 둘레의 가루가 총구로 빨려듦.
     /// 광선은 사거리까지 늘어나고 처음 닿는 적 우주선에서 멈춤(클라이언트 판정). 데미지는 서버의 투사체가 줌.
     /// 자동 포탑은 충전 없이 복제된 사격 여부(<see cref="AutoTurretElement.Firing"/>)를 따름.
     /// 자동 포탑의 광선은 총구 번호를 조종 포탑 총구 뒤에 이어 붙임.
@@ -258,6 +260,18 @@ namespace GalaxyIO.DOTS.Client.Systems
                 float startSize = (beam.Fired ? beam.BallSize * swell : math.lerp(beam.LaunchSize, beam.WindupSize, beam.Charge))
                                   * beam.Thickness;
                 float endSize = beam.Fired ? beam.BallSize * swell * beam.Thickness : 0.0F;
+
+                // 충전 중 떨림. 매 프레임 크기와 위치를 지름의 ChargeJitter 배 안에서 흔듦.
+                float3 jitter = float3.zero;
+
+                if (charging && beam.ChargeJitter > 0.0F)
+                {
+                    float amount = beam.ChargeJitter * startSize;
+                    Vector2 offset = UnityEngine.Random.insideUnitCircle * amount;
+                    jitter = new float3(offset.x, offset.y, 0.0F);
+                    startSize += UnityEngine.Random.Range(-amount, amount);
+                }
+
                 float bodyHalfWidth = 0.0F;
 
                 if (beam.Body != Entity.Null)
@@ -286,7 +300,7 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                     glow.enabled = startSize > 0.0F;
                     glow.size = size;
-                    entityManager.SetComponentData(beam.Glow, LocalTransform.FromPosition(0.0F, beam.Length * 0.5F, 0.0F));
+                    entityManager.SetComponentData(beam.Glow, LocalTransform.FromPosition(jitter + new float3(0.0F, beam.Length * 0.5F, 0.0F)));
 
                     glow.GetPropertyBlock(GlowProperties);
                     GlowProperties.SetVector(SizeId, size);
@@ -301,7 +315,11 @@ namespace GalaxyIO.DOTS.Client.Systems
                 if (beam.StartBall != Entity.Null)
                 {
                     entityManager.GetComponentObject<SpriteRenderer>(beam.StartBall).enabled = startSize > 0.0F;
-                    entityManager.SetComponentData(beam.StartBall, LocalTransform.FromScale(math.max(startSize, 0.001F)));
+                    entityManager.SetComponentData(beam.StartBall, LocalTransform.FromPositionRotationScale(
+                        jitter,
+                        quaternion.identity,
+                        math.max(startSize, 0.001F)
+                    ));
                 }
 
                 if (beam.EndBall != Entity.Null)
@@ -326,6 +344,13 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                     ParticleSystem.EmissionModule emission = entityManager.GetComponentObject<ParticleSystem>(beam.EndDust).emission;
                     emission.enabled = firing;
+                }
+
+                if (beam.ChargeDust != Entity.Null)
+                {
+                    // 다 차면 멈춤.
+                    ParticleSystem.EmissionModule emission = entityManager.GetComponentObject<ParticleSystem>(beam.ChargeDust).emission;
+                    emission.enabled = charging && beam.Charge < 1.0F;
                 }
 
                 if (beam.Flow != Entity.Null)

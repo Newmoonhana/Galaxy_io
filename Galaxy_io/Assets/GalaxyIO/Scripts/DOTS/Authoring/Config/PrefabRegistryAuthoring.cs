@@ -164,12 +164,14 @@ namespace GalaxyIO.DOTS.Authoring.Config
                         DetectRange       = auto.DetectRange,
                     };
                     element.SwitchTime      = turret.SwitchTime;
+                    element.ReleaseFire     = turret.ReleaseFire;
                     element.ManeuverPenalty = turret.ManeuverPenalty;
                     element.Heat            = turret.Heat;
                     element.HeatMode        = turret.HeatMode;
                     element.Recoil          = turret.Recoil;
                     element.LaunchSound     = turret.LaunchSound;
                     element.LoopSound       = turret.LoopSound;
+                    element.CancelSound     = turret.CancelSound;
                 }
 
                 registry[(int)item.Id] = element;

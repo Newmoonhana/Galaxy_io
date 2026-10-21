@@ -25,11 +25,11 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _RingWidth: 0.197
+    - _RingWidth: 0.113
     - _RippleCount: 2
-    - _RippleSpeed: 45
+    - _RippleSpeed: 15
     - _Strength: 0.0492
     m_Colors:
-    - _Tint: {r: 0.3537736, g: 0.3537736, b: 0.3537736, a: 0.05490196}
+    - _Tint: {r: 0, g: 1, b: 0.90251803, a: 0.02745098}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

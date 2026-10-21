@@ -16,6 +16,7 @@ namespace GalaxyIO.DOTS.Systems
     /// 쿨다운은 롤백 재시뮬레이션까지 매 틱 진행해 서버와 같은 틱에 쏨.
     /// 포탑 열(<see cref="TurretHeatComponent"/>)도 같이 계산함. 과열 중에는 방아쇠를 뗀 것으로 다룸.
     /// 발사 간격은 재장전 강화만큼 줄고, 포탑에 반동이 있으면 우주선 속도를 발사 반대 방향으로 밂.
+    /// 충전 포탑은 쿨다운이 끝났을 때만 충전하고, 다 찬 뒤 떼면 쏨(<see cref="TurretSwitch.UpdateCharge"/>).
     /// 클라이언트와 서버가 같은 틱에 각자 투사체를 만들고
     /// <see cref="ProjectileSpawnClassificationSystem"/>이 둘을 짝지음.
     /// </summary>
@@ -91,15 +92,20 @@ namespace GalaxyIO.DOTS.Systems
                 ItemRegistryElement turret = registry.Get(equipped.ValueRO.Value);
                 TurretSpecData spec = turret.Turret;
 
-                // 사격 시작/중지 전환. 전환 중에는 쏠 수 없음.
+                // 사격 시작/중지 전환. 전환 중에는 쏠 수 없음. 충전 포탑은 다 찬 뒤 떼면 쏨.
                 // 과열 중이거나 조종 포탑 총구가 없으면 방아쇠를 뗀 것으로 넘김.
                 // 복제된 전환 상태로 다른 클라이언트의 연출, 반복음도 멈춤.
-                bool firing = TurretSwitch.Update(
-                    ref turretSwitch.ValueRW,
-                    inputRequest.ValueRO.TurretTriggered && !heat.ValueRO.Overheated && cooldowns.Length > 0,
-                    turret.SwitchTime,
-                    deltaTime
-                );
+                bool trigger = inputRequest.ValueRO.TurretTriggered && !heat.ValueRO.Overheated && cooldowns.Length > 0;
+
+                bool firing = turret.ReleaseFire
+                    ? TurretSwitch.UpdateCharge(
+                        ref turretSwitch.ValueRW,
+                        trigger,
+                        cooldowns.Length > 0 && cooldowns[0].Value <= 0.0F,
+                        turret.SwitchTime,
+                        deltaTime
+                    )
+                    : TurretSwitch.Update(ref turretSwitch.ValueRW, trigger, turret.SwitchTime, deltaTime);
 
                 // 강화한 피해 배율, 발사 간격 감소량. 강화가 없는 기체는 1, 0.
                 float damageScale = 1.0F;
@@ -123,9 +129,17 @@ namespace GalaxyIO.DOTS.Systems
                     );
                 }
 
+                NativeArray<float> cooldownValues = cooldowns.Reinterpret<float>().AsNativeArray();
+
+                // 충전 포탑을 다 차기 전에 떼면 쏜 것처럼 쿨다운이 돎.
+                if (turret.ReleaseFire && turretSwitch.ValueRO.State == TurretSwitchState.SpinningDown)
+                {
+                    cooldownValues[0] = spec.MaxFireCooldown;
+                }
+
                 shots.Clear();
                 TurretCycle.Advance(
-                    cooldowns.Reinterpret<float>().AsNativeArray(),
+                    cooldownValues,
                     spec,
                     firing,
                     deltaTime,

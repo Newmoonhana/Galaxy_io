@@ -15,9 +15,6 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 누를 때까지 False값 유지.
         public bool TurretTriggeredInThisFrame;
 
-        // 주포 사격 버튼이 눌렸는지
-        public bool ArtilleryTriggered;
-
         // 가속 버튼이 눌렸는지
         public bool AccelerationTriggered;
 

@@ -25,8 +25,11 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 포탑만. 자동 포탑 칸에 장착했을 때의 사양.
         public AutoTurretSpecData AutoTurret;
 
-        // 포탑만. 사격 시작/중지 전환 시간(초).
+        // 포탑만. 사격 시작/중지 전환 시간(초). 충전 포탑은 충전 시간.
         public float SwitchTime;
+
+        // 포탑만. 충전 포탑. 다 찬 뒤 방아쇠를 떼면 한 발 쏨.
+        public bool ReleaseFire;
 
         // 포탑만. 사격 중 우주선 회전속도가 줄어드는 비율(0 ~ 1).
         public float ManeuverPenalty;
@@ -38,9 +41,10 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 포탑만. 사격마다 우주선을 발사 반대 방향으로 미는 속력.
         public float Recoil;
 
-        // 포탑만. 사격 시작음, 사격 중 반복음. 클라이언트만 씀.
+        // 포탑만. 사격 시작음, 사격 중 반복음, 충전 취소음. 클라이언트만 씀.
         public FixedString64Bytes LaunchSound;
         public FixedString64Bytes LoopSound;
+        public FixedString64Bytes CancelSound;
     }
 
     /// <summary>

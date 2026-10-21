@@ -49,6 +49,10 @@ namespace GalaxyIO.DOTS.Authoring
         public ParticleSystem BurstDust;
 
         [SerializeField]
+        [Tooltip("충전 중 구 둘레에서 생겨 총구로 빨려드는 가루. 자식 ParticleSystem. Local 공간. 충전 중에만 방출. 비우면 없음.")]
+        public ParticleSystem ChargeDust;
+
+        [SerializeField]
         [Tooltip("길이가 늘어나는 속력")]
         [Min(0.0F)]
         public float GrowSpeed = 120.0F;
@@ -67,6 +71,11 @@ namespace GalaxyIO.DOTS.Authoring
         [Tooltip("충전이 끝났을 때 에너지 구 지름")]
         [Min(0.0F)]
         public float WindupSize = 0.6F;
+
+        [SerializeField]
+        [Tooltip("충전 중 구가 떨리는 정도. 구 지름 대비 비율. 매 프레임 크기와 위치가 이만큼 무작위로 흔들림.")]
+        [Min(0.0F)]
+        public float ChargeJitter;
 
         [SerializeField]
         [Tooltip("사격 중 양 끝 에너지 구 지름")]
@@ -104,10 +113,12 @@ namespace GalaxyIO.DOTS.Authoring
                 Flow       = authoring.Flow != null ? GetEntity(authoring.Flow, TransformUsageFlags.Dynamic) : Entity.Null,
                 BurstRing  = authoring.BurstRing != null ? GetEntity(authoring.BurstRing, TransformUsageFlags.Dynamic) : Entity.Null,
                 BurstDust  = authoring.BurstDust != null ? GetEntity(authoring.BurstDust, TransformUsageFlags.Dynamic) : Entity.Null,
+                ChargeDust = authoring.ChargeDust != null ? GetEntity(authoring.ChargeDust, TransformUsageFlags.Dynamic) : Entity.Null,
                 GrowSpeed  = authoring.GrowSpeed,
                 Width      = authoring.Width,
                 LaunchSize = authoring.LaunchSize,
                 WindupSize = authoring.WindupSize,
+                ChargeJitter = authoring.ChargeJitter,
                 BallSize   = authoring.BallSize,
                 BurstScale = authoring.BurstScale,
                 BurstTime  = authoring.BurstTime,

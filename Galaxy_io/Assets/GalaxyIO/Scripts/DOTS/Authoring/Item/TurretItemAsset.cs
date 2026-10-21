@@ -95,9 +95,14 @@ namespace GalaxyIO.DOTS.Authoring
         };
 
         [SerializeField]
-        [Tooltip("사격 시작/중지 전환 시간(초). 우주선 단위. 전환 중에는 쏠 수 없음.")]
+        [Tooltip("사격 시작/중지 전환 시간(초). 우주선 단위. 전환 중에는 쏠 수 없음. 충전 포탑은 충전 시간.")]
         [Min(0.0F)]
         public float SwitchTime;
+
+        [SerializeField]
+        [Tooltip("충전 포탑. 누르고 있으면 SwitchTime 동안 충전하고, 다 찬 뒤 떼면 한 발 쏨. " +
+                 "다 차기 전에 떼면 쏘지 않고 쿨다운만 돎. 쿨다운 중에는 충전하지 않음. 조종 포탑만.")]
+        public bool ReleaseFire;
 
         [SerializeField]
         [Tooltip("사격 중 우주선 회전속도가 줄어드는 비율. 0 이면 그대로, 1 이면 회전 불가.")]
@@ -118,11 +123,15 @@ namespace GalaxyIO.DOTS.Authoring
         public float Recoil;
 
         [SerializeField]
-        [Tooltip("사격을 시작할 때 한 번 재생. 비우면 없음.")]
+        [Tooltip("사격을 시작할 때 한 번 재생. 충전 포탑은 충전음이고 떼면 줄어들며 멈춤. 비우면 없음.")]
         public string LaunchSound;
 
         [SerializeField]
         [Tooltip("사격 중 반복 재생. 지정하면 투사체마다의 발사음(ShotSound)은 재생하지 않음.")]
         public string LoopSound;
+
+        [SerializeField]
+        [Tooltip("충전 포탑만. 다 차기 전에 떼면 재생. 비우면 없음.")]
+        public string CancelSound;
     }
 }

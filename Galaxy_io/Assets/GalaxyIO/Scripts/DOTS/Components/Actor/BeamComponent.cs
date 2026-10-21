@@ -30,12 +30,14 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 몸통과 양 끝 구를 함께 감싸는 번짐(SpriteRenderer). 없으면 Entity.Null.
         public Entity Glow;
 
-        // 사격 중 양 끝에서 퍼지는 가루, 광선을 따라 흐르는 가루, 폭발 고리, 폭발 가루(ParticleSystem). 없으면 Entity.Null.
+        // 사격 중 양 끝에서 퍼지는 가루, 광선을 따라 흐르는 가루, 폭발 고리, 폭발 가루, 충전 중 빨려드는 가루(ParticleSystem).
+        // 없으면 Entity.Null.
         public Entity StartDust;
         public Entity EndDust;
         public Entity Flow;
         public Entity BurstRing;
         public Entity BurstDust;
+        public Entity ChargeDust;
 
         // 길이가 늘어나는 속력
         public float GrowSpeed;
@@ -47,6 +49,9 @@ namespace GalaxyIO.DOTS.Components.Actor
         public float LaunchSize;
         public float WindupSize;
         public float BallSize;
+
+        // 충전 중 구가 떨리는 정도. 구 지름 대비 비율.
+        public float ChargeJitter;
 
         // 폭발 순간 광선과 구가 부푸는 배율과 원래대로 돌아오는 시간(초)
         public float BurstScale;

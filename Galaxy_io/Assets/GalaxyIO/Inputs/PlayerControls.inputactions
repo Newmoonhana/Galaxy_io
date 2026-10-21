@@ -37,16 +37,6 @@
                     "priority": 0
                 },
                 {
-                    "name": "Artillery",
-                    "type": "Button",
-                    "id": "7be611cc-2515-4338-8c81-a49992679bc1",
-                    "expectedControlType": "",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false,
-                    "priority": 0
-                },
-                {
                     "name": "Acceleration",
                     "type": "Button",
                     "id": "7c515e70-f391-4fef-8c61-33cabb6d30c0",
