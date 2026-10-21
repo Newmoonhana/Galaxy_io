@@ -127,17 +127,13 @@ namespace GalaxyIO.Tools.PopupUI.Window
             else
             {
                 // 서버 자체 오류 시 경고창 팝업 호출
-                const string key = "Common_MsgBox";
-                await AddressableAssetsManager.gameObject_lst.LoadData(key);
-                GameObject winObj = Instantiate(AddressableAssetsManager.gameObject_lst.GetData(key).Data, transform.parent);
-                AddressableAssetsManager.gameObject_lst.GetData(key).UnLoad();
-                CommonMessageBox msgBox = winObj?.GetComponent<CommonMessageBox>();
+                CommonMessageBox msgBox = await CommonMessageBox.Open(transform.parent);
                 if (msgBox == null)
                 {
                     errorMsg_txt.text = L10n.Get("Common/UnknownError");
-                    DebugLog.LogError($"프리팹 {key} 등록 안됨!");
+                    return;
                 }
-                
+
                 msgBox.SetWinText(L10n.Get("SignIn/FailedTitle"), result.responseMessage);
                 msgBox.Refresh();
             }
