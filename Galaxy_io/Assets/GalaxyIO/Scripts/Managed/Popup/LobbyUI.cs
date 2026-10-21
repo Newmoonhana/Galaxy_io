@@ -339,11 +339,16 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         /// </summary>
         private async Awaitable RunAutoLogIn()
         {
-            await CommonProgress.Show<GameUserResponseDTO>(transform, async () =>
+            //로딩 표시는 LobbyBootstrap 이 띄워둔 것을 그대로 씀. 로비 UI 로드 구간과
+            //자동 로그인 구간이 한 장으로 이어짐. 실패해도 내려가도록 finally 에서 치움.
+            try
             {
-                await Awaitable.WaitForSecondsAsync(0.5f);  //너무 빨라서 인지 안되서 넣음
-                return await LoginManager.AutoLogIn();
-            });
+                await LoginManager.AutoLogIn();
+            }
+            finally
+            {
+                CommonProgress.HideAcrossScenes();
+            }
 
             if (stateM == null) return;  // 대기 중 삭제됨
             ChangeState("main");

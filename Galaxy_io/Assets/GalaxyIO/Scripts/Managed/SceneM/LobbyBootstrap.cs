@@ -21,6 +21,10 @@ namespace GalaxyIO.Main
 
         private async Awaitable LoadLobbyUI()
         {
+            //로드가 끝나기 전까지 화면이 비므로 로딩 표시를 먼저 띄움.
+            //내리는 쪽은 자동 로그인까지 끝낸 LobbyUI.RunAutoLogIn 이 담당함.
+            await CommonProgress.ShowAcrossScenes();
+
             //전역 캐시가 핸들을 계속 들고 있음. 여기서 해제하면 같은 번들의
             //아틀라스 / 폰트 / 셰이더까지 파괴되어 인스턴스가 빈 껍데기가 됨.
             await AddressableAssetsManager.gameObject_lst.LoadData(lobbyUIKey);
