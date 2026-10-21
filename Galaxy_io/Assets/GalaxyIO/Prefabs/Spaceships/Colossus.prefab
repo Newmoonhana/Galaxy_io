@@ -145,19 +145,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.SpaceshipAuthoring
   Kind: 10
-  Speed: 20
+  Speed: 17
   HoveringSpeed: 3
   HoveringAcceleration: 3
   HoveringDeceleration: 3
   HoveringManeuver: 1
   Acceleration: 1
   Deceleration: 3
-  Maneuver: 35
+  Maneuver: 38
   ManeuverAcceleration: 20
   ManeuverDeceleration: 25
-  ManeuverPenalty: 0.959
-  MaxHealth: 3000
-  Repair: 15
+  ManeuverPenalty: 0.97
+  MaxHealth: 3400
+  Repair: 12
   RepairDelay: 3
   Thickness: 20
   MaxHeat: 1000
@@ -166,10 +166,10 @@ MonoBehaviour:
   TurnBrakeExponent: 2
   TurnBrakeStartSpeed: 8
   TurnBrakeReferenceSpeed: 20
-  Inertia: 20
+  Inertia: 27
   InertiaDeceleration: 4
   InertiaTurnRate: 25
-  MaxOrthographicSize: 25
+  MaxOrthographicSize: 28
   RadarRange: 96
   RadarSweepSpeed: 120
   RadarResponseTime: 0.1
@@ -189,6 +189,7 @@ MonoBehaviour:
     Sprite: {fileID: 41443188929663348}
     Muzzle: {fileID: 201155973008939214}
   Turret: {fileID: 11400000, guid: 52ddbe9c5873d36434f6db223d1d2007, type: 2}
+  FixedTurret: 0
   Upgrade: {fileID: 11400000, guid: dc6255ffc2fb4b93a3e9391e48ffc834, type: 2}
 --- !u!114 &8909345426696020667
 MonoBehaviour:

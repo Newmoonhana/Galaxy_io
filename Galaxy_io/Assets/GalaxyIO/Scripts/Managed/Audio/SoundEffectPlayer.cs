@@ -19,6 +19,7 @@ namespace GalaxyIO.Scripts.Managed.Audio
     /// <see cref="SoundMessage"/>를 읽어 효과음을 재생하는 클라이언트 전용 플레이어.
     /// 우주선의 <see cref="TurretSwitchComponent"/>를 보고 포탑 사격 시작음과 반복음도 재생함.
     /// 자동 포탑은 <see cref="AutoTurretElement.Firing"/>을 봄.
+    /// 충전 포탑은 충전을 시작할 때 충전음을 내고, 떼면 충전음을 줄여 멈추며 다 차기 전이면 취소음을 냄.
     /// <para/>
     /// 재생은 <see cref="SoundManager"/>를 거침. 거리 감쇠와 음성 풀링은 Master Audio 의
     /// Sound Group 설정이 담당함.
@@ -73,6 +74,9 @@ namespace GalaxyIO.Scripts.Managed.Audio
         private struct TurretSound
         {
             public TurretSwitchState State;
+
+            // 직전 남은 전환 시간. 충전 포탑은 모자란 충전 시간.
+            public float Remaining;
 
             // 사격 중이던 자동 포탑. 순번별 비트.
             public uint AutoFiring;
@@ -149,10 +153,26 @@ namespace GalaxyIO.Scripts.Managed.Audio
                         hasListener, listener, new float2(position.x, position.y)
                     );
 
-                    // 쉬다가 방아쇠를 당긴 순간.
-                    if (audible && sound.State == TurretSwitchState.Idle && current != TurretSwitchState.Idle)
+                    // 쉬다가 방아쇠를 당긴 순간. 충전 포탑은 충전을 시작한 순간.
+                    bool started = turret.ReleaseFire
+                        ? current == TurretSwitchState.SpinningUp
+                        : current != TurretSwitchState.Idle;
+
+                    if (audible && sound.State == TurretSwitchState.Idle && started)
                     {
                         Play(turret.LaunchSound, position);
+                    }
+
+                    // 충전 포탑을 뗀 순간. 한 틱만 머무는 Firing / SpinningDown 을 못 보고 Idle 로 넘어올 수 있어
+                    // 마지막으로 본 모자란 충전 시간으로 다 찼는지 가름.
+                    if (turret.ReleaseFire && sound.State == TurretSwitchState.SpinningUp && current != TurretSwitchState.SpinningUp)
+                    {
+                        Release(turret.LaunchSound);
+
+                        if (audible && current != TurretSwitchState.Firing && sound.Remaining > 0.0F)
+                        {
+                            Play(turret.CancelSound, position);
+                        }
                     }
 
                     // 범위 밖이면 사격 중이 아닌 것으로 다룸. 멀어지면 반복음이 페이드아웃됨.
@@ -182,6 +202,7 @@ namespace GalaxyIO.Scripts.Managed.Audio
                     }
 
                     sound.State = current;
+                    sound.Remaining = switches[i].Remaining;
                     sound.AutoFiring = autoFiring;
                     turretSounds[ships[i]] = sound;
                 }

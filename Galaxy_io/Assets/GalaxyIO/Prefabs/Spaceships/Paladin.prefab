@@ -300,21 +300,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.SpaceshipAuthoring
   Kind: 8
   Speed: 22
-  HoveringSpeed: 4
-  HoveringAcceleration: 5.5
-  HoveringDeceleration: 5
-  HoveringManeuver: 3.5
-  Acceleration: 3.5
-  Deceleration: 7
-  Maneuver: 75
-  ManeuverAcceleration: 130
-  ManeuverDeceleration: 160
+  HoveringSpeed: 5
+  HoveringAcceleration: 8
+  HoveringDeceleration: 10
+  HoveringManeuver: 6
+  Acceleration: 5
+  Deceleration: 8
+  Maneuver: 80
+  ManeuverAcceleration: 160
+  ManeuverDeceleration: 180
   ManeuverPenalty: 0.93
-  MaxHealth: 1400
-  Repair: 14
+  MaxHealth: 1250
+  Repair: 50
   RepairDelay: 3
   Thickness: 11
-  MaxHeat: 450
+  MaxHeat: 0
   TurnBrakeTurnRate: 75
   TurnBrakeDeceleration: 13
   TurnBrakeExponent: 2
@@ -324,11 +324,12 @@ MonoBehaviour:
   InertiaDeceleration: 7
   InertiaTurnRate: 55
   MaxOrthographicSize: 21
-  RadarRange: 80
-  RadarSweepSpeed: 120
+  RadarRange: 56
+  RadarSweepSpeed: 105
   RadarResponseTime: 0.1
   Faction: 1
-  Muzzles: []
+  Muzzles:
+  - {fileID: 8240234519857750097}
   AutoTurrets:
   - Turret: {fileID: 4486302026337874535}
     Sprite: {fileID: 1929480706762972068}
@@ -336,7 +337,8 @@ MonoBehaviour:
   - Turret: {fileID: 3042585030019026606}
     Sprite: {fileID: 60256650130744417}
     Muzzle: {fileID: 7129144679037183097}
-  Turret: {fileID: 11400000, guid: 2e7494f6410a0a4a1c0a258320c5fd2c, type: 2}
+  Turret: {fileID: 11400000, guid: 7243156c7470cbd41ab8fb158c9d1942, type: 2}
+  FixedTurret: 1
   Upgrade: {fileID: 11400000, guid: 73007c91687c4b7a8b1e50e539a58238, type: 2}
 --- !u!114 &8909345426696020667
 MonoBehaviour:
@@ -427,7 +429,7 @@ Transform:
   m_GameObject: {fileID: 2225960894660375326}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 6.929, z: 0}
+  m_LocalPosition: {x: 0, y: 8.05, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []

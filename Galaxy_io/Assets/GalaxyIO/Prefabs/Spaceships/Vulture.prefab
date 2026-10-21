@@ -121,11 +121,11 @@ MonoBehaviour:
   ManeuverAcceleration: 3600
   ManeuverDeceleration: 3600
   ManeuverPenalty: 0.84
-  MaxHealth: 14000
+  MaxHealth: 100
   Repair: 6
   RepairDelay: 3
   Thickness: 1.2
-  MaxHeat: 110
+  MaxHeat: 65
   TurnBrakeTurnRate: 270
   TurnBrakeDeceleration: 30
   TurnBrakeExponent: 3
@@ -134,14 +134,16 @@ MonoBehaviour:
   Inertia: 1
   InertiaDeceleration: 20
   InertiaTurnRate: 180
-  MaxOrthographicSize: 13
+  MaxOrthographicSize: 16
   RadarRange: 64
-  RadarSweepSpeed: 120
+  RadarSweepSpeed: 140
   RadarResponseTime: 0.1
   Faction: 1
   Muzzles:
   - {fileID: 8240234519857750097}
+  AutoTurrets: []
   Turret: {fileID: 11400000, guid: 3037765fa7c4999d2c3d742734c545df, type: 2}
+  FixedTurret: 0
   Upgrade: {fileID: 11400000, guid: e350f3f420a7483c9996d0e4d26e938f, type: 2}
 --- !u!114 &8909345426696020667
 MonoBehaviour:

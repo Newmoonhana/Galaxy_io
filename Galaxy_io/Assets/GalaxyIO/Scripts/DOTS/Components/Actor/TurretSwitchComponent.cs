@@ -13,13 +13,13 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 쏘지 않음
         Idle = 0,
 
-        // 사격 시작 전환 중. 쏠 수 없음.
+        // 사격 시작 전환 중. 쏠 수 없음. 충전 포탑은 충전 중.
         SpinningUp = 1,
 
-        // 사격 중
+        // 사격 중. 충전 포탑은 쏘는 한 틱.
         Firing = 2,
 
-        // 사격 중지 전환 중. 쏠 수 없음.
+        // 사격 중지 전환 중. 쏠 수 없음. 충전 포탑은 다 차기 전에 뗀 한 틱.
         SpinningDown = 3,
     }
 
@@ -88,6 +88,45 @@ namespace GalaxyIO.DOTS.Components.Actor
                     {
                         turretSwitch.State = TurretSwitchState.Idle;
                     }
+                    break;
+            }
+
+            return turretSwitch.State == TurretSwitchState.Firing;
+        }
+
+        /// <summary>
+        /// 충전 포탑(<see cref="ItemRegistryElement.ReleaseFire"/>)의 사격 입력을 반영하고 이번 틱에 쏘는지 반환함.
+        /// 누르는 동안 충전(SpinningUp)하고 Remaining 은 0 에서 멈춤. 다 찬 뒤 떼면 Firing, 다 차기 전에 떼면 SpinningDown.
+        /// Firing, SpinningDown 은 한 틱만 머묾. SpinningDown 의 Remaining 은 모자란 충전 시간(0 초과).
+        /// </summary>
+        /// <param name="ready">쿨다운이 끝남. 꺼져 있으면 충전을 시작하지 않음.</param>
+        public static bool UpdateCharge(ref TurretSwitchComponent turretSwitch, bool trigger, bool ready, float chargeTime, float deltaTime)
+        {
+            switch (turretSwitch.State)
+            {
+                case TurretSwitchState.Idle:
+                    if (trigger && ready)
+                    {
+                        turretSwitch.State = TurretSwitchState.SpinningUp;
+                        turretSwitch.Remaining = chargeTime;
+                    }
+                    break;
+
+                case TurretSwitchState.SpinningUp:
+                    // 틱을 빼며 쌓인 오차로 반 틱도 안 남으면 다 찬 것으로 봄.
+                    turretSwitch.Remaining -= deltaTime;
+                    if (turretSwitch.Remaining < deltaTime * 0.5F) turretSwitch.Remaining = 0.0F;
+
+                    if (!trigger)
+                    {
+                        turretSwitch.State = turretSwitch.Remaining <= 0.0F
+                            ? TurretSwitchState.Firing
+                            : TurretSwitchState.SpinningDown;
+                    }
+                    break;
+
+                default:
+                    turretSwitch.State = TurretSwitchState.Idle;
                     break;
             }
 

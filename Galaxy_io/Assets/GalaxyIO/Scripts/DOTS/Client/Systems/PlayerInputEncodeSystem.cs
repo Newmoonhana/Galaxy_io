@@ -23,7 +23,6 @@ namespace GalaxyIO.DOTS.Client.Systems
         private InputAction mouseCursor;
         private InputAction wasdAction;
         private InputAction turretAction;
-        private InputAction artilleryAction;
         private InputAction accelerationAction;
 
         private bool fireLastlyPressed;
@@ -61,7 +60,6 @@ namespace GalaxyIO.DOTS.Client.Systems
                     mouseCursor = gameplayMapping.FindAction("Move_By_Mouse", throwIfNotFound: true);
                     wasdAction = gameplayMapping.FindAction("Move_By_Buttons", throwIfNotFound: true);
                     turretAction = gameplayMapping.FindAction("Turret", throwIfNotFound: true);
-                    artilleryAction = gameplayMapping.FindAction("Artillery", throwIfNotFound: true);
                     accelerationAction = gameplayMapping.FindAction("Acceleration", throwIfNotFound: true);
                 }
 
@@ -112,7 +110,6 @@ namespace GalaxyIO.DOTS.Client.Systems
                 playerInput.ValueRW.TurretTriggeredInThisFrame = firePressed && !fireLastlyPressed;
                 fireLastlyPressed = firePressed;
 
-                playerInput.ValueRW.ArtilleryTriggered = !menuOpen && artilleryAction.ReadValue<float>() > 0.0F;
                 playerInput.ValueRW.AccelerationTriggered = !menuOpen && accelerationAction.ReadValue<float>() > 0.0F;
             }
         }

@@ -30,9 +30,11 @@ MonoBehaviour:
     SightAngle: 120
     DetectRange: 20
   SwitchTime: 0
+  ReleaseFire: 0
   ManeuverPenalty: 0
   Heat: 0
   HeatMode: 0
   Recoil: 10
   LaunchSound: 
   LoopSound: 
+  CancelSound: 

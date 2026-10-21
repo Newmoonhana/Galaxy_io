@@ -15,11 +15,11 @@ MonoBehaviour:
   Damage:
     Supported: 1
     MaxLevel: 25
-    Damage: 0.1
+    Damage: 0.12
   MaxHeat:
     Supported: 1
     MaxLevel: 25
-    MaxHeat: 10
+    MaxHeat: 4
   Reload:
     Supported: 0
     MaxLevel: 10
