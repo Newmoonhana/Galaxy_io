@@ -21,7 +21,7 @@ namespace GalaxyIO.DOTS.Networking
     public static class GameSession
     {
         private const string LobbyScene = "GalaxyIO_Lobby";
-        private const string GameScene = "GalaxyIO_Main";
+        public const string GameScene = "GalaxyIO_Main";
 
         // 베이킹 데이터가 월드로 들어오기를 기다리는 최대 프레임 수.
         private const int StreamWaitFrames = 600;
@@ -80,6 +80,26 @@ namespace GalaxyIO.DOTS.Networking
             await LoadGameScene();
             Connect(NetworkEndpoint.Parse(NetcodeBootstrap.LoopbackAddress, NetcodeBootstrap.Port), playerName);
             return true;
+        }
+
+        /// <summary>
+        /// 데디케이티드 서버 세션 시작. 클라이언트 월드 없이 서버 월드만 만들고 Listen 함.
+        /// 씬 로드 전에 호출해야 인게임 씬의 SubScene 이 서버 월드로 들어감.
+        /// </summary>
+        public static void OpenDedicatedServer()
+        {
+            if (IsActive) return;
+
+            World server = ClientServerBootstrap.CreateServerWorld("ServerWorld");
+
+            if (!Listen(server))
+            {
+                DebugLog.LogError($"데디케이티드 서버 Listen 실패. 이미 {NetcodeBootstrap.Port} 포트를 쓰는 프로세스가 있는지 확인할 것.");
+                return;
+            }
+
+            IsHosting = true;
+            IsActive = true;
         }
 
         /// <summary>

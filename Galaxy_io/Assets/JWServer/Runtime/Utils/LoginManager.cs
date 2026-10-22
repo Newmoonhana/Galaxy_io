@@ -33,6 +33,9 @@ namespace JWServer.Runtime.Login
 
         private const string CONTENT_TYPE_JSON = "application/json"; // HTTP통신 데이터 타입(JSON)
 
+        // 인증 서버 요청 타임아웃(초). 서버에 닿지 않으면 로비 진입이 그만큼 지연됨.
+        private const int REQUEST_TIMEOUT = 3;
+
         /// <summary>
         /// 인증 서버 호스트. 공개 게임 서버도 같은 호스트를 사용함.
         /// </summary>
@@ -170,6 +173,7 @@ namespace JWServer.Runtime.Login
             // 웹 요청 전송 — using-IDisposable 실패시 자동으로 Close
             using (UnityWebRequest req = UnityWebRequest.Post(AUTH_SERVER + gameUserRequestEndpoint, postData, CONTENT_TYPE_JSON))
             {
+                req.timeout = REQUEST_TIMEOUT;
                 await req.SendWebRequest(); // 응답 대기 — 비동기 처리
                 GameUserResponseDTO response = DeserializeJsonResponse(req);
                 // 성공 — Access/Refresh 토큰 저장. 앞으로의 서버 통신은 Access토큰을 통해 이루어짐.
@@ -202,6 +206,7 @@ namespace JWServer.Runtime.Login
 
             using (UnityWebRequest req = UnityWebRequest.Post(AUTH_SERVER + gameUserRequestEndpoint, postData, CONTENT_TYPE_JSON))
             {
+                req.timeout = REQUEST_TIMEOUT;
                 await req.SendWebRequest();
                 GameUserResponseDTO response = DeserializeJsonResponse(req);
 
@@ -273,6 +278,7 @@ namespace JWServer.Runtime.Login
 
             using (UnityWebRequest req = UnityWebRequest.Post(AUTH_SERVER + memberIdDupCheckEndpoint, postData, CONTENT_TYPE_JSON))
             {
+                req.timeout = REQUEST_TIMEOUT;
                 await req.SendWebRequest();
                 if (req.result == UnityWebRequest.Result.ConnectionError)
                     return new MemberIdDupCheckResponseDTO { responseMessage = CommonMsg.CONNECTION_ERROR };
@@ -291,6 +297,7 @@ namespace JWServer.Runtime.Login
 
             using (UnityWebRequest req = UnityWebRequest.Post(AUTH_SERVER + memberCheckEndpoint, postData, CONTENT_TYPE_JSON))
             {
+                req.timeout = REQUEST_TIMEOUT;
                 await req.SendWebRequest();
                 if (req.result == UnityWebRequest.Result.ConnectionError)
                     return new MemberCheckResponseDTO { responseMessage = CommonMsg.CONNECTION_ERROR };
@@ -312,6 +319,7 @@ namespace JWServer.Runtime.Login
             using (UnityWebRequest req = UnityWebRequest.Post(AUTH_SERVER + gameUserRequestEndpoint, "", CONTENT_TYPE_JSON))
             {
                 req.SetRequestHeader("Authorization", "Bearer " + sUserTokenData.accessToken);
+                req.timeout = REQUEST_TIMEOUT;
                 await req.SendWebRequest();
                 GameUserResponseDTO response = DeserializeJsonResponse(req);
                 return response;
@@ -328,6 +336,7 @@ namespace JWServer.Runtime.Login
             using (UnityWebRequest req = UnityWebRequest.Post(AUTH_SERVER + accountInfoEndpoint, "", CONTENT_TYPE_JSON))
             {
                 req.SetRequestHeader("Authorization", "Bearer " + sUserTokenData.accessToken);
+                req.timeout = REQUEST_TIMEOUT;
                 await req.SendWebRequest();
 
                 // 오류 응답(4xx/5xx)엔 닉네임이 없음.
@@ -359,6 +368,7 @@ namespace JWServer.Runtime.Login
 
             using (UnityWebRequest req = UnityWebRequest.Post(AUTH_SERVER + accessTokenRefreshEndpoint, postData, CONTENT_TYPE_JSON))
             {
+                req.timeout = REQUEST_TIMEOUT;
                 await req.SendWebRequest();
                 GameUserResponseDTO response = DeserializeJsonResponse(req);
                 return response;
