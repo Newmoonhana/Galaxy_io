@@ -1,6 +1,9 @@
+using GalaxyIO.DOTS.Networking;
 using GalaxyIO.Tools.PopupUI.Popup;
+using JWServer.Runtime.Utils;
 using Newmoonhana.Runtime.Utils;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace GalaxyIO.Main
 {
@@ -16,6 +19,13 @@ namespace GalaxyIO.Main
 
         private void Start()
         {
+            // 데디케이티드 서버는 로비 UI 없이 인게임 씬으로 바로 넘어감.
+            if (Definitions.IsServerProcess)
+            {
+                SceneManager.LoadScene(GameSession.GameScene);
+                return;
+            }
+
             _ = LoadLobbyUI();
         }
 

@@ -1,4 +1,5 @@
-﻿using Unity.NetCode;
+﻿using GalaxyIO.DOTS.Networking;
+using Unity.NetCode;
 using Unity.Networking.Transport;
 using UnityEngine.Scripting;
 
@@ -35,6 +36,10 @@ namespace GalaxyIO.DOTS.Bootstrap
             // 월드는 `GameSession`이 만들고, 그 뒤에 인게임 씬을 로드함.
             // 인게임 씬의 SubScene 은 로드 시점에 존재하는 월드로만 스트리밍되므로 순서가 중요함.
             CreateLocalWorld(defaultWorldName);
+
+            // 데디케이티드 서버는 역할을 고를 UI가 없음. 첫 씬 로드 전에 서버를 엶.
+            if (RequestedPlayType == PlayType.Server) GameSession.OpenDedicatedServer();
+
             return true;
         }
     }
