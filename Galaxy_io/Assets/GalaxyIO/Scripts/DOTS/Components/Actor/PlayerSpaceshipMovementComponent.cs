@@ -53,5 +53,11 @@ namespace GalaxyIO.DOTS.Components.Actor
 
         // 호버링 방향 전환 가속도. 움직이던 중에 WASD 방향을 바꾸면 호버링 가감속 대신 이 값으로 붙음.
         public float HoveringManeuver;
+
+        // 이 속력 이상이면 다른 우주선과 부딪히지 않음. 0 이면 항상 부딪힘.
+        public float PhaseSpeed;
+
+        // 지금 다른 우주선과 부딪히지 않는 상태인지
+        public bool Phasing => PhaseSpeed > 0.0F && math.lengthsq(Velocity) >= PhaseSpeed * PhaseSpeed;
     }
 }

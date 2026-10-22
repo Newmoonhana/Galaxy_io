@@ -68,7 +68,7 @@ namespace GalaxyIO.DOTS.Systems
     }
 
     /// <summary>
-    /// 두 우주선의 상대 속력으로 데미지를 줌. 식이 대칭이라 각 우주선이 자기 몫만 계산함.
+    /// 두 우주선의 상대 속력과 두께로 데미지를 줌. 식이 대칭이라 각 우주선이 자기 몫만 계산함.
     /// 같은 파티끼리는 밀어내기만 하고 데미지는 없음.
     /// </summary>
     [BurstCompile]
@@ -132,7 +132,8 @@ namespace GalaxyIO.DOTS.Systems
                     if (math.dot(relative, message.Normal) < 0.0F)
                     {
                         // 마주 올수록 커지고, 같은 방향으로 나란히 가면 0에 가까워짐.
-                        hit = math.length(relative) * RamDamage;
+                        // 상대가 두꺼울수록 더 아픔. 두께가 같으면 1배, 최대 2배.
+                        hit = math.length(relative) * RamDamage * element.PushShare * 2.0F;
                     }
                 }
 

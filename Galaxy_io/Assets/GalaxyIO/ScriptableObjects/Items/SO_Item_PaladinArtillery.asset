@@ -16,12 +16,12 @@ MonoBehaviour:
   Sprite: {fileID: 21300000, guid: bb35a32dbb33f06498d21db1abac0368, type: 3}
   Spec:
     Projectile: {fileID: 3898896724990523705, guid: 30df9521c478c91409e31bfbec38c624, type: 3}
-    RPS: 0.4
+    RPS: 0.8
     MuzzleDelay: 0
     ProjectileCount: 0
     SpeedSpread: 0
     Accuracy: 1
-    Damage: 300
+    Damage: 450
     ShotSound: Shot_Paladin
   AutoSpec:
     FireDuration: 2
@@ -36,5 +36,5 @@ MonoBehaviour:
   HeatMode: 0
   Recoil: 10
   LaunchSound: Launch_Paladin
-  LoopSound: 
+  LoopSound:
   CancelSound: Cancel_Paladin

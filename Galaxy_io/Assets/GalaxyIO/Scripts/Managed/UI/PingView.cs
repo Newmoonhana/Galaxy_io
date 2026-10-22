@@ -1,4 +1,3 @@
-using GalaxyIO.DOTS.Authoring;
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Collision;
 using GalaxyIO.DOTS.Components.Actor;
@@ -18,7 +17,7 @@ using UnityEngine.InputSystem;
 namespace GalaxyIO.Scripts.Managed.UI
 {
     /// <summary>
-    /// 초계함의 목표 지정 핑을 찍고, 받은 핑을 그리는 클라이언트 전용 뷰.
+    /// 목표 지정 핑을 찍고, 받은 핑을 그리는 클라이언트 전용 뷰. 레이더를 누르면 그 자리를 목적지로 찍음.
     /// 화면 안의 핑은 그 자리에 원으로, 화면 밖의 핑은 화면 가장자리에서 그쪽을 가리키는 화살표로 그림.
     /// </summary>
     public sealed class PingView : MonoBehaviour
@@ -31,7 +30,15 @@ namespace GalaxyIO.Scripts.Managed.UI
         private InputActionReference pingAction;
 
         [SerializeField]
+        [Tooltip("누르면 그 자리를 목적지로 찍는 레이더")]
+        private RadarView radar;
+
+        [SerializeField]
         private Color color = new Color(0.35F, 1.0F, 0.5F);
+
+        [SerializeField]
+        [Tooltip("적대 대상을 가리킨 핑의 색")]
+        private Color hostileColor = new Color(1.0F, 0.3F, 0.3F);
 
         [SerializeField]
         [Tooltip("화면 밖 핑을 그릴 때 화면 가장자리에서 띄우는 거리(캔버스 단위)")]
@@ -58,6 +65,7 @@ namespace GalaxyIO.Scripts.Managed.UI
             public Vector2 Position;
             public string Sender;
             public string Target;
+            public bool Hostile;
 
             // Text 를 만든 거리. 거리가 바뀔 때만 문자열을 만들어 GC 할당을 막음.
             public int Distance = -1;
@@ -70,7 +78,6 @@ namespace GalaxyIO.Scripts.Managed.UI
         private EntityQuery pickQuery;
         private EntityQuery stateQuery;
         private EntityQuery connectionQuery;
-        private EntityQuery spaceshipRegistryQuery;
 
         // 보낸 플레이어 NetworkId -> 핑
         private readonly Dictionary<int, Ping> pings = new Dictionary<int, Ping>();
@@ -104,6 +111,7 @@ namespace GalaxyIO.Scripts.Managed.UI
             localShipQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<GhostOwnerIsLocal>(),
                 ComponentType.ReadOnly<SpaceshipKindComponent>(),
+                ComponentType.ReadOnly<FactionComponent>(),
                 ComponentType.ReadOnly<LocalTransform>()
             );
 
@@ -120,7 +128,6 @@ namespace GalaxyIO.Scripts.Managed.UI
             });
             stateQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<PlayerStateComponent>());
             connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
-            spaceshipRegistryQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<SpaceshipRegistryAssetComponent>());
 
             canvas = GetComponentInParent<Canvas>();
         }
@@ -169,6 +176,7 @@ namespace GalaxyIO.Scripts.Managed.UI
                     {
                         Position = new Vector2(rpc.Position.x, rpc.Position.y),
                         Sender   = rpc.Sender.ToString(),
+                        Hostile  = rpc.Hostile,
                         Target   = rpc.Target switch
                         {
                             PingTarget.Spaceship => L10n.Get($"Spaceship/{(SpaceshipId)rpc.TargetId}"),
@@ -208,28 +216,30 @@ namespace GalaxyIO.Scripts.Managed.UI
             bool blocked = state.GameMenuOpened || state.InventoryOpened || state.ChatFocused || state.ChatHovered || state.Dead;
 
             if (pingAction.action.WasPressedThisFrame() && Application.isFocused && !blocked
-                && localShip != Entity.Null && Mouse.current != null && !spaceshipRegistryQuery.IsEmpty)
+                && localShip != Entity.Null && Mouse.current != null)
             {
-                // 초계함만 핑을 찍을 수 있음. 지우기는 기종과 관계없음.
-                SpaceshipAsset spaceship = spaceshipRegistryQuery.GetSingleton<SpaceshipRegistryAssetComponent>().Value
-                    .Find(entityManager.GetComponentData<SpaceshipKindComponent>(localShip).Value);
-
                 Vector2 cursor = Mouse.current.position.ReadValue();
 
                 // 자신의 핑을 다시 누르면 지움.
                 if (own != null && Vector2.Distance(cursor, PingMarkerView.Anchor(mainCamera, own.Position, edgeMargin * scale, out _)) <= clickRadius * scale)
                 {
                     pings.Remove(localId);
-                    own = null;
                     SendPing(new PingRPC { Remove = true });
                 }
-                else if (spaceship != null && spaceship.Category == SpaceshipCategory.Corvette)
+                // 레이더에서는 대상을 고르지 않고 그 자리를 목적지로 찍음.
+                else if (radar != null && radar.TryGetWorldPoint(cursor, out Vector2 radarPoint))
+                {
+                    SendPing(new PingRPC { Position = radarPoint, Target = PingTarget.Destination });
+                }
+                else
                 {
                     Vector3 world = mainCamera.ScreenToWorldPoint(new Vector3(cursor.x, cursor.y, -mainCamera.transform.position.z));
                     var point = new float2(world.x, world.y);
 
                     // 커서 주변 반경에 걸린 대상 중 중심이 가장 가까운 것. 로컬 우주선은 뺌. 없으면 그 자리를 목적지로 찍음.
                     var ping = new PingRPC { Position = point, Target = PingTarget.Destination };
+                    FactionComponent localFaction = entityManager.GetComponentData<FactionComponent>(localShip);
+
                     // 캔버스 단위 반경을 월드 유닛으로 바꿈.
                     float radius = pickRadius * scale * mainCamera.orthographicSize * 2.0F / Screen.height;
                     var probe = new ColliderWorld { Shape = ColliderShape.Circle, Center = point, Extents = new float2(radius, 0.0F) };
@@ -262,8 +272,13 @@ namespace GalaxyIO.Scripts.Managed.UI
                         {
                             ping.Target = PingTarget.Item;
                             ping.TargetId = (ushort)entityManager.GetComponentData<ItemComponent>(entity).Id;
+                            ping.Hostile = false;
+                            continue;
                         }
-                        else if (entityManager.HasComponent<EnemyNameComponent>(entity))
+
+                        ping.Hostile = !Faction.IsFriendly(localFaction, entityManager.GetComponentData<FactionComponent>(entity));
+
+                        if (entityManager.HasComponent<EnemyNameComponent>(entity))
                         {
                             ping.Target = PingTarget.Enemy;
                             ping.TargetName = entityManager.GetComponentData<EnemyNameComponent>(entity).Value;
@@ -276,18 +291,6 @@ namespace GalaxyIO.Scripts.Managed.UI
                     }
 
                     SendPing(ping);
-                }
-            }
-
-            // 자신의 핑은 자신의 화면 안에 있는 동안만 유지. 화면을 벗어나면 지움.
-            if (own != null)
-            {
-                Vector3 viewport = mainCamera.WorldToViewportPoint(own.Position);
-
-                if (viewport.x < 0.0F || viewport.x > 1.0F || viewport.y < 0.0F || viewport.y > 1.0F)
-                {
-                    pings.Remove(localId);
-                    SendPing(new PingRPC { Remove = true });
                 }
             }
 
@@ -324,7 +327,7 @@ namespace GalaxyIO.Scripts.Managed.UI
                 if (!ReferenceEquals(shownTexts[index], ping.Text))
                 {
                     shownTexts[index] = ping.Text;
-                    marker.Set(ping.Text, color);
+                    marker.Set(ping.Text, ping.Hostile ? hostileColor : color);
                 }
             }
 

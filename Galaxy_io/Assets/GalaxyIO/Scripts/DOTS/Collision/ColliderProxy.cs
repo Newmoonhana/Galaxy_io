@@ -51,6 +51,9 @@ namespace GalaxyIO.DOTS.Collision
 
         // 이 Entity 와는 쌍을 만들지 않음. (투사체를 쏜 우주선, 함재기의 모선)
         public Entity Ignore;
+
+        // 다른 선체와 부딪히지 않음. 선체 충돌체만 채움.
+        public bool Phasing;
     }
 
     /// <summary>
@@ -80,6 +83,12 @@ namespace GalaxyIO.DOTS.Collision
             {
                 return ((uint)target.Faction & receiver.HostileFactions) != 0
                        && !Faction.IsSameParty(receiver.Party, target.Party);
+            }
+
+            // 둘 중 하나라도 통과 상태면 선체끼리 부딪히지 않음.
+            if (receiver.Layer == CollisionLayer.Spaceship && (receiver.Phasing || target.Phasing))
+            {
+                return false;
             }
 
             // 투사체는 같은 파티를 통과함. 선체끼리는 같은 파티여도 부딪힘.

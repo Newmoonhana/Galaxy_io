@@ -28,3 +28,14 @@ MonoBehaviour:
     - Item: {fileID: 11400000, guid: 1da41d2b708f4e148bdd3772cad27889, type: 2}
       CountRange: {x: 5, y: 5}
       Weight: 30
+  - Chance: 0.3
+    Entries:
+    - Item: {fileID: 11400000, guid: a12592c859254e13b0b09fe57c6e0454, type: 2}
+      CountRange: {x: 100, y: 100}
+      Weight: 60
+    - Item: {fileID: 11400000, guid: 8732664549d665f46b7f109f4b9e4889, type: 2}
+      CountRange: {x: 25, y: 25}
+      Weight: 30
+    - Item: {fileID: 11400000, guid: 1da41d2b708f4e148bdd3772cad27889, type: 2}
+      CountRange: {x: 1, y: 1}
+      Weight: 10

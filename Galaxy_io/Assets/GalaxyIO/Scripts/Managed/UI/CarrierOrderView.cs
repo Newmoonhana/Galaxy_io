@@ -28,7 +28,7 @@ namespace GalaxyIO.Scripts.Managed.UI
         private PingMarkerView markerPrefab;
 
         [SerializeField]
-        [Tooltip("명령 (마우스 오른쪽). 초계함 핑과 같은 입력.")]
+        [Tooltip("명령 (마우스 왼쪽). 포탑과 같은 입력.")]
         private InputActionReference orderAction;
 
         [SerializeField]

@@ -14,16 +14,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.SpaceshipUpgradeAsset
   Damage:
     Supported: 1
-    MaxLevel: 25
-    Damage: 0.1
+    MaxLevel: 10
+    Damage: 0.22
   MaxHeat:
     Supported: 0
     MaxLevel: 25
     MaxHeat: 10
   Reload:
     Supported: 1
-    MaxLevel: 25
-    ReloadTime: 0.1
+    MaxLevel: 10
+    ReloadTime: 0.15
   Reinforcement:
     Supported: 0
     MaxLevel: 10
@@ -35,33 +35,33 @@ MonoBehaviour:
     AssemblyTime: 0.25
   MaxHealth:
     Supported: 1
-    MaxLevel: 25
-    MaxHealth: 25
+    MaxLevel: 10
+    MaxHealth: 55
   Repair:
     Supported: 1
-    MaxLevel: 25
-    Repair: 3
+    MaxLevel: 10
+    Repair: 19
   Speed:
     Supported: 1
-    MaxLevel: 10
-    MaxSpeed: 2
-    Acceleration: 0.2
-    Deceleration: 0.15
-    HoveringSpeed: 0.1
-    HoveringAcceleration: 0.05
-    HoveringDeceleration: 0.03
+    MaxLevel: 5
+    MaxSpeed: 1.8
+    Acceleration: 0.5
+    Deceleration: 0.5
+    HoveringSpeed: 0.6
+    HoveringAcceleration: 0.6
+    HoveringDeceleration: 0.6
   Maneuver:
     Supported: 1
-    MaxLevel: 10
+    MaxLevel: 5
     Maneuver: 4
-    ManeuverPenalty: 0.1
+    ManeuverPenalty: 0.024
     HoveringManeuver: 1
   RadarRange:
     Supported: 1
-    MaxLevel: 10
+    MaxLevel: 5
     Range: 10
   RadarSweep:
     Supported: 1
-    MaxLevel: 10
+    MaxLevel: 5
     SweepSpeed: 20
     ResponseTime: 0.08
