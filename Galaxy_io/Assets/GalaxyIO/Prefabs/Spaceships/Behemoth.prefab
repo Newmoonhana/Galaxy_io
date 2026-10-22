@@ -326,7 +326,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ba5f85943ed340039e28b4335d174b2c, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.SpaceshipAuthoring
   Kind: 9
   Speed: 19
@@ -339,11 +339,12 @@ MonoBehaviour:
   Maneuver: 35
   ManeuverAcceleration: 22
   ManeuverDeceleration: 28
-  ManeuverPenalty: 0.97
+  ManeuverPenalty: 0.92
   MaxHealth: 3200
-  Repair: 14
+  Repair: 55
   RepairDelay: 3
   Thickness: 17
+  PhaseSpeed: 0
   MaxHeat: 900
   TurnBrakeTurnRate: 38
   TurnBrakeDeceleration: 8
@@ -354,7 +355,7 @@ MonoBehaviour:
   InertiaDeceleration: 4
   InertiaTurnRate: 28
   MaxOrthographicSize: 28
-  RadarRange: 96
+  RadarRange: 100
   RadarSweepSpeed: 120
   RadarResponseTime: 0.1
   Faction: 1
@@ -385,7 +386,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.Entities.Hybrid::Unity.Entities.Hybrid.Baking.LinkedEntityGroupAuthoring
 --- !u!114 &5889587866788096847
 MonoBehaviour:
@@ -397,7 +398,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 10d8d3839c4040f5bd46629014bce4ad, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.PlayerPossessingAuthoring
 --- !u!114 &3345718978926545676
 MonoBehaviour:
@@ -409,7 +410,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7c79d771cedb4794bf100ce60df5f764, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Unity.NetCode.Authoring.Hybrid::Unity.NetCode.GhostAuthoringComponent
   HasOwner: 1
   SupportAutoCommandTarget: 1
@@ -435,7 +436,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3b81e4e8540b4e94dbc07f7b0499c275, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.BoxColliderAuthoring
   Center: {x: -0.00000023841858, y: -0.34803963}
   Size: {x: 8.610516, y: 19.78872}
@@ -449,7 +450,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 669780d128979874d845b98535fd77ed, type: 3}
-  m_Name: 
+  m_Name:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.CarrierAuthoring
   CarriedCraft: {fileID: 2305099622475078434, guid: 258cff7fedc92c94985ed7f1cdec4046, type: 3}
   Capacity: 9

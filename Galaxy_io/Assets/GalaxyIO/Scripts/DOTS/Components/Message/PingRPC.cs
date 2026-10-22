@@ -23,7 +23,7 @@ namespace GalaxyIO.DOTS.Components.Message
     }
 
     /// <summary>
-    /// 초계함의 목표 지정 핑. 클라이언트가 서버로 보내고, 서버가 보낸 사람을 포함한 파티원에게 다시 보냄.
+    /// 목표 지정 핑. 클라이언트가 서버로 보내고, 서버가 보낸 사람을 포함한 파티원에게 다시 보냄.
     /// 보낸 사람마다 핑은 하나. 새 핑이 오면 이전 핑을 대신함.
     /// </summary>
     public struct PingRPC : IRpcCommand
@@ -38,6 +38,9 @@ namespace GalaxyIO.DOTS.Components.Message
 
         // Enemy 의 표시 이름
         public FixedString32Bytes TargetName;
+
+        // 적대 대상을 가리킴. 보낸 사람 기준이며, 받는 사람은 모두 같은 파티라 그대로 씀.
+        public bool Hostile;
 
         // 보낸 사람의 핑을 지움. 나머지 값은 쓰지 않음.
         public bool Remove;

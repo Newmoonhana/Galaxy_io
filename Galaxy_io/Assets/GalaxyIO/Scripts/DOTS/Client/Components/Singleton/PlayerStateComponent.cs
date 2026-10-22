@@ -19,6 +19,9 @@ namespace GalaxyIO.DOTS.Client.Components.Singleton
         // 커서가 닫힌 채팅창의 탭 위에 있음. 탭을 누르는 클릭으로 포탑이 발사되지 않게 막음.
         public bool ChatHovered;
 
+        // 커서가 레이더 위에 있음. 휠이 카메라 대신 레이더 표시 거리를 바꿈.
+        public bool RadarHovered;
+
         // 우주선이 파괴됨. 리스폰 창이 이 값을 보고 열리고, 리스폰을 요청하면 꺼짐.
         public bool Dead;
 

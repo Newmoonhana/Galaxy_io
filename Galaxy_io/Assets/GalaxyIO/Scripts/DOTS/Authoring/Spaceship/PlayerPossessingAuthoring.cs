@@ -48,6 +48,7 @@ namespace GalaxyIO.DOTS.Authoring
                 ManeuverDeceleration = spaceship.ManeuverDeceleration,
                 ManeuverPenalty      = spaceship.ManeuverPenalty,
                 HoveringManeuver     = spaceship.HoveringManeuver,
+                PhaseSpeed           = spaceship.PhaseSpeed,
             });
 
             AddComponent(entity, new TurnBrakeComponent

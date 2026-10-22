@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using GalaxyIO.DOTS.Authoring;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.DOTS.Components.Singleton;
@@ -12,7 +11,7 @@ namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
     /// 받은 <see cref="PingRPC"/>를 보낸 사람을 포함한 파티원에게 중계하는 서버 시스템.
-    /// 초계함만 핑을 찍을 수 있고, 연속으로 찍으면 일정 시간 막음.
+    /// 연속으로 찍으면 일정 시간 막음.
     /// </summary>
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
@@ -35,7 +34,6 @@ namespace GalaxyIO.DOTS.Systems
 
         private EntityQuery requestQuery;
         private EntityQuery playerQuery;
-        private EntityQuery shipQuery;
 
         // NetworkId -> 연속 핑 세기
         private readonly Dictionary<int, SpamCounter> counters = new Dictionary<int, SpamCounter>();
@@ -46,11 +44,9 @@ namespace GalaxyIO.DOTS.Systems
 
             // 입장한 플레이어의 Connection
             playerQuery = SystemAPI.QueryBuilder().WithAll<NetworkId, PlayerNameComponent>().Build();
-            shipQuery = SystemAPI.QueryBuilder().WithAll<GhostOwner, PlayerNameComponent, SpaceshipKindComponent>().Build();
 
             RequireForUpdate(requestQuery);
             RequireForUpdate<PartyServiceComponent>();
-            RequireForUpdate<SpaceshipRegistryAssetComponent>();
         }
 
         protected override void OnUpdate()
@@ -59,13 +55,10 @@ namespace GalaxyIO.DOTS.Systems
             using NativeArray<PingRPC> pings = requestQuery.ToComponentDataArray<PingRPC>(Allocator.Temp);
             using NativeArray<Entity> players = playerQuery.ToEntityArray(Allocator.Temp);
             using NativeArray<NetworkId> playerIds = playerQuery.ToComponentDataArray<NetworkId>(Allocator.Temp);
-            using NativeArray<GhostOwner> shipOwners = shipQuery.ToComponentDataArray<GhostOwner>(Allocator.Temp);
-            using NativeArray<SpaceshipKindComponent> shipKinds = shipQuery.ToComponentDataArray<SpaceshipKindComponent>(Allocator.Temp);
 
             EntityManager.DestroyEntity(requestQuery);
 
             var party = SystemAPI.ManagedAPI.GetSingleton<PartyServiceComponent>().Value;
-            var spaceships = SystemAPI.ManagedAPI.GetSingleton<SpaceshipRegistryAssetComponent>().Value;
             double time = SystemAPI.Time.ElapsedTime;
 
             for (int i = 0; i < pings.Length; i++)
@@ -82,25 +75,9 @@ namespace GalaxyIO.DOTS.Systems
                 ping.Sender = EntityManager.GetComponentData<PlayerNameComponent>(sender).Value;
                 ping.SenderNetworkId = EntityManager.GetComponentData<NetworkId>(sender).Value;
 
-                // 지우기는 기종, 횟수와 관계없이 받음.
+                // 지우기는 횟수와 관계없이 받음.
                 if (!ping.Remove)
                 {
-                    SpaceshipAsset spaceship = null;
-
-                    for (int j = 0; j < shipOwners.Length; j++)
-                    {
-                        if (shipOwners[j].NetworkId == ping.SenderNetworkId)
-                        {
-                            spaceship = spaceships.Find(shipKinds[j].Value);
-                            break;
-                        }
-                    }
-
-                    if (spaceship == null || spaceship.Category != SpaceshipCategory.Corvette)
-                    {
-                        continue;
-                    }
-
                     counters.TryGetValue(ping.SenderNetworkId, out SpamCounter counter);
 
                     if (time < counter.BlockedUntil)

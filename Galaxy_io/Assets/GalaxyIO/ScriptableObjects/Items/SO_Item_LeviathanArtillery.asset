@@ -17,7 +17,7 @@ MonoBehaviour:
   Spec:
     Projectile: {fileID: 3898896724990523705, guid: c13f6b0e534e45045b885bb60725a784, type: 3}
     RPS: 0.25
-    MuzzleDelay: 2
+    MuzzleDelay: 0
     ProjectileCount: 0
     SpeedSpread: 0
     Accuracy: 0.99
@@ -35,6 +35,6 @@ MonoBehaviour:
   Heat: 0
   HeatMode: 0
   Recoil: 10
-  LaunchSound: 
-  LoopSound: 
-  CancelSound: 
+  LaunchSound:
+  LoopSound:
+  CancelSound:

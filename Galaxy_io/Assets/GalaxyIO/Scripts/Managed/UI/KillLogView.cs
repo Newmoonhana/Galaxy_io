@@ -11,6 +11,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 {
     /// <summary>
     /// 화면 우측 상단에 킬 로그를 쌓는 클라이언트 전용 뷰.
+    /// 로컬 플레이어와 파티원은 아군 색, 나머지는 적 색.
     /// </summary>
     public sealed class KillLogView : MonoBehaviour
     {
@@ -41,16 +42,17 @@ namespace GalaxyIO.Scripts.Managed.UI
         // 충돌 격추 아이콘의 스프라이트 이름
         private const string RamSprite = "IconSet_killLog_1";
 
+        [SerializeField]
+        [Tooltip("파티 구성을 받는 채팅창")]
+        private ChatView chat;
+
         [Header("Colors")]
 
         [SerializeField]
-        private Color playerColor = new Color(0.35F, 0.9F, 0.45F);
+        private Color allyColor = new Color(0.35F, 0.9F, 0.45F);
 
         [SerializeField]
-        private Color enemyColor = new Color(1.0F, 0.6F, 0.2F);
-
-        [SerializeField]
-        private Color victimColor = new Color(0.95F, 0.3F, 0.3F);
+        private Color hostileColor = new Color(0.95F, 0.3F, 0.3F);
 
         [SerializeField]
         [Tooltip("로컬 플레이어가 관련된 줄의 배경")]
@@ -60,9 +62,8 @@ namespace GalaxyIO.Scripts.Managed.UI
         private EntityQuery messageQuery;
         private EntityQuery connectionQuery;
 
-        private string playerHex;
-        private string enemyHex;
-        private string victimHex;
+        private string allyHex;
+        private string hostileHex;
 
         // 표시 중인 줄과 사라질 시각. 오래된 순.
         private readonly Queue<(KillLogRow Row, float ExpireTime)> rows = new Queue<(KillLogRow, float)>();
@@ -87,9 +88,8 @@ namespace GalaxyIO.Scripts.Managed.UI
             );
             connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
 
-            playerHex = ColorUtility.ToHtmlStringRGB(playerColor);
-            enemyHex  = ColorUtility.ToHtmlStringRGB(enemyColor);
-            victimHex = ColorUtility.ToHtmlStringRGB(victimColor);
+            allyHex    = ColorUtility.ToHtmlStringRGB(allyColor);
+            hostileHex = ColorUtility.ToHtmlStringRGB(hostileColor);
         }
 
         private void LateUpdate()
@@ -133,32 +133,35 @@ namespace GalaxyIO.Scripts.Managed.UI
                            || message.AssistantNetworkId == localNetworkId
                            || message.VictimNetworkId == localNetworkId;
 
-            row.Set(Format(message), isLocal, localBackground);
+            row.Set(Format(message, localNetworkId), isLocal, localBackground);
 
             rows.Enqueue((row, Time.time + lifetime));
         }
 
         // [Killer( + Assistant) 아이콘 Victim]. 막타를 알 수 없으면 [ + Assistant 아이콘 Victim].
         // 이름은 noparse 로 감싸 리치 텍스트 태그 삽입 방지.
-        private string Format(in KillLogRPC message)
+        private string Format(in KillLogRPC message, int localNetworkId)
         {
+            PartyRosterRPC roster = chat.PartyRoster;
+
+            // 자신이거나 파티원이면 아군 색. AI(NetworkId 0)는 항상 적 색.
+            string Hex(int networkId) => networkId == localNetworkId || roster.Members.Contains(networkId) ? allyHex : hostileHex;
+
             string text = "";
 
             if (!message.Killer.IsEmpty)
             {
-                // NetworkId 가 0 인 막타는 AI.
-                string killerHex = message.KillerNetworkId == 0 ? enemyHex : playerHex;
-                text = $"<color=#{killerHex}><noparse>{message.Killer}</noparse></color>";
+                text = $"<color=#{Hex(message.KillerNetworkId)}><noparse>{message.Killer}</noparse></color>";
             }
 
             if (!message.Assistant.IsEmpty)
             {
-                text += $"<color=#{playerHex}> + <noparse>{message.Assistant}</noparse></color>";
+                text += $"<color=#{Hex(message.AssistantNetworkId)}> + <noparse>{message.Assistant}</noparse></color>";
             }
 
             string icon = message.Type == KillType.Ram ? RamSprite : IndirectSprite;
 
-            return text + $" <sprite name=\"{icon}\"> <color=#{victimHex}><noparse>{message.Victim}</noparse></color>";
+            return text + $" <sprite name=\"{icon}\"> <color=#{Hex(message.VictimNetworkId)}><noparse>{message.Victim}</noparse></color>";
         }
     }
 }

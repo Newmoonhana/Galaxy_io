@@ -49,6 +49,7 @@ namespace GalaxyIO.DOTS.Systems
             {
                 Proxies = proxies,
                 Crafts  = SystemAPI.GetComponentLookup<CarriedCraftComponent>(true),
+                Players = SystemAPI.GetComponentLookup<PlayerSpaceshipMovementComponent>(true),
             }.Schedule(state.Dependency);
 
             state.Dependency = new BuildSpatialHashJob
@@ -72,6 +73,7 @@ namespace GalaxyIO.DOTS.Systems
                 CellSize = config.CellSize,
                 Specs    = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
                 Crafts   = SystemAPI.GetComponentLookup<CarriedCraftComponent>(true),
+                Players  = SystemAPI.GetComponentLookup<PlayerSpaceshipMovementComponent>(true),
             }.ScheduleParallel(state.Dependency);
 
             JobHandle projectile = new ProjectileCollisionDetectionJob
@@ -123,6 +125,9 @@ namespace GalaxyIO.DOTS.Systems
         [ReadOnly]
         public ComponentLookup<CarriedCraftComponent> Crafts;
 
+        [ReadOnly]
+        public ComponentLookup<PlayerSpaceshipMovementComponent> Players;
+
         private void Execute(
             Entity entity,
             in LocalTransform transform,
@@ -140,6 +145,7 @@ namespace GalaxyIO.DOTS.Systems
                 Faction  = faction.Value,
                 Party    = faction.Party,
                 Ignore   = CarriedCraft.IgnoredCarrier(Crafts, entity),
+                Phasing  = Players.TryGetComponent(entity, out PlayerSpaceshipMovementComponent player) && player.Phasing,
             });
         }
     }
@@ -195,6 +201,9 @@ namespace GalaxyIO.DOTS.Systems
         [ReadOnly]
         public ComponentLookup<CarriedCraftComponent> Crafts;
 
+        [ReadOnly]
+        public ComponentLookup<PlayerSpaceshipMovementComponent> Players;
+
         private void Execute(
             Entity entity,
             DynamicBuffer<SpaceshipCollisionElement> messages,
@@ -215,6 +224,7 @@ namespace GalaxyIO.DOTS.Systems
                 Faction  = faction.Value,
                 Party    = faction.Party,
                 Ignore   = CarriedCraft.IgnoredCarrier(Crafts, entity),
+                Phasing  = Players.TryGetComponent(entity, out PlayerSpaceshipMovementComponent player) && player.Phasing,
             };
 
             var candidates = new SpatialHashCandidates(Cells, Proxies, CellSize, receiver.Bounds);

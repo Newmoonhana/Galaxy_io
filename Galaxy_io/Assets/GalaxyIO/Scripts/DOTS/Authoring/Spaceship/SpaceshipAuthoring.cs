@@ -92,6 +92,10 @@ namespace GalaxyIO.DOTS.Authoring
         [Min(0.0F)]
         public float Thickness = 1.0F;
 
+        // 이 속력 이상으로 날면 다른 우주선과 부딪히지 않음. 아이템은 그대로 주움. 플레이어만. 0 이면 항상 부딪힘.
+        [Min(0.0F)]
+        public float PhaseSpeed;
+
         // 포탑 최대 열. 플레이어만. 0 이면 과열하지 않음.
         [Min(0.0F)]
         public float MaxHeat = 20.0F;

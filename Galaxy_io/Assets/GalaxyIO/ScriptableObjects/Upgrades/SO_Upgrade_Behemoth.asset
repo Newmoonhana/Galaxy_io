@@ -27,41 +27,41 @@ MonoBehaviour:
   Reinforcement:
     Supported: 1
     MaxLevel: 10
-    Damage: 0.4
-    MaxHealth: 4
+    Damage: 0.5
+    MaxHealth: 6
   Assembly:
     Supported: 1
-    MaxLevel: 20
-    AssemblyTime: 0.25
+    MaxLevel: 10
+    AssemblyTime: 0.5
   MaxHealth:
     Supported: 1
-    MaxLevel: 25
-    MaxHealth: 75
+    MaxLevel: 10
+    MaxHealth: 70
   Repair:
     Supported: 1
-    MaxLevel: 25
-    Repair: 4
+    MaxLevel: 10
+    Repair: 35
   Speed:
     Supported: 1
-    MaxLevel: 10
+    MaxLevel: 5
     MaxSpeed: 2
-    Acceleration: 0.2
-    Deceleration: 0.15
-    HoveringSpeed: 0.1
-    HoveringAcceleration: 0.05
-    HoveringDeceleration: 0.03
+    Acceleration: 0.6
+    Deceleration: 0.4
+    HoveringSpeed: 0.3
+    HoveringAcceleration: 0.2
+    HoveringDeceleration: 0.2
   Maneuver:
     Supported: 1
-    MaxLevel: 10
-    Maneuver: 4
-    ManeuverPenalty: 0.02
+    MaxLevel: 5
+    Maneuver: 6
+    ManeuverPenalty: 0.015
     HoveringManeuver: 1
   RadarRange:
     Supported: 1
-    MaxLevel: 25
+    MaxLevel: 10
     Range: 10
   RadarSweep:
     Supported: 1
-    MaxLevel: 25
+    MaxLevel: 10
     SweepSpeed: 20
     ResponseTime: 0.08
