@@ -71,8 +71,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 return;
             }
 
-            SpaceshipAuthoring ship = _spaceship.Prefab;
-            SpaceshipUpgradeAsset upgrade = ship.Upgrade;
+            SpaceshipSpecAsset ship = _spaceship.Prefab.Spec;
+            SpaceshipUpgradeAsset upgrade = ship != null ? ship.Upgrade : null;
 
             // 강화 사양이 없는 기종은 능력치 목록을 띄우지 않음
             if (upgrade == null)
@@ -105,14 +105,14 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 sb.AppendLine($"{L10n.Get($"Upgrade/{_stat}")}: {_base:0.###}{_unit}({_amount:+0.###;-0.###}{_unit}), {string.Format(maxLevel, entry.MaxLevel)}");
             }
 
-            CarrierAuthoring carrier = ship.GetComponent<CarrierAuthoring>();
+            CarrierAuthoring carrier = _spaceship.Prefab.GetComponent<CarrierAuthoring>();
 
             section = L10n.Get("Spec/Offensive");
             Stat(UpgradeStat.Damage, 0.0F, upgrade.Damage.Damage * 100.0F, "%");
             Stat(UpgradeStat.MaxHeat, ship.MaxHeat, upgrade.MaxHeat.MaxHeat);
 
             // 장착한 채로 시작하는 포탑의 발사 간격 기준
-            float fireCooldown = ship.Turret != null ? ship.Turret.Spec.FireCooldown : 0.0F;
+            float fireCooldown = _spaceship.Prefab.Turret != null ? _spaceship.Prefab.Turret.Spec.FireCooldown : 0.0F;
             Stat(UpgradeStat.Reload, fireCooldown, -upgrade.Reload.ReloadTime, "s");
             Stat(UpgradeStat.Reinforcement, 0.0F, upgrade.Reinforcement.Damage);
             Stat(UpgradeStat.Assembly, carrier != null ? carrier.AssemblyTime : 0.0F, -upgrade.Assembly.AssemblyTime, "s");

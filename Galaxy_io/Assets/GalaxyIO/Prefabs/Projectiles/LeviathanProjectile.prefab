@@ -107,7 +107,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9868991a90114dd0a355fd93f54ffdd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.StraightforwardProjectileAuthoring
-  Lifetime: 2.5
+  Lifetime: 8
   Pierce: 0
   ExplosionRadius: 5
   SpawnOnHit: {fileID: 6977692746202840440, guid: 666d97ea1a42ecd4e9012d3dcfca1a94, type: 3}

@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea1aadee859fe514883a55b3afebe321, type: 3}
+  m_Name: SO_SpaceshipSpec_Sentinel
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.SpaceshipSpecAsset
+  Speed: 32
+  HoveringSpeed: 12
+  HoveringAcceleration: 16
+  HoveringDeceleration: 18
+  HoveringManeuver: 22
+  Acceleration: 24
+  Deceleration: 26
+  Maneuver: 280
+  ManeuverAcceleration: 2400
+  ManeuverDeceleration: 2400
+  ManeuverPenalty: 0.76
+  MaxHealth: 340
+  Repair: 26
+  RepairDelay: 3
+  Thickness: 2.5
+  PhaseSpeed: 18
+  MaxHeat: 140
+  KillPoint: 8
+  TurnBrakeTurnRate: 190
+  TurnBrakeDeceleration: 23
+  TurnBrakeExponent: 2.5
+  TurnBrakeStartSpeed: 12
+  TurnBrakeReferenceSpeed: 26
+  Inertia: 3
+  InertiaDeceleration: 14
+  InertiaTurnRate: 125
+  MaxOrthographicSize: 17
+  RadarRange: 60
+  RadarSweepSpeed: 105
+  RadarResponseTime: 0.1
+  Faction: 1
+  Upgrade: {fileID: 11400000, guid: d43ef64bc8524028b399133798e30eef, type: 2}

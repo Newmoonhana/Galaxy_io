@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea1aadee859fe514883a55b3afebe321, type: 3}
+  m_Name: SO_SpaceshipSpec_Paladin
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.SpaceshipSpecAsset
+  Speed: 22
+  HoveringSpeed: 5
+  HoveringAcceleration: 8
+  HoveringDeceleration: 10
+  HoveringManeuver: 6
+  Acceleration: 5
+  Deceleration: 8
+  Maneuver: 80
+  ManeuverAcceleration: 160
+  ManeuverDeceleration: 180
+  ManeuverPenalty: 0.93
+  MaxHealth: 1250
+  Repair: 50
+  RepairDelay: 3
+  Thickness: 11
+  PhaseSpeed: 0
+  MaxHeat: 0
+  KillPoint: 12
+  TurnBrakeTurnRate: 75
+  TurnBrakeDeceleration: 13
+  TurnBrakeExponent: 2
+  TurnBrakeStartSpeed: 10
+  TurnBrakeReferenceSpeed: 22
+  Inertia: 9
+  InertiaDeceleration: 7
+  InertiaTurnRate: 55
+  MaxOrthographicSize: 21
+  RadarRange: 75
+  RadarSweepSpeed: 105
+  RadarResponseTime: 0.1
+  Faction: 1
+  Upgrade: {fileID: 11400000, guid: 73007c91687c4b7a8b1e50e539a58238, type: 2}

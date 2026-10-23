@@ -5,7 +5,7 @@ using Unity.NetCode;
 namespace GalaxyIO.DOTS.Components.Actor
 {
     /// <summary>
-    /// <see cref="SpaceshipAuthoring"/>의 DOTS 구조체.
+    /// <see cref="SpaceshipSpecAsset"/>의 DOTS 구조체.
     /// </summary>
     public struct SpaceshipSpecComponent : IComponentData
     {
@@ -23,6 +23,9 @@ namespace GalaxyIO.DOTS.Components.Actor
 
         // 선체 두께. 관통 투사체의 관통력을 이만큼 깎음.
         public float Thickness;
+
+        // 격추한 플레이어가 얻는 점수. 서버만 씀.
+        public int KillPoint;
 
         // 현재 체력. 예측 롤백 시 서버 값으로 되감아야 하므로 복제함.
         [GhostField]

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace GalaxyIO.DOTS.Authoring.Config
 {
     /// <summary>
-    /// Ghost 복제 범위 설정. 월드당 한 개. 반경은 우주선마다의 레이더 탐지 거리(SpaceshipAuthoring.RadarRange)를 씀.
+    /// Ghost 복제 범위 설정. 월드당 한 개. 반경은 우주선마다의 레이더 탐지 거리(SpaceshipSpecAsset.RadarRange)를 씀.
     /// </summary>
     public sealed class RelevancyConfigAuthoring : MonoBehaviour
     {

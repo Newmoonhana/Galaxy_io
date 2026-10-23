@@ -25,6 +25,10 @@ namespace GalaxyIO.Scripts.Managed.UI
         [Min(1)]
         private int maxRows = 5;
 
+        [SerializeField]
+        [Tooltip("로컬 플레이어가 얻은 점수를 띄울 뷰")]
+        private DamagePopupView popups;
+
         [Header("Colors")]
 
         [SerializeField]
@@ -110,12 +114,23 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             using var messages = messageQuery.ToComponentDataArray<PlayerScoreRPC>(Allocator.Temp);
 
+            int localNetworkId = connectionQuery.GetSingleton<NetworkId>().Value;
+
             foreach (PlayerScoreRPC message in messages)
             {
                 if (message.Left)
                 {
                     entries.Remove(message.NetworkId);
                     continue;
+                }
+
+                // 로컬 플레이어 점수가 오르면 오른 만큼 띄움. 사망으로 0 이 되는 것은 띄우지 않음.
+                if (message.NetworkId == localNetworkId
+                    && entries.TryGetValue(message.NetworkId, out Entry before)
+                    && message.Score > before.Score
+                    && popups != null)
+                {
+                    popups.ShowScore(message.Score - before.Score);
                 }
 
                 entries[message.NetworkId] = new Entry
@@ -128,7 +143,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             entityManager.DestroyEntity(messageQuery);
 
-            Refresh(connectionQuery.GetSingleton<NetworkId>().Value);
+            Refresh(localNetworkId);
         }
 
         private void Refresh(int localNetworkId)

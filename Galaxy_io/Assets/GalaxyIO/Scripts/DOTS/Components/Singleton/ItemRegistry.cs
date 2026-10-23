@@ -41,10 +41,11 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 포탑만. 사격마다 우주선을 발사 반대 방향으로 미는 속력.
         public float Recoil;
 
-        // 포탑만. 사격 시작음, 사격 중 반복음, 충전 취소음. 클라이언트만 씀.
+        // 포탑만. 사격 시작음, 사격 중 반복음, 충전 취소음, 명중음. 클라이언트만 씀.
         public FixedString64Bytes LaunchSound;
         public FixedString64Bytes LoopSound;
         public FixedString64Bytes CancelSound;
+        public FixedString64Bytes HitSound;
     }
 
     /// <summary>

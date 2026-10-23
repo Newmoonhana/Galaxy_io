@@ -1,6 +1,7 @@
 ﻿using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -12,6 +13,8 @@ namespace GalaxyIO.DOTS.Client.Systems
 {
     /// <summary>
     /// 서버가 복제한 투사체 명중 수가 늘어나면 마지막 명중 지점에 명중 연출/효과음을 스폰하는 시스템.
+    /// 연출은 투사체 방향으로 돌림. 효과음은 연출의 효과음, 없으면 포탑의 명중음.
+    /// 로컬 플레이어가 쏜 투사체는 효과음을 내지 않음. 서버의 DamageRPC 로 더 크게 재생함(DamagePopupView).
     /// </summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
@@ -47,9 +50,12 @@ namespace GalaxyIO.DOTS.Client.Systems
             bool hasListener = hasLastListener && !playerState.Dead;
             float2 listener = lastListener;
 
+            SystemAPI.TryGetSingleton(out NetworkId localId);
+            SystemAPI.TryGetSingletonBuffer(out DynamicBuffer<ItemRegistryElement> registry, true);
+
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
-            foreach (var shared in SystemAPI.Query<RefRW<SharedProjectileComponent>>())
+            foreach (var (shared, transform) in SystemAPI.Query<RefRW<SharedProjectileComponent>, RefRO<LocalTransform>>())
             {
                 if (shared.ValueRO.PresentedHitCount == shared.ValueRO.HitCount)
                 {
@@ -59,27 +65,41 @@ namespace GalaxyIO.DOTS.Client.Systems
                 shared.ValueRW.PresentedHitCount = shared.ValueRO.HitCount;
 
                 Entity prefab = shared.ValueRO.SpawnOnHit;
+                float2 position = shared.ValueRO.HitPosition;
+                FixedString64Bytes sound = default;
 
-                if (prefab == Entity.Null)
+                if (prefab != Entity.Null)
                 {
-                    continue;
+                    // 프리팹의 크기는 그대로 쓰고 위치와 투사체 방향만 바꿈.
+                    LocalTransform effectTransform = SystemAPI.GetComponent<LocalTransform>(prefab);
+                    effectTransform.Position = new float3(position, 0.0F);
+                    effectTransform.Rotation = math.mul(transform.ValueRO.Rotation, effectTransform.Rotation);
+
+                    Entity effect = ecb.Instantiate(prefab);
+                    ecb.SetComponent(effect, effectTransform);
+
+                    if (SystemAPI.HasComponent<EffectSoundComponent>(prefab))
+                    {
+                        sound = SystemAPI.GetComponent<EffectSoundComponent>(prefab).SoundKey;
+                    }
                 }
 
-                float2 position = shared.ValueRO.HitPosition;
+                if (sound.IsEmpty && registry.IsCreated)
+                {
+                    sound = registry.Get(shared.ValueRO.Turret).HitSound;
+                }
 
-                // 프리팹의 회전/크기는 그대로 쓰고 위치만 바꿈.
-                LocalTransform effectTransform = SystemAPI.GetComponent<LocalTransform>(prefab);
-                effectTransform.Position = new float3(position, 0.0F);
+                // 쏜 우주선 또는 함재기의 주인이 로컬 플레이어인지
+                Entity owner = shared.ValueRO.Owner;
+                bool local = SystemAPI.HasComponent<CarriedCraftComponent>(owner)
+                    ? SystemAPI.GetComponent<CarriedCraftComponent>(owner).OwnerNetworkId == localId.Value
+                    : SystemAPI.HasComponent<GhostOwner>(owner) && SystemAPI.GetComponent<GhostOwner>(owner).NetworkId == localId.Value;
 
-                Entity effect = ecb.Instantiate(prefab);
-                ecb.SetComponent(effect, effectTransform);
-
-                if (SystemAPI.HasComponent<EffectSoundComponent>(prefab)
-                    && SoundAudibleRange.IsAudible(hasListener, listener, position))
+                if (!sound.IsEmpty && !local && SoundAudibleRange.IsAudible(hasListener, listener, position))
                 {
                     ecb.AddComponent(ecb.CreateEntity(), new SoundMessage
                     {
-                        SoundKey = SystemAPI.GetComponent<EffectSoundComponent>(prefab).SoundKey,
+                        SoundKey = sound,
                         Position = position,
                     });
                 }

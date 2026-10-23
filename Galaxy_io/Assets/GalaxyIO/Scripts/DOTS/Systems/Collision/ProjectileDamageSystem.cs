@@ -1,5 +1,6 @@
 using GalaxyIO.DOTS.Collision;
 using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -29,6 +30,12 @@ namespace GalaxyIO.DOTS.Systems
 
         // 쏜 AI 의 표시 이름. 플레이어거나 쏜 AI 가 파괴됐으면 비어 있음.
         public FixedString32Bytes InstigatorEnemyName;
+
+        // 맞은 지점. 데미지 숫자를 띄울 자리.
+        public float2 Position;
+
+        // 쏜 포탑. 명중음을 고르는 데 씀.
+        public ItemId Turret;
     }
 
     /// <summary>
@@ -106,6 +113,7 @@ namespace GalaxyIO.DOTS.Systems
                 Specs        = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(),
                 Events       = SystemAPI.GetBufferLookup<EnemyEventElement>(),
                 Records      = SystemAPI.GetBufferLookup<DamageRecordElement>(),
+                Reports      = SystemAPI.GetBufferLookup<DamageReportElement>(),
                 KillingBlows = SystemAPI.GetComponentLookup<KillingBlowComponent>(),
                 ElapsedTime  = SystemAPI.Time.ElapsedTime,
             }.Schedule(state.Dependency);
@@ -183,6 +191,7 @@ namespace GalaxyIO.DOTS.Systems
                 InstigatorPosition  = instigatorPosition,
                 InstigatorNetworkId = instigatorNetworkId,
                 InstigatorEnemyName = enemyName.Value,
+                Turret              = projectile.Turret,
             };
 
             float2 start = transform.Position.xy - projectile.Displacement;
@@ -191,12 +200,13 @@ namespace GalaxyIO.DOTS.Systems
             {
                 CollisionMessage message = messages[i].Message;
 
-                damage.Spaceship = message.Other;
-                Damages.Enqueue(damage);
-
                 // 이동 경로 위에서 맞은 우주선에 가장 가까운 점. 명중 연출과 폭발 중심.
                 projectile.HitCount++;
                 projectile.HitPosition = ColliderOverlap.ClosestOnPath(start, projectile.Displacement, message.OtherCenter);
+
+                damage.Spaceship = message.Other;
+                damage.Position = projectile.HitPosition;
+                Damages.Enqueue(damage);
 
                 Specs.TryGetComponent(message.Other, out SpaceshipSpecComponent spec);
                 projectile.Pierce -= spec.Thickness;
@@ -298,6 +308,7 @@ namespace GalaxyIO.DOTS.Systems
 
                 SpaceshipDamage damage = explosion.Damage;
                 damage.Spaceship = entity;
+                damage.Position = hull.Center;
                 damage.Amount *= math.saturate(hit.Depth / explosion.Radius);
                 Damages.Enqueue(damage);
             }
@@ -314,6 +325,7 @@ namespace GalaxyIO.DOTS.Systems
         public ComponentLookup<SpaceshipSpecComponent> Specs;
         public BufferLookup<EnemyEventElement> Events;
         public BufferLookup<DamageRecordElement> Records;
+        public BufferLookup<DamageReportElement> Reports;
         public ComponentLookup<KillingBlowComponent> KillingBlows;
         public double ElapsedTime;
 
@@ -338,6 +350,17 @@ namespace GalaxyIO.DOTS.Systems
                     && Records.TryGetBuffer(damage.Spaceship, out DynamicBuffer<DamageRecordElement> records))
                 {
                     DamageRecord.Add(records, damage.InstigatorNetworkId, damage.Amount, ElapsedTime);
+                }
+
+                if (Reports.TryGetBuffer(damage.Spaceship, out DynamicBuffer<DamageReportElement> reports))
+                {
+                    reports.Add(new DamageReportElement
+                    {
+                        AttackerNetworkId = damage.InstigatorNetworkId,
+                        Amount            = damage.Amount,
+                        Position          = damage.Position,
+                        Turret            = damage.Turret,
+                    });
                 }
 
                 // 체력을 0으로 만든 타격만 막타로 남김.

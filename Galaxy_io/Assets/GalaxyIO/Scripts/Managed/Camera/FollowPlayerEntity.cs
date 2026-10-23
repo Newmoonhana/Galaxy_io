@@ -31,7 +31,7 @@ namespace GalaxyIO.Camera
         private float smoothSpeed = 10F;
 
         [SerializeField]
-        [Tooltip("최대로 확대했을 때의 시야 크기 비율. 우주선의 최대 시야 크기(SpaceshipAuthoring.MaxOrthographicSize) 기준.")]
+        [Tooltip("최대로 확대했을 때의 시야 크기 비율. 우주선의 최대 시야 크기(SpaceshipSpecAsset.MaxOrthographicSize) 기준.")]
         [Range(0.05F, 1.0F)]
         private float minZoomRatio = 0.5333F;
 

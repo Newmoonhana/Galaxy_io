@@ -4,7 +4,7 @@ using Unity.Entities;
 namespace GalaxyIO.DOTS.Components.Actor
 {
     /// <summary>
-    /// <see cref="SpaceshipAuthoring"/>의 선회 제동, 회전 관성 값. 플레이어 우주선만.
+    /// <see cref="SpaceshipSpecAsset"/>의 선회 제동, 회전 관성 값. 플레이어 우주선만.
     /// </summary>
     public struct TurnBrakeComponent : IComponentData
     {

@@ -172,6 +172,7 @@ namespace GalaxyIO.DOTS.Authoring.Config
                     element.LaunchSound     = turret.LaunchSound;
                     element.LoopSound       = turret.LoopSound;
                     element.CancelSound     = turret.CancelSound;
+                    element.HitSound        = turret.HitSound;
                 }
 
                 registry[(int)item.Id] = element;

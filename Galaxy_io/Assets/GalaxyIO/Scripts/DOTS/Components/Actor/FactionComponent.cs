@@ -20,7 +20,7 @@ namespace GalaxyIO.DOTS.Components.Actor
     }
 
     /// <summary>
-    /// 우주선, 투사체가 속한 진영. 우주선은 <see cref="SpaceshipAuthoring"/>, 투사체는 발사 시점에 채움.
+    /// 우주선, 투사체가 속한 진영. 우주선은 <see cref="SpaceshipSpecAsset"/>, 투사체는 발사 시점에 채움.
     /// </summary>
     public struct FactionComponent : IComponentData
     {

@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea1aadee859fe514883a55b3afebe321, type: 3}
+  m_Name: SO_SpaceshipSpec_Vanguard
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.SpaceshipSpecAsset
+  Speed: 27
+  HoveringSpeed: 11
+  HoveringAcceleration: 15
+  HoveringDeceleration: 18
+  HoveringManeuver: 20
+  Acceleration: 25
+  Deceleration: 27
+  Maneuver: 280
+  ManeuverAcceleration: 2400
+  ManeuverDeceleration: 2400
+  ManeuverPenalty: 0.8
+  MaxHealth: 500
+  Repair: 25
+  RepairDelay: 3
+  Thickness: 2.4
+  PhaseSpeed: 18
+  MaxHeat: 180
+  KillPoint: 8
+  TurnBrakeTurnRate: 180
+  TurnBrakeDeceleration: 22
+  TurnBrakeExponent: 2.5
+  TurnBrakeStartSpeed: 12
+  TurnBrakeReferenceSpeed: 26
+  Inertia: 3
+  InertiaDeceleration: 14
+  InertiaTurnRate: 120
+  MaxOrthographicSize: 17
+  RadarRange: 42
+  RadarSweepSpeed: 105
+  RadarResponseTime: 0.1
+  Faction: 1
+  Upgrade: {fileID: 11400000, guid: b5283f10be73424689d7ef861aa6fa02, type: 2}
