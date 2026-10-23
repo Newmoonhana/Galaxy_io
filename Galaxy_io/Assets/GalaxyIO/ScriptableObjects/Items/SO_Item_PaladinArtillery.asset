@@ -39,3 +39,4 @@ MonoBehaviour:
   LoopSound: 
   CancelSound: Cancel_Paladin
   HitSound: LaserBurnt
+  HitSoundMode: 1

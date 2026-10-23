@@ -13,17 +13,17 @@ MonoBehaviour:
   m_Name: SO_SpaceshipSpec_Leviathan
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.SpaceshipSpecAsset
   Speed: 25
-  HoveringSpeed: 5
-  HoveringAcceleration: 6
+  HoveringSpeed: 3
+  HoveringAcceleration: 5
   HoveringDeceleration: 6
-  HoveringManeuver: 4
-  Acceleration: 3.5
+  HoveringManeuver: 2
+  Acceleration: 3.2
   Deceleration: 6
-  Maneuver: 60
+  Maneuver: 45
   ManeuverAcceleration: 140
   ManeuverDeceleration: 180
   ManeuverPenalty: 0.92
-  MaxHealth: 1600
+  MaxHealth: 2200
   Repair: 32
   RepairDelay: 3
   Thickness: 10

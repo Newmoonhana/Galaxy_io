@@ -1,3 +1,5 @@
+using GalaxyIO.Camera;
+using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.DOTS.Components.Singleton;
@@ -17,6 +19,7 @@ namespace GalaxyIO.Scripts.Managed.UI
     /// 맞은 우주선 위에 데미지 숫자를, 로컬 우주선 위에 얻은 점수를 띄우는 클라이언트 전용 HUD 뷰.
     /// 숫자는 우주선을 따라 움직이고, 위로 떠오르며 점점 느려지고 커짐.
     /// 때린 플레이어에게는 명중음도 냄. 거리만큼 작아지지만 최소 음량이 있어 화면 밖 명중도 들림.
+    /// 로컬 우주선이 맞으면 받은 데미지 / 최대 체력에 비례해 카메라를 흔듦.
     /// </summary>
     public sealed class DamagePopupView : MonoBehaviour
     {
@@ -126,6 +129,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private EntityManager entityManager;
         private EntityQuery messageQuery;
+        private EntityQuery attackerSoundQuery;
         private EntityQuery connectionQuery;
         private EntityQuery localShipQuery;
         private EntityQuery registryQuery;
@@ -156,6 +160,7 @@ namespace GalaxyIO.Scripts.Managed.UI
                 ComponentType.ReadOnly<DamageRPC>(),
                 ComponentType.ReadOnly<ReceiveRpcCommandRequest>()
             );
+            attackerSoundQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<AttackerHitSoundMessage>());
             connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
             localShipQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<GhostOwnerIsLocal>(),
@@ -196,6 +201,7 @@ namespace GalaxyIO.Scripts.Managed.UI
             if (connectionQuery.IsEmpty)
             {
                 entityManager.DestroyEntity(messageQuery);
+                entityManager.DestroyEntity(attackerSoundQuery);
 
                 for (int i = popups.Count - 1; i >= 0; i--)
                 {
@@ -206,13 +212,13 @@ namespace GalaxyIO.Scripts.Managed.UI
             }
 
             UnityEngine.Camera mainCamera = UnityEngine.Camera.main;
+            played.Clear();
 
             if (!messageQuery.IsEmpty)
             {
                 using var messages = messageQuery.ToComponentDataArray<DamageRPC>(Allocator.Temp);
 
                 entityManager.DestroyEntity(messageQuery);
-                played.Clear();
 
                 foreach (DamageRPC message in messages)
                 {
@@ -226,27 +232,43 @@ namespace GalaxyIO.Scripts.Managed.UI
                         message.Dealt ? dealtColor : takenColor
                     );
 
-                    if (message.Dealt && mainCamera != null && !registryQuery.IsEmpty)
+                    // 서버 판정 포탑의 명중음만 냄. 예측 판정 포탑은 AttackerHitSoundMessage 로 이미 냄.
+                    if (message.Dealt && !registryQuery.IsEmpty)
                     {
-                        FixedString64Bytes sound = registryQuery.GetSingletonBuffer<ItemRegistryElement>(true)
-                            .Get(message.Turret).HitSound;
+                        ItemRegistryElement turret = registryQuery.GetSingletonBuffer<ItemRegistryElement>(true).Get(message.Turret);
 
-                        if (!sound.IsEmpty && played.Add(sound) && SoundManager.Instance != null)
+                        if (turret.HitSoundMode == HitSoundMode.Simulated)
                         {
-                            // 방향만 살려 가까이 끌어오고, 거리 감쇠는 최소 음량을 지켜 직접 계산함.
-                            Vector3 listener = mainCamera.transform.position;
-                            Vector2 offset = position - (Vector2)listener;
-                            float falloff = 1.0F - Mathf.InverseLerp(attackerFalloff.x, attackerFalloff.y, offset.magnitude);
-
-                            offset = Vector2.ClampMagnitude(offset, attackerSoundRadius);
-
-                            SoundManager.Instance.PlaySfx3D(
-                                sound.ToString(),
-                                new Vector3(listener.x + offset.x, listener.y + offset.y, listener.z),
-                                attackerVolume * Mathf.Max(falloff, attackerMinVolume)
-                            );
+                            PlayAttackerSound(mainCamera, turret.HitSound, position);
                         }
                     }
+
+                    // 로컬 우주선이 맞음. 큰 우주선은 같은 데미지에 덜 흔들림.
+                    if (!message.Dealt
+                        && mainCamera != null
+                        && mainCamera.TryGetComponent(out FollowPlayerEntity follow)
+                        && entityManager.HasComponent<PlayerSpaceshipMovementComponent>(message.Spaceship)
+                        && entityManager.HasComponent<SpaceshipSpecComponent>(message.Spaceship))
+                    {
+                        float maxHealth = entityManager.GetComponentData<SpaceshipSpecComponent>(message.Spaceship).MaxHealth;
+
+                        if (maxHealth > 0.0F)
+                        {
+                            follow.Shake(message.Amount / maxHealth);
+                        }
+                    }
+                }
+            }
+
+            if (!attackerSoundQuery.IsEmpty)
+            {
+                using var sounds = attackerSoundQuery.ToComponentDataArray<AttackerHitSoundMessage>(Allocator.Temp);
+
+                entityManager.DestroyEntity(attackerSoundQuery);
+
+                foreach (AttackerHitSoundMessage sound in sounds)
+                {
+                    PlayAttackerSound(mainCamera, sound.SoundKey, new Vector2(sound.Position.x, sound.Position.y));
                 }
             }
 
@@ -321,6 +343,28 @@ namespace GalaxyIO.Scripts.Managed.UI
             }
 
             popups.Add(popup);
+        }
+
+        // 때린 플레이어의 명중음. 같은 소리는 한 프레임에 한 번만 냄.
+        // 방향만 살려 리스너 가까이 끌어오고, 거리 감쇠는 최소 음량을 지켜 직접 계산함.
+        private void PlayAttackerSound(UnityEngine.Camera mainCamera, FixedString64Bytes sound, Vector2 position)
+        {
+            if (mainCamera == null || sound.IsEmpty || SoundManager.Instance == null || !played.Add(sound))
+            {
+                return;
+            }
+
+            Vector3 listener = mainCamera.transform.position;
+            Vector2 offset = position - (Vector2)listener;
+            float falloff = 1.0F - Mathf.InverseLerp(attackerFalloff.x, attackerFalloff.y, offset.magnitude);
+
+            offset = Vector2.ClampMagnitude(offset, attackerSoundRadius);
+
+            SoundManager.Instance.PlaySfx3D(
+                sound.ToString(),
+                new Vector3(listener.x + offset.x, listener.y + offset.y, listener.z),
+                attackerVolume * Mathf.Max(falloff, attackerMinVolume)
+            );
         }
 
         private void Release(int index)

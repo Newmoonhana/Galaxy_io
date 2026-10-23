@@ -11,6 +11,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 {
     /// <summary>
     /// 로컬 플레이어 우주선의 포탑 열을 막대로 띄우는 클라이언트 전용 뷰. 과열음도 재생함.
+    /// 과열 중 경보음은 <see cref="LowHealthView"/>가 냄.
     /// </summary>
     public sealed class HeatGaugeView : MonoBehaviour
     {
@@ -44,15 +45,6 @@ namespace GalaxyIO.Scripts.Managed.UI
         [SerializeField]
         [Tooltip("과열될 때 한 번 재생")]
         private string overheatSound = "Overheat";
-
-        [SerializeField]
-        [Tooltip("과열 중 반복 재생")]
-        private string overheatLoopSound = "Loop_Overheat";
-
-        [SerializeField]
-        [Tooltip("과열 반복음이 멈출 때 0 까지 줄어드는 시간(초)")]
-        [Min(0.01F)]
-        private float loopFadeOut = 0.3F;
 
         private EntityQuery heatQuery;
 
@@ -97,17 +89,9 @@ namespace GalaxyIO.Scripts.Managed.UI
                 heat = heats[0];
             }
 
-            if (heat.Overheated != overheated && SoundManager.Instance != null)
+            if (heat.Overheated && !overheated && SoundManager.Instance != null)
             {
-                if (heat.Overheated)
-                {
-                    SoundManager.Instance.PlaySfx(overheatSound);
-                    SoundManager.Instance.PlaySfx(overheatLoopSound);
-                }
-                else
-                {
-                    SoundManager.Instance.FadeOutSfx(overheatLoopSound, loopFadeOut);
-                }
+                SoundManager.Instance.PlaySfx(overheatSound);
             }
 
             overheated = heat.Overheated;
