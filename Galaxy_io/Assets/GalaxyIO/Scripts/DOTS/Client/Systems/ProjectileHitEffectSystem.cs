@@ -12,9 +12,12 @@ using Unity.Transforms;
 namespace GalaxyIO.DOTS.Client.Systems
 {
     /// <summary>
-    /// 서버가 복제한 투사체 명중 수가 늘어나면 마지막 명중 지점에 명중 연출/효과음을 스폰하는 시스템.
-    /// 연출은 투사체 방향으로 돌림. 효과음은 연출의 효과음, 없으면 포탑의 명중음.
-    /// 로컬 플레이어가 쏜 투사체는 효과음을 내지 않음. 서버의 DamageRPC 로 더 크게 재생함(DamagePopupView).
+    /// 서버가 복제한 투사체 명중 수가 늘어나면 마지막 명중 지점에 명중 연출을 스폰하는 시스템.
+    /// 연출은 투사체 방향으로 돌림.
+    /// 명중음은 연출의 효과음, 없으면 포탑의 명중음. 포탑의 <see cref="HitSoundMode"/>에 따라
+    /// 클라이언트가 판정한 명중이나 서버가 판정한 명중에서 냄.
+    /// 로컬 플레이어의 명중음은 DamagePopupView 가 더 크게 재생함. 예측 명중은 <see cref="AttackerHitSoundMessage"/>로,
+    /// 서버 명중은 DamageRPC 로 받음.
     /// </summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
@@ -57,37 +60,45 @@ namespace GalaxyIO.DOTS.Client.Systems
 
             foreach (var (shared, transform) in SystemAPI.Query<RefRW<SharedProjectileComponent>, RefRO<LocalTransform>>())
             {
-                if (shared.ValueRO.PresentedHitCount == shared.ValueRO.HitCount)
+                bool hit = shared.ValueRO.PresentedHitCount != shared.ValueRO.HitCount;
+                bool predictedHit = shared.ValueRO.PresentedPredictedHitCount != shared.ValueRO.PredictedHitCount;
+
+                if (!hit && !predictedHit)
                 {
                     continue;
                 }
 
                 shared.ValueRW.PresentedHitCount = shared.ValueRO.HitCount;
+                shared.ValueRW.PresentedPredictedHitCount = shared.ValueRO.PredictedHitCount;
 
                 Entity prefab = shared.ValueRO.SpawnOnHit;
-                float2 position = shared.ValueRO.HitPosition;
-                FixedString64Bytes sound = default;
 
-                if (prefab != Entity.Null)
+                if (hit && prefab != Entity.Null)
                 {
                     // 프리팹의 크기는 그대로 쓰고 위치와 투사체 방향만 바꿈.
                     LocalTransform effectTransform = SystemAPI.GetComponent<LocalTransform>(prefab);
-                    effectTransform.Position = new float3(position, 0.0F);
+                    effectTransform.Position = new float3(shared.ValueRO.HitPosition, 0.0F);
                     effectTransform.Rotation = math.mul(transform.ValueRO.Rotation, effectTransform.Rotation);
 
                     Entity effect = ecb.Instantiate(prefab);
                     ecb.SetComponent(effect, effectTransform);
-
-                    if (SystemAPI.HasComponent<EffectSoundComponent>(prefab))
-                    {
-                        sound = SystemAPI.GetComponent<EffectSoundComponent>(prefab).SoundKey;
-                    }
                 }
 
-                if (sound.IsEmpty && registry.IsCreated)
+                ItemRegistryElement turret = registry.IsCreated ? registry.Get(shared.ValueRO.Turret) : default;
+
+                FixedString64Bytes sound = prefab != Entity.Null && SystemAPI.HasComponent<EffectSoundComponent>(prefab)
+                    ? SystemAPI.GetComponent<EffectSoundComponent>(prefab).SoundKey
+                    : turret.HitSound;
+
+                // 포탑이 정한 쪽의 명중에서만 소리를 냄.
+                bool predicted = turret.HitSoundMode == HitSoundMode.Predicted;
+
+                if (sound.IsEmpty || (predicted ? !predictedHit : !hit))
                 {
-                    sound = registry.Get(shared.ValueRO.Turret).HitSound;
+                    continue;
                 }
+
+                float2 position = predicted ? shared.ValueRO.PredictedHitPosition : shared.ValueRO.HitPosition;
 
                 // 쏜 우주선 또는 함재기의 주인이 로컬 플레이어인지
                 Entity owner = shared.ValueRO.Owner;
@@ -95,7 +106,19 @@ namespace GalaxyIO.DOTS.Client.Systems
                     ? SystemAPI.GetComponent<CarriedCraftComponent>(owner).OwnerNetworkId == localId.Value
                     : SystemAPI.HasComponent<GhostOwner>(owner) && SystemAPI.GetComponent<GhostOwner>(owner).NetworkId == localId.Value;
 
-                if (!sound.IsEmpty && !local && SoundAudibleRange.IsAudible(hasListener, listener, position))
+                // 로컬 플레이어의 서버 명중음은 DamageRPC 로 냄.
+                if (local)
+                {
+                    if (predicted)
+                    {
+                        ecb.AddComponent(ecb.CreateEntity(), new AttackerHitSoundMessage
+                        {
+                            SoundKey = sound,
+                            Position = position,
+                        });
+                    }
+                }
+                else if (SoundAudibleRange.IsAudible(hasListener, listener, position))
                 {
                     ecb.AddComponent(ecb.CreateEntity(), new SoundMessage
                     {

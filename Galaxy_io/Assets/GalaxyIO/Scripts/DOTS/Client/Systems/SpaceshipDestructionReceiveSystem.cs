@@ -14,6 +14,7 @@ namespace GalaxyIO.DOTS.Client.Systems
 {
     /// <summary>
     /// 우주선 파괴 알림을 받아 폭발 연출/효과음을 스폰하고 리스폰 창 상태를 켜는 시스템.
+    /// 로컬 플레이어가 막타를 쳤으면 폭발음을 <see cref="AttackerHitSoundMessage"/>로 보내 멀어도 들리게 함.
     /// </summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
@@ -85,7 +86,18 @@ namespace GalaxyIO.DOTS.Client.Systems
                     ecb.SetComponent(explosion, explosionTransform);
                 }
 
-                if (hasSound
+                bool killedByLocal = destroyed.ValueRO.KillerNetworkId == localNetworkId
+                                     && destroyed.ValueRO.OwnerNetworkId != localNetworkId;
+
+                if (hasSound && killedByLocal)
+                {
+                    ecb.AddComponent(ecb.CreateEntity(), new AttackerHitSoundMessage
+                    {
+                        SoundKey = explosionSound.SoundKey,
+                        Position = destroyed.ValueRO.Position,
+                    });
+                }
+                else if (hasSound
                     && SoundAudibleRange.IsAudible(hasListener, listener, destroyed.ValueRO.Position))
                 {
                     ecb.AddComponent(ecb.CreateEntity(), new SoundMessage

@@ -11,7 +11,7 @@ using Unity.Transforms;
 namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
-    /// 체력이 0이 된 우주선을 제거하고 파괴 사실을 근처 클라이언트와 소유자에게 알리는 시스템.
+    /// 체력이 0이 된 우주선을 제거하고 파괴 사실을 근처 클라이언트, 소유자, 막타를 친 플레이어에게 알리는 시스템.
     /// 플레이어 격추는 킬 로그로 전체에 알림. 격추에 따른 점수 변경을 요청함.
     /// </summary>
     [BurstCompile]
@@ -80,13 +80,18 @@ namespace GalaxyIO.DOTS.Systems
 
                 var message = new SpaceshipDestroyedRPC
                 {
-                    Position       = transform.ValueRO.Position.xy,
-                    OwnerNetworkId = owner.ValueRO.NetworkId,
+                    Position        = transform.ValueRO.Position.xy,
+                    OwnerNetworkId  = owner.ValueRO.NetworkId,
+                    KillerNetworkId = SystemAPI.HasComponent<KillingBlowComponent>(entity)
+                        ? SystemAPI.GetComponent<KillingBlowComponent>(entity).NetworkId
+                        : 0,
                 };
 
+                // 막타를 친 플레이어는 멀어도 받음.
                 for (int i = 0; i < focuses.Length; i++)
                 {
                     if (focuses[i].NetworkId == message.OwnerNetworkId
+                        || focuses[i].NetworkId == message.KillerNetworkId
                         || math.distancesq(focuses[i].Position, message.Position) <= focuses[i].Radius * focuses[i].Radius)
                     {
                         Send(ecb, message, focuses[i].Connection);

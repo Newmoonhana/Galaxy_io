@@ -198,7 +198,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53a1b66e5321c314abb500438b194c68, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.EnemySpawnConfigAuthoring
-  Cap: 2000
+  Cap: 25
   SpawnInterval: 2
   SpawnPerRadar: 4
   RadarCap: 20

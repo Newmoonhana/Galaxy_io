@@ -39,3 +39,4 @@ MonoBehaviour:
   LoopSound: 
   CancelSound: 
   HitSound: LaserBurnt
+  HitSoundMode: 1

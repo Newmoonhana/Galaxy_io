@@ -78,6 +78,7 @@ namespace GalaxyIO.DOTS.Systems
     /// Entity 는 끄지 않음. 꺼진 Ghost 는 스냅샷을 받지 못해 명중 수(HitCount)를 놓침.
     /// 한 번 감춘 투사체는 서버가 despawn 할 때까지 다시 보이지 않음.
     /// 클라이언트가 직접 쏜 투사체는 서버 명중 수가 오지 않으므로 여기서 명중 수를 올려 명중 연출을 띄움.
+    /// 모든 투사체의 예측 명중 수도 올림. 예측 명중음에 씀.
     /// </summary>
     [BurstCompile]
     public partial struct ProjectileHidingJob : IJobEntity
@@ -110,8 +111,11 @@ namespace GalaxyIO.DOTS.Systems
             }
 
             // 서버가 명중으로 끝낸 투사체. 클라이언트가 명중을 못 봤어도 감춤.
+            // 보간 투사체는 표적에 닿는 프레임에 Dead 가 같이 올 수 있음. 못 본 명중은 서버 지점으로 예측 명중을 셈.
             if (shared.Dead)
             {
+                shared.PredictedHitCount++;
+                shared.PredictedHitPosition = shared.HitPosition;
                 shared.Hidden = true;
                 return;
             }
@@ -164,11 +168,16 @@ namespace GalaxyIO.DOTS.Systems
                     continue;
                 }
 
+                float2 hitPosition = ColliderOverlap.ClosestOnPath(position - travelled, travelled, target.Collider.Center);
+
+                shared.PredictedHitCount++;
+                shared.PredictedHitPosition = hitPosition;
+
                 // 클라이언트가 직접 쏜 투사체. 예측한 명중으로 연출을 띄움(ProjectileHitEffectSystem).
                 if (Locals.HasComponent(entity))
                 {
                     shared.HitCount++;
-                    shared.HitPosition = ColliderOverlap.ClosestOnPath(position - travelled, travelled, target.Collider.Center);
+                    shared.HitPosition = hitPosition;
                 }
 
                 // 서버와 같은 규칙으로 관통력을 깎음. 남아 있으면 계속 날아감.

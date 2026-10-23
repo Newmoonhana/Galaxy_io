@@ -15,7 +15,7 @@ MonoBehaviour:
   Damage:
     Supported: 1
     MaxLevel: 10
-    Damage: 0.18
+    Damage: 0.15
   MaxHeat:
     Supported: 0
     MaxLevel: 25
@@ -36,11 +36,11 @@ MonoBehaviour:
   MaxHealth:
     Supported: 1
     MaxLevel: 10
-    MaxHealth: 40
+    MaxHealth: 95
   Repair:
     Supported: 1
     MaxLevel: 10
-    Repair: 28
+    Repair: 26
   Speed:
     Supported: 1
     MaxLevel: 5

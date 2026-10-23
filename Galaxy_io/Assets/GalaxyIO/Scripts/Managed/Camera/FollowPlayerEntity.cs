@@ -54,6 +54,28 @@ namespace GalaxyIO.Camera
         [Range(0.0F, 1.0F)]
         private float maxShift = 0.6F;
 
+        [Header("Shake")]
+
+        [SerializeField]
+        [Tooltip("받은 데미지 / 최대 체력 1 당 쌓이는 흔들림 세기. 세기는 0 ~ 1.")]
+        [Min(0.0F)]
+        private float shakeGain = 5.0F;
+
+        [SerializeField]
+        [Tooltip("세기 1 일 때 흔들림 폭. 시야 크기 비율이라 확대해도 화면상 폭이 같음.")]
+        [Min(0.0F)]
+        private float maxShake = 0.05F;
+
+        [SerializeField]
+        [Tooltip("초당 줄어드는 흔들림 세기")]
+        [Min(0.01F)]
+        private float shakeDecay = 2.0F;
+
+        [SerializeField]
+        [Tooltip("흔들림 빠르기")]
+        [Min(0.0F)]
+        private float shakeFrequency = 25.0F;
+
         private EntityManager entityManager;
         private EntityQuery playerQuery;
         private EntityQuery stateQuery;
@@ -69,6 +91,9 @@ namespace GalaxyIO.Camera
         // 현재 적용 중인 오프셋. 목표 오프셋을 향해 매 프레임 수렴함.
         private Vector2 currentLookAhead;
         private Vector2 currentShift;
+
+        // 흔들림 세기(0 ~ 1). 폭은 세기의 제곱이라 약한 흔들림은 거의 티가 안 남.
+        private float shake;
 
         private void Awake()
         {
@@ -103,6 +128,14 @@ namespace GalaxyIO.Camera
 
             targetCamera = GetComponent<UnityEngine.Camera>();
             maxZoom = targetCamera.orthographicSize;
+        }
+
+        /// <summary>
+        /// 받은 데미지 / 최대 체력만큼 카메라를 흔듦.
+        /// </summary>
+        public void Shake(float damageRatio)
+        {
+            shake = Mathf.Clamp01(shake + damageRatio * shakeGain);
         }
 
         private void OnEnable()
@@ -188,6 +221,16 @@ namespace GalaxyIO.Camera
             Vector2 offset = currentLookAhead + Vector2.Scale(currentShift, extents);
 
             offset = new Vector2(Mathf.Clamp(offset.x, -extents.x, extents.x), Mathf.Clamp(offset.y, -extents.y, extents.y));
+
+            // 펄린 노이즈로 흔듦. 세기는 시간에 따라 줄어듦.
+            if (shake > 0.0F)
+            {
+                float time = Time.time * shakeFrequency;
+                float amplitude = shake * shake * maxShake * targetCamera.orthographicSize;
+
+                offset += new Vector2(Mathf.PerlinNoise(time, 0.0F) * 2.0F - 1.0F, Mathf.PerlinNoise(0.0F, time) * 2.0F - 1.0F) * amplitude;
+                shake = Mathf.Max(shake - shakeDecay * Time.deltaTime, 0.0F);
+            }
 
             // 우주선의 위치는 보간 없이 그대로 따라가므로 화면상 위치가 흔들리지 않음.
             transform.position = new Vector3
