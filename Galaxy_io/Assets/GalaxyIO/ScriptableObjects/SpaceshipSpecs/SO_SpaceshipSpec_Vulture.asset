@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea1aadee859fe514883a55b3afebe321, type: 3}
+  m_Name: SO_SpaceshipSpec_Vulture
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.SpaceshipSpecAsset
+  Speed: 29
+  HoveringSpeed: 17
+  HoveringAcceleration: 26
+  HoveringDeceleration: 30
+  HoveringManeuver: 66
+  Acceleration: 24
+  Deceleration: 35
+  Maneuver: 420
+  ManeuverAcceleration: 3600
+  ManeuverDeceleration: 3600
+  ManeuverPenalty: 0.69
+  MaxHealth: 100
+  Repair: 18
+  RepairDelay: 3
+  Thickness: 1.2
+  PhaseSpeed: 18
+  MaxHeat: 80
+  KillPoint: 5
+  TurnBrakeTurnRate: 270
+  TurnBrakeDeceleration: 30
+  TurnBrakeExponent: 3
+  TurnBrakeStartSpeed: 15
+  TurnBrakeReferenceSpeed: 30
+  Inertia: 1
+  InertiaDeceleration: 20
+  InertiaTurnRate: 180
+  MaxOrthographicSize: 16
+  RadarRange: 80
+  RadarSweepSpeed: 140
+  RadarResponseTime: 0.1
+  Faction: 1
+  Upgrade: {fileID: 11400000, guid: e350f3f420a7483c9996d0e4d26e938f, type: 2}

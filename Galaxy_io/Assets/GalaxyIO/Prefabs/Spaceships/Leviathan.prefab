@@ -109,39 +109,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ba5f85943ed340039e28b4335d174b2c, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.SpaceshipAuthoring
   Kind: 7
-  Speed: 25
-  HoveringSpeed: 5
-  HoveringAcceleration: 6
-  HoveringDeceleration: 6
-  HoveringManeuver: 4
-  Acceleration: 3.5
-  Deceleration: 6
-  Maneuver: 60
-  ManeuverAcceleration: 140
-  ManeuverDeceleration: 180
-  ManeuverPenalty: 0.92
-  MaxHealth: 1600
-  Repair: 32
-  RepairDelay: 3
-  Thickness: 10
-  PhaseSpeed: 0
-  MaxHeat: 0
-  TurnBrakeTurnRate: 80
-  TurnBrakeDeceleration: 14
-  TurnBrakeExponent: 2
-  TurnBrakeStartSpeed: 10
-  TurnBrakeReferenceSpeed: 22
-  Inertia: 8
-  InertiaDeceleration: 8
-  InertiaTurnRate: 60
-  MaxOrthographicSize: 21
-  RadarRange: 75
-  RadarSweepSpeed: 105
-  RadarResponseTime: 0.1
-  Faction: 1
+  Spec: {fileID: 11400000, guid: 348fc837d4a51fe458b7dd4f219431ad, type: 2}
   Muzzles:
   - {fileID: 8240234519857750097}
   AutoTurrets:
@@ -153,7 +124,6 @@ MonoBehaviour:
     Muzzle: {fileID: 4334632477792733346}
   Turret: {fileID: 11400000, guid: b4fc85356b3f59b49a90baf53a0f1f4c, type: 2}
   FixedTurret: 1
-  Upgrade: {fileID: 11400000, guid: f1cdd3b1174f4f74871a5e8142599c22, type: 2}
 --- !u!114 &8909345426696020667
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -164,7 +134,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.Entities.Hybrid::Unity.Entities.Hybrid.Baking.LinkedEntityGroupAuthoring
 --- !u!114 &5889587866788096847
 MonoBehaviour:
@@ -176,7 +146,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 10d8d3839c4040f5bd46629014bce4ad, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.PlayerPossessingAuthoring
 --- !u!114 &3345718978926545676
 MonoBehaviour:
@@ -188,7 +158,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 7c79d771cedb4794bf100ce60df5f764, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Unity.NetCode.Authoring.Hybrid::Unity.NetCode.GhostAuthoringComponent
   HasOwner: 1
   SupportAutoCommandTarget: 1
@@ -214,7 +184,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 3b81e4e8540b4e94dbc07f7b0499c275, type: 3}
-  m_Name:
+  m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.BoxColliderAuthoring
   Center: {x: 0, y: -0.071}
   Size: {x: 6.4, y: 12.7}

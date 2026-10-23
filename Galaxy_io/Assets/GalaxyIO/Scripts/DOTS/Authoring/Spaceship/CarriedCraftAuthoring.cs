@@ -6,7 +6,7 @@ using UnityEngine;
 namespace GalaxyIO.DOTS.Authoring
 {
     /// <summary>
-    /// 모선이 내보내는 함재기의 정의. 기체 스펙은 <see cref="SpaceshipAuthoring"/>을 따르고, 비행 모드는 Speed, Acceleration,
+    /// 모선이 내보내는 함재기의 정의. 기체 스펙은 <see cref="SpaceshipSpecAsset"/>을 따르고, 비행 모드는 Speed, Acceleration,
     /// Deceleration, 호버링 모드는 Hovering 값을 씀.
     /// </summary>
     [RequireComponent(typeof(SpaceshipAuthoring))]
@@ -124,7 +124,9 @@ namespace GalaxyIO.DOTS.Authoring
         public override void Bake(CarriedCraftAuthoring authoring)
         {
             Entity entity = GetEntity(TransformUsageFlags.Dynamic);
-            SpaceshipAuthoring spaceship = GetComponent<SpaceshipAuthoring>();
+            SpaceshipSpecAsset spaceship = GetComponent<SpaceshipAuthoring>().Spec;
+
+            DependsOn(spaceship);
 
             AddComponent(entity, new CarriedCraftSpecComponent
             {

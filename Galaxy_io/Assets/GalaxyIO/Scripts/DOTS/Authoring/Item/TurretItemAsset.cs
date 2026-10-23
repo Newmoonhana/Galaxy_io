@@ -1,5 +1,6 @@
 ﻿using System;
 using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Mathematics;
 using UnityEngine;
 
@@ -133,5 +134,13 @@ namespace GalaxyIO.DOTS.Authoring
         [SerializeField]
         [Tooltip("충전 포탑만. 다 차기 전에 떼면 재생. 비우면 없음.")]
         public string CancelSound;
+
+        [SerializeField]
+        [Tooltip("투사체가 우주선에 맞을 때 재생. 쏜 플레이어에게는 화면 밖이어도 크게 들림. 비우면 없음.")]
+        public string HitSound;
+
+        [SerializeField]
+        [Tooltip("명중음을 내는 시점. Predicted 는 클라이언트 판정으로 바로, Simulated 는 서버 판정을 받고 냄.")]
+        public HitSoundMode HitSoundMode;
     }
 }

@@ -36,11 +36,11 @@ MonoBehaviour:
   MaxHealth:
     Supported: 1
     MaxLevel: 10
-    MaxHealth: 90
+    MaxHealth: 285
   Repair:
     Supported: 1
     MaxLevel: 10
-    Repair: 22
+    Repair: 34
   Speed:
     Supported: 1
     MaxLevel: 5

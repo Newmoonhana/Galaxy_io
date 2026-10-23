@@ -44,6 +44,7 @@ namespace GalaxyIO.DOTS.Systems
                 Owners       = SystemAPI.GetComponentLookup<GhostOwner>(true),
                 EnemyNames   = SystemAPI.GetComponentLookup<EnemyNameComponent>(true),
                 Records      = SystemAPI.GetBufferLookup<DamageRecordElement>(),
+                Reports      = SystemAPI.GetBufferLookup<DamageReportElement>(),
                 KillingBlows = SystemAPI.GetComponentLookup<KillingBlowComponent>(),
                 RamDamage    = config.RamDamage,
                 GroupLimit   = config.GroupRepulsion,
@@ -86,9 +87,12 @@ namespace GalaxyIO.DOTS.Systems
         [ReadOnly]
         public ComponentLookup<EnemyNameComponent> EnemyNames;
 
-        // 아래 둘은 자기 Entity 에만 씀. Entity 마다 한 번씩만 실행돼 병렬이어도 겹치지 않음.
+        // 아래 셋은 자기 Entity 에만 씀. Entity 마다 한 번씩만 실행돼 병렬이어도 겹치지 않음.
         [NativeDisableParallelForRestriction]
         public BufferLookup<DamageRecordElement> Records;
+
+        [NativeDisableParallelForRestriction]
+        public BufferLookup<DamageReportElement> Reports;
 
         [NativeDisableParallelForRestriction]
         public ComponentLookup<KillingBlowComponent> KillingBlows;
@@ -152,6 +156,18 @@ namespace GalaxyIO.DOTS.Systems
                     && Records.TryGetBuffer(entity, out DynamicBuffer<DamageRecordElement> records))
                 {
                     DamageRecord.Add(records, otherOwner.NetworkId, hit, ElapsedTime);
+                }
+
+                // 데미지 숫자는 두 선체의 중간에 띄움.
+                if (hit > 0.0F && Reports.TryGetBuffer(entity, out DynamicBuffer<DamageReportElement> reports))
+                {
+                    reports.Add(new DamageReportElement
+                    {
+                        AttackerNetworkId = Owners.TryGetComponent(message.Other, out GhostOwner attacker) ? attacker.NetworkId : -1,
+                        Amount            = hit,
+                        Position          = (transform.Position.xy + message.OtherCenter) * 0.5F,
+                        Turret            = ItemId.None,
+                    });
                 }
 
                 // 두께로 나눈 몫만큼 서로 물러나면 딱 맞닿음. 두께가 같으면 절반씩.

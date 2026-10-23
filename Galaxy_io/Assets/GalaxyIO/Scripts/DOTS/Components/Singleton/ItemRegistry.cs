@@ -7,6 +7,18 @@ using UnityEngine;
 namespace GalaxyIO.DOTS.Components.Singleton
 {
     /// <summary>
+    /// 명중음을 내는 시점.
+    /// </summary>
+    public enum HitSoundMode : byte
+    {
+        // 클라이언트가 직접 판정한 명중. 빠른 연사 무기용. e.g. Bore, Raptor
+        Predicted = 0,
+
+        // 서버가 판정한 명중. 느린 투사체, 관통, 폭발 무기용. e.g. Brakkar, Vraxx
+        Simulated = 1,
+    }
+
+    /// <summary>
     /// <see cref="ItemId"/>로 월드 아이템 스프라이트와 포탑 사양을 찾는 레지스트리. 월드당 한 개.
     /// 버퍼 인덱스가 곧 <see cref="ItemId"/> 값임. 나머지 정의는 <see cref="ItemRegistryAssetComponent"/>에서 찾음.
     /// </summary>
@@ -41,10 +53,12 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 포탑만. 사격마다 우주선을 발사 반대 방향으로 미는 속력.
         public float Recoil;
 
-        // 포탑만. 사격 시작음, 사격 중 반복음, 충전 취소음. 클라이언트만 씀.
+        // 포탑만. 사격 시작음, 사격 중 반복음, 충전 취소음, 명중음. 클라이언트만 씀.
         public FixedString64Bytes LaunchSound;
         public FixedString64Bytes LoopSound;
         public FixedString64Bytes CancelSound;
+        public FixedString64Bytes HitSound;
+        public HitSoundMode HitSoundMode;
     }
 
     /// <summary>

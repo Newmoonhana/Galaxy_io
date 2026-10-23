@@ -4,7 +4,7 @@ using Unity.Entities;
 namespace GalaxyIO.DOTS.Components.Actor
 {
     /// <summary>
-    /// <see cref="SpaceshipAuthoring"/>의 레이더 기본값. 프리팹에 베이킹되므로 복제하지 않음.
+    /// <see cref="SpaceshipSpecAsset"/>의 레이더 기본값. 프리팹에 베이킹되므로 복제하지 않음.
     /// 강화로 늘어난 값은 <see cref="UpgradeParamElement"/>에 따로 있음.
     /// </summary>
     public struct SpaceshipRadarComponent : IComponentData

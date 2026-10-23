@@ -26,7 +26,10 @@ namespace GalaxyIO.DOTS.Authoring
             AddBuffer<DamageRecordElement>(entity);
             AddComponent<KillingBlowComponent>(entity);
 
-            SpaceshipAuthoring spaceship = GetComponent<SpaceshipAuthoring>();
+            SpaceshipAuthoring authoringShip = GetComponent<SpaceshipAuthoring>();
+            SpaceshipSpecAsset spaceship = authoringShip != null ? authoringShip.Spec : null;
+
+            DependsOn(spaceship);
 
             // 우주선이 아닌 오브젝트에도 붙을 수 있으므로 스펙이 없으면 비행 모델은 생략함.
             if (spaceship == null)

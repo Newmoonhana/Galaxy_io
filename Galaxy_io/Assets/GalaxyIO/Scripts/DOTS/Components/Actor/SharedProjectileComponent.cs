@@ -46,6 +46,13 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 클라이언트가 연출을 띄운 명중 수. 서버에서는 쓰지 않음.
         public byte PresentedHitCount;
 
+        // 클라이언트만. 직접 판정한 명중 수와 마지막 지점. 예측 명중음에 씀.
+        public byte PredictedHitCount;
+        public float2 PredictedHitPosition;
+
+        // 클라이언트만. 명중음을 낸 예측 명중 수.
+        public byte PresentedPredictedHitCount;
+
         // 이 투사체를 발사한 우주선. 자기가 쏜 탄에 맞지 않도록 판정에서 건너뜀.
         // 클라이언트 명중 연출에서도 건너뛰도록 복제함.
         [GhostField]

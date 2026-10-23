@@ -5,7 +5,7 @@ using UnityEngine;
 namespace GalaxyIO.DOTS.Authoring
 {
     /// <summary>
-    /// 우주선 기종 하나의 강화 사양. <see cref="SpaceshipAuthoring"/>이 참조함.
+    /// 우주선 기종 하나의 강화 사양. <see cref="SpaceshipSpecAsset"/>이 참조함.
     /// 값은 모두 한 단계마다 바뀌는 양.
     /// </summary>
     [CreateAssetMenu(fileName = "SO_Upgrade", menuName = "GalaxyIO/Spaceship Upgrade")]

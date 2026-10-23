@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea1aadee859fe514883a55b3afebe321, type: 3}
+  m_Name: SO_SpaceshipSpec_Leviathan
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.SpaceshipSpecAsset
+  Speed: 25
+  HoveringSpeed: 3
+  HoveringAcceleration: 5
+  HoveringDeceleration: 6
+  HoveringManeuver: 2
+  Acceleration: 3.2
+  Deceleration: 6
+  Maneuver: 45
+  ManeuverAcceleration: 140
+  ManeuverDeceleration: 180
+  ManeuverPenalty: 0.92
+  MaxHealth: 2200
+  Repair: 32
+  RepairDelay: 3
+  Thickness: 10
+  PhaseSpeed: 0
+  MaxHeat: 0
+  KillPoint: 12
+  TurnBrakeTurnRate: 80
+  TurnBrakeDeceleration: 14
+  TurnBrakeExponent: 2
+  TurnBrakeStartSpeed: 10
+  TurnBrakeReferenceSpeed: 22
+  Inertia: 8
+  InertiaDeceleration: 8
+  InertiaTurnRate: 60
+  MaxOrthographicSize: 21
+  RadarRange: 75
+  RadarSweepSpeed: 105
+  RadarResponseTime: 0.1
+  Faction: 1
+  Upgrade: {fileID: 11400000, guid: f1cdd3b1174f4f74871a5e8142599c22, type: 2}

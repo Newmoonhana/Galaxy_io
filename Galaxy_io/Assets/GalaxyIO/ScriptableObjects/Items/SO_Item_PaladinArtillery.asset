@@ -36,5 +36,7 @@ MonoBehaviour:
   HeatMode: 0
   Recoil: 10
   LaunchSound: Launch_Paladin
-  LoopSound:
+  LoopSound: 
   CancelSound: Cancel_Paladin
+  HitSound: LaserBurnt
+  HitSoundMode: 1

@@ -12,7 +12,7 @@ namespace GalaxyIO.DOTS.Client.Systems
     /// </summary>
     public static class SoundAudibleRange
     {
-        public const float Radius = 75.0F;
+        public const float Radius = 35.0F;
 
         private const float RadiusSq = Radius * Radius;
 
