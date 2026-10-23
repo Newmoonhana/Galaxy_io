@@ -18,7 +18,7 @@ namespace GalaxyIO.DOTS.Authoring
     }
 
     /// <summary>
-    /// AI 가 조종하는 우주선의 행동 정의. 기체 스펙은 <see cref="SpaceshipAuthoring"/>을 따름.
+    /// AI 가 조종하는 우주선의 행동 정의. 기체 스펙은 <see cref="SpaceshipSpecAsset"/>을 따름.
     /// </summary>
     [RequireComponent(typeof(SpaceshipAuthoring))]
     public sealed class EnemyAuthoring : MonoBehaviour
@@ -98,7 +98,9 @@ namespace GalaxyIO.DOTS.Authoring
         public override void Bake(EnemyAuthoring authoring)
         {
             Entity entity = GetEntity(TransformUsageFlags.Dynamic);
-            SpaceshipAuthoring spaceship = GetComponent<SpaceshipAuthoring>();
+            SpaceshipSpecAsset spaceship = GetComponent<SpaceshipAuthoring>().Spec;
+
+            DependsOn(spaceship);
 
             var displayName = new FixedString32Bytes();
             displayName.CopyFromTruncated(authoring.DisplayName);

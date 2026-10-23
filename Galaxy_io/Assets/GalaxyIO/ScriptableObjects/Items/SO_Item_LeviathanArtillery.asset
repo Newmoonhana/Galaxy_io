@@ -35,6 +35,7 @@ MonoBehaviour:
   Heat: 0
   HeatMode: 0
   Recoil: 10
-  LaunchSound:
-  LoopSound:
-  CancelSound:
+  LaunchSound: 
+  LoopSound: 
+  CancelSound: 
+  HitSound: HitExplosion

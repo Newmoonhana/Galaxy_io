@@ -19,10 +19,6 @@ namespace GalaxyIO.DOTS.Systems
     [UpdateInGroup(typeof(DespawnSystemGroup))]
     public partial struct SpaceshipDeathSystem : ISystem
     {
-        // 격추 점수. 테스트용 규칙.
-        private const int EnemyKillScore = 1;
-        private const int PlayerKillScore = 5;
-
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
@@ -103,10 +99,10 @@ namespace GalaxyIO.DOTS.Systems
                 {
                     int killer = SystemAPI.GetComponent<KillingBlowComponent>(entity).NetworkId;
 
-                    // AI 막타(-1)와 알 수 없는 막타(0)는 점수 없음.
+                    // AI 막타(-1)와 알 수 없는 막타(0)는 점수 없음. 점수는 격추된 기체의 KillPoint.
                     if (killer > 0 && killer != owner.ValueRO.NetworkId)
                     {
-                        Post(ecb, ScoreMessage.Add(killer, isPlayer ? PlayerKillScore : EnemyKillScore));
+                        Post(ecb, ScoreMessage.Add(killer, spec.ValueRO.KillPoint));
                     }
                 }
 

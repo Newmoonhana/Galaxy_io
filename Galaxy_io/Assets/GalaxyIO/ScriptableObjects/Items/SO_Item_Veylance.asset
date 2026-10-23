@@ -24,14 +24,18 @@ MonoBehaviour:
     Damage: 10
     ShotSound: 
   AutoSpec:
-    FireDuration: 2
-    RestDuration: {x: 1, y: 2}
+    FireDuration: 1
+    RestDuration: {x: 3, y: 4}
     TurningSpeed: 180
     SightAngle: 120
     DetectRange: 22
   SwitchTime: 0.4
+  ReleaseFire: 0
   ManeuverPenalty: 0.6
   Heat: 28
   HeatMode: 1
+  Recoil: 0
   LaunchSound: 
   LoopSound: Loop_Veylance
+  CancelSound: 
+  HitSound: 

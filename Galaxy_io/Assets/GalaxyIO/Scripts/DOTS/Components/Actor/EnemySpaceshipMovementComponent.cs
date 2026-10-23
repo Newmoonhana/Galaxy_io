@@ -6,7 +6,7 @@ namespace GalaxyIO.DOTS.Components.Actor
 {
     /// <summary>
     /// AI 가 조종하는 우주선의 비행 모델. 플레이어의 호버링(WASD)과 같은 방식으로 움직임.
-    /// 값은 <see cref="SpaceshipAuthoring"/>에서 가져옴.
+    /// 값은 <see cref="SpaceshipSpecAsset"/>에서 가져옴.
     /// </summary>
     public struct EnemySpaceshipMovementComponent : IComponentData
     {

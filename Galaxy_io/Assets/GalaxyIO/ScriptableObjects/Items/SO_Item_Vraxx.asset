@@ -24,14 +24,18 @@ MonoBehaviour:
     Damage: 80
     ShotSound: Shot_Vraxx
   AutoSpec:
-    FireDuration: 2
-    RestDuration: {x: 1, y: 2}
+    FireDuration: 1
+    RestDuration: {x: 2.5, y: 3}
     TurningSpeed: 180
     SightAngle: 120
     DetectRange: 28
   SwitchTime: 0
+  ReleaseFire: 0
   ManeuverPenalty: 0
   Heat: 25.1
   HeatMode: 0
+  Recoil: 0
   LaunchSound: 
   LoopSound: 
+  CancelSound: 
+  HitSound: LaserBurnt
