@@ -1,0 +1,42 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a1c3e5f2b8d4c6e9f0a1b2c3d4e5f60, type: 3}
+  m_Name: SO_Item_ThorMissile
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.TurretItemAsset
+  Id: 13
+  Sprite: {fileID: 2640615053509864606, guid: af4074bc0e8a25449a7d06da1890563e, type: 3}
+  Spec:
+    Projectile: {fileID: 3898896724990523705, guid: 0cb22af04013a4a4893e1ca495187ee7, type: 3}
+    RPS: 0.15
+    MuzzleDelay: 0.35
+    ProjectileCount: 0
+    SpeedSpread: 0
+    Accuracy: 0.97
+    Damage: 275
+    ShotSound: Shot_Thor
+  AutoSpec:
+    FireDuration: 2
+    RestDuration: {x: 1, y: 2}
+    TurningSpeed: 180
+    SightAngle: 120
+    DetectRange: 20
+  SwitchTime: 0
+  ReleaseFire: 0
+  ManeuverPenalty: 0
+  Heat: 0
+  HeatMode: 0
+  Recoil: 3.5
+  LaunchSound: 
+  LoopSound: 
+  CancelSound: 
+  HitSound: HitExplosion
+  HitSoundMode: 1

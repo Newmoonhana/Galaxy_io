@@ -33,7 +33,8 @@ namespace GalaxyIO.DOTS.Authoring
         public GameObject ShotEffect;
 
         [SerializeField]
-        [Tooltip("클라이언트가 투사체에 붙여 재생할 연출(EffectAuthoring). 파티클은 재생 속도를 투사체 수명에 맞추고, 트레일은 투사체가 사라진 뒤 꼬리가 줄어들고 사라짐. 비우면 없음.")]
+        [Tooltip("클라이언트가 투사체에 붙여 재생할 연출(EffectAuthoring). 파티클은 재생 속도를 투사체 수명에 맞추고, 트레일은 투사체가 사라진 뒤 꼬리가 줄어들고 사라짐. " +
+                 "월드 공간 파티클(연기 등)은 트레일처럼 투사체가 사라진 뒤에도 남음. 비우면 없음.")]
         public GameObject Visual;
 
         [SerializeField]
