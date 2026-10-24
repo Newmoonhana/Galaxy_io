@@ -17,6 +17,7 @@ namespace GalaxyIO.DOTS.Systems
     /// 포탑 열(<see cref="TurretHeatComponent"/>)도 같이 계산함. 과열 중에는 방아쇠를 뗀 것으로 다룸.
     /// 발사 간격은 재장전 강화만큼 줄고, 포탑에 반동이 있으면 우주선 속도를 발사 반대 방향으로 밂.
     /// 충전 포탑은 쿨다운이 끝났을 때만 충전하고, 다 찬 뒤 떼면 쏨(<see cref="TurretSwitch.UpdateCharge"/>).
+    /// 발사대(<see cref="TurretRackComponent"/>)가 있으면 장전 상태도 갱신함.
     /// 클라이언트와 서버가 같은 틱에 각자 투사체를 만들고
     /// <see cref="ProjectileSpawnClassificationSystem"/>이 둘을 짝지음.
     /// </summary>
@@ -145,6 +146,13 @@ namespace GalaxyIO.DOTS.Systems
                     deltaTime,
                     ref shots
                 );
+
+                // 발사대가 있는 기종은 장전 상태를 복제해 다른 클라이언트도 그리게 함.
+                if (SystemAPI.HasComponent<TurretRackComponent>(spaceship))
+                {
+                    RefRW<TurretRackComponent> rack = SystemAPI.GetComponentRW<TurretRackComponent>(spaceship);
+                    rack.ValueRW.Loaded = TurretRack.Loaded(cooldownValues, rack.ValueRO.ShowTime);
+                }
 
                 // 총구 위치. 쿨다운과 같은 순서.
                 DynamicBuffer<TurretElement> muzzles = SystemAPI.GetBuffer<TurretElement>(spaceship);
