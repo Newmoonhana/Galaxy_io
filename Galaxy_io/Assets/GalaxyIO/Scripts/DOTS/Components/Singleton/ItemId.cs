@@ -28,5 +28,6 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 우주선 고정 포탑(함포). 드랍 테이블, 상점에 넣지 않음.
         LeviathanArtillery = 11,
         PaladinArtillery = 12,
+        ThorMissile = 13,
     }
 }

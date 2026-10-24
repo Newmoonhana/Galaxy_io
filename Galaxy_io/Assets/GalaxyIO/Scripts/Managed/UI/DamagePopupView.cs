@@ -111,7 +111,7 @@ namespace GalaxyIO.Scripts.Managed.UI
         [SerializeField]
         [Tooltip("때린 플레이어의 명중음 최소 음량 비율. 아무리 멀어도 이만큼은 들림.")]
         [Range(0.0F, 1.0F)]
-        private float attackerMinVolume = 0.25F;
+        private float attackerMinVolume = 0.4F;
 
         private sealed class Popup
         {

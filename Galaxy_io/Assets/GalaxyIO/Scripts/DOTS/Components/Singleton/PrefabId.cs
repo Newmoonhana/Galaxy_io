@@ -21,9 +21,8 @@
         // 월드에 떨어진 아이템. 모든 아이템 종류가 공유함.
         ItemEntity = 4,
 
-        // 5 는 빈 칸. 다음에 추가할 프리팹이 씀.
-
         // 플레이어 우주선
+        Thor = 5,
         Colossus = 6,
         Vulture = 7,
         Nighthawk = 8,

@@ -22,6 +22,7 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 순양함
         Leviathan = 7,
         Paladin = 8,
+        Thor = 11,
 
         // 모선
         Behemoth = 9,
