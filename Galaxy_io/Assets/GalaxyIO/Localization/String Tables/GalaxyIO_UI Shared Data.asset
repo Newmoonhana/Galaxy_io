@@ -687,6 +687,10 @@ MonoBehaviour:
     m_Key: Upgrade/Reload
     m_Metadata:
       m_Items: []
+  - m_Id: 10658426795368448
+    m_Key: Spaceship/Thor
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

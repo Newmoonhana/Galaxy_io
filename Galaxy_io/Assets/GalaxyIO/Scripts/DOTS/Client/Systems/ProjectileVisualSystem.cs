@@ -12,6 +12,7 @@ namespace GalaxyIO.DOTS.Client.Systems
     /// 파티클/트레일 연출을 붙여 따라다니게 함. 투사체가 사라지거나 감춰지면 연출도 지움.
     /// 연출 재생 속도를 투사체 수명에 맞춰 파티클 한 번의 수명이 투사체 수명 전체에 걸치게 함.
     /// 트레일이 있는 연출은 투사체가 사라지면 파티클만 지우고 그 자리에 남아 꼬리가 줄어든 뒤 지워짐.
+    /// 월드 공간 파티클(연기 등)은 트레일처럼 다룸. 재생 속도를 바꾸지 않고, 투사체가 사라지면 방출만 멈춤.
     /// </summary>
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
@@ -76,22 +77,36 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                 foreach (EffectPartElement part in parts)
                 {
-                    if (entityManager.HasComponent<TrailRenderer>(part.Value))
+                    TrailRenderer trail = entityManager.HasComponent<TrailRenderer>(part.Value)
+                        ? entityManager.GetComponentObject<TrailRenderer>(part.Value)
+                        : null;
+                    ParticleSystem particle = trail == null ? entityManager.GetComponentObject<ParticleSystem>(part.Value) : null;
+
+                    // 월드 공간 파티클은 지나간 자리에 남는 자취(e.g. 미사일 연기). 트레일처럼 다룸.
+                    if (trail != null || particle.main.simulationSpace == ParticleSystemSimulationSpace.World)
                     {
                         // 꼬리가 프리팹 위치에서 시작하지 않도록 바로 옮기고 비움. 자식은 한 단계까지만 위치를 맞춤.
                         float3 position = part.Value == visual.Instance
                             ? visualTransform.Position
                             : visualTransform.TransformPoint(entityManager.GetComponentData<LocalTransform>(part.Value).Position);
 
-                        TrailRenderer trail = entityManager.GetComponentObject<TrailRenderer>(part.Value);
-                        trail.transform.SetPositionAndRotation(position, visualTransform.Rotation);
-                        trail.Clear();
+                        if (trail != null)
+                        {
+                            trail.transform.SetPositionAndRotation(position, visualTransform.Rotation);
+                            trail.Clear();
+                        }
+                        else
+                        {
+                            particle.transform.SetPositionAndRotation(position, visualTransform.Rotation);
+                            particle.Clear();
+                        }
+
                         hasTrail = true;
                     }
                     else if (lifetime > 0.0F)
                     {
                         // 파티클 수명 / 재생 속도 = 투사체 수명.
-                        ParticleSystem.MainModule main = entityManager.GetComponentObject<ParticleSystem>(part.Value).main;
+                        ParticleSystem.MainModule main = particle.main;
                         main.simulationSpeed = main.startLifetime.constantMax / lifetime;
                     }
                 }
@@ -129,7 +144,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                     || shared.Hidden
                     || shared.Dead)
                 {
-                    // 파티클은 투사체와 함께 바로 지우고, 트레일은 꼬리가 줄어들 때까지 남김.
+                    // 파티클은 투사체와 함께 바로 지우고, 자취(트레일, 월드 공간 파티클)는 사라질 때까지 남김.
                     float trailTime = 0.0F;
                     bool hasTrail = false;
 
@@ -141,11 +156,20 @@ namespace GalaxyIO.DOTS.Client.Systems
                             trail.emitting = false;
                             trailTime = math.max(trailTime, trail.time);
                             hasTrail = true;
+                            continue;
+                        }
+
+                        ParticleSystem particle = entityManager.GetComponentObject<ParticleSystem>(part.Value);
+
+                        if (particle.main.simulationSpace == ParticleSystemSimulationSpace.World)
+                        {
+                            particle.Stop(true, ParticleSystemStopBehavior.StopEmitting);
+                            trailTime = math.max(trailTime, particle.main.startLifetime.constantMax);
+                            hasTrail = true;
                         }
                         else
                         {
-                            entityManager.GetComponentObject<ParticleSystem>(part.Value)
-                                .Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+                            particle.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
                         }
                     }
 
