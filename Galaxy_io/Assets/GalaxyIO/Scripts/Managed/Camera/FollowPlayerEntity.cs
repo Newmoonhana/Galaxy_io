@@ -1,6 +1,7 @@
 ﻿using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Spaceship;
+using GalaxyIO.Scripts.Managed.Background;
 using GalaxyIO.Tools;
 using Unity.Collections;
 using Unity.Entities;
@@ -81,6 +82,9 @@ namespace GalaxyIO.Camera
         private EntityQuery stateQuery;
 
         private UnityEngine.Camera targetCamera;
+
+        // 카메라를 스폰 위치로 한 번 옮겼는가. 배경을 그 뒤에 보여 주기 위한 1회성 플래그.
+        private bool backgroundRevealed;
 
         // 탄 우주선의 최대 시야 크기. 우주선이 없으면 마지막 값을 유지함.
         private float maxZoom;
@@ -239,6 +243,15 @@ namespace GalaxyIO.Camera
                 playerTransform.Position.y + offset.y,
                 transform.position.z
             );
+
+            // 카메라를 스폰 위치로 처음 옮긴 뒤에야 배경을 보여 줌.
+            // 접속 완료(NetworkStreamInGame)는 이보다 몇 프레임 빨라서, 그걸 신호로 쓰면
+            // 아직 원점에 있는 배경이 잠깐 보였다가 이 순간이동으로 다시 가려짐.
+            if (!backgroundRevealed)
+            {
+                backgroundRevealed = true;
+                BackgroundView.RevealAcrossScenes();
+            }
         }
 
         /// <summary>

@@ -68,8 +68,10 @@ namespace GalaxyIO.Scripts.Managed.Background
 
         [SerializeField]
         [Tooltip("startHidden 으로 가린 뒤 이 시간이 지나도 Reveal() 이 안 오면 그냥 나타남(초).\n" +
-                 "어떤 경로로든 Reveal 이 누락됐을 때 배경이 영영 검은 채로 남는 것을 막는 안전장치. 0 이면 끔.")]
-        private float revealTimeout = 8.0F;
+                 "정상 경로는 FollowPlayerEntity 가 카메라를 옮긴 뒤 Reveal() 을 부르는 것임.\n" +
+                 "이 값은 그 호출이 통째로 누락됐을 때만 쓰이는 안전장치라,\n" +
+                 "접속과 스폰에 걸리는 시간보다 넉넉히 길어야 함. 짧으면 원점 배경이 먼저 보임. 0 이면 끔.")]
+        private float revealTimeout = 30.0F;
 
         // 마지막으로 맞춘 화면 크기. 같으면 Transform 을 안 건드림.
         private Vector2 appliedSize;
