@@ -46,17 +46,17 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _FarParallax: 0.04
+    - _FarParallax: 0.1
     - _FarRotation: 0
     - _FarScale: 360
-    - _FarWeight: 0.8
-    - _MaskContrast: 1.5
-    - _MaskParallax: 0.04
-    - _MaskScale: 120
-    - _NearParallax: 0.12
+    - _FarWeight: 0.55
+    - _MaskContrast: 4
+    - _MaskParallax: 0.1
+    - _MaskScale: 90
+    - _NearParallax: 0.31
     - _NearRotation: 37
     - _NearScale: 150
-    - _NearWeight: 0.5
+    - _NearWeight: 0.32
     - _PixelSize: 0.0833333
     - _QueueControl: 0
     - _QueueOffset: 0
@@ -64,8 +64,8 @@ Material:
     - _WarpScale: 260
     m_Colors:
     - _DeepColor: {r: 0.012, g: 0.016, b: 0.035, a: 1}
-    - _FarColor: {r: 0.22, g: 0.3, b: 0.65, a: 1}
-    - _NearColor: {r: 0.55, g: 0.25, b: 0.45, a: 1}
+    - _FarColor: {r: 0.11, g: 0.15, b: 0.325, a: 1}
+    - _NearColor: {r: 0.275, g: 0.125, b: 0.225, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &8108418914394504723

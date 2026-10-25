@@ -1314,7 +1314,7 @@ MonoBehaviour:
   - {fileID: 1988669416}
   - {fileID: 1059279492}
   coverMargin: 1.2
-  starOctavesByQuality: 010000000200000002000000020000000200000003000000
+  starOctavesByQuality: 020000000300000003000000030000000300000003000000
 --- !u!1 &420711448
 GameObject:
   m_ObjectHideFlags: 0

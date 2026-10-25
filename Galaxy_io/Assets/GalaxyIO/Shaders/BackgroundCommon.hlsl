@@ -6,6 +6,23 @@
 // 깜빡임 위상이 되감기는 주기(초). 별의 주기를 이 값의 약수로 맞춰 시간이 되감겨도 위상이 안 튐.
 #define BG_TIME_WRAP 512.0
 
+// 농도 마스크의 치우침과 좌표 원점. 머티리얼 슬라이더가 아니라 여기서 바꿈 (플랜 7-12 절).
+// BG_MASK_BIAS: 0.5 = 성운과 빈 구역이 반반. 올리면 빈 구역(검정)이 넓어짐.
+//   _MaskContrast 4 기준 (검정 면적 / 짙은 성운 면적 / 평균 Mask):
+//     0.50 -> 23% / 30% / 0.50      0.55 -> 33% / 21% / 0.39
+//     0.57 -> 38% / 17% / 0.35      0.60 -> 44% / 13% / 0.29
+//     0.62 -> 49% / 10% / 0.26      0.70 -> 67% /  3% / 0.13
+#define BG_MASK_BIAS 0.50
+
+// BG_MASK_OFFSET: 노이즈 좌표계에서 원점을 옮김. 스폰 지점(0, 0)이 어느 농도 칸에
+// 떨어지는지를 정하는 값임. _MaskScale 로 나눈 뒤에 더하므로 Scale 을 바꿔도
+// 스폰 지점의 성격이 유지됨. BG_MASK_BIAS 0.50 에서 스폰 화면은 평균 Mask 0.500 /
+// 짙은 성운 25% 이고 지도 전체 중앙값 0.444 바로 위(399개 지점 중 214위)인 평범한 구역임.
+// BG_MASK_BIAS 를 바꾸면 스폰 지점의 농도도 같이 움직이므로 이 값도 다시 재 봐야 함
+// (bias 0.62 / 0.57 / 0.50 에서 이 오프셋의 스폰 평균은 각각 0.149 / 0.301 / 0.500 이었고,
+//  세 경우 모두 지도 중앙값 근처라 결과적으로 다시 고를 필요는 없었음).
+#define BG_MASK_OFFSET float2(109.65, 178.05)
+
 // 별 겹 수. 그래프의 Star Octaves 키워드로 바뀜. 정의가 없으면 1 겹.
 #if defined(_STAR_OCTAVES_THREE)
     #define BG_STAR_OCTAVES 3
@@ -91,12 +108,12 @@ void BackgroundMask_float(
     float  PixelSize,
     out float Mask)
 {
-    float2 q = BgParallax(PositionWS, CameraWS, Parallax, PixelSize) / max(Scale, 1e-4);
+    float2 q = BgParallax(PositionWS, CameraWS, Parallax, PixelSize) / max(Scale, 1e-4) + BG_MASK_OFFSET;
 
     // 두 겹. 큰 덩어리 안에 작은 농담.
     float n = BgNoise(q) * 0.65 + BgNoise(q * 2.17 + 5.3) * 0.35;
 
-    Mask = saturate((n - 0.5) * Contrast + 0.5);
+    Mask = saturate((n - BG_MASK_BIAS) * Contrast + 0.5);
 }
 
 // 별 한 겹. 격자 한 칸에 최대 한 개.

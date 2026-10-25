@@ -1,4 +1,4 @@
-{
+﻿{
     "m_SGVersion": 3,
     "m_Type": "UnityEditor.ShaderGraph.GraphData",
     "m_ObjectId": "3c61bf4f4c1b473887e28cfccc6395a0",
@@ -758,7 +758,7 @@
     "m_Hidden": false,
     "m_PerRendererData": false,
     "m_customAttributes": [],
-    "m_Value": 0.03999999910593033,
+    "m_Value": 0.022,
     "m_FloatType": 0,
     "m_LiteralFloatMode": false,
     "m_RangeValues": {
@@ -1588,9 +1588,9 @@
     "m_PerRendererData": false,
     "m_customAttributes": [],
     "m_Value": {
-        "x": 0.3499999940395355,
-        "y": 0.25,
-        "z": 0.14000000059604646,
+        "x": 0.2,
+        "y": 0.42,
+        "z": 0.35,
         "w": 0.0
     }
 }
@@ -1755,7 +1755,7 @@
     "m_Hidden": false,
     "m_PerRendererData": false,
     "m_customAttributes": [],
-    "m_Value": 0.08333329856395722,
+    "m_Value": 0.0,
     "m_FloatType": 0,
     "m_LiteralFloatMode": false,
     "m_RangeValues": {
@@ -1800,9 +1800,9 @@
     "m_PerRendererData": false,
     "m_customAttributes": [],
     "m_Value": {
-        "x": 0.550000011920929,
-        "y": 0.8500000238418579,
-        "z": 1.2000000476837159,
+        "x": 0.65,
+        "y": 0.95,
+        "z": 1.3,
         "w": 0.0
     }
 }
@@ -1861,7 +1861,7 @@
     "m_Value": {
         "x": 2.0,
         "y": 4.0,
-        "z": 7.5,
+        "z": 6.0,
         "w": 0.0
     }
 }
@@ -2147,7 +2147,7 @@
     "m_Hidden": false,
     "m_PerRendererData": false,
     "m_customAttributes": [],
-    "m_Value": 3.0,
+    "m_Value": 1.8,
     "m_FloatType": 0,
     "m_LiteralFloatMode": false,
     "m_RangeValues": {
@@ -2864,9 +2864,9 @@
     "m_PerRendererData": false,
     "m_customAttributes": [],
     "m_Value": {
-        "x": 0.07999999821186066,
-        "y": 0.18000000715255738,
-        "z": 0.3799999952316284,
+        "x": 0.18,
+        "y": 0.3,
+        "z": 0.47,
         "w": 0.0
     }
 }
