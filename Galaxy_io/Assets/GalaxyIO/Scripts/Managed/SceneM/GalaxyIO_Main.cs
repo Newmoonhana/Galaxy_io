@@ -154,13 +154,10 @@ namespace GalaxyIO.Main
         {
             bool visible = hasQueries && !inGameQuery.IsEmpty;
 
-            // 접속까지 끝났으면 로딩 오버레이를 치움. 배경도 이때부터 나타남 —
-            // 그 전에 보여 주면 스폰 직후 카메라가 순간이동하면서 배경이 같이 튐.
-            if (visible)
-            {
-                CommonProgress.HideAcrossScenes();
-                BackgroundView.RevealAcrossScenes();
-            }
+            // 접속까지 끝났으면 로딩 오버레이를 치움.
+            // 배경은 여기서 켜지 않음 — 접속 완료가 카메라 순간이동보다 몇 프레임 빨라서
+            // 아직 원점에 있는 배경이 잠깐 보임. FollowPlayerEntity 가 카메라를 옮긴 뒤 켬.
+            if (visible) CommonProgress.HideAcrossScenes();
 
             if (hud == null || hud.enabled == visible) return;
 

@@ -1320,6 +1320,7 @@ MonoBehaviour:
   startHidden: 1
   revealDuration: 0.45
   teleportThreshold: 40
+  revealTimeout: 30
 --- !u!1 &420711448
 GameObject:
   m_ObjectHideFlags: 0
