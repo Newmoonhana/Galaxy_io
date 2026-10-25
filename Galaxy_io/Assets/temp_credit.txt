@@ -1,3 +1,12 @@
+그래픽
+
+# 알파 텍스처
+Kenney Particle Pack(CC0)
+
+---
+
+사운드
+
 # SFMusicPack_SND
 - 크레딧 필요
 [Copyright](C) 2014 DEGICA, LLC
@@ -62,5 +71,3 @@ PyronLaunch, PyronLoop: Pyron 발사음, 루프음
 RaptorShot: Raptor 발사음
 - https://pixabay.com/ko/sound-effects/%EC%98%81%ED%99%94-%EB%B0%8F-%ED%8A%B9%EC%88%98-%ED%9A%A8%EA%B3%BC-laser-gun-shot-sound-future-sci-fi-lazer-wobble-chakongaudio-174883/
 ```
-
-C:\Program Files (x86)\Steam\steamapps\common\RPGVXAce\dlc\SFSoundEffects_SND\SFX_OGG 부터 이어서 보기
