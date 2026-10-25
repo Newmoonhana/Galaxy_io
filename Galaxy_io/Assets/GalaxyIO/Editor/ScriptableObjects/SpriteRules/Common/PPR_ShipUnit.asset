@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Newmoonhana.NMHNEngine.Editor::Newmoonhana.Editor.SpritePostprocessorRules
   pathContains: Units/Ships
   spriteMode: 1
-  pixelsPerUnit: 24
+  pixelsPerUnit: 0
   meshType: 1
   alphaSource: 1
   alphaIsTransparency: 1

@@ -1,0 +1,83 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: M_BackgroundNebula
+  m_Shader: {fileID: -6465566751694194690, guid: 5683ffcd86f567a4d98c397b33203a76, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _FarTex:
+        m_Texture: {fileID: 2800000, guid: 0be0888978f2e3e41bd7a4ab00035c63, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NearTex:
+        m_Texture: {fileID: 2800000, guid: 071364cbe6251c14ca7f92b78697a0b5, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _FarParallax: 0.04
+    - _FarRotation: 0
+    - _FarScale: 360
+    - _FarWeight: 0.8
+    - _MaskContrast: 1.5
+    - _MaskParallax: 0.04
+    - _MaskScale: 120
+    - _NearParallax: 0.12
+    - _NearRotation: 37
+    - _NearScale: 150
+    - _NearWeight: 0.5
+    - _PixelSize: 0.0833333
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _Warp: 24
+    - _WarpScale: 260
+    m_Colors:
+    - _DeepColor: {r: 0.012, g: 0.016, b: 0.035, a: 1}
+    - _FarColor: {r: 0.22, g: 0.3, b: 0.65, a: 1}
+    - _NearColor: {r: 0.55, g: 0.25, b: 0.45, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
+--- !u!114 &8108418914394504723
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Editor::UnityEditor.Rendering.Universal.AssetVersion
+  version: 10
