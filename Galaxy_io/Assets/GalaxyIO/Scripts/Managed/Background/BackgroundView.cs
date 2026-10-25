@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace GalaxyIO.Scripts.Managed.Background
 {
@@ -9,8 +9,13 @@ namespace GalaxyIO.Scripts.Managed.Background
     [DefaultExecutionOrder(100)]
     public sealed class BackgroundView : MonoBehaviour
     {
-        // BackgroundCommon.hlsl 이 선언한 전역 텍스처. 머티리얼 프로퍼티가 아님.
+        // BackgroundCommon.hlsl 이 선언한 전역들. 머티리얼 프로퍼티가 아님.
         private static readonly int StarShapesId = Shader.PropertyToID("_StarShapes");
+        private static readonly int CameraOffsetId = Shader.PropertyToID("_BgCameraOffset");
+        private static readonly int FadeOutId = Shader.PropertyToID("_BgFadeOut");
+
+        // 씬에 하나만 있는 전제. CommonProgress.HideAcrossScenes 와 같은 방식.
+        private static BackgroundView current;
 
         // Background-Stars 그래프의 Star Octaves 키워드. 인덱스 + 1 = 겹 수.
         private static readonly string[] StarOctaveKeywords =
@@ -38,14 +43,67 @@ namespace GalaxyIO.Scripts.Managed.Background
         private int[] starOctavesByQuality = { 1, 2, 3 };
 
         [SerializeField]
-        [Tooltip("별 모양 아틀라스(4 x 2 칸). 비워 두면 모든 별이 절차적 원형으로 나옴.")]
+        [Tooltip("별 모양 아틀라스(가로 한 줄). 비워 두면 모든 별이 절차적 원형으로 나옴.")]
         private Texture starShapes;
+
+        [SerializeField]
+        [Tooltip("플레이어 이동이 없는 씬(로비)에서 배경만 흐르게 함. 월드 유닛/초. (0, 0) 이면 끔.\n" +
+                 "겹마다 시차가 다르므로 천천히 비행하는 것처럼 보임.")]
+        private Vector2 idleDrift = Vector2.zero;
+
+        [SerializeField]
+        [Tooltip("켜면 가려진 상태로 시작하고 Reveal() 을 받아야 나타남.\n" +
+                 "인게임 진입 전 Common Progress 동안 배경을 안 보이게 하는 용도.")]
+        private bool startHidden;
+
+        [SerializeField]
+        [Tooltip("가려진 상태에서 다 나타나기까지 걸리는 시간(초).")]
+        [Range(0.05F, 2.0F)]
+        private float revealDuration = 0.45F;
+
+        [SerializeField]
+        [Tooltip("카메라가 한 프레임에 이보다 많이 움직이면 순간이동으로 보고 다시 가렸다 나타냄(월드 유닛).\n" +
+                 "스폰 직후와 리스폰의 카메라 점프를 가림. 0 이면 끔.")]
+        private float teleportThreshold = 40.0F;
+
+        [SerializeField]
+        [Tooltip("startHidden 으로 가린 뒤 이 시간이 지나도 Reveal() 이 안 오면 그냥 나타남(초).\n" +
+                 "어떤 경로로든 Reveal 이 누락됐을 때 배경이 영영 검은 채로 남는 것을 막는 안전장치. 0 이면 끔.")]
+        private float revealTimeout = 8.0F;
 
         // 마지막으로 맞춘 화면 크기. 같으면 Transform 을 안 건드림.
         private Vector2 appliedSize;
 
         // 마지막으로 켠 겹 수. 0 이면 아직 안 켬.
         private int appliedOctaves;
+
+        // 로비용 가상 카메라 이동 누적값.
+        private Vector2 driftOffset;
+
+        // 1 = 완전히 가려짐, 0 = 다 보임.
+        private float fadeOut;
+
+        // Reveal() 을 받았는가. startHidden 이 꺼져 있으면 처음부터 true.
+        private bool revealed;
+
+        // startHidden 으로 가린 뒤 흐른 시간. revealTimeout 안전장치용.
+        private float hiddenElapsed;
+
+        // 순간이동 판정용 직전 카메라 위치.
+        private Vector2 previousCamera;
+        private bool hasPreviousCamera;
+
+        /// <summary>
+        /// 인게임 진입이 끝났음을 알림. startHidden 으로 가려 둔 배경이 이때부터 나타남.
+        /// 씬에 BackgroundView 가 없으면 아무 일도 안 함.
+        /// </summary>
+        public static void RevealAcrossScenes()
+        {
+            if (current != null)
+            {
+                current.revealed = true;
+            }
+        }
 
         private void Awake()
         {
@@ -57,15 +115,34 @@ namespace GalaxyIO.Scripts.Managed.Background
 
         private void OnEnable()
         {
+            current = this;
+
             appliedSize = Vector2.zero;
+            driftOffset = Vector2.zero;
+            hasPreviousCamera = false;
+
+            revealed = !startHidden;
+            fadeOut = startHidden ? 1.0F : 0.0F;
+            hiddenElapsed = 0.0F;
+
             QualitySettings.activeQualityLevelChanged += OnQualityChanged;
             ApplyStarOctaves();
             ApplyStarShapes();
+            ApplyGlobals();
         }
 
         private void OnDisable()
         {
             QualitySettings.activeQualityLevelChanged -= OnQualityChanged;
+
+            if (current == this)
+            {
+                current = null;
+            }
+
+            // 다음 씬이 전역을 물려받지 않게 중립으로 되돌림. 둘 다 0 이 정상 동작임.
+            Shader.SetGlobalVector(CameraOffsetId, Vector4.zero);
+            Shader.SetGlobalFloat(FadeOutId, 0.0F);
         }
 
         private void OnQualityChanged(int previous, int current)
@@ -83,6 +160,8 @@ namespace GalaxyIO.Scripts.Managed.Background
             // 카메라가 흔들리고 시야가 보간되는 중에도 쿼드가 화면 중앙에 붙어 있어야 함.
             Vector3 cameraPosition = targetCamera.transform.position;
             transform.position = new Vector3(cameraPosition.x, cameraPosition.y, transform.position.z);
+
+            UpdateDriftAndFade(new Vector2(cameraPosition.x, cameraPosition.y));
 
             Vector2 size = new Vector2(
                 targetCamera.orthographicSize * targetCamera.aspect,
@@ -112,6 +191,53 @@ namespace GalaxyIO.Scripts.Managed.Background
                     size.y / Mathf.Max(bounds.y, 1e-4F),
                     1.0F);
             }
+        }
+
+        /// <summary>
+        /// 로비용 가상 이동과 가림 상태를 갱신함.
+        /// 카메라가 한 프레임에 크게 튀면(스폰 / 리스폰) 다시 가렸다가 나타나게 해서
+        /// 배경이 "이동 거리 x 시차" 만큼 순간이동하는 것을 안 보이게 함.
+        /// </summary>
+        private void UpdateDriftAndFade(Vector2 cameraXY)
+        {
+            if (idleDrift != Vector2.zero)
+            {
+                driftOffset += idleDrift * Time.deltaTime;
+            }
+
+            if (hasPreviousCamera
+                && teleportThreshold > 0.0F
+                && (cameraXY - previousCamera).sqrMagnitude > teleportThreshold * teleportThreshold)
+            {
+                fadeOut = 1.0F;
+            }
+
+            previousCamera = cameraXY;
+            hasPreviousCamera = true;
+
+            // Reveal 이 누락된 경로가 있어도 배경이 영영 안 나오는 일은 없게 함.
+            if (!revealed && revealTimeout > 0.0F)
+            {
+                hiddenElapsed += Time.deltaTime;
+
+                if (hiddenElapsed >= revealTimeout)
+                {
+                    revealed = true;
+                }
+            }
+
+            if (revealed && fadeOut > 0.0F)
+            {
+                fadeOut = Mathf.Max(0.0F, fadeOut - Time.deltaTime / Mathf.Max(revealDuration, 1e-3F));
+            }
+
+            ApplyGlobals();
+        }
+
+        private void ApplyGlobals()
+        {
+            Shader.SetGlobalVector(CameraOffsetId, new Vector4(driftOffset.x, driftOffset.y, 0.0F, 0.0F));
+            Shader.SetGlobalFloat(FadeOutId, fadeOut);
         }
 
         /// <summary>
