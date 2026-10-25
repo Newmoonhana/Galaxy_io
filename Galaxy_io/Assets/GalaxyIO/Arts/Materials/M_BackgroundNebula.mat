@@ -46,17 +46,17 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _FarParallax: 0.1
+    - _FarParallax: 0.15
     - _FarRotation: 0
-    - _FarScale: 360
-    - _FarWeight: 0.55
-    - _MaskContrast: 4
-    - _MaskParallax: 0.1
-    - _MaskScale: 90
-    - _NearParallax: 0.31
+    - _FarScale: 110
+    - _FarWeight: 2
+    - _MaskContrast: 4.5
+    - _MaskParallax: 0.15
+    - _MaskScale: 24
+    - _NearParallax: 0.22
     - _NearRotation: 37
-    - _NearScale: 150
-    - _NearWeight: 0.32
+    - _NearScale: 55
+    - _NearWeight: 1.15
     - _PixelSize: 0.0833333
     - _QueueControl: 0
     - _QueueOffset: 0

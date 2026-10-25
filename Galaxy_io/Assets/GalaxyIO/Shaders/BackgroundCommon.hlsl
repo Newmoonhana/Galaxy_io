@@ -12,7 +12,7 @@
 //     0.50 -> 23% / 30% / 0.50      0.55 -> 33% / 21% / 0.39
 //     0.57 -> 38% / 17% / 0.35      0.60 -> 44% / 13% / 0.29
 //     0.62 -> 49% / 10% / 0.26      0.70 -> 67% /  3% / 0.13
-#define BG_MASK_BIAS 0.50
+#define BG_MASK_BIAS 0.46
 
 // BG_MASK_OFFSET: 노이즈 좌표계에서 원점을 옮김. 스폰 지점(0, 0)이 어느 농도 칸에
 // 떨어지는지를 정하는 값임. _MaskScale 로 나눈 뒤에 더하므로 Scale 을 바꿔도
@@ -22,6 +22,19 @@
 // (bias 0.62 / 0.57 / 0.50 에서 이 오프셋의 스폰 평균은 각각 0.149 / 0.301 / 0.500 이었고,
 //  세 경우 모두 지도 중앙값 근처라 결과적으로 다시 고를 필요는 없었음).
 #define BG_MASK_OFFSET float2(109.65, 178.05)
+
+// 농도 마스크는 두 가지 일을 동시에 함. 둘을 **더하기가 아니라 곱하기로** 분리해 둡니다.
+//   GATE   : "이 지역에 성운이 있는가" — 0 이면 화면 전체가 비움.
+//   OCT1~3 : "있다면 이 화면 어디에" — 한 화면의 구성.
+// 더하기로 섮을 때는 한 옥타브가 낮아도 나머지가 화면을 살려 놓아서
+// "성운이 아예 없는 지역"이 생기지 않았음 (가까운 겹이 어딘가든 4 ~ 12% 로 항상 보였음).
+// 곱하기라야 gate 0 인 지역에서 두 겹이 함께 완전히 사라짐.
+#define BG_MASK_GATE_FREQ 0.30   // 지역 하나의 크기 (작을수록 넓은 지역)
+#define BG_MASK_GATE_LOW  0.38   // 이 아래면 완전히 빈 지역
+#define BG_MASK_GATE_HIGH 0.55   // 이 위면 성운이 다 나오는 지역
+#define BG_MASK_OCT1      0.50
+#define BG_MASK_OCT2      0.32
+#define BG_MASK_OCT3      0.18
 
 // ---- 별 모양 아틀라스 -------------------------------------------------------
 // BackgroundView 가 Shader.SetGlobalTexture 로 넣음. 머티리얼 프로퍼티가 아니라 전역이라
@@ -198,10 +211,16 @@ void BackgroundMask_float(
     float2 drifted = BgParallax(PositionWS, CameraWS, Parallax, PixelSize) + BG_NEBULA_DRIFT * _Time.y;
     float2 q = drifted / max(Scale, 1e-4) + BG_MASK_OFFSET;
 
-    // 두 겹. 큰 덩어리 안에 작은 농담.
-    float n = BgNoise(q) * 0.65 + BgNoise(q * 2.17 + 5.3) * 0.35;
+    // 세 겹. 큰 덩어리 안에 중간 농담, 그 안에 잔농담.
+    // 지역 게이트. 0 이면 이 화면은 성운이 없는 지역임.
+    float gate = smoothstep(BG_MASK_GATE_LOW, BG_MASK_GATE_HIGH,
+                            BgNoise(q * BG_MASK_GATE_FREQ + 21.3));
 
-    Mask = saturate((n - BG_MASK_BIAS) * Contrast + 0.5);
+    float n = BgNoise(q)               * BG_MASK_OCT1
+            + BgNoise(q * 2.17 + 5.3)  * BG_MASK_OCT2
+            + BgNoise(q * 4.70 + 10.6) * BG_MASK_OCT3;
+
+    Mask = saturate((n - BG_MASK_BIAS) * Contrast + 0.5) * gate;
 }
 
 // 아틀라스 한 칸을 읽음. 밉 단계를 직접 넘김 — 칸이 바뀌는 경계에서 UV 가 튀어서
