@@ -9,6 +9,9 @@ namespace GalaxyIO.Scripts.Managed.Background
     [DefaultExecutionOrder(100)]
     public sealed class BackgroundView : MonoBehaviour
     {
+        // BackgroundCommon.hlsl 이 선언한 전역 텍스처. 머티리얼 프로퍼티가 아님.
+        private static readonly int StarShapesId = Shader.PropertyToID("_StarShapes");
+
         // Background-Stars 그래프의 Star Octaves 키워드. 인덱스 + 1 = 겹 수.
         private static readonly string[] StarOctaveKeywords =
         {
@@ -34,6 +37,10 @@ namespace GalaxyIO.Scripts.Managed.Background
         [Tooltip("품질 단계별 별 겹 수. 인덱스 = QualitySettings 단계. 모자라면 마지막 값을 씀.")]
         private int[] starOctavesByQuality = { 1, 2, 3 };
 
+        [SerializeField]
+        [Tooltip("별 모양 아틀라스(4 x 2 칸). 비워 두면 모든 별이 절차적 원형으로 나옴.")]
+        private Texture starShapes;
+
         // 마지막으로 맞춘 화면 크기. 같으면 Transform 을 안 건드림.
         private Vector2 appliedSize;
 
@@ -53,6 +60,7 @@ namespace GalaxyIO.Scripts.Managed.Background
             appliedSize = Vector2.zero;
             QualitySettings.activeQualityLevelChanged += OnQualityChanged;
             ApplyStarOctaves();
+            ApplyStarShapes();
         }
 
         private void OnDisable()
@@ -103,6 +111,19 @@ namespace GalaxyIO.Scripts.Managed.Background
                     size.x / Mathf.Max(bounds.x, 1e-4F),
                     size.y / Mathf.Max(bounds.y, 1e-4F),
                     1.0F);
+            }
+        }
+
+        /// <summary>
+        /// 별 모양 아틀라스를 전역 텍스처로 넣음. 머티리얼 프로퍼티가 아니라 전역이라
+        /// 그래프와 머티리얼을 건드리지 않고 추가할 수 있음(겹 수 키워드와 같은 방식).
+        /// 비어 있으면 셰이더가 검정을 읽어 텍스처 모양 별만 사라지고 원형 별은 그대로 나옴.
+        /// </summary>
+        private void ApplyStarShapes()
+        {
+            if (starShapes != null)
+            {
+                Shader.SetGlobalTexture(StarShapesId, starShapes);
             }
         }
 
