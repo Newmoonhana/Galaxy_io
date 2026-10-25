@@ -1316,6 +1316,10 @@ MonoBehaviour:
   coverMargin: 1.2
   starOctavesByQuality: 020000000300000003000000030000000300000003000000
   starShapes: {fileID: 2800000, guid: 0135f65f64db3674c88c6907451d7d1c, type: 3}
+  idleDrift: {x: 0, y: 0}
+  startHidden: 1
+  revealDuration: 0.45
+  teleportThreshold: 40
 --- !u!1 &420711448
 GameObject:
   m_ObjectHideFlags: 0

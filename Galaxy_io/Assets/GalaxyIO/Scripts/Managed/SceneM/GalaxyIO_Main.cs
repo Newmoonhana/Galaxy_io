@@ -3,6 +3,7 @@ using GalaxyIO.DOTS.Client.Networking;
 using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Networking;
+using GalaxyIO.Scripts.Managed.Background;
 using Unity.Collections;
 using GalaxyIO.Tools;
 using GalaxyIO.Tools.PopupUI.Popup;
@@ -82,8 +83,10 @@ namespace GalaxyIO.Main
             }
             else
             {
-                // 월드가 없으면 더 기다릴 것이 없음. 로딩 오버레이를 치움.
+                // 월드가 없으면 더 기다릴 것이 없음. 로딩 오버레이를 치우고 배경도 바로 보여 줌
+                // (UpdateHUD 의 visible 이 영원히 false 라 거기서는 배경이 안 나타남).
                 CommonProgress.HideAcrossScenes();
+                BackgroundView.RevealAcrossScenes();
             }
             
             // 오브젝트가 파괴될 때 자동으로 멈추도록 destroyCancellationToken 전달
@@ -151,8 +154,13 @@ namespace GalaxyIO.Main
         {
             bool visible = hasQueries && !inGameQuery.IsEmpty;
 
-            // 접속까지 끝났으면 로딩 오버레이를 치움.
-            if (visible) CommonProgress.HideAcrossScenes();
+            // 접속까지 끝났으면 로딩 오버레이를 치움. 배경도 이때부터 나타남 —
+            // 그 전에 보여 주면 스폰 직후 카메라가 순간이동하면서 배경이 같이 튐.
+            if (visible)
+            {
+                CommonProgress.HideAcrossScenes();
+                BackgroundView.RevealAcrossScenes();
+            }
 
             if (hud == null || hud.enabled == visible) return;
 

@@ -6,6 +6,17 @@
 // 깜빡임 위상이 되감기는 주기(초). 별의 주기를 이 값의 약수로 맞춰 시간이 되감겨도 위상이 안 튐.
 #define BG_TIME_WRAP 512.0
 
+// ---- BackgroundView 가 넣는 전역 2개 -------------------------------------------
+// 둘 다 **기본값 0 이 정상 동작**임 — 아무도 안 넣어도(씨 뷰, 첫 프레임) 배경이 그대로 나옴.
+
+// 플레이어 이동이 없는 씨(로비)에서 배경만 흐르게 하는 가상 카메라 이동.
+// 쿼드는 실제 카메라에 붙어 있어야 하므로 "흐르는 항"에만 더함 —
+// 화면 항에도 더하면 쿼드가 카메라에서 떨어져 가장자리가 보임.
+float2 _BgCameraOffset;
+
+// 0 = 그대로 보임, 1 = 완전히 가려짐. 스폰 직후 카메라 순간이동을 가리는 용도.
+float _BgFadeOut;
+
 // 농도 마스크의 치우침과 좌표 원점. 머티리얼 슬라이더가 아니라 여기서 바꿈 (플랜 7-12 절).
 // BG_MASK_BIAS: 0.5 = 성운과 빈 구역이 반반. 올리면 빈 구역(검정)이 넓어짐.
 //   _MaskContrast 4 기준 (검정 면적 / 짙은 성운 면적 / 평균 Mask):
@@ -159,7 +170,7 @@ float BgNoise(float2 p)
 float2 BgParallax(float2 positionWS, float2 cameraWS, float parallax, float pixelSize)
 {
     float2 screen = positionWS - cameraWS;
-    float2 flow   = cameraWS * parallax;
+    float2 flow   = (cameraWS + _BgCameraOffset) * parallax;
 
     if (pixelSize > 0.0)
     {
@@ -220,7 +231,7 @@ void BackgroundMask_float(
             + BgNoise(q * 2.17 + 5.3)  * BG_MASK_OCT2
             + BgNoise(q * 4.70 + 10.6) * BG_MASK_OCT3;
 
-    Mask = saturate((n - BG_MASK_BIAS) * Contrast + 0.5) * gate;
+    Mask = saturate((n - BG_MASK_BIAS) * Contrast + 0.5) * gate * (1.0 - saturate(_BgFadeOut));
 }
 
 // 아틀라스 한 칸을 읽음. 밉 단계를 직접 넘김 — 칸이 바뀌는 경계에서 UV 가 튀어서
@@ -463,6 +474,8 @@ void BackgroundStars_float(
             BG_SHAPE_MIX[i],
             ColorA.rgb, ColorB.rgb, BlinkRatio, BlinkPeriod, t);
     }
+
+    Color *= 1.0 - saturate(_BgFadeOut);
 }
 
 #endif
