@@ -116,7 +116,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
 
         /// <summary>
         /// 조작법 팝업 생성. 자체 Canvas가 있어 부모 불필요.
-        /// 로딩 중에는 none 상태로 떠 있다가 <see cref="OnLoadComplete"/>로 펼쳐짐.
+        /// 로딩 중에는 none 상태로 떠 있다가 <see cref="OnLoadComplete"/>로 접힌 창이 뜸.
         /// </summary>
         public static async Awaitable Open()
         {
@@ -165,14 +165,15 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         }
 
         /// <summary>
-        /// 로딩(= Common_Progress) 종료 통지. 최초 한 번만 창을 펼침.
+        /// 로딩(= Common_Progress) 종료 통지. 최초 한 번만 창을 띄움.
+        /// 인게임 시야를 가리지 않게 접힌 상태로 시작함. 펼치기는 열기 버튼으로.
         /// </summary>
         public void OnLoadComplete()
         {
             if (stateM == null) return;
             if (stateM.CurrentToString != "none") return;
 
-            ChangeState("expand");
+            ChangeState("collapse");
         }
     }
 }

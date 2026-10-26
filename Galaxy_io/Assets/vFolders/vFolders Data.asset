@@ -63,6 +63,7 @@ MonoBehaviour:
     - 48ce3528f4924ae4a8caf13dac067f8d
     - 8d0bbd23be847ef4eb336e2d326712c7
     - 28b1d318494a51241b1ac0fe8d6d9c1b
+    - a9059bc8a45221e4fa5eff07e32a9bd7
     values:
     - iconNameOrGuid: Terrain Icon
       colorIndex: 0
@@ -257,6 +258,10 @@ MonoBehaviour:
       isIconRecursive: 0
       isColorRecursive: 0
     - iconNameOrGuid: Terrain Icon
+      colorIndex: 0
+      isIconRecursive: 0
+      isColorRecursive: 0
+    - iconNameOrGuid: Prefab Icon
       colorIndex: 0
       isIconRecursive: 0
       isColorRecursive: 0
