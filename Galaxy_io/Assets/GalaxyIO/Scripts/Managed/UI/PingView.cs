@@ -319,7 +319,8 @@ namespace GalaxyIO.Scripts.Managed.UI
                     (RectTransform)transform, anchor, canvas.worldCamera, out Vector3 position);
 
                 // 글자는 화면 가운데 쪽 옆에 붙임. 위쪽 절반이면 아래로, 아래쪽 절반이면 위로 늘어남.
-                var side = new Vector2(anchor.x < Screen.width * 0.5F ? 1.0F : -1.0F, anchor.y > Screen.height * 0.5F ? 1.0F : -1.0F);
+                Vector2 safeCenter = Screen.safeArea.center;
+                var side = new Vector2(anchor.x < safeCenter.x ? 1.0F : -1.0F, anchor.y > safeCenter.y ? 1.0F : -1.0F);
 
                 marker.transform.position = position;
                 marker.Place(direction, side);

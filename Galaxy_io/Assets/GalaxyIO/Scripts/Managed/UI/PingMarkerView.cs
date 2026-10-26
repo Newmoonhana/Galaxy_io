@@ -55,8 +55,11 @@ namespace GalaxyIO.Scripts.Managed.UI
         public static Vector2 Anchor(UnityEngine.Camera mainCamera, Vector2 worldPosition, float margin, out Vector2 direction)
         {
             Vector2 screen = mainCamera.WorldToScreenPoint(worldPosition);
-            Vector2 center = new Vector2(Screen.width, Screen.height) * 0.5F;
-            Vector2 half = Vector2.Max(center - Vector2.one * margin, Vector2.one);
+            // 노치 기기에서 가장자리 화살표가 가려지지 않게 Safe Area 를 기준으로 삼음.
+            // 데스크톱은 safeArea 가 화면 전체라 결과가 같음.
+            Rect area = Screen.safeArea;
+            Vector2 center = area.center;
+            Vector2 half = Vector2.Max(area.size * 0.5F - Vector2.one * margin, Vector2.one);
             Vector2 offset = screen - center;
 
             if (Mathf.Abs(offset.x) <= half.x && Mathf.Abs(offset.y) <= half.y)

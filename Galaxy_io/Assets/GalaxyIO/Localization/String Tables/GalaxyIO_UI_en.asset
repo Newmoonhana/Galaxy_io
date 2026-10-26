@@ -703,6 +703,52 @@ MonoBehaviour:
     m_Localized: Thor
     m_Metadata:
       m_Items: []
+  - m_Id: 11355459936907264
+    m_Localized: Controls
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11355460045959168
+    m_Localized: Move with left click
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11355460045959169
+    m_Localized: Credits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11355460045959170
+    m_Localized: Credits
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11355460045959171
+    m_Localized: 'Content Developer, DOTS Server: Yesssssman'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11355460045959172
+    m_Localized: 'UI Developer, Design, Publishing, JW Server: Newmoonhana'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11372196778536960
+    m_Localized: 'Heading: Mouse
+
+      Move: WASD / Arrows
+
+      Boost: Space
+
+      Fire:
+      Left click
+
+      Ping: Right click
+
+      Pan camera: Middle click
+
+      Inventory:
+      E
+
+      Chat: Enter
+
+      Menu: ESC'
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

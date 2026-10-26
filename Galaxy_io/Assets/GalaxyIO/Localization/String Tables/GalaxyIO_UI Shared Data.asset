@@ -691,6 +691,34 @@ MonoBehaviour:
     m_Key: Spaceship/Thor
     m_Metadata:
       m_Items: []
+  - m_Id: 11355459936907264
+    m_Key: Control/Title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11355460045959168
+    m_Key: Control/MouseLeftClick
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11355460045959169
+    m_Key: Lobby/Credit
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11355460045959170
+    m_Key: Credit/Title
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11355460045959171
+    m_Key: Credit/Dev1
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11355460045959172
+    m_Key: Credit/Dev2
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11372196778536960
+    m_Key: Control/IngameGuide
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

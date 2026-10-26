@@ -255,6 +255,40 @@ namespace GalaxyIO.Tools.PopupUI.Popup
 
             public void Cancel() => win.Cancel();
         }
+        /// <summary>
+        /// 크레딧 창
+        /// </summary>
+        private class CreditState : IState, ICancelState
+        {
+            private WindowCredit win;
+
+            public CreditState(WindowCredit _win, UnityAction<string> _changeWindow)
+            {
+                win = _win;
+                win.AddListener(_changeWindow);
+                OnExit();
+            }
+
+            public void UpdateState(float elapsedTime) {}
+            public void Render() {}
+            public void OnEnter(object p_data)
+            {
+                win.Open();
+                win.Activate();
+            }
+            public void OnExit()
+            {
+                win.Deactivate();
+                win.Close();
+            }
+            public void Dispose()
+            {
+                win?.Dispose();
+                win = null;
+            }
+
+            public void Cancel() => win.Cancel();
+        }
         #endregion
 
         protected override void Awake()
@@ -278,6 +312,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             stateM.Add("gameStartPublic", new GameStartState(transform.GetComponentInChildren<WindowGameStartPublic>(true), ChangeState));
             stateM.Add("gameStartPrivate", new GameStartState(transform.GetComponentInChildren<WindowGameStartPrivate>(true), ChangeState));
             stateM.Add("serverHost", new ServerHostState(transform.GetComponentInChildren<WindowServerHost>(true), ChangeState));
+            stateM.Add("credit", new CreditState(transform.GetComponentInChildren<WindowCredit>(true), ChangeState));
             stateM.Add("none", new EmptyState());
             stateM.Change("progress");
             _ = RunAutoLogIn();

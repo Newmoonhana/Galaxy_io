@@ -67,6 +67,9 @@ namespace GalaxyIO.Main
             _ = AddressableAssetsManager.gameObject_lst.LoadData(gameMenuUIKey);
             _ = AddressableAssetsManager.gameObject_lst.LoadData(inventoryUIKey);
 
+            // 조작법 팝업. 로딩 중에는 none 상태로 떠 있음
+            _ = ControlUI.Open();
+
             clientWorld = ClientServerBootstrap.ClientWorld;
             if (clientWorld != null)
             {
@@ -157,7 +160,12 @@ namespace GalaxyIO.Main
             // 접속까지 끝났으면 로딩 오버레이를 치움.
             // 배경은 여기서 켜지 않음 — 접속 완료가 카메라 순간이동보다 몇 프레임 빨라서
             // 아직 원점에 있는 배경이 잠깐 보임. FollowPlayerEntity 가 카메라를 옮긴 뒤 켬.
-            if (visible) CommonProgress.HideAcrossScenes();
+            if (visible)
+            {
+                CommonProgress.HideAcrossScenes();
+                // 로딩이 끝났으므로 조작법 창을 펼침. 두 번째 호출부터는 무시됨
+                ControlUI.Opened?.OnLoadComplete();
+            }
 
             if (hud == null || hud.enabled == visible) return;
 
@@ -370,6 +378,8 @@ namespace GalaxyIO.Main
             AddressableAssetsManager.gameObject_lst.RemoveData(respawnUIKey);
             AddressableAssetsManager.gameObject_lst.RemoveData(gameMenuUIKey);
             AddressableAssetsManager.gameObject_lst.RemoveData(inventoryUIKey);
+            // 조작법 팝업 키는 ControlUI 가 들고 있음
+            ControlUI.Unload();
         }
 
         /// <summary>
