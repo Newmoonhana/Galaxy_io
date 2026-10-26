@@ -117,13 +117,14 @@ namespace GalaxyIO.DOTS.Client.Networking
             // 드라이버를 쓰는 잡이 모두 끝난 뒤에 접근.
             entityManager.CompleteAllTrackedJobs();
 
-            ref NetworkDriverStore driverStore = ref driverQuery.GetSingletonRW<NetworkStreamDriver>().ValueRW.DriverStore;
+            ref NetworkStreamDriver streamDriver = ref driverQuery.GetSingletonRW<NetworkStreamDriver>().ValueRW;
+            ref NetworkDriverStore driverStore = ref streamDriver.DriverStore;
 
             using var connections = connectionQuery.ToComponentDataArray<NetworkStreamConnection>(Allocator.Temp);
 
             foreach (NetworkStreamConnection connection in connections)
             {
-                driverStore.Disconnect(connection);
+                streamDriver.Disconnect(connection);
             }
 
             // 끊김 패킷은 드라이버 업데이트에서 전송됨.
