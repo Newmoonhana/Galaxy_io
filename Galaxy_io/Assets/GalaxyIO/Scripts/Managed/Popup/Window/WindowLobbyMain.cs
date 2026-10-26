@@ -21,6 +21,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
         [SerializeField] private Button connect_btn;
         [SerializeField] private Button host_btn;
         [SerializeField] private Button settings_btn;
+        [Tooltip("크레딧. 다른 버튼보다 작게 배치함")]
+        [SerializeField] private Button credit_btn;
         [SerializeField] private Button exit_btn;
 
         private UnityEvent<string> _changeWindow;
@@ -45,6 +47,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             connect_btn.onClick.AddListener(OnConnectBtnPress);
             host_btn.onClick.AddListener(OnHostBtnPress);
             settings_btn.onClick.AddListener(OnSettingsBtnPress);
+            credit_btn.onClick.AddListener(OnCreditBtnPress);
             exit_btn.onClick.AddListener(OnExitBtnPress);
             LocalizationSettings.SelectedLocaleChanged += OnLocaleChanged;
         }
@@ -56,6 +59,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             connect_btn.onClick.RemoveListener(OnConnectBtnPress);
             host_btn.onClick.RemoveListener(OnHostBtnPress);
             settings_btn.onClick.RemoveListener(OnSettingsBtnPress);
+            credit_btn.onClick.RemoveListener(OnCreditBtnPress);
             exit_btn.onClick.RemoveListener(OnExitBtnPress);
             LocalizationSettings.SelectedLocaleChanged -= OnLocaleChanged;
         }
@@ -115,6 +119,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
             Deactivate();
             await CommonOption.Open();
             Activate();
+        }
+
+        private void OnCreditBtnPress()
+        {
+            if (!IsActive()) return;
+            _changeWindow?.Invoke("credit");
         }
 
         private void OnExitBtnPress()

@@ -705,6 +705,39 @@ MonoBehaviour:
     m_Localized: "\uD1A0\uB974"
     m_Metadata:
       m_Items: []
+  - m_Id: 11355459936907264
+    m_Localized: "\uC870\uC791\uBC95"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11355460045959168
+    m_Localized: "\uB9C8\uC6B0\uC2A4 \uC88C\uCE21 \uD074\uB9AD\uC73C\uB85C \uC870\uC791"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11355460045959169
+    m_Localized: "\uD06C\uB808\uB527"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11355460045959170
+    m_Localized: "\uD06C\uB808\uB527"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11355460045959171
+    m_Localized: "\uCF58\uD150\uCE20 \uAC1C\uBC1C\uC790, DOTS \uC11C\uBC84: Yesssssman"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11355460045959172
+    m_Localized: "UI \uAC1C\uBC1C\uC790, \uB514\uC790\uC778, \uD37C\uBE14\uB9AC\uC2F1,
+      JW \uC11C\uBC84: Newmoonhana"
+    m_Metadata:
+      m_Items: []
+  - m_Id: 11372196778536960
+    m_Localized: "\uAE30\uC218 \uBC29\uD5A5: \uB9C8\uC6B0\uC2A4\n\uC774\uB3D9: WASD
+      / \uBC29\uD5A5\uD0A4\n\uAC00\uC18D: Space\n\uBC1C\uC0AC: \uB9C8\uC6B0\uC2A4
+      \uC88C\uD074\uB9AD\n\uD551: \uB9C8\uC6B0\uC2A4 \uC6B0\uD074\uB9AD\n\uC2DC\uC57C
+      \uC774\uB3D9: \uB9C8\uC6B0\uC2A4 \uD720\uD074\uB9AD\n\uC778\uBCA4\uD1A0\uB9AC:
+      E\n\uCC44\uD305: Enter\n\uBA54\uB274: ESC"
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

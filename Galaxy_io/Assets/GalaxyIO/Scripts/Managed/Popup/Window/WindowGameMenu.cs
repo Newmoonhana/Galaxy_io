@@ -13,6 +13,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
         [SerializeField] private Button resume_btn;
         [SerializeField] private Button option_btn;
         [SerializeField] private Button quit_btn;
+        [Tooltip("조작법 표기. 인게임 조작법 팝업이 닫힌 뒤에만 보임")]
+        [SerializeField] private GameObject controlGuide_obj;
 
         private UnityEvent _resume;
         private UnityEvent _option;
@@ -24,6 +26,9 @@ namespace GalaxyIO.Tools.PopupUI.Window
             _resume = new UnityEvent();
             _option = new UnityEvent();
             _quit = new UnityEvent();
+
+            //인게임 팝업이 살아 있으면 중복 표기가 되므로 끔
+            controlGuide_obj.SetActive(Popup.ControlUI.IsClosed);
         }
 
         public override void Dispose()
