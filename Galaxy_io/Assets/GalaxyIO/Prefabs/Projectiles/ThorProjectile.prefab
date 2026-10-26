@@ -85,12 +85,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: -2
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 2640615053509864606, guid: af4074bc0e8a25449a7d06da1890563e, type: 3}
+  m_Sprite: {fileID: 21300000, guid: af4074bc0e8a25449a7d06da1890563e, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 0.29166666, y: 0.33333334}
+  m_Size: {x: 2, y: 2}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -109,7 +109,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.StraightforwardProjectileAuthoring
   Lifetime: 4
   Pierce: 0
-  ExplosionRadius: 4
+  ExplosionRadius: 6
   SpawnOnHit: {fileID: 6977692746202840440, guid: c72f30f2f40d20345b617ca3b54fd3ff, type: 3}
   ShotEffect: {fileID: 1756703243802028873, guid: 2f8399caa7ee6c5499a37450896e1cf2, type: 3}
   Visual: {fileID: 1756703243802028873, guid: 70ac0d51ecca174438c2d228beabc79d, type: 3}
