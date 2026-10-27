@@ -38,7 +38,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &7803624596038902002
 SpriteRenderer:
-  serializedVersion: 2
+  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -95,6 +95,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+  m_BlendShapeWeights: []
 --- !u!114 &8579004218275610720
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -109,7 +110,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.StraightforwardProjectileAuthoring
   Lifetime: 1
   Pierce: 0
-  ExplosionRadius: 2.5
+  ExplosionRadius: 4
   SpawnOnHit: {fileID: 6977692746202840440, guid: 11feee5025194c3391f5819b09ddc153, type: 3}
   ShotEffect: {fileID: 1756703243802028873, guid: 2f8399caa7ee6c5499a37450896e1cf2, type: 3}
   Visual: {fileID: 0}
@@ -154,6 +155,7 @@ MonoBehaviour:
   OptimizationMode: 0
   Importance: 1
   MaxSendRate: 0
+  SingleWorldHostInterpolationSmoothing: 1
   prefabId: 481a1a2f5c8566043bc9f7018df0f1a9
 --- !u!114 &4783118654903221507
 MonoBehaviour:

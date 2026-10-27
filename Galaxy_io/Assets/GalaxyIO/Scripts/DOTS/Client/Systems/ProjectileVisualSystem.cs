@@ -34,12 +34,12 @@ namespace GalaxyIO.DOTS.Client.Systems
             // 감춰진 투사체의 스프라이트를 끔. Entity 자체는 스냅샷을 계속 받도록 켜 둠.
             foreach (
                 var (shared, sprite) in
-                SystemAPI.Query<RefRO<SharedProjectileComponent>, SystemAPI.ManagedAPI.UnityEngineComponent<SpriteRenderer>>()
+                SystemAPI.Query<RefRO<SharedProjectileComponent>, RefRO<CompanionComponent<SpriteRenderer>>>()
             ) {
-                if (shared.ValueRO.Hidden && sprite.Value.enabled)
-                {
-                    sprite.Value.enabled = false;
-                }
+                if (!shared.ValueRO.Hidden) continue;
+
+                SpriteRenderer renderer = sprite.ValueRO.CompanionRef.Value;
+                if (renderer.enabled) renderer.enabled = false;
             }
 
             // 연출이 없는 새 투사체. 스폰은 구조 변경이라 순회 뒤에 처리함.
@@ -77,10 +77,10 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                 foreach (EffectPartElement part in parts)
                 {
-                    TrailRenderer trail = entityManager.HasComponent<TrailRenderer>(part.Value)
-                        ? entityManager.GetComponentObject<TrailRenderer>(part.Value)
+                    TrailRenderer trail = entityManager.HasComponent<CompanionComponent<TrailRenderer>>(part.Value)
+                        ? entityManager.GetCompanion<TrailRenderer>(part.Value)
                         : null;
-                    ParticleSystem particle = trail == null ? entityManager.GetComponentObject<ParticleSystem>(part.Value) : null;
+                    ParticleSystem particle = trail == null ? entityManager.GetCompanion<ParticleSystem>(part.Value) : null;
 
                     // 월드 공간 파티클은 지나간 자리에 남는 자취(e.g. 미사일 연기). 트레일처럼 다룸.
                     if (trail != null || particle.main.simulationSpace == ParticleSystemSimulationSpace.World)
@@ -150,16 +150,16 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                     foreach (EffectPartElement part in partBuffers[entity])
                     {
-                        if (entityManager.HasComponent<TrailRenderer>(part.Value))
+                        if (entityManager.HasComponent<CompanionComponent<TrailRenderer>>(part.Value))
                         {
-                            TrailRenderer trail = entityManager.GetComponentObject<TrailRenderer>(part.Value);
+                            TrailRenderer trail = entityManager.GetCompanion<TrailRenderer>(part.Value);
                             trail.emitting = false;
                             trailTime = math.max(trailTime, trail.time);
                             hasTrail = true;
                             continue;
                         }
 
-                        ParticleSystem particle = entityManager.GetComponentObject<ParticleSystem>(part.Value);
+                        ParticleSystem particle = entityManager.GetCompanion<ParticleSystem>(part.Value);
 
                         if (particle.main.simulationSpace == ParticleSystemSimulationSpace.World)
                         {

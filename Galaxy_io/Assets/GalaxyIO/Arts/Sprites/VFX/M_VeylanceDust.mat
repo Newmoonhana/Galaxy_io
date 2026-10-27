@@ -25,6 +25,7 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
+    - _EmissionIntensity: 7.12
     - _MaxLength: 2.5
     - _MaxSpeed: 60
     m_Colors:

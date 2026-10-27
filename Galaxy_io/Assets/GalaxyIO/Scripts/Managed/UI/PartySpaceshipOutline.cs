@@ -127,12 +127,17 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             foreach (SpriteRenderer sprite in sprites)
             {
-                if (outlined && sprite.sharedMaterial != outlineMaterial)
+                if (outlined)
                 {
-                    originals[sprite] = sprite.sharedMaterial;
-                    sprite.sharedMaterial = outlineMaterial;
+                    Material outline = OutlineMaterials.WithEmission(outlineMaterial, sprite.sharedMaterial);
+
+                    if (sprite.sharedMaterial != outline)
+                    {
+                        originals[sprite] = sprite.sharedMaterial;
+                        sprite.sharedMaterial = outline;
+                    }
                 }
-                else if (!outlined && originals.Remove(sprite, out Material original))
+                else if (originals.Remove(sprite, out Material original))
                 {
                     sprite.sharedMaterial = original;
                 }

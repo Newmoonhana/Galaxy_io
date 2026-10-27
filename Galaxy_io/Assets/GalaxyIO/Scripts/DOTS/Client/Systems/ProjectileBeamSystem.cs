@@ -179,14 +179,14 @@ namespace GalaxyIO.DOTS.Client.Systems
                     // 스폰한 프레임에는 아직 프리팹 위치에 있으므로 총구로 옮기고 재생함.
                     if (beam.BurstRing != Entity.Null)
                     {
-                        ParticleSystem ring = entityManager.GetComponentObject<ParticleSystem>(beam.BurstRing);
+                        ParticleSystem ring = entityManager.GetCompanion<ParticleSystem>(beam.BurstRing);
                         ring.transform.SetPositionAndRotation(muzzle.Position, muzzle.Rotation);
                         ring.Play();
                     }
 
                     if (beam.BurstDust != Entity.Null)
                     {
-                        ParticleSystem dust = entityManager.GetComponentObject<ParticleSystem>(beam.BurstDust);
+                        ParticleSystem dust = entityManager.GetCompanion<ParticleSystem>(beam.BurstDust);
                         dust.transform.SetPositionAndRotation(muzzle.Position, muzzle.Rotation);
                         dust.Play();
                     }
@@ -276,7 +276,7 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                 if (beam.Body != Entity.Null)
                 {
-                    SpriteRenderer body = entityManager.GetComponentObject<SpriteRenderer>(beam.Body);
+                    SpriteRenderer body = entityManager.GetCompanion<SpriteRenderer>(beam.Body);
                     float bodyWidth = beam.Width * swell * beam.Thickness;
                     body.enabled = beam.Fired;
                     body.size = new Vector2(bodyWidth, beam.Length);
@@ -293,7 +293,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                 if (beam.Glow != Entity.Null)
                 {
                     // 몸통과 양 끝 구를 합친 모양에 번짐 폭을 더한 만큼 덮음. 모양 값은 셰이더가 거리 계산에 씀.
-                    SpriteRenderer glow = entityManager.GetComponentObject<SpriteRenderer>(beam.Glow);
+                    SpriteRenderer glow = entityManager.GetCompanion<SpriteRenderer>(beam.Glow);
                     float blur = glow.sharedMaterial.GetFloat(BlurScaleId);
                     float extent = math.max(math.max(startSize, endSize) * 0.5F, bodyHalfWidth) + blur;
                     var size = new Vector2(extent * 2.0F, beam.Length + extent * 2.0F);
@@ -314,7 +314,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                 // 크기 0 인 Transform 은 회전을 잃으므로 그리지 않고 아주 작게 둠.
                 if (beam.StartBall != Entity.Null)
                 {
-                    entityManager.GetComponentObject<SpriteRenderer>(beam.StartBall).enabled = startSize > 0.0F;
+                    entityManager.GetCompanion<SpriteRenderer>(beam.StartBall).enabled = startSize > 0.0F;
                     entityManager.SetComponentData(beam.StartBall, LocalTransform.FromPositionRotationScale(
                         jitter,
                         quaternion.identity,
@@ -324,7 +324,7 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                 if (beam.EndBall != Entity.Null)
                 {
-                    entityManager.GetComponentObject<SpriteRenderer>(beam.EndBall).enabled = endSize > 0.0F;
+                    entityManager.GetCompanion<SpriteRenderer>(beam.EndBall).enabled = endSize > 0.0F;
                     entityManager.SetComponentData(beam.EndBall, LocalTransform.FromPositionRotationScale(
                         new float3(0.0F, beam.Length, 0.0F),
                         quaternion.identity,
@@ -334,7 +334,7 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                 if (beam.StartDust != Entity.Null)
                 {
-                    ParticleSystem.EmissionModule emission = entityManager.GetComponentObject<ParticleSystem>(beam.StartDust).emission;
+                    ParticleSystem.EmissionModule emission = entityManager.GetCompanion<ParticleSystem>(beam.StartDust).emission;
                     emission.enabled = firing;
                 }
 
@@ -342,21 +342,21 @@ namespace GalaxyIO.DOTS.Client.Systems
                 {
                     entityManager.SetComponentData(beam.EndDust, LocalTransform.FromPosition(0.0F, beam.Length, 0.0F));
 
-                    ParticleSystem.EmissionModule emission = entityManager.GetComponentObject<ParticleSystem>(beam.EndDust).emission;
+                    ParticleSystem.EmissionModule emission = entityManager.GetCompanion<ParticleSystem>(beam.EndDust).emission;
                     emission.enabled = firing;
                 }
 
                 if (beam.ChargeDust != Entity.Null)
                 {
                     // 다 차면 멈춤.
-                    ParticleSystem.EmissionModule emission = entityManager.GetComponentObject<ParticleSystem>(beam.ChargeDust).emission;
+                    ParticleSystem.EmissionModule emission = entityManager.GetCompanion<ParticleSystem>(beam.ChargeDust).emission;
                     emission.enabled = charging && beam.Charge < 1.0F;
                 }
 
                 if (beam.Flow != Entity.Null)
                 {
                     // 파티클이 로컬 공간에서 흐르도록 Entity 는 그대로 두고 방출 범위만 광선에 맞춤.
-                    ParticleSystem flow = entityManager.GetComponentObject<ParticleSystem>(beam.Flow);
+                    ParticleSystem flow = entityManager.GetCompanion<ParticleSystem>(beam.Flow);
 
                     ParticleSystem.ShapeModule shape = flow.shape;
                     shape.position = new Vector3(0.0F, beam.Length * 0.5F, 0.0F);

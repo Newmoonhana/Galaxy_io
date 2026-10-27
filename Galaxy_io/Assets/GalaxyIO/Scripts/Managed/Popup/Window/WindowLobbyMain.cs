@@ -111,7 +111,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
         private void OnSettingsBtnPress()
         {
             if (!IsActive()) return;
-            _ = OpenOption();
+            OpenOption().Forget();
         }
         private async Awaitable OpenOption()
         {

@@ -41,7 +41,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &6194878863501070097
 SpriteRenderer:
-  serializedVersion: 2
+  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -65,7 +65,7 @@ SpriteRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: a97c105638bdf8b4a8650670310a4cd3, type: 2}
+  - {fileID: 2100000, guid: 2080ffee365c0ce498d93321c0dd9604, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -98,6 +98,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+  m_BlendShapeWeights: []
 --- !u!114 &2469076599817843275
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -147,7 +148,7 @@ MonoBehaviour:
   SightRadius: 25
   SightAngle: 140
   ChaseDistance: 36
-  HostileFactions: 0100000002000000
+  HostileFactions: 0100000002000000u
   FireDuration: 2
   RestDurationRange: {x: 1, y: 2}
   AimTolerance: 15
@@ -179,6 +180,7 @@ MonoBehaviour:
   OptimizationMode: 0
   Importance: 250
   MaxSendRate: 0
+  SingleWorldHostInterpolationSmoothing: 1
   prefabId: 1cbbe28b3ef5cea4188479f2e14b0b18
 --- !u!114 &9019164426144977794
 MonoBehaviour:

@@ -82,7 +82,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
         private void OnSignInBtnPress()
         {
             if (!IsActive()) return;
-            _ = RunSignIn();
+            RunSignIn().Forget();
         }
         private async Awaitable RunSignIn()
         {

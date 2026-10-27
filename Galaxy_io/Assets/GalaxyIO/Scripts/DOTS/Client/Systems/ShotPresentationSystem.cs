@@ -164,9 +164,9 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                 foreach (EffectPartElement part in entityManager.GetBuffer<EffectPartElement>(effect))
                 {
-                    if (entityManager.HasComponent<ParticleSystem>(part.Value))
+                    if (entityManager.HasComponent<CompanionComponent<ParticleSystem>>(part.Value))
                     {
-                        ParticleSystem.MainModule main = entityManager.GetComponentObject<ParticleSystem>(part.Value).main;
+                        ParticleSystem.MainModule main = entityManager.GetCompanion<ParticleSystem>(part.Value).main;
                         main.emitterVelocityMode = ParticleSystemEmitterVelocityMode.Custom;
                         main.emitterVelocity = velocity;
                     }

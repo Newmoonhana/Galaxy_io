@@ -63,12 +63,8 @@ namespace GalaxyIO.Main
 
         protected void Start()
         {
-            _ = AddressableAssetsManager.gameObject_lst.LoadData(respawnUIKey);
-            _ = AddressableAssetsManager.gameObject_lst.LoadData(gameMenuUIKey);
-            _ = AddressableAssetsManager.gameObject_lst.LoadData(inventoryUIKey);
-
             // 조작법 팝업. 로딩 중에는 none 상태로 떠 있음
-            _ = ControlUI.Open();
+            ControlUI.Open().Forget();
 
             clientWorld = ClientServerBootstrap.ClientWorld;
             if (clientWorld != null)
@@ -93,7 +89,7 @@ namespace GalaxyIO.Main
             }
             
             // 오브젝트가 파괴될 때 자동으로 멈추도록 destroyCancellationToken 전달
-            _ = RunUpdateLoop(this.destroyCancellationToken);
+            RunUpdateLoop(this.destroyCancellationToken).Forget();
         }
 
         private void OnEnable()
@@ -119,6 +115,12 @@ namespace GalaxyIO.Main
             // 버려진 Awaitable 은 예외를 삼키고 루프만 조용히 멈춤. 직접 잡아 남김.
             try
             {
+                // 리스폰 / 게임 메뉴 / 인벤토리 창은 GetData 로 바로 띄움. 웹은 동기 로드가 안 되므로
+                // 로드가 끝난 뒤에 루프를 돌림.
+                await AddressableAssetsManager.gameObject_lst.LoadData(respawnUIKey);
+                await AddressableAssetsManager.gameObject_lst.LoadData(gameMenuUIKey);
+                await AddressableAssetsManager.gameObject_lst.LoadData(inventoryUIKey);
+
                 while (!cancellationToken.IsCancellationRequested)
                 {
                     // 세션을 나가면 클라이언트 월드가 Dispose 됨. 캐시한 쿼리를 더 쓰면 안 됨.
@@ -227,7 +229,7 @@ namespace GalaxyIO.Main
 
             // 리스폰 창과 대기 중인 요청 정리.
             ClientNetworkRequestManager.RequestQuit();
-            _ = OpenDisconnectedMsgBox();
+            OpenDisconnectedMsgBox().Forget();
         }
 
         private async Awaitable OpenDisconnectedMsgBox()
@@ -369,7 +371,7 @@ namespace GalaxyIO.Main
             hasQueries = false;
 
             // 월드를 버리고 로비 씬으로 돌아감. 호스트였다면 서버도 함께 닫힘.
-            _ = GameSession.Leave();
+            GameSession.Leave().Forget();
         }
 
         public override void Release()
@@ -388,7 +390,7 @@ namespace GalaxyIO.Main
         public void OnPressOption()
         {
             if (isOptionLoading) return;
-            _ = OpenOption();
+            OpenOption().Forget();
         }
         private async Awaitable OpenOption()
         {

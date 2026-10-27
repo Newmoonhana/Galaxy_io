@@ -30,6 +30,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _EdgeWidth: 0.299
+    - _EmissionIntensity: 6.85
     - _Smoothness: 0.1782
     m_Colors:
     - _Color: {r: 1, g: 1, b: 1, a: 1}

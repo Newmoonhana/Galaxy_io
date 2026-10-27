@@ -116,7 +116,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             string requestPlayerName = TakePlayerName();
             if (requestPlayerName == null) return;
 
-            _ = ConnectAsync(requestPlayerName);
+            ConnectAsync(requestPlayerName).Forget();
         }
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             warning.gameObject.SetActive(false);
 
             // 씬 로드·스트리밍·접속 동안 빈 화면이 보이지 않게 가림. 인게임에서 치움.
-            _ = CommonProgress.ShowAcrossScenes();
+            CommonProgress.ShowAcrossScenes().Forget();
 
             // 월드 생성 → 인게임 씬 로드 → 접속까지 `GameSession`이 처리함.
             // 이 창은 로비 씬과 함께 꺼져 있다가 접속 실패 시 그대로 되살아남.
@@ -161,6 +161,10 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 return null;
             }
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // 브라우저는 DNS 조회를 막음. 웹에서는 IP 주소만 받음.
+            return null;
+#else
             IPAddress[] addresses = null;
 
             try
@@ -188,6 +192,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             }
 
             return null;
+#endif
         }
     }
 }

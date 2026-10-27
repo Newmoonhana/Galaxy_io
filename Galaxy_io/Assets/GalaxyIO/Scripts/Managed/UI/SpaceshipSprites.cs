@@ -16,7 +16,7 @@ namespace GalaxyIO.Scripts.Managed.UI
         public static void Collect(EntityManager entityManager, Entity spaceship, List<SpriteRenderer> sprites)
         {
             sprites.Clear();
-            sprites.Add(entityManager.GetComponentObject<SpriteRenderer>(spaceship));
+            sprites.Add(entityManager.GetCompanion<SpriteRenderer>(spaceship));
 
             if (!entityManager.HasBuffer<AutoTurretMountElement>(spaceship))
             {
@@ -25,9 +25,9 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             foreach (AutoTurretMountElement mount in entityManager.GetBuffer<AutoTurretMountElement>(spaceship, true))
             {
-                if (entityManager.HasComponent<SpriteRenderer>(mount.Sprite))
+                if (entityManager.HasComponent<CompanionComponent<SpriteRenderer>>(mount.Sprite))
                 {
-                    sprites.Add(entityManager.GetComponentObject<SpriteRenderer>(mount.Sprite));
+                    sprites.Add(entityManager.GetCompanion<SpriteRenderer>(mount.Sprite));
                 }
             }
         }

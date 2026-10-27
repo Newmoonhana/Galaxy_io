@@ -35,7 +35,7 @@ namespace GalaxyIO.DOTS.Client.Systems
 
             foreach (
                 var (item, renderer) in
-                SystemAPI.Query<RefRO<ItemComponent>, SystemAPI.ManagedAPI.UnityEngineComponent<SpriteRenderer>>()
+                SystemAPI.Query<RefRO<ItemComponent>, RefRO<CompanionComponent<SpriteRenderer>>>()
             ) {
                 if (!registry.Contains(item.ValueRO.Id))
                 {
@@ -43,7 +43,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                 }
 
                 Sprite sprite = registry[(int)item.ValueRO.Id].Sprite;
-                SpriteRenderer front = renderer.Value;
+                SpriteRenderer front = renderer.ValueRO.CompanionRef.Value;
 
                 if (front.sprite != sprite)
                 {

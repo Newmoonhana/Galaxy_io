@@ -31,12 +31,12 @@
       "depth": 0,
       "source": "git",
       "dependencies": {
-        "com.unity.ugui": "3.0.0",
-        "com.unity.addressables": "2.9.1",
-        "com.unity.render-pipelines.core": "17.3.0",
-        "com.unity.render-pipelines.universal": "17.3.0"
+        "com.unity.ugui": "2.6.0",
+        "com.unity.addressables": "2.11.2",
+        "com.unity.render-pipelines.core": "17.6.0",
+        "com.unity.render-pipelines.universal": "17.6.0"
       },
-      "hash": "cac86c51050c96e6f11aacb854050ad9710eb71b"
+      "hash": "d2d481a793ee9a27fdf2a04f5eeedca1fbe953f6"
     },
     "com.unity.2d.animation": {
       "version": "16.0.1",

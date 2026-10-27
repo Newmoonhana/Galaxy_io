@@ -43,7 +43,13 @@ namespace GalaxyIO.DOTS.Bootstrap
                 settings.AddRawParameterStruct(ref config);
             }
 
-            DefaultDriverBuilder.RegisterServerDriver(world, ref driverStore, netDebug, settings);
+            // IPC: 같은 프로세스의 클라이언트(호스트). UDP: 앱 클라이언트. WebSocket: 웹 클라이언트.
+            // UDP 와 WebSocket(TCP)은 프로토콜이 달라 같은 포트를 함께 씀.
+            if (!world.IsHost()) DefaultDriverBuilder.RegisterServerIpcDriver(world, ref driverStore, netDebug, settings);
+#if !UNITY_WEBGL || UNITY_EDITOR
+            DefaultDriverBuilder.RegisterServerUdpDriver(world, ref driverStore, netDebug, settings);
+#endif
+            DefaultDriverBuilder.RegisterServerWebSocketDriver(world, ref driverStore, netDebug, settings);
         }
     }
 }

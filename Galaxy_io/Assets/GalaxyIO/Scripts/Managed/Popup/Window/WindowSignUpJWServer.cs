@@ -98,7 +98,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
         private void OnSignUpBtnPress()
         {
             if (!IsActive()) return;
-            _ = RunSignUp();
+            RunSignUp().Forget();
         }
         /// <summary>
         /// 통합 회원 확인 후 이 게임의 계정을 추가.

@@ -728,7 +728,10 @@ namespace DarkTonic.MasterAudio {
                     // this will advance even if the code below didn't and the clip stopped due to excessive lag.
                 } else {
                     var isBGWebGL = Application.targetFrameRate == 1;
-                    if (_currentSong != null && (IsFrameFastEnough || isBGWebGL) && _activeAudio.clip != null) { // if slow, do not bother with super slow frames because it will try to trigger next song at the wrong time.
+                    // [GalaxyIO 패치] 웹은 곡 데이터를 비동기로 올림. 로드 전엔 clip.length 가 0 이라
+                    // 곡이 끝난 것으로 보고 플레이리스트를 다 넘겨 버림. 로드가 끝날 때까지 판정을 미룸.
+                    var isClipLoaded = _activeAudio.clip != null && _activeAudio.clip.loadState == AudioDataLoadState.Loaded;
+                    if (_currentSong != null && (IsFrameFastEnough || isBGWebGL) && isClipLoaded) { // if slow, do not bother with super slow frames because it will try to trigger next song at the wrong time.
                         if (_currentSong != null) {
                             float endOfSongTime;
 
