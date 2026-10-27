@@ -51,6 +51,15 @@ half Band(float d, float width, float aa)
     return 1.0 - smoothstep(width - aa, width + aa, abs(d));
 }
 
+// 해상도와 무관하게 매끈한 가는 선. aa 는 1 픽셀.
+// 1 픽셀보다 가는 선은 픽셀 중심에 걸칠 때와 사이에 걸칠 때 밝기가 달라 계단·점선이 생김.
+// 반폭을 1 픽셀 이상으로 넓혀 부드러운 단면으로 그리고, 대신 어둡게 해서 최소 1 픽셀 굵기만큼의 밝기만 남김.
+half ThinBand(float d, float width, float aa)
+{
+    float drawn = max(width, aa);
+    return Band(d, drawn, aa) * saturate(max(width * 2.0, aa) / (drawn * 2.0));
+}
+
 // 위쪽 0, 시계 방향 방위각. 0 ~ 2π.
 float Bearing(float2 p)
 {

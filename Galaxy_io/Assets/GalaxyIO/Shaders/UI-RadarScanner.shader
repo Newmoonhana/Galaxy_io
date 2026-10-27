@@ -125,7 +125,7 @@ Shader "GalaxyIO/UI-RadarScanner"
                 half edge = Band(min(behind, TWO_PI - behind) * r, _EdgeWidth, aa) * inside;
                 half arc  = Band(r - _Radius, _EdgeWidth, aa) * step(behind, beam);
                 // 탐지 거리 경계. 표시 거리보다 짧을 때만 보임.
-                half range = Band(r - _RangeRadius, _EdgeWidth * 0.5, aa) * step(_RangeRadius, _Radius - aa) * 0.5;
+                half range = ThinBand(r - _RangeRadius, _EdgeWidth * 0.5, aa) * step(_RangeRadius, _Radius - aa) * 0.5;
 
                 // 중심의 기수 방향 화살표. q 는 기수가 위쪽인 좌표.
                 float heading = radians(_Heading);
