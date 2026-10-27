@@ -30,6 +30,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _BlurScale: 0.25
+    - _EmissionIntensity: 3
     - _EndRadius: 0
     - _HalfWidth: 0
     - _Length: 0

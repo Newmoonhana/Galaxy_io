@@ -91,9 +91,11 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             foreach (SpriteRenderer sprite in sprites)
             {
-                if (sprite.sharedMaterial != outlineMaterial)
+                Material outline = OutlineMaterials.WithEmission(outlineMaterial, sprite.sharedMaterial);
+
+                if (sprite.sharedMaterial != outline)
                 {
-                    sprite.sharedMaterial = outlineMaterial;
+                    sprite.sharedMaterial = outline;
                 }
             }
         }

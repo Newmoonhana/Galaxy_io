@@ -315,7 +315,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
             stateM.Add("credit", new CreditState(transform.GetComponentInChildren<WindowCredit>(true), ChangeState));
             stateM.Add("none", new EmptyState());
             stateM.Change("progress");
-            _ = RunAutoLogIn();
+            RunAutoLogIn().Forget();
         }
 
         /// <summary>
@@ -334,7 +334,7 @@ namespace GalaxyIO.Tools.PopupUI.Popup
 
             if (LobbyReturn.TakeNotice(out string title, out string body))
             {
-                _ = ShowNotice(title, body);
+                ShowNotice(title, body).Forget();
                 return;
             }
 

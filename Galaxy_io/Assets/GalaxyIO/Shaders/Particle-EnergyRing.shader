@@ -1,6 +1,7 @@
 // 에너지 폭발 고리 파티클 셰이더. 가운데 구멍이 뚫린 원. 바깥 둘레와 구멍 둘레는 EdgeColor, 그 사이는 InnerColor.
 // 구멍 크기(HoleScale)는 파티클마다 바뀌는 값이라 Custom Data(Custom1.x)로 받음.
 // 파티클 렌더러 Custom Vertex Streams: Position, Color, UV, Custom1.x (TEXCOORD0.z)
+// EmissionIntensity 를 색에 곱함. 1 을 넘으면 블룸이 생김.
 Shader "GalaxyIO/Particle-EnergyRing"
 {
     Properties
@@ -9,6 +10,7 @@ Shader "GalaxyIO/Particle-EnergyRing"
         _EdgeColor ("Edge Color", Color) = (0.65, 0.29, 0.66, 1)
         _EdgeWidth ("Edge Width (Radius Ratio)", Range(0, 0.5)) = 0.04
         _Smoothness ("Smoothness (Radius Ratio)", Range(0.001, 0.2)) = 0.02
+        _EmissionIntensity ("Emission Intensity", Float) = 1
     }
 
     SubShader
@@ -47,6 +49,7 @@ Shader "GalaxyIO/Particle-EnergyRing"
                 half4 _EdgeColor;
                 float _EdgeWidth;
                 float _Smoothness;
+                half _EmissionIntensity;
             CBUFFER_END
 
             Varyings RingVertex(Attributes input)
@@ -73,7 +76,9 @@ Shader "GalaxyIO/Particle-EnergyRing"
                 // 고리 밖과 구멍은 투명. 구멍이 둘레까지 커지면 사라짐.
                 color.a *= smoothstep(-_Smoothness, _Smoothness, toEdge) * step(hole, 0.999);
 
-                return color * input.color;
+                color *= input.color;
+                color.rgb *= _EmissionIntensity;
+                return color;
             }
             ENDHLSL
         }

@@ -3,9 +3,6 @@ using GalaxyIO.DOTS.Components.Actor;
 using Unity.Entities;
 using UnityEngine;
 
-// TrailRenderer 를 Companion 으로 쓰기 위한 타입 등록. Companion 생성 대상 등록은 CompanionTypeRegistration 이 맡음.
-[assembly: RegisterUnityEngineComponentType(typeof(TrailRenderer))]
-
 namespace GalaxyIO.DOTS.Authoring
 {
     /// <summary>
@@ -60,17 +57,6 @@ namespace GalaxyIO.DOTS.Authoring
             {
                 AddComponent(entity, new EffectSoundComponent { SoundKey = authoring.Sound });
             }
-        }
-    }
-
-    /// <summary>
-    /// 모든 <see cref="TrailRenderer"/>를 Companion 으로 베이킹함. 파티클은 유니티 기본 베이커가 맡음.
-    /// </summary>
-    public sealed class TrailRendererBaker : Baker<TrailRenderer>
-    {
-        public override void Bake(TrailRenderer authoring)
-        {
-            AddComponentObject(GetEntity(TransformUsageFlags.Dynamic), authoring);
         }
     }
 }

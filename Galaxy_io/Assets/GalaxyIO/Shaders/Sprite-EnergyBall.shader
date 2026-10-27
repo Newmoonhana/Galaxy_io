@@ -1,5 +1,6 @@
 // 에너지 구 스프라이트 셰이더. 정사각형 스프라이트 안에 원을 그림. 안쪽은 InnerColor, 테두리는 EdgeColor.
 // 크기는 Transform 크기로 바꿈. 색과 테두리 두께는 머티리얼 설정값.
+// EmissionIntensity 를 색에 곱함. 1 을 넘으면 블룸이 생김.
 Shader "GalaxyIO/Sprite-EnergyBall"
 {
     Properties
@@ -9,6 +10,7 @@ Shader "GalaxyIO/Sprite-EnergyBall"
         _EdgeColor ("Edge Color", Color) = (0.65, 0.29, 0.66, 1)
         _EdgeWidth ("Edge Width (Radius Ratio)", Range(0, 1)) = 0.3
         _Smoothness ("Smoothness (Radius Ratio)", Range(0.001, 0.2)) = 0.03
+        _EmissionIntensity ("Emission Intensity", Float) = 1
 
         // SpriteRenderer 가 채우는 값. 인스펙터에서는 숨김.
         [HideInInspector] _Color ("Tint", Color) = (1, 1, 1, 1)
@@ -54,6 +56,7 @@ Shader "GalaxyIO/Sprite-EnergyBall"
                 half4 _EdgeColor;
                 float _EdgeWidth;
                 float _Smoothness;
+                half _EmissionIntensity;
             CBUFFER_END
 
             Varyings BallVertex(Attributes input)
@@ -80,7 +83,9 @@ Shader "GalaxyIO/Sprite-EnergyBall"
                 half4 color = lerp(_EdgeColor, _InnerColor, inner);
                 color.a *= smoothstep(1.0, 1.0 - _Smoothness * 2.0, radius);
 
-                return color * input.color;
+                color *= input.color;
+                color.rgb *= _EmissionIntensity;
+                return color;
             }
             ENDHLSL
         }

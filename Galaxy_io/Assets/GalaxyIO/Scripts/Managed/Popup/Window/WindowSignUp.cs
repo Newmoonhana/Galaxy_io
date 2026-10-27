@@ -222,7 +222,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
         private void OnSignUpBtnPress()
         {
             if (!IsActive()) return;
-            _ = RunSignUp();
+            RunSignUp().Forget();
         }
         
         private void OnCancelBtnPress()

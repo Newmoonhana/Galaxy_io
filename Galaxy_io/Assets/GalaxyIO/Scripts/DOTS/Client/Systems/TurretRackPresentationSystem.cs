@@ -43,9 +43,9 @@ namespace GalaxyIO.DOTS.Client.Systems
                     float shown = math.smoothstep(0.0F, 1.0F, round.Progress);
 
                     // 나오면서 선명해짐.
-                    if (entityManager.HasComponent<SpriteRenderer>(round.Sprite))
+                    if (entityManager.HasComponent<CompanionComponent<SpriteRenderer>>(round.Sprite))
                     {
-                        SpriteRenderer sprite = entityManager.GetComponentObject<SpriteRenderer>(round.Sprite);
+                        SpriteRenderer sprite = entityManager.GetCompanion<SpriteRenderer>(round.Sprite);
                         sprite.enabled = round.Progress > 0.0F;
 
                         Color color = sprite.color;

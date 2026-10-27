@@ -1,6 +1,7 @@
 // 광선의 번짐 셰이더. 총구 쪽 구, 몸통, 끝 쪽 구를 합친 하나의 모양 주변을 Color 로 번지게 칠함.
 // 세 모양의 거리 중 가장 가까운 것만 쓰므로 번짐끼리 겹쳐 두 번 밝아지지 않음.
 // 정사각형 스프라이트를 Sliced 로 늘려 씀. 모양 값은 광선마다 다르므로 렌더러별 값(MaterialPropertyBlock)으로 받음.
+// EmissionIntensity 를 색에 곱함. 1 을 넘으면 블룸이 생김.
 Shader "GalaxyIO/Sprite-BeamGlow"
 {
     Properties
@@ -8,6 +9,7 @@ Shader "GalaxyIO/Sprite-BeamGlow"
         _MainTex ("Sprite Texture", 2D) = "white" {}
         _GlowColor ("Color", Color) = (0.7, 0.3, 0.85, 0.6)
         _BlurScale ("Blur Scale", Float) = 0.4
+        _EmissionIntensity ("Emission Intensity", Float) = 1
 
         // 광선 시스템이 렌더러마다 채우는 값. 인스펙터에서는 숨김.
         [HideInInspector] _Size ("Quad Size", Vector) = (1, 1, 0, 0)
@@ -60,6 +62,7 @@ Shader "GalaxyIO/Sprite-BeamGlow"
                 float _StartRadius;
                 float _EndRadius;
                 float _HalfWidth;
+                half _EmissionIntensity;
             CBUFFER_END
 
             Varyings GlowVertex(Attributes input)
@@ -87,7 +90,7 @@ Shader "GalaxyIO/Sprite-BeamGlow"
                 float distance = min(min(toStart, toEnd), toBody);
                 half glow = 1.0 - saturate(distance / max(_BlurScale, 1e-4));
 
-                return half4(_GlowColor.rgb, _GlowColor.a * glow * glow) * input.color;
+                return half4(_GlowColor.rgb * _EmissionIntensity, _GlowColor.a * glow * glow) * input.color;
             }
             ENDHLSL
         }

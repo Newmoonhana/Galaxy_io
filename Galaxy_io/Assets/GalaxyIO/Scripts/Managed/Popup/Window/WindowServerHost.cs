@@ -119,7 +119,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             }
 
             nameWarning.gameObject.SetActive(false);
-            _ = HostAsync(playerName);
+            HostAsync(playerName).Forget();
         }
 
         /// <summary>
@@ -130,7 +130,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
             SetLocked(true);
 
             // 씬 로드·스트리밍·접속 동안 빈 화면이 보이지 않게 가림. 인게임에서 치움.
-            _ = CommonProgress.ShowAcrossScenes();
+            CommonProgress.ShowAcrossScenes().Forget();
 
             if (!await GameSession.HostAndPlay(playerName))
             {

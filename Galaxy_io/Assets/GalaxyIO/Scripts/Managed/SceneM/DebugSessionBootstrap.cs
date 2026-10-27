@@ -1,4 +1,5 @@
 using GalaxyIO.DOTS.Networking;
+using GalaxyIO.Tools;
 using GalaxyIO.Tools.PopupUI.Popup;
 using Newmoonhana.Runtime.Utils.DEBUG;
 using Unity.NetCode;
@@ -23,7 +24,7 @@ namespace GalaxyIO.Main
             if (GameSession.IsActive || ClientServerBootstrap.ClientWorlds.Count > 0) return;
 
             DebugLog.LogWarning("디버그 전용 진입: 로비를 거치지 않은 인게임 씬 직접 실행. 호스트 세션을 구성하고 씬을 다시 로드함.");
-            _ = HostAsync();
+            HostAsync().Forget();
         }
 
         /// <summary>
@@ -33,7 +34,7 @@ namespace GalaxyIO.Main
         private async Awaitable HostAsync()
         {
             // 씬 로드·스트리밍·접속 동안 빈 화면이 보이지 않게 가림. 인게임에서 치움.
-            _ = CommonProgress.ShowAcrossScenes();
+            CommonProgress.ShowAcrossScenes().Forget();
 
             if (!await GameSession.HostAndPlay(DebugPlayerName))
             {

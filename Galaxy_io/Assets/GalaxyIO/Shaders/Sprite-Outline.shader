@@ -1,5 +1,6 @@
 ﻿// 스프라이트와 그 외곽선을 그리는 셰이더. 투명 픽셀 중 상하좌우에 불투명 픽셀이 있으면 외곽선 색으로 칠함.
 // 같은 머티리얼을 쓴 스프라이트(선체, 포탑)가 그린 자리에는 외곽선을 그리지 않아 합친 모습의 바깥에만 외곽선이 남음.
+// 발광은 Sprite-Emissive 와 같음. 보조 텍스처 _EmissionMap 이 칠해진 곳을 원래 색 * EmissionIntensity 로 칠함.
 Shader "GalaxyIO/Sprite-Outline"
 {
     Properties
@@ -7,6 +8,8 @@ Shader "GalaxyIO/Sprite-Outline"
         _MainTex ("Sprite Texture", 2D) = "white" {}
         _OutlineColor ("Outline Color", Color) = (1, 0, 0, 1)
         _OutlineWidth ("Outline Width (Texel)", Float) = 1
+        _EmissionMap ("Emission Mask", 2D) = "black" {}
+        _EmissionIntensity ("Emission Intensity", Float) = 1
 
         // SpriteRenderer 가 채우는 값. 인스펙터에서는 숨김.
         [HideInInspector] _Color ("Tint", Color) = (1, 1, 1, 1)
@@ -43,10 +46,14 @@ Shader "GalaxyIO/Sprite-Outline"
         TEXTURE2D(_MainTex);
         SAMPLER(sampler_MainTex);
 
+        TEXTURE2D(_EmissionMap);
+        SAMPLER(sampler_EmissionMap);
+
         CBUFFER_START(UnityPerMaterial)
             half4 _Color;
             half4 _OutlineColor;
             float _OutlineWidth;
+            half _EmissionIntensity;
         CBUFFER_END
 
         Varyings OutlineVertex(Attributes input)
@@ -90,6 +97,9 @@ Shader "GalaxyIO/Sprite-Outline"
             {
                 half4 color = SAMPLE_TEXTURE2D(_MainTex, sampler_MainTex, input.uv) * input.color;
                 clip(color.a - 0.01);
+
+                half4 emission = SAMPLE_TEXTURE2D(_EmissionMap, sampler_EmissionMap, input.uv);
+                color.rgb *= lerp(1.0, _EmissionIntensity, Max3(emission.r, emission.g, emission.b) * emission.a);
                 return color;
             }
             ENDHLSL

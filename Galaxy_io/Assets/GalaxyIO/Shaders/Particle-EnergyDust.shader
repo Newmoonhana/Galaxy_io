@@ -2,6 +2,7 @@
 // 속도는 파티클마다 바뀌는 값이라 Velocity 스트림으로 받음. 굵기는 파티클 크기(Size.x).
 // 파티클 렌더러 Render Mode: Billboard.
 // Custom Vertex Streams: Position, Color, UV, Center (TEXCOORD0.zw|x), Velocity (TEXCOORD1.yzw), Size.x (TEXCOORD2.x)
+// EmissionIntensity 를 색에 곱함. 1 을 넘으면 블룸이 생김.
 Shader "GalaxyIO/Particle-EnergyDust"
 {
     Properties
@@ -9,6 +10,7 @@ Shader "GalaxyIO/Particle-EnergyDust"
         _Color ("Color", Color) = (0.91, 0.75, 0.94, 1)
         _MaxLength ("Max Length", Float) = 0.6
         _MaxSpeed ("Max Speed", Float) = 15
+        _EmissionIntensity ("Emission Intensity", Float) = 1
     }
 
     SubShader
@@ -48,6 +50,7 @@ Shader "GalaxyIO/Particle-EnergyDust"
                 half4 _Color;
                 float _MaxLength;
                 float _MaxSpeed;
+                half _EmissionIntensity;
             CBUFFER_END
 
             Varyings DustVertex(Attributes input)
@@ -75,7 +78,7 @@ Shader "GalaxyIO/Particle-EnergyDust"
 
             half4 DustFragment(Varyings input) : SV_Target
             {
-                return input.color;
+                return half4(input.color.rgb * _EmissionIntensity, input.color.a);
             }
             ENDHLSL
         }

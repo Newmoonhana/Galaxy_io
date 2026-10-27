@@ -45,9 +45,9 @@ namespace GalaxyIO.DOTS.Client.Systems
                     ref AutoTurretMountElement mount = ref mounts.ElementAt(i);
                     mount.VisualAngle = math.lerp(mount.VisualAngle, autoTurrets[i].Angle, follow);
 
-                    if (entityManager.HasComponent<SpriteRenderer>(mount.Sprite))
+                    if (entityManager.HasComponent<CompanionComponent<SpriteRenderer>>(mount.Sprite))
                     {
-                        entityManager.GetComponentObject<SpriteRenderer>(mount.Sprite).enabled =
+                        entityManager.GetCompanion<SpriteRenderer>(mount.Sprite).enabled =
                             autoTurrets[i].Turret != ItemId.None;
                     }
 
