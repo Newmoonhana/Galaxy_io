@@ -47,7 +47,7 @@ Material:
     m_Floats:
     - PixelSnap: 0
     - _Cutoff: 0
-    - _EmissionIntensity: 3
+    - _EmissionIntensity: 6.12
     - _EmissionWhole: 1
     - _EnableExternalAlpha: 0
     m_Colors:
