@@ -26,6 +26,15 @@ namespace GalaxyIO.DOTS.Spaceship
         }
 
         /// <summary>
+        /// 한 틱 동안 기수를 <paramref name="from"/>에서 <paramref name="to"/>로 돌리는 회전량(라디안/초).
+        /// +는 반시계 방향.
+        /// </summary>
+        public static float AngularVelocity(float2 from, float2 to, float deltaTime)
+        {
+            return math.atan2(from.x * to.y - from.y * to.x, math.dot(from, to)) / deltaTime;
+        }
+
+        /// <summary>
         /// 기수 방향을 목표 방향으로 최대 <paramref name="maxAngle"/>(라디안)만큼 돌림.
         /// 두 방향 모두 단위 벡터여야 함.
         /// </summary>

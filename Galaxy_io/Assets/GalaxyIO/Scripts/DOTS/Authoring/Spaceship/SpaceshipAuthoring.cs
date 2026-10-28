@@ -77,10 +77,7 @@ namespace GalaxyIO.DOTS.Authoring
                 Health      = spec.MaxHealth,
             });
 
-            AddComponent(entity, new SpaceshipMovementComponent
-            {
-                DeltaMovement = float2.zero
-            });
+            AddComponent<MovementComponent>(entity);
 
             AddComponent(entity, new FactionComponent
             {

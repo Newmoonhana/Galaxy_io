@@ -27,6 +27,7 @@ namespace GalaxyIO.DOTS.Inventory
         private readonly EntityQuery shipQuery;
         private readonly EntityQuery craftQuery;
         private readonly EntityQuery connectionQuery;
+        private readonly EntityQuery spawnQuery;
 
         // NetworkId -> 인벤토리
         private readonly Dictionary<int, PlayerInventory> inventories = new Dictionary<int, PlayerInventory>();
@@ -49,7 +50,7 @@ namespace GalaxyIO.DOTS.Inventory
                 ComponentType.ReadOnly<SpaceshipRegistryElement>()
             );
             configQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<ItemConfigComponent>());
-            prefabQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<PrefabRegistryElement>());
+            prefabQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<PrefabRegistryComponent>());
             shipQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<GhostOwner>(),
                 ComponentType.ReadOnly<PlayerNameComponent>(),
@@ -64,6 +65,7 @@ namespace GalaxyIO.DOTS.Inventory
                 ComponentType.ReadWrite<CarriedItemElement>()
             );
             connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
+            spawnQuery = entityManager.CreateEntityQuery(ComponentType.ReadWrite<ItemSpawnMessage>());
         }
 
         private ItemRegistryAsset Items => registryQuery.GetSingleton<ItemRegistryAssetComponent>().Value;
@@ -409,35 +411,30 @@ namespace GalaxyIO.DOTS.Inventory
         }
 
         /// <summary>
-        /// 아이템 Entity 를 스폰함. direction 크기만큼 미끄러지는 속력을 줌.
-        /// 레지스트리에 아이템 Entity 나 아이템이 없으면 아무것도 안 함.
+        /// 아이템 스폰 메시지를 남김. direction 크기만큼 미끄러지는 속력을 줌.
+        /// 레지스트리에 아이템 Entity 가 없으면 아무것도 안 함.
         /// </summary>
         private void Spawn(ItemId id, int count, float3 position, float2 direction)
         {
-            Entity prefab = prefabQuery.GetSingletonBuffer<PrefabRegistryElement>(true).Find(PrefabId.ItemEntity);
-            DynamicBuffer<ItemRegistryElement> registry = registryQuery.GetSingletonBuffer<ItemRegistryElement>(true);
+            Entity prefab = prefabQuery.GetSingleton<PrefabRegistryComponent>().ItemEntity;
 
-            if (prefab == Entity.Null || !registry.Contains(id))
+            if (prefab == Entity.Null)
             {
                 return;
             }
 
-            // 프리팹의 설정값과 회전/크기는 그대로 쓰고 아이템 종류, 속도, 위치만 바꿈.
+            // 미끄러지는 속력과 줍기 대기 시간은 프리팹 값을 씀.
             ItemComponent item = entityManager.GetComponentData<ItemComponent>(prefab);
-            item.Id = id;
-            item.Count = count;
-            item.Launch(direction * item.SlideSpeed, item.DropPickupDelay);
 
-            ColliderComponent collider = entityManager.GetComponentData<ColliderComponent>(prefab);
-            collider.Extents = registry[(int)id].HalfExtents;
-
-            LocalTransform transform = entityManager.GetComponentData<LocalTransform>(prefab);
-            transform.Position = position;
-
-            Entity entity = entityManager.Instantiate(prefab);
-            entityManager.SetComponentData(entity, item);
-            entityManager.SetComponentData(entity, collider);
-            entityManager.SetComponentData(entity, transform);
+            spawnQuery.GetSingletonBuffer<ItemSpawnMessage>().Add(new ItemSpawnMessage
+            {
+                Prefab      = prefab,
+                Id          = id,
+                Count       = count,
+                Position    = position,
+                Velocity    = direction * item.SlideSpeed,
+                PickupDelay = item.DropPickupDelay,
+            });
         }
     }
 }

@@ -12,32 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c28adb2bdeb54102a54c0996024f2519, type: 3}
   m_Name: SO_PrefabRegistry
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.Config.PrefabRegistryAsset
-  Prefabs:
-  - Id: 1
-    Prefab: {fileID: 1177794197835979121, guid: 4fdcc2bb1229f2343b7824bc57363aae, type: 3}
-  - Id: 2
-    Prefab: {fileID: 6977692746202840440, guid: d60e724c2bc8acc4c9960df853e2b5fe, type: 3}
-  - Id: 3
-    Prefab: {fileID: 4645922343098088288, guid: 1cbbe28b3ef5cea4188479f2e14b0b18, type: 3}
-  - Id: 4
-    Prefab: {fileID: 7104664774962765007, guid: 1b18fa67a82e424b81e3d20824947709, type: 3}
-  - Id: 5
-    Prefab: {fileID: 1177794197835979121, guid: a9886d0abd4b7c04fa01998fd1393470, type: 3}
-  - Id: 6
-    Prefab: {fileID: 1177794197835979121, guid: 328bac3ed695339469506267d64809e0, type: 3}
-  - Id: 7
-    Prefab: {fileID: 1177794197835979121, guid: 467fdd060e2a459eab59f5a16faf327d, type: 3}
-  - Id: 8
-    Prefab: {fileID: 1177794197835979121, guid: 59a27bd311d74ee3a65d7fb665a7ef81, type: 3}
-  - Id: 9
-    Prefab: {fileID: 1177794197835979121, guid: 112ff07b323043188202db2e56b7bce4, type: 3}
-  - Id: 10
-    Prefab: {fileID: 1177794197835979121, guid: e5552e186fb94ab599719caf13c4a5bb, type: 3}
-  - Id: 11
-    Prefab: {fileID: 1177794197835979121, guid: a9bded0b6fee4a268cc39e4b7eba4626, type: 3}
-  - Id: 12
-    Prefab: {fileID: 1177794197835979121, guid: 2ef460845e23b3c4592c59cff17d2ad2, type: 3}
-  - Id: 13
-    Prefab: {fileID: 1177794197835979121, guid: b28b3de406dab664885082173346df06, type: 3}
-  - Id: 14
-    Prefab: {fileID: 1177794197835979121, guid: 348810eed5fa4ee49e96df1d7efd5e6b, type: 3}
+  ExplosionEffect: {fileID: 6977692746202840440, guid: d60e724c2bc8acc4c9960df853e2b5fe, type: 3}
+  EnemyStrafingShip: {fileID: 4645922343098088288, guid: 1cbbe28b3ef5cea4188479f2e14b0b18, type: 3}
+  ItemEntity: {fileID: 7104664774962765007, guid: 1b18fa67a82e424b81e3d20824947709, type: 3}

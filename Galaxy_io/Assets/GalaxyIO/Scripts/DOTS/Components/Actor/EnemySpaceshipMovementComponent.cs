@@ -21,8 +21,5 @@ namespace GalaxyIO.DOTS.Components.Actor
 
         // 회전속도(도/초)
         public float Maneuver;
-
-        // 현재 속도. 기수와 무관한 방향.
-        public float2 Velocity;
     }
 }

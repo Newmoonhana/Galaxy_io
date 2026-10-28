@@ -137,7 +137,7 @@ namespace GalaxyIO.DOTS.Networking
             if (client == null) return;
 
             using EntityQuery registryQuery = client.EntityManager.CreateEntityQuery(
-                ComponentType.ReadOnly<PrefabRegistryElement>()
+                ComponentType.ReadOnly<PrefabRegistryComponent>()
             );
 
             for (int i = 0; i < StreamWaitFrames && registryQuery.IsEmpty; i++)
