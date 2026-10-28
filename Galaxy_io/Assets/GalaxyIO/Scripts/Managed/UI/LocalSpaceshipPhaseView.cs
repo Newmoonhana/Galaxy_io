@@ -48,6 +48,7 @@ namespace GalaxyIO.Scripts.Managed.UI
             playerQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<GhostOwnerIsLocal>(),
                 ComponentType.ReadOnly<PlayerSpaceshipMovementComponent>(),
+                ComponentType.ReadOnly<MovementComponent>(),
                 ComponentType.ReadOnly<SpriteRenderer>()
             );
         }
@@ -68,7 +69,8 @@ namespace GalaxyIO.Scripts.Managed.UI
             }
 
             using var players = playerQuery.ToEntityArray(Allocator.Temp);
-            bool phasing = entityManager.GetComponentData<PlayerSpaceshipMovementComponent>(players[0]).Phasing;
+            bool phasing = entityManager.GetComponentData<PlayerSpaceshipMovementComponent>(players[0])
+                .IsPhasing(entityManager.GetComponentData<MovementComponent>(players[0]).Velocity);
 
             alpha = Mathf.MoveTowards(alpha, phasing ? phaseAlpha : 1.0F, fadeSpeed * Time.deltaTime);
 

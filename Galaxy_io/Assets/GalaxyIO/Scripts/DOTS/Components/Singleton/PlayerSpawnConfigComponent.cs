@@ -9,6 +9,6 @@ namespace GalaxyIO.DOTS.Components.Singleton
     public struct PlayerSpawnConfigComponent : IComponentData
     {
         // 최초 스폰 / 리스폰 때 타는 우주선
-        public PrefabId DefaultSpaceship;
+        public SpaceshipId DefaultSpaceship;
     }
 }

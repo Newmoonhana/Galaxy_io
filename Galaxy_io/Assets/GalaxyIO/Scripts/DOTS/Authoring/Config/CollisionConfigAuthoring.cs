@@ -30,6 +30,11 @@ namespace GalaxyIO.DOTS.Authoring.Config
         public float RamDamage = 2.0F;
 
         [SerializeField]
+        [Tooltip("상대 속력이 이보다 느린 충돌은 데미지 없음. 살짝 맞닿은 채 움직일 때 데미지가 쌓이는 것을 막음.")]
+        [Min(0.0F)]
+        public float RamMinSpeed = 4.0F;
+
+        [SerializeField]
         [Tooltip("같은 모선에 딸린 함재기끼리 한 틱에 밀어내는 거리, 튕기는 속도의 최대값")]
         [Min(0.0F)]
         public float GroupRepulsion = 0.2F;
@@ -51,6 +56,7 @@ namespace GalaxyIO.DOTS.Authoring.Config
                 RewindSpeed    = authoring.RewindSpeed,
                 Restitution    = authoring.Restitution,
                 RamDamage      = authoring.RamDamage,
+                RamMinSpeed    = authoring.RamMinSpeed,
                 GroupRepulsion = authoring.GroupRepulsion,
                 CrashSound     = authoring.CrashSound,
             });

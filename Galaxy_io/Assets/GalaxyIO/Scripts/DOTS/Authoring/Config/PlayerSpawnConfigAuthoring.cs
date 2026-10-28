@@ -10,8 +10,8 @@ namespace GalaxyIO.DOTS.Authoring.Config
     public sealed class PlayerSpawnConfigAuthoring : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("최초 스폰 / 리스폰 때 타는 우주선. 프리팹 레지스트리에 등록된 Id 여야 함.")]
-        public PrefabId DefaultSpaceship = PrefabId.Vex;
+        [Tooltip("최초 스폰 / 리스폰 때 타는 우주선. 우주선 레지스트리에 프리팹이 있는 기종이어야 함.")]
+        public SpaceshipId DefaultSpaceship = SpaceshipId.Vex;
     }
 
     public sealed class PlayerSpawnConfigBaker : Baker<PlayerSpawnConfigAuthoring>

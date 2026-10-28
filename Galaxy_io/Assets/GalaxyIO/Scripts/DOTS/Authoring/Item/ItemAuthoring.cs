@@ -84,6 +84,8 @@ namespace GalaxyIO.DOTS.Authoring
                 DropPickupDelay   = authoring.DropPickupDelay,
             });
 
+            AddComponent<MovementComponent>(entity);
+
             // 크기는 스폰 시 아이템 스프라이트에 맞춤.
             AddComponent(entity, new ColliderComponent { Shape = ColliderShape.Obb });
 

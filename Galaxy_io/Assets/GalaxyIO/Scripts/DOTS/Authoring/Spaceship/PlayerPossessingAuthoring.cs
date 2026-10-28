@@ -43,7 +43,6 @@ namespace GalaxyIO.DOTS.Authoring
                 HoveringSpeed        = spaceship.HoveringSpeed,
                 HoveringAcceleration = spaceship.HoveringAcceleration,
                 HoveringDeceleration = spaceship.HoveringDeceleration,
-                Velocity             = float2.zero,
                 Acceleration         = spaceship.Acceleration,
                 Deceleration         = spaceship.Deceleration,
                 Maneuver             = spaceship.Maneuver,

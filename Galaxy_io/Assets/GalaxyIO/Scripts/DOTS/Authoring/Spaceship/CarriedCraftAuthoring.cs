@@ -187,7 +187,6 @@ namespace GalaxyIO.DOTS.Authoring
                 HoveringAcceleration = spaceship.HoveringAcceleration,
                 HoveringDeceleration = spaceship.HoveringDeceleration,
                 Maneuver             = spaceship.Maneuver,
-                Velocity             = float2.zero,
             });
 
             AddComponent(entity, new EnemyTurretComponent

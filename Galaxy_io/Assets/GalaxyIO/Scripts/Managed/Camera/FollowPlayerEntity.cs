@@ -126,6 +126,7 @@ namespace GalaxyIO.Camera
                 ComponentType.ReadOnly<GhostOwnerIsLocal>(),
                 ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadOnly<PlayerSpaceshipMovementComponent>(),
+                ComponentType.ReadOnly<MovementComponent>(),
                 ComponentType.ReadOnly<SpaceshipCameraComponent>()
             );
             stateQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<PlayerStateComponent>());
@@ -214,7 +215,7 @@ namespace GalaxyIO.Camera
             // 오프셋만 보간함. 프레임률과 무관한 지수 감쇠.
             currentLookAhead = Vector2.Lerp(
                 currentLookAhead,
-                GetLookAhead(playerTransform, movement),
+                GetLookAhead(playerTransform, movement, entityManager.GetComponentData<MovementComponent>(player).Velocity),
                 1F - Mathf.Exp(-smoothSpeed * Time.deltaTime)
             );
 
@@ -260,7 +261,8 @@ namespace GalaxyIO.Camera
         /// </summary>
         private Vector2 GetLookAhead(
             in LocalTransform transform,
-            in PlayerSpaceshipMovementComponent movement)
+            in PlayerSpaceshipMovementComponent movement,
+            float2 velocity)
         {
             if (movement.MaxSpeed <= math.EPSILON)
             {
@@ -269,7 +271,7 @@ namespace GalaxyIO.Camera
 
             // 기수 방향 * (기수 방향 속력 / 최대 속력). 가속/감속을 따라 오프셋도 늘고 줆.
             float2 forward = math.normalizesafe(SpaceshipHeading.FromRotation(transform.Rotation), float2.zero);
-            float speedRatio = math.saturate(math.dot(movement.Velocity, forward) / movement.MaxSpeed);
+            float speedRatio = math.saturate(math.dot(velocity, forward) / movement.MaxSpeed);
 
             return new Vector2(forward.x, forward.y) * (speedRatio * lookAheadDistance);
         }

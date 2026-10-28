@@ -62,8 +62,8 @@ namespace GalaxyIO.DOTS.Components.Actor
         [GhostField]
         public ItemId Turret;
 
-        // 직전 틱 이동 변위. 고속 투사체가 표적을 통과하지 않도록 충돌체를 늘리는 데 씀.
-        // 이동 시스템이 매 틱 기록함.
+        // 이번 틱 이동 변위. 고속 투사체가 표적을 통과하지 않도록 충돌체를 늘리는 데 씀.
+        // 속도를 정하는 시스템이 매 틱 기록함.
         public float2 Displacement;
 
         // 발사한 클라이언트의 보간 지연(틱). 서버가 그 시점 우주선 위치로 되감아 판정함.

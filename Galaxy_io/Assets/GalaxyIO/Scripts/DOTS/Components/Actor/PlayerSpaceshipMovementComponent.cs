@@ -7,7 +7,7 @@ namespace GalaxyIO.DOTS.Components.Actor
 {
     /// <summary>
     /// 플레이어가 조종하는 우주선의 비행 모델. <see cref="PlayerMovementSystem"/>이
-    /// 이 값들과 입력을 합쳐 <see cref="SpaceshipMovementComponent"/>를 만듦.
+    /// 이 값들과 입력을 합쳐 <see cref="MovementComponent"/>를 고침.
     /// 주인에게만 복제함. 다른 클라이언트는 위치와 회전만 받아 보간함.
     /// </summary>
     [GhostComponent(OwnerSendType = SendToOwnerType.SendToOwner)]
@@ -24,11 +24,6 @@ namespace GalaxyIO.DOTS.Components.Actor
 
         // 호버링 감속도. WASD를 떼면 이 값으로 0까지 줄어듦.
         public float HoveringDeceleration;
-
-        // 현재 속도. 비행, 호버링, 회전 관성이 모두 이 벡터 하나에 담김.
-        // 예측 롤백 시 서버 값으로 되감아야 하므로 복제함.
-        [GhostField]
-        public float2 Velocity;
 
         // 가속도
         public float Acceleration;
@@ -57,7 +52,12 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 이 속력 이상이면 다른 우주선과 부딪히지 않음. 0 이면 항상 부딪힘.
         public float PhaseSpeed;
 
-        // 지금 다른 우주선과 부딪히지 않는 상태인지
-        public bool Phasing => PhaseSpeed > 0.0F && math.lengthsq(Velocity) >= PhaseSpeed * PhaseSpeed;
+        /// <summary>
+        /// 주어진 속도에서 다른 우주선과 부딪히지 않는 상태인지.
+        /// </summary>
+        public bool IsPhasing(float2 velocity)
+        {
+            return PhaseSpeed > 0.0F && math.lengthsq(velocity) >= PhaseSpeed * PhaseSpeed;
+        }
     }
 }

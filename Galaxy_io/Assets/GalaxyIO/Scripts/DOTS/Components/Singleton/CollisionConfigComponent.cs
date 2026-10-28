@@ -22,6 +22,9 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 상대 속력 1당 충돌 데미지
         public float RamDamage;
 
+        // 상대 속력이 이보다 느린 충돌은 데미지 없음
+        public float RamMinSpeed;
+
         // 같은 모선에 딸린 함재기끼리 한 틱에 밀어내는 거리, 튕기는 속도의 최대값
         public float GroupRepulsion;
 
