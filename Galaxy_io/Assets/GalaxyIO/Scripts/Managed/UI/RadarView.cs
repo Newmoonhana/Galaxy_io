@@ -219,9 +219,9 @@ namespace GalaxyIO.Scripts.Managed.UI
         private World clientWorld;
 
         /// <summary>
-        /// 강화를 반영한 레이더 탐지 거리. 로컬 우주선이 없으면 마지막 값.
+        /// 레이더 지도가 덮는 거리(현재 표시 거리).
         /// </summary>
-        public float Range => range;
+        public float ViewRange => viewRange;
 
         /// <summary>
         /// 화면 좌표가 레이더 원 안이면 그 자리의 월드 좌표를 줌.

@@ -134,7 +134,10 @@ namespace GalaxyIO.DOTS.Systems
 
                 // 호버링: 가속 키를 떼고 호버링 속력 이하로 느려지면 기수와 무관하게
                 // WASD 합산 방향으로 평행 이동함.
-                if (!accelerating && speed <= hoveringSpeed)
+                bool hovering = !accelerating && speed <= hoveringSpeed;
+                playerMovement.ValueRW.Flying = !hovering;
+
+                if (hovering)
                 {
                     float2 desiredHovering =
                         math.normalizesafe(inputRequest.ValueRO.MoveArrows, float2.zero) * hoveringSpeed;

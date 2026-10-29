@@ -233,9 +233,9 @@ namespace GalaxyIO.Scripts.Managed.UI
                     }
                 }
 
-                // 명령 지점은 레이더 안이어야 함.
+                // 명령 지점은 레이더 지도 안이어야 함.
                 bool inRange = radar == null || order.Order == CarrierOrder.Attack
-                               || Vector2.Distance(shipPosition, order.Position) <= radar.Range;
+                               || Vector2.Distance(shipPosition, order.Position) <= radar.ViewRange;
 
                 if (order.Order == CarrierOrder.Return
                     || (order.Order != CarrierOrder.None && inRange && Time.unscaledTime >= nextOrderTime))

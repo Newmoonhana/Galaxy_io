@@ -40,5 +40,10 @@ namespace GalaxyIO.DOTS.Authoring
         [SerializeField]
         [Tooltip("이 투사체를 쏘는 동안 클라이언트가 총구에서 뻗어 그릴 광선(BeamAuthoring). 길이는 사거리까지, 첫 우주선에서 멈춤. 비우면 없음.")]
         public GameObject Beam;
+
+        [SerializeField]
+        [Tooltip("Ghost 가 아닌 투사체만. 켜면 서버가 발사 정보(위치, 속도)를 한 번 보내고 클라이언트가 받아서 쏨. " +
+                 "끄면 클라이언트가 복제된 사격 전환 상태를 보고 각자 쏨(e.g. Pyron).")]
+        public bool SendShot;
     }
 }

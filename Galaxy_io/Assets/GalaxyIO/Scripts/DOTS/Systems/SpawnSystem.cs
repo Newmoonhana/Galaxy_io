@@ -12,15 +12,21 @@ namespace GalaxyIO.DOTS.Systems
     /// <summary>
     /// 스폰 메시지를 받아 투사체, 우주선, 함재기, 아이템을 만드는 시스템.
     /// 메시지는 싱글톤 Entity 하나의 버퍼에 모임. 만든 Entity 는 예측 루프가 끝날 때 생김.
+    /// 서버는 <see cref="ProjectileReplication.Shot"/> 투사체의 발사 정보를 <see cref="ProjectileShotMessage"/>로 남김.
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SpawnSystemGroup))]
     public partial struct SpawnSystem : ISystem
     {
+        private bool isServer;
+
         public void OnCreate(ref SystemState state)
         {
+            isServer = state.WorldUnmanaged.IsServer();
+
             state.EntityManager.CreateEntity(
                 typeof(ProjectileSpawnMessage),
+                typeof(ProjectileShotMessage),
                 typeof(SpaceshipSpawnMessage),
                 typeof(CraftSpawnMessage),
                 typeof(ItemSpawnMessage)
@@ -48,6 +54,9 @@ namespace GalaxyIO.DOTS.Systems
                 .GetSingleton<EndPredictedSimulationEntityCommandBufferSystem.Singleton>()
                 .CreateCommandBuffer(state.WorldUnmanaged);
 
+            DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetSingletonBuffer<ItemRegistryElement>(true);
+            DynamicBuffer<ProjectileShotMessage> shots = SystemAPI.GetBuffer<ProjectileShotMessage>(messages);
+
             foreach (ProjectileSpawnMessage message in projectiles)
             {
                 // 같은 틱에 사라진 우주선의 사격은 버림.
@@ -57,6 +66,8 @@ namespace GalaxyIO.DOTS.Systems
                 }
 
                 LocalTransform spawner = SystemAPI.GetComponent<LocalTransform>(message.Spawner);
+                LocalTransform transform = spawner.TransformTransform(message.Muzzle);
+                FactionComponent faction = SystemAPI.GetComponent<FactionComponent>(message.Spawner);
 
                 // 나머지 값은 프리팹 베이킹 결과를 그대로 씀.
                 var shared = SystemAPI.GetComponent<SharedProjectileComponent>(message.Prefab);
@@ -66,13 +77,16 @@ namespace GalaxyIO.DOTS.Systems
                 shared.InterpolationDelay = message.InterpolationDelay;
 
                 Entity projectile = ecb.Instantiate(message.Prefab);
-                ecb.SetComponent(projectile, spawner.TransformTransform(message.Muzzle));
+                ecb.SetComponent(projectile, transform);
                 ecb.SetComponent(projectile, new GhostOwner { NetworkId = message.NetworkId });
                 ecb.SetComponent(projectile, new ProjectileSpawnIdComponent { Value = message.SpawnId });
 
                 // 쏜 우주선의 진영을 물려받음.
-                ecb.SetComponent(projectile, SystemAPI.GetComponent<FactionComponent>(message.Spawner));
+                ecb.SetComponent(projectile, faction);
                 ecb.SetComponent(projectile, shared);
+
+                float speed = 0.0F;
+                float acceleration = 0.0F;
 
                 // 직진 투사체는 우주선 속도의 InheritAxis 방향 성분을 물려받음.
                 if (SystemAPI.HasComponent<StraightforwardProjectileComponent>(message.Prefab))
@@ -84,7 +98,41 @@ namespace GalaxyIO.DOTS.Systems
                         ? math.dot(SystemAPI.GetComponent<MovementComponent>(message.Spawner).Velocity, axis)
                         : 0.0F);
                     ecb.SetComponent(projectile, launched);
+
+                    speed = launched.Speed;
+                    acceleration = launched.Acceleration;
                 }
+
+                if (registry.Get(message.Turret).Turret.Replication != ProjectileReplication.Shot)
+                {
+                    continue;
+                }
+
+                // 클라이언트가 직접 쏜 투사체. 롤백 재시뮬레이션에서 빠지고 LocalProjectileSystem 이 프레임마다 옮김.
+                if (!isServer)
+                {
+                    ecb.AddComponent<LocalProjectileTag>(projectile);
+                    continue;
+                }
+
+                float2 up = transform.Up().xy;
+                float lifetime = shared.Lifetime;
+
+                shots.Add(new ProjectileShotMessage
+                {
+                    Shot = new ProjectileShotRPC
+                    {
+                        Owner    = message.Spawner,
+                        Turret   = message.Turret,
+                        Faction  = faction.Value,
+                        Party    = faction.Party,
+                        Position = transform.Position.xy,
+                        Angle    = math.atan2(-up.x, up.y),
+                        Speed    = speed,
+                    },
+                    NetworkId = message.NetworkId,
+                    Reach     = math.max(speed * lifetime + 0.5F * acceleration * lifetime * lifetime, 0.0F),
+                });
             }
 
             foreach (SpaceshipSpawnMessage message in spaceships)
@@ -129,8 +177,6 @@ namespace GalaxyIO.DOTS.Systems
                 });
                 ecb.SetComponent(craft, message.Craft);
             }
-
-            DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetSingletonBuffer<ItemRegistryElement>(true);
 
             foreach (ItemSpawnMessage message in items)
             {

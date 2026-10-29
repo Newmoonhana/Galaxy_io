@@ -18,6 +18,14 @@ namespace GalaxyIO.DOTS.Authoring
     public static class CompanionTypes
     {
         public static readonly Type[] Types = { typeof(TrailRenderer), typeof(Light2D) };
+
+        // Companion GameObject 연결 컴포넌트. internal 타입이라 이름으로 찾음.
+        public static readonly string[] LinkTypeNames =
+        {
+            "Unity.Entities.CompanionReference, Unity.Entities.Hybrid",
+            "Unity.Entities.CompanionLink, Unity.Entities.Hybrid",
+            "Unity.Entities.CompanionLinkTransform, Unity.Entities.Hybrid",
+        };
     }
 
     // 타입 등록은 "남길 컴포넌트" 지정일 뿐. Entity 에 컴포넌트를 붙이는 베이커가 있어야 Companion 이 됨.

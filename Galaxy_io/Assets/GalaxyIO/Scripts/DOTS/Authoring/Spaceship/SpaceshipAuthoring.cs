@@ -132,6 +132,7 @@ namespace GalaxyIO.DOTS.Authoring
             // 클라이언트가 Ghost 가 아닌 투사체를 직접 쏠 때 씀.
             AddComponent<LocalLaunchComponent>(entity);
             AddBuffer<LocalLaunchCooldownElement>(entity);
+            AddBuffer<ShotCooldownElement>(entity);
 
             for (int i = 0; i < authoring.Muzzles.Count; i++)
             {

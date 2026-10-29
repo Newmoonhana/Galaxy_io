@@ -35,6 +35,22 @@ namespace GalaxyIO.DOTS.Components.Message
     }
 
     /// <summary>
+    /// 서버가 쏜 <see cref="ProjectileReplication.Shot"/> 투사체의 발사 정보. 서버만 씀.
+    /// <see cref="ProjectileShotNotifySystem"/>이 근처 접속에 <see cref="ProjectileShotRPC"/>로 보냄.
+    /// </summary>
+    [InternalBufferCapacity(0)]
+    public struct ProjectileShotMessage : IBufferElementData
+    {
+        public ProjectileShotRPC Shot;
+
+        // 쏜 플레이어. 직접 쏘므로 받지 않음. AI, 자동 포탑은 -1.
+        public int NetworkId;
+
+        // 투사체가 수명 동안 날아가는 거리. 복제 범위 밖에서 날아 들어오는 투사체도 보냄.
+        public float Reach;
+    }
+
+    /// <summary>
     /// 월드 좌표에 우주선을 스폰하는 요청. e.g. 적 우주선
     /// </summary>
     [InternalBufferCapacity(0)]

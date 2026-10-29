@@ -21,6 +21,7 @@ namespace GalaxyIO.DOTS.Client.Systems
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(AutoTurretProjectileShiftSystem))]
     [UpdateAfter(typeof(LocalProjectileSystem))]
+    [UpdateAfter(typeof(ProjectileShotReceiveSystem))]
     [UpdateBefore(typeof(TransformSystemGroup))]
     public partial struct ShotPresentationSystem : ISystem
     {
@@ -61,6 +62,7 @@ namespace GalaxyIO.DOTS.Client.Systems
             NetworkTick interpolationTick = SystemAPI.GetSingleton<NetworkTime>().InterpolationTick;
             ComponentLookup<EquippedTurretComponent> equippedLookup = SystemAPI.GetComponentLookup<EquippedTurretComponent>(true);
             ComponentLookup<LocalLaunchComponent> launchLookup = SystemAPI.GetComponentLookup<LocalLaunchComponent>(true);
+            ComponentLookup<GhostInstance> ghostLookup = SystemAPI.GetComponentLookup<GhostInstance>(true);
 
             Entity registryEntity = SystemAPI.GetSingletonEntity<ItemRegistryElement>();
             DynamicBuffer<ItemRegistryElement> registry = SystemAPI.GetBuffer<ItemRegistryElement>(registryEntity);
@@ -72,21 +74,24 @@ namespace GalaxyIO.DOTS.Client.Systems
             var effects = new NativeList<ShotEffectSpawn>(Allocator.Temp);
 
             foreach (
-                var (shared, transform, ghost, pending, entity) in
+                var (shared, transform, pending, entity) in
                 SystemAPI.Query<
                     RefRO<SharedProjectileComponent>,
                     RefRO<LocalTransform>,
-                    RefRO<GhostInstance>,
                     EnabledRefRW<ShotPendingTag>
                 >().WithEntityAccess()
             ) {
                 pending.ValueRW = false;
 
-                // 예측 스폰(로컬 발사)은 항상 새 발사임.
+                // 예측 스폰(로컬 발사)과 Ghost 가 아닌 투사체는 항상 새 발사임.
+                NetworkTick spawnTick = ghostLookup.TryGetComponent(entity, out GhostInstance ghost)
+                    ? ghost.spawnTick
+                    : NetworkTick.Invalid;
+
                 if (!SystemAPI.HasComponent<PredictedGhost>(entity)
                     && interpolationTick.IsValid
-                    && ghost.ValueRO.spawnTick.IsValid
-                    && interpolationTick.TicksSince(ghost.ValueRO.spawnTick) > MaxShotAgeTicks)
+                    && spawnTick.IsValid
+                    && interpolationTick.TicksSince(spawnTick) > MaxShotAgeTicks)
                 {
                     continue;
                 }

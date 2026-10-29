@@ -48,6 +48,9 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 명령을 다시 내릴 수 있기까지의 시간(초)
         public float OrderCooldown;
 
+        // 명령 지점까지의 최대 거리. 레이더 지도의 최대 표시 거리와 같음.
+        public float OrderRange;
+
         // 귀환 명령을 받은 함재기가 출발하기까지 기다리는 최대 시간(초)
         public float ReturnDelay;
 

@@ -98,7 +98,10 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                     Vector2 arrowMovement = wasdAction.ReadValue<Vector2>();
 
-                    playerInput.ValueRW.MouseCursor = new float2(cursorWorldPos.x, cursorWorldPos.y);
+                    // 레이더 위에서는 커서가 가리키는 레이더 지점을 바라봄.
+                    playerInput.ValueRW.MouseCursor = playerState.RadarHovered
+                        ? transform.ValueRO.Position.xy + playerState.RadarCursor
+                        : new float2(cursorWorldPos.x, cursorWorldPos.y);
                     playerInput.ValueRW.MoveArrows = new float2(arrowMovement.x, arrowMovement.y);
                 }
 

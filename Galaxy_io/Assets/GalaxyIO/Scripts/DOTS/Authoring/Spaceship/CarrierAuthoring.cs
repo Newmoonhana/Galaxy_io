@@ -40,6 +40,11 @@ namespace GalaxyIO.DOTS.Authoring
         public float OrderCooldown = 1.0F;
 
         [SerializeField]
+        [Tooltip("명령 지점까지의 최대 거리. 레이더 지도의 최대 표시 거리(RadarView.maxViewRange)와 맞춤.")]
+        [Min(0.0F)]
+        public float OrderRange = 350.0F;
+
+        [SerializeField]
         [Tooltip("귀환 명령을 받은 함재기가 출발하기까지 기다리는 최대 시간(초). 함재기마다 0 ~ 이 값 중에서 뽑음.")]
         [Min(0.0F)]
         public float ReturnDelay = 1.5F;
@@ -65,6 +70,7 @@ namespace GalaxyIO.DOTS.Authoring
                 AssemblyTime      = authoring.AssemblyTime,
                 LaunchInterval    = authoring.LaunchInterval,
                 OrderCooldown     = authoring.OrderCooldown,
+                OrderRange        = authoring.OrderRange,
                 ReturnDelay       = authoring.ReturnDelay,
                 Stored            = (byte)stored,
                 Total             = (byte)stored,
