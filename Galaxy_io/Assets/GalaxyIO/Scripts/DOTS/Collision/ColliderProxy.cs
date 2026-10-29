@@ -54,6 +54,9 @@ namespace GalaxyIO.DOTS.Collision
 
         // 다른 선체와 부딪히지 않음. 선체 충돌체만 채움.
         public bool Phasing;
+
+        // 통과 중인 선체와도 부딪힘. (순양함, 모선) 선체 충돌체만 채움.
+        public bool Solid;
     }
 
     /// <summary>
@@ -85,8 +88,9 @@ namespace GalaxyIO.DOTS.Collision
                        && !Faction.IsSameParty(receiver.Party, target.Party);
             }
 
-            // 둘 중 하나라도 통과 상태면 선체끼리 부딪히지 않음.
-            if (receiver.Layer == CollisionLayer.Spaceship && (receiver.Phasing || target.Phasing))
+            // 둘 중 하나라도 통과 상태면 선체끼리 부딪히지 않음. 단 순양함, 모선과는 부딪힘.
+            if (receiver.Layer == CollisionLayer.Spaceship && (receiver.Phasing || target.Phasing)
+                && !receiver.Solid && !target.Solid)
             {
                 return false;
             }

@@ -38,7 +38,7 @@ Transform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!212 &7803624596038902002
 SpriteRenderer:
-  serializedVersion: 2
+  serializedVersion: 3
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -95,6 +95,7 @@ SpriteRenderer:
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
+  m_BlendShapeWeights: []
 --- !u!114 &8579004218275610720
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -107,13 +108,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9868991a90114dd0a355fd93f54ffdd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.StraightforwardProjectileAuthoring
-  Lifetime: 4
+  Lifetime: 4.2
   Pierce: 0
   ExplosionRadius: 6
   SpawnOnHit: {fileID: 6977692746202840440, guid: c72f30f2f40d20345b617ca3b54fd3ff, type: 3}
   ShotEffect: {fileID: 1756703243802028873, guid: 2f8399caa7ee6c5499a37450896e1cf2, type: 3}
   Visual: {fileID: 1756703243802028873, guid: 70ac0d51ecca174438c2d228beabc79d, type: 3}
   Beam: {fileID: 0}
+  SendShot: 0
   Speed: 25
   Acceleration: 30
   ReflectOwnerVelocity: 1
@@ -154,6 +156,7 @@ MonoBehaviour:
   OptimizationMode: 0
   Importance: 1
   MaxSendRate: 0
+  SingleWorldHostInterpolationSmoothing: 1
   prefabId: 0cb22af04013a4a4893e1ca495187ee7
 --- !u!114 &4783118654903221507
 MonoBehaviour:

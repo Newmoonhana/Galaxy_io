@@ -229,7 +229,8 @@ namespace GalaxyIO.DOTS.Authoring.Config
 
                 registry[(int)spaceship.Id] = new SpaceshipRegistryElement
                 {
-                    Prefab = GetEntity(spaceship.Prefab, TransformUsageFlags.Dynamic),
+                    Prefab   = GetEntity(spaceship.Prefab, TransformUsageFlags.Dynamic),
+                    Category = spaceship.Category,
                 };
             }
         }

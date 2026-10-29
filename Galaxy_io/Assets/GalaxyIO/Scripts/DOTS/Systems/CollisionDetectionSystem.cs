@@ -45,11 +45,29 @@ namespace GalaxyIO.DOTS.Systems
             // 칸 -> proxies 인덱스. 선체 하나가 여러 칸에 걸침.
             var cells = new NativeParallelMultiHashMap<int2, int>(math.max(count * 2, 1), Allocator.TempJob);
 
+            // SpaceshipId -> 통과 중인 선체와도 부딪히는 기종(순양함, 모선)인지.
+            NativeArray<bool> solids;
+
+            if (SystemAPI.TryGetSingletonBuffer(out DynamicBuffer<SpaceshipRegistryElement> registry, true))
+            {
+                solids = new NativeArray<bool>(registry.Length, Allocator.TempJob);
+
+                for (int i = 0; i < registry.Length; i++)
+                {
+                    solids[i] = registry.IsSolid((SpaceshipId)i);
+                }
+            }
+            else
+            {
+                solids = new NativeArray<bool>(0, Allocator.TempJob);
+            }
+
             state.Dependency = new GatherSpaceshipProxyJob
             {
-                Proxies = proxies,
-                Crafts  = SystemAPI.GetComponentLookup<CarriedCraftComponent>(true),
-                Players = SystemAPI.GetComponentLookup<PlayerSpaceshipMovementComponent>(true),
+                Proxies    = proxies,
+                Crafts     = SystemAPI.GetComponentLookup<CarriedCraftComponent>(true),
+                Players    = SystemAPI.GetComponentLookup<PlayerSpaceshipMovementComponent>(true),
+                Solids     = solids,
             }.Schedule(state.Dependency);
 
             state.Dependency = new BuildSpatialHashJob
@@ -68,12 +86,13 @@ namespace GalaxyIO.DOTS.Systems
             // 각 판정은 자기 Entity 의 버퍼에만 쓰므로 함께 돌 수 있음.
             JobHandle spaceship = new SpaceshipCollisionDetectionJob
             {
-                Proxies  = proxies,
-                Cells    = cells,
-                CellSize = config.CellSize,
-                Specs    = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
-                Crafts   = SystemAPI.GetComponentLookup<CarriedCraftComponent>(true),
-                Players  = SystemAPI.GetComponentLookup<PlayerSpaceshipMovementComponent>(true),
+                Proxies    = proxies,
+                Cells      = cells,
+                CellSize   = config.CellSize,
+                Specs      = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
+                Crafts     = SystemAPI.GetComponentLookup<CarriedCraftComponent>(true),
+                Players    = SystemAPI.GetComponentLookup<PlayerSpaceshipMovementComponent>(true),
+                Solids     = solids,
             }.ScheduleParallel(state.Dependency);
 
             JobHandle projectile = new ProjectileCollisionDetectionJob
@@ -108,6 +127,7 @@ namespace GalaxyIO.DOTS.Systems
 
             state.Dependency = proxies.Dispose(state.Dependency);
             state.Dependency = cells.Dispose(state.Dependency);
+            state.Dependency = solids.Dispose(state.Dependency);
         }
     }
 
@@ -128,12 +148,17 @@ namespace GalaxyIO.DOTS.Systems
         [ReadOnly]
         public ComponentLookup<PlayerSpaceshipMovementComponent> Players;
 
+        // SpaceshipId -> 순양함, 모선인지
+        [ReadOnly]
+        public NativeArray<bool> Solids;
+
         private void Execute(
             Entity entity,
             in LocalTransform transform,
             in ColliderComponent collider,
             in FactionComponent faction,
-            in MovementComponent movement)
+            in MovementComponent movement,
+            in SpaceshipKindComponent kind)
         {
             ColliderWorld world = ColliderOverlap.ToWorld(collider, transform);
 
@@ -147,6 +172,7 @@ namespace GalaxyIO.DOTS.Systems
                 Party    = faction.Party,
                 Ignore   = CarriedCraft.IgnoredCarrier(Crafts, entity),
                 Phasing  = Players.TryGetComponent(entity, out PlayerSpaceshipMovementComponent player) && player.IsPhasing(movement.Velocity),
+                Solid    = (int)kind.Value < Solids.Length && Solids[(int)kind.Value],
             });
         }
     }
@@ -205,13 +231,18 @@ namespace GalaxyIO.DOTS.Systems
         [ReadOnly]
         public ComponentLookup<PlayerSpaceshipMovementComponent> Players;
 
+        // SpaceshipId -> 순양함, 모선인지
+        [ReadOnly]
+        public NativeArray<bool> Solids;
+
         private void Execute(
             Entity entity,
             DynamicBuffer<SpaceshipCollisionElement> messages,
             in LocalTransform transform,
             in ColliderComponent collider,
             in FactionComponent faction,
-            in MovementComponent movement)
+            in MovementComponent movement,
+            in SpaceshipKindComponent kind)
         {
             messages.Clear();
 
@@ -227,6 +258,7 @@ namespace GalaxyIO.DOTS.Systems
                 Party    = faction.Party,
                 Ignore   = CarriedCraft.IgnoredCarrier(Crafts, entity),
                 Phasing  = Players.TryGetComponent(entity, out PlayerSpaceshipMovementComponent player) && player.IsPhasing(movement.Velocity),
+                Solid    = (int)kind.Value < Solids.Length && Solids[(int)kind.Value],
             };
 
             var candidates = new SpatialHashCandidates(Cells, Proxies, CellSize, receiver.Bounds);

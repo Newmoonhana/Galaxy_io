@@ -75,9 +75,6 @@ namespace GalaxyIO.DOTS.Systems
                 CarrierComponent carrier = EntityManager.GetComponentData<CarrierComponent>(carrierEntity);
                 float2 position = EntityManager.GetComponentData<LocalTransform>(carrierEntity).Position.xy;
 
-                // 레이더 탐지 거리. 복제 반경과 같음.
-                float range = EntityManager.GetComponentData<RelevancyRadiusComponent>(connection).Value;
-
                 if (order.Order == CarrierOrder.Return)
                 {
                     if (carrier.Order == CarrierOrder.None || carrier.Order == CarrierOrder.Return)
@@ -139,7 +136,8 @@ namespace GalaxyIO.DOTS.Systems
                         continue;
                 }
 
-                if (math.distancesq(position, order.Position) > range * range)
+                // 명령 지점은 레이더 지도 안이어야 함.
+                if (math.distancesq(position, order.Position) > carrier.OrderRange * carrier.OrderRange)
                 {
                     continue;
                 }

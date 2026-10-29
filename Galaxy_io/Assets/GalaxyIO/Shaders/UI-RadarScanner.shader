@@ -11,6 +11,7 @@ Shader "GalaxyIO/UI-RadarScanner"
         _RangeRadius ("Detect Range Radius", Float) = 0.88
         [HideInInspector] _BlipCount ("Blip Count", Float) = 0
         [HideInInspector] _MemberCount ("Member Count", Float) = 0
+        [HideInInspector] _ShareCount ("Share Count", Float) = 0
         _SweepAlpha ("Sweep Alpha", Range(0, 1)) = 1
 
         _Radius ("Scan Radius", Float) = 0.88
@@ -32,6 +33,7 @@ Shader "GalaxyIO/UI-RadarScanner"
         _MemberRadius ("Member Arc Radius", Float) = 0.86
         _MemberWidth ("Member Arc Width", Float) = 0.008
         _MemberArc ("Member Arc Half Angle (Degree)", Float) = 2
+        _ShareAlpha ("Shared Range Alpha", Float) = 0.5
 
         _PixelResolution ("Pixel Resolution (0 = Off)", Float) = 0
     }
@@ -54,7 +56,7 @@ Shader "GalaxyIO/UI-RadarScanner"
             #pragma fragment ScannerFragment
 
             // RadarView.MaxBlips, MaxMembers 와 같아야 함.
-            #define MAX_BLIPS 32
+            #define MAX_BLIPS 64
             #define MAX_MEMBERS 16
 
             CBUFFER_START(UnityPerMaterial)
@@ -63,6 +65,7 @@ Shader "GalaxyIO/UI-RadarScanner"
                 float _RangeRadius;
                 float _BlipCount;
                 float _MemberCount;
+                float _ShareCount;
                 float _SweepAlpha;
                 float _Radius;
                 half4 _ScanColor;
@@ -81,6 +84,7 @@ Shader "GalaxyIO/UI-RadarScanner"
                 float _MemberRadius;
                 float _MemberWidth;
                 float _MemberArc;
+                float _ShareAlpha;
                 float _PixelResolution;
             CBUFFER_END
 
@@ -92,6 +96,9 @@ Shader "GalaxyIO/UI-RadarScanner"
 
             // x: 표시 거리 밖 파티원의 방위각(라디안, 위쪽 0, 시계 방향)
             float4 _Members[MAX_MEMBERS];
+
+            // 레이더를 공유하는 초계함 파티원. xy: 레이더 좌표, z: 탐지 거리(레이더 좌표)
+            float4 _Shares[MAX_MEMBERS];
 
             // 점 p 와 선분 ab 사이 거리
             float Segment(float2 p, float2 a, float2 b)
@@ -137,8 +144,46 @@ Shader "GalaxyIO/UI-RadarScanner"
                                       min(Segment(q, notch, wing), Segment(q, notch, wing * float2(-1.0, 1.0)))),
                                   _EdgeWidth * 1.5, aa);
 
+                // 초계함 파티원의 탐지 거리 경계. 다른 탐지 거리(자기 것 포함) 안에 겹친 부분은 그리지 않음.
+                half shares = 0.0;
+                half ownCover = 1.0 - smoothstep(_RangeRadius - aa, _RangeRadius + aa, r);
+                half shareCover = 0.0;
+
+                [loop]
+                for (int k = 0; k < MAX_MEMBERS; k++)
+                {
+                    if (k >= (int)_ShareCount)
+                    {
+                        break;
+                    }
+
+                    float d = length(p - _Shares[k].xy * _Radius);
+                    float radius = _Shares[k].z * _Radius;
+                    half covered = ownCover;
+
+                    [loop]
+                    for (int j = 0; j < MAX_MEMBERS; j++)
+                    {
+                        if (j >= (int)_ShareCount)
+                        {
+                            break;
+                        }
+
+                        if (j != k)
+                        {
+                            float other = _Shares[j].z * _Radius;
+                            covered = max(covered, 1.0 - smoothstep(other - aa, other + aa, length(p - _Shares[j].xy * _Radius)));
+                        }
+                    }
+
+                    shares = max(shares, ThinBand(d - radius, _EdgeWidth * 0.5, aa) * _ShareAlpha * (1.0 - covered));
+                    shareCover = max(shareCover, 1.0 - smoothstep(radius - aa, radius + aa, d));
+                }
+
+                range *= 1.0 - shareCover;
+
                 // 빔과 함께 도는 선만 투명해짐. 화살표는 그대로.
-                half lines = saturate((edge + arc) * _SweepAlpha + arrow + range);
+                half lines = saturate((edge + arc) * _SweepAlpha + arrow + range + shares * inside);
 
                 half blips = 0.0;
                 half playerBlips = 0.0;
