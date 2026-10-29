@@ -122,10 +122,21 @@ namespace GalaxyIO.DOTS.Authoring.Config
                 {
                     TurretItemAsset.TurretSpec spec = turret.Spec;
 
+                    ProjectileReplication replication = ProjectileReplication.Ghost;
+
+                    if (spec.Armed && spec.Projectile.GetComponent<GhostAuthoringComponent>() == null)
+                    {
+                        // 베이커의 GetComponent 로 읽어야 프리팹 값이 바뀔 때 다시 베이킹함.
+                        ProjectileAuthoring projectile = GetComponent<ProjectileAuthoring>(spec.Projectile);
+                        replication = projectile != null && projectile.SendShot
+                            ? ProjectileReplication.Shot
+                            : ProjectileReplication.Local;
+                    }
+
                     element.Turret = new TurretSpecData
                     {
                         ProjectilePrefab = spec.Armed ? GetEntity(spec.Projectile, TransformUsageFlags.Dynamic) : Entity.Null,
-                        LocalLaunch      = spec.Armed && spec.Projectile.GetComponent<GhostAuthoringComponent>() == null,
+                        Replication      = replication,
                         MaxFireCooldown  = spec.FireCooldown,
                         MuzzleDelay      = spec.MuzzleDelay,
                         ProjectileCount  = (byte)Math.Max(spec.ProjectileCount, 1),

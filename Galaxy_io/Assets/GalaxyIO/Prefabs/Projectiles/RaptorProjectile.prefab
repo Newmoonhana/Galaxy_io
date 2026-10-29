@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 7803624596038902002}
   - component: {fileID: 8579004218275610720}
   - component: {fileID: 8856312466830478681}
-  - component: {fileID: 3206834579711104181}
   - component: {fileID: 4783118654903221507}
   m_Layer: 0
   m_Name: RaptorProjectile
@@ -115,6 +114,7 @@ MonoBehaviour:
   ShotEffect: {fileID: 0}
   Visual: {fileID: 0}
   Beam: {fileID: 0}
+  SendShot: 1
   Speed: 100
   Acceleration: 0
   ReflectOwnerVelocity: 1
@@ -130,33 +130,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c16549610bfe4458aa9389201d072bb6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Entities.Hybrid::Unity.Entities.Hybrid.Baking.LinkedEntityGroupAuthoring
---- !u!114 &3206834579711104181
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3898896724990523705}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7c79d771cedb4794bf100ce60df5f764, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.NetCode.Authoring.Hybrid::Unity.NetCode.GhostAuthoringComponent
-  HasOwner: 1
-  SupportAutoCommandTarget: 1
-  TrackInterpolationDelay: 0
-  GhostGroup: 0
-  UsePreSerialization: 0
-  UseSingleBaseline: 0
-  RollbackPredictedSpawnedGhostState: 0
-  RollbackPredictionOnStructuralChanges: 1
-  DefaultGhostMode: 2
-  SupportedGhostModes: 3
-  OptimizationMode: 0
-  Importance: 1
-  MaxSendRate: 0
-  SingleWorldHostInterpolationSmoothing: 1
-  prefabId: a8e22ae2209f261498f8ee2521040c67
 --- !u!114 &4783118654903221507
 MonoBehaviour:
   m_ObjectHideFlags: 0
