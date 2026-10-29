@@ -244,6 +244,18 @@ namespace GalaxyIO.DOTS.Inventory
                 entityManager.SetComponentData(newShip, equipped);
             }
 
+            // 남은 함재기는 모선을 잃고 터짐. 기종 변경으로 터질 때는 화물을 떨어뜨리지 않음.
+            using (NativeArray<Entity> crafts = craftQuery.ToEntityArray(Allocator.Temp))
+            {
+                foreach (Entity craft in crafts)
+                {
+                    if (entityManager.GetComponentData<CarriedCraftComponent>(craft).Carrier == ship)
+                    {
+                        entityManager.GetBuffer<CarriedItemElement>(craft).Clear();
+                    }
+                }
+            }
+
             // 파괴 연출 없이 지움. 인벤토리는 NetworkId 로 이어짐.
             entityManager.DestroyEntity(ship);
         }
