@@ -648,7 +648,7 @@ MonoBehaviour:
   fastestSweepSpeed: 7200
   gridCellSize: 48
   minViewRange: 50
-  maxViewRange: 250
+  maxViewRange: 350
   zoomStep: 0.15
   referenceThickness: 8
   blipScaleRange: {x: 0.8, y: 3}

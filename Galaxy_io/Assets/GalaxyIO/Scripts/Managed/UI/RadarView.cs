@@ -21,17 +21,21 @@ namespace GalaxyIO.Scripts.Managed.UI
     /// <summary>
     /// 스캐너가 훑고 지나간 주변 우주선을 점으로 표시하는 클라이언트 전용 레이더 뷰.
     /// 레이더 위에서 마우스 휠로 표시 거리를 바꿈. 파티원과 같은 편 함재기는 스캔과 관계없이 실시간으로 그림.
+    /// 초계함 파티원은 탐지 거리와 그 레이더가 잡은 점을 공유함.
     /// </summary>
     public sealed class RadarView : MonoBehaviour
     {
-        // 한 번에 띄우는 탐지 점, 표시 거리 밖 파티원 호의 상한
-        private const int MaxBlips = 32;
+        // 한 번에 띄우는 탐지 점, 표시 거리 밖 파티원 호의 상한.
+        // MaxMembers 는 공유 탐지 거리 원의 상한이기도 함. UI-RadarSweep.hlsl 의 RADAR_MAX_SHARES 와 같아야 함.
+        private const int MaxBlips = 64;
         private const int MaxMembers = 16;
 
         private static readonly int AngleId       = Shader.PropertyToID("_Angle");
         private static readonly int RangeRadiusId = Shader.PropertyToID("_RangeRadius");
         private static readonly int SweepAlphaId  = Shader.PropertyToID("_SweepAlpha");
         private static readonly int RadiusId      = Shader.PropertyToID("_Radius");
+        private static readonly int SharesId      = Shader.PropertyToID("_Shares");
+        private static readonly int ShareCountId  = Shader.PropertyToID("_ShareCount");
         private static readonly int GridSpacingId = Shader.PropertyToID("_GridSpacing");
         private static readonly int GridOffsetId  = Shader.PropertyToID("_GridOffset");
 
@@ -105,7 +109,7 @@ namespace GalaxyIO.Scripts.Managed.UI
         [SerializeField]
         [Tooltip("레이더 원 반지름이 나타내는 거리(월드 유닛)의 최댓값")]
         [Min(1.0F)]
-        private float maxViewRange = 250.0F;
+        private float maxViewRange = 350.0F;
 
         [SerializeField]
         [Tooltip("휠 한 칸당 표시 거리 변화 비율")]
@@ -167,12 +171,50 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             // 점 크기 배율. Ghost 를 본 적이 없으면 1.
             public float Scale;
+
+            // 공유하는 레이더 탐지 거리. 초계함이 아니면 0.
+            public float Range;
+
+            // 공유하는 레이더의 스캐너 기본 회전 속도, 강화로 더한 값, 반응 시간
+            public float SweepSpeed;
+            public float SweepBonus;
+            public float ResponseTime;
+        }
+
+        // 초계함 파티원의 레이더 탐지 거리 안의 우주선. 스캐너가 지나가면 점이 됨.
+        private struct SharedTarget
+        {
+            // 공유한 파티원의 NetworkId
+            public int NetworkId;
+
+            public Vector2 Position;
+
+            // Blip.Kind 와 같음.
+            public float Kind;
+
+            public float Scale;
+        }
+
+        // 초계함 파티원의 스캐너가 지나간 점. 사라지는 시간이 초계함마다 달라서 Blip 과 따로 둠.
+        private struct SharedBlip
+        {
+            // Blip.Offset 과 같음.
+            public Vector2 Offset;
+
+            public float ShowTime;
+
+            public float FadeOut;
+
+            public float Kind;
+
+            public float Scale;
         }
 
         private EntityManager entityManager;
         private EntityQuery playerQuery;
         private EntityQuery targetQuery;
         private EntityQuery memberQuery;
+        private EntityQuery sharedQuery;
         private EntityQuery partyQuery;
         private EntityQuery craftQuery;
         private EntityQuery stateQuery;
@@ -210,6 +252,15 @@ namespace GalaxyIO.Scripts.Managed.UI
         private readonly Dictionary<int, Member> members = new Dictionary<int, Member>();
         private readonly List<int> expiredMembers = new List<int>();
         private readonly Vector4[] memberBuffer = new Vector4[MaxMembers];
+        private readonly Vector4[] shareBuffer = new Vector4[MaxMembers];
+
+        // 초계함 파티원이 공유한 우주선. 그 파티원의 위치를 받을 때마다 새로 받음.
+        private readonly List<SharedTarget> sharedTargets = new List<SharedTarget>();
+
+        // 초계함 파티원 NetworkId -> 화면에 그리지 않는 스캐너 각도(도)
+        private readonly Dictionary<int, float> sharedAngles = new Dictionary<int, float>();
+
+        private readonly List<SharedBlip> sharedBlips = new List<SharedBlip>();
 
         // 템플릿 복제본. 앞에서부터 쓰고 남는 것은 끔.
         private readonly List<Image> blipImages = new List<Image>();
@@ -287,6 +338,10 @@ namespace GalaxyIO.Scripts.Managed.UI
                 .Build(entityManager);
             memberQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<PartyMemberPositionRPC>(),
+                ComponentType.ReadOnly<ReceiveRpcCommandRequest>()
+            );
+            sharedQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<PartyRadarBlipRPC>(),
                 ComponentType.ReadOnly<ReceiveRpcCommandRequest>()
             );
             partyQuery = new EntityQueryBuilder(Allocator.Temp)
@@ -385,6 +440,62 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             Sweep(previousAngle, angle);
 
+            // 초계함 파티원마다 그 레이더와 같은 속도로 보이지 않는 스캐너를 돌려 공유 점을 띄움.
+            if (!playerQuery.IsEmpty)
+            {
+                using var players = playerQuery.ToComponentDataArray<LocalTransform>(Allocator.Temp);
+                Vector2 center = players[0].Position.xy;
+
+                foreach (KeyValuePair<int, Member> member in members)
+                {
+                    if (member.Value.Range <= 0.0F)
+                    {
+                        continue;
+                    }
+
+                    float speed = member.Value.SweepSpeed + member.Value.SweepBonus;
+                    float from = sharedAngles.TryGetValue(member.Key, out float last) ? last : 0.0F;
+                    float swept = speed * Time.fixedDeltaTime;
+
+                    sharedAngles[member.Key] = Mathf.Repeat(from + swept, 360.0F);
+
+                    float memberFadeOut = Mathf.Lerp(
+                        fadeOutTime,
+                        minFadeOutTime,
+                        Mathf.InverseLerp(member.Value.SweepSpeed, fastestSweepSpeed, speed)
+                    );
+
+                    foreach (SharedTarget target in sharedTargets)
+                    {
+                        if (target.NetworkId != member.Key)
+                        {
+                            continue;
+                        }
+
+                        Vector2 offset = target.Position - member.Value.Position;
+
+                        if (Mathf.Repeat(Mathf.Atan2(offset.x, offset.y) * Mathf.Rad2Deg - from, 360.0F) >= swept)
+                        {
+                            continue;
+                        }
+
+                        if (sharedBlips.Count >= MaxBlips)
+                        {
+                            sharedBlips.RemoveAt(0);
+                        }
+
+                        sharedBlips.Add(new SharedBlip
+                        {
+                            Offset   = target.Position - center,
+                            ShowTime = Time.time + member.Value.ResponseTime,
+                            FadeOut  = memberFadeOut,
+                            Kind     = target.Kind,
+                            Scale    = target.Scale,
+                        });
+                    }
+                }
+            }
+
             // 두 각도를 같이 되돌려야 보간이 끊기지 않음.
             if (angle >= 360.0F)
             {
@@ -410,20 +521,46 @@ namespace GalaxyIO.Scripts.Managed.UI
                 {
                     members[rpc.NetworkId] = new Member
                     {
-                        Position = new Vector2(rpc.Position.x, rpc.Position.y),
-                        Time     = Time.time,
-                        Scale    = members.TryGetValue(rpc.NetworkId, out Member old) ? old.Scale : 1.0F,
+                        Position     = new Vector2(rpc.Position.x, rpc.Position.y),
+                        Time         = Time.time,
+                        Scale        = members.TryGetValue(rpc.NetworkId, out Member old) ? old.Scale : 1.0F,
+                        Range        = rpc.Range,
+                        SweepSpeed   = rpc.SweepSpeed,
+                        SweepBonus   = rpc.SweepBonus,
+                        ResponseTime = rpc.ResponseTime,
                     };
+
+                    // 공유 우주선은 위치 바로 뒤에 옴. 이전 목록을 비움.
+                    RemoveSharedTargets(rpc.NetworkId);
                 }
 
                 entityManager.DestroyEntity(memberQuery);
             }
 
+            if (!sharedQuery.IsEmpty)
+            {
+                using var received = sharedQuery.ToComponentDataArray<PartyRadarBlipRPC>(Allocator.Temp);
+
+                foreach (PartyRadarBlipRPC rpc in received)
+                {
+                    sharedTargets.Add(new SharedTarget
+                    {
+                        NetworkId = rpc.NetworkId,
+                        Position  = new Vector2(rpc.Position.x, rpc.Position.y),
+                        Kind      = rpc.Kind,
+                        Scale     = BlipScale(rpc.Thickness),
+                    });
+                }
+
+                entityManager.DestroyEntity(sharedQuery);
+            }
+
             // 레이더 위에서 휠을 굴리면 표시 거리를 바꿈. 휠 위 = 가까이. 카메라 확대는 막음.
             RefRW<PlayerStateComponent> state = stateQuery.GetSingletonRW<PlayerStateComponent>();
             bool blocked = state.ValueRO.GameMenuOpened || state.ValueRO.InventoryOpened || state.ValueRO.ChatFocused;
+            Vector2 radarPoint = Vector2.zero;
             bool hovered = Mouse.current != null && Application.isFocused && !blocked
-                           && TryGetRadarPoint(Mouse.current.position.ReadValue(), out _);
+                           && TryGetRadarPoint(Mouse.current.position.ReadValue(), out radarPoint);
 
             if (hovered && viewRange > 0.0F)
             {
@@ -436,6 +573,9 @@ namespace GalaxyIO.Scripts.Managed.UI
             }
 
             state.ValueRW.RadarHovered = hovered;
+
+            // 우주선이 커서가 가리키는 레이더 위 지점을 바라보게 함.
+            state.ValueRW.RadarCursor = hovered ? radarPoint / material.GetFloat(RadiusId) * viewRange : Vector2.zero;
 
             // 마지막 고정 프레임 이후 흐른 비율만큼 보간.
             float t = Mathf.Clamp01((Time.time - Time.fixedTime) / Time.fixedDeltaTime);
@@ -489,17 +629,22 @@ namespace GalaxyIO.Scripts.Managed.UI
                 {
                     if (Faction.IsSameParty(party, entityManager.GetComponentData<FactionComponent>(ghost).Party))
                     {
-                        members[entityManager.GetComponentData<GhostOwner>(ghost).NetworkId] = new Member
-                        {
-                            Position = entityManager.GetComponentData<LocalTransform>(ghost).Position.xy,
-                            Time     = Time.time,
-                            Scale    = BlipScale(entityManager.GetComponentData<SpaceshipSpecComponent>(ghost).Thickness),
-                        };
+                        int networkId = entityManager.GetComponentData<GhostOwner>(ghost).NetworkId;
+
+                        // 공유 레이더 값은 서버가 보낸 값을 유지함.
+                        members.TryGetValue(networkId, out Member member);
+
+                        member.Position = entityManager.GetComponentData<LocalTransform>(ghost).Position.xy;
+                        member.Time     = Time.time;
+                        member.Scale    = BlipScale(entityManager.GetComponentData<SpaceshipSpecComponent>(ghost).Thickness);
+
+                        members[networkId] = member;
                     }
                 }
 
                 // 표시 거리 안의 파티원은 점으로, 밖은 테두리에 방향만 그림.
                 int memberCount = 0;
+                int shareCount = 0;
 
                 foreach (KeyValuePair<int, Member> member in members)
                 {
@@ -510,6 +655,12 @@ namespace GalaxyIO.Scripts.Managed.UI
                     }
 
                     Vector2 offset = member.Value.Position - center;
+
+                    // 초계함 파티원의 탐지 거리 원. 표시 거리 밖에 있어도 원이 걸치면 보임.
+                    if (member.Value.Range > 0.0F && shareCount < MaxMembers)
+                    {
+                        shareBuffer[shareCount++] = new Vector4(offset.x / viewRange, offset.y / viewRange, member.Value.Range / viewRange);
+                    }
 
                     if (offset.sqrMagnitude <= viewRange * viewRange)
                     {
@@ -528,11 +679,17 @@ namespace GalaxyIO.Scripts.Managed.UI
                 foreach (int expired in expiredMembers)
                 {
                     members.Remove(expired);
+                    sharedAngles.Remove(expired);
+                    RemoveSharedTargets(expired);
                 }
 
                 expiredMembers.Clear();
 
                 ApplyMembers(memberCount);
+
+                // 공유 탐지 거리 원은 UI-RadarSweep.hlsl 의 전역 배열로 넘김.
+                material.SetVectorArray(SharesId, shareBuffer);
+                material.SetFloat(ShareCountId, shareCount);
 
                 // 같은 편 함재기는 표시 거리 안이면 실시간 점으로. 복제 범위 밖은 위치를 모르므로 그리지 않음.
                 using var crafts = craftQuery.ToEntityArray(Allocator.Temp);
@@ -594,6 +751,35 @@ namespace GalaxyIO.Scripts.Managed.UI
                     1.0F - elapsed / fadeOut,
                     blip.Kind
                 );
+            }
+
+            // 초계함 파티원이 공유한 점. 스캔된 점과 같은 규칙으로 그림.
+            for (int i = sharedBlips.Count - 1; i >= 0; i--)
+            {
+                if (Time.time - sharedBlips[i].ShowTime >= sharedBlips[i].FadeOut)
+                {
+                    sharedBlips.RemoveAt(i);
+                }
+            }
+
+            foreach (SharedBlip blip in sharedBlips)
+            {
+                if (count >= MaxBlips)
+                {
+                    break;
+                }
+
+                float elapsed = Time.time - blip.ShowTime;
+                Vector2 offset = blip.Offset / viewRange;
+
+                // 반응 시간 대기 중이거나 표시 거리 밖
+                if (elapsed < 0.0F || offset.sqrMagnitude > 1.0F)
+                {
+                    continue;
+                }
+
+                blipScaleBuffer[count] = blip.Scale;
+                blipBuffer[count++] = new Vector4(offset.x, offset.y, 1.0F - elapsed / blip.FadeOut, blip.Kind);
             }
 
             ApplyBlips(count, radius);
@@ -719,6 +905,18 @@ namespace GalaxyIO.Scripts.Managed.UI
                         : 0.0F,
                     Scale    = BlipScale(entityManager.GetComponentData<SpaceshipSpecComponent>(target).Thickness),
                 });
+            }
+        }
+
+        // networkId 파티원이 공유한 우주선을 지움. 이미 뜬 점은 그대로 사라짐.
+        private void RemoveSharedTargets(int networkId)
+        {
+            for (int i = sharedTargets.Count - 1; i >= 0; i--)
+            {
+                if (sharedTargets[i].NetworkId == networkId)
+                {
+                    sharedTargets.RemoveAt(i);
+                }
             }
         }
 

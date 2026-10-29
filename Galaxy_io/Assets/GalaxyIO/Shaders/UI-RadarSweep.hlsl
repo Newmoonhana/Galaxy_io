@@ -4,11 +4,20 @@
 
 #include "Assets/GalaxyIO/Shaders/RadarCommon.hlsl"
 
+// RadarView.MaxMembers 와 같아야 함.
+#define RADAR_MAX_SHARES 16
+
+// 레이더를 공유하는 초계함 파티원. xy: 레이더 좌표, z: 탐지 거리(레이더 좌표). RadarView 가 SetVectorArray 로 채움.
+// 그래프 프로퍼티로는 배열을 못 써서 여기에 둠.
+float4 _Shares[RADAR_MAX_SHARES];
+float _ShareCount;
+
 // Sweep: 빔 몸통 + 잔상 부채꼴 밝기(SweepAlpha 포함).
-// Lines: 빔 앞쪽 가장자리, 외곽 호(SweepAlpha 포함), 탐지 거리 링.
+// Lines: 빔 앞쪽 가장자리, 외곽 호(SweepAlpha 포함), 탐지 거리 링, 공유 탐지 거리 링(ShareAlpha 포함).
 void RadarSweepMasks_float(
     float2 UV, float PixelResolution, float Angle, float Radius, float RangeRadius, float SweepAlpha,
     float BeamWidth, float BeamAlpha, float TrailLength, float TrailAlpha, float TrailFalloff, float EdgeWidth,
+    float ShareAlpha,
     out float Sweep, out float Lines)
 {
     float2 p  = RadarPoint(UV, PixelResolution);
@@ -36,8 +45,38 @@ void RadarSweepMasks_float(
     // 탐지 거리 경계. 표시 거리보다 짧을 때만 보임.
     float range = ThinBand(r - RangeRadius, EdgeWidth * 0.5, aa) * step(RangeRadius, Radius - aa) * 0.5;
 
+    // 초계함 파티원의 탐지 거리 경계. 다른 탐지 거리(자기 것 포함) 안에 겹친 부분은 그리지 않음.
+    float shares = 0.0;
+    float ownCover = 1.0 - smoothstep(RangeRadius - aa, RangeRadius + aa, r);
+    float shareCover = 0.0;
+    int shareCount = min((int)_ShareCount, RADAR_MAX_SHARES);
+
+    [loop]
+    for (int k = 0; k < shareCount; k++)
+    {
+        float d = length(p - _Shares[k].xy * Radius);
+        float shareRadius = _Shares[k].z * Radius;
+        float covered = ownCover;
+
+        [loop]
+        for (int j = 0; j < shareCount; j++)
+        {
+            if (j != k)
+            {
+                float other = _Shares[j].z * Radius;
+                covered = max(covered, 1.0 - smoothstep(other - aa, other + aa, length(p - _Shares[j].xy * Radius)));
+            }
+        }
+
+        shares = max(shares, ThinBand(d - shareRadius, EdgeWidth * 0.5, aa) * ShareAlpha * (1.0 - covered));
+        shareCover = max(shareCover, 1.0 - smoothstep(shareRadius - aa, shareRadius + aa, d));
+    }
+
+    // 자기 탐지 거리 경계도 공유 탐지 거리 안에 들어간 부분은 지움.
+    range *= 1.0 - shareCover;
+
     // 빔과 함께 도는 선만 투명해짐.
-    Lines = saturate((edge + arc) * SweepAlpha + range);
+    Lines = saturate((edge + arc) * SweepAlpha + range + shares * inside);
 }
 
 #endif

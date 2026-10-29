@@ -44,6 +44,9 @@
         },
         {
             "m_Id": "fcb6b8f9485e4b1fbb189f93d68186bb"
+        },
+        {
+            "m_Id": "5bf07474281b4cf695d7fea1950d54f3"
         }
     ],
     "m_Keywords": [],
@@ -122,6 +125,9 @@
         },
         {
             "m_Id": "9c4b7982bf4544f3ad59c6acff67e9bb"
+        },
+        {
+            "m_Id": "6cc8a01081c549378f51c4999aa72c90"
         }
     ],
     "m_GroupDatas": [],
@@ -426,6 +432,20 @@
                     "m_Id": "9c4b7982bf4544f3ad59c6acff67e9bb"
                 },
                 "m_SlotId": 0
+            }
+        },
+        {
+            "m_OutputSlot": {
+                "m_Node": {
+                    "m_Id": "6cc8a01081c549378f51c4999aa72c90"
+                },
+                "m_SlotId": 0
+            },
+            "m_InputSlot": {
+                "m_Node": {
+                    "m_Id": "ce7a695b2d7f4c5bae350e338cc7dcd2"
+                },
+                "m_SlotId": 14
             }
         }
     ],
@@ -734,6 +754,9 @@
         },
         {
             "m_Id": "fcb6b8f9485e4b1fbb189f93d68186bb"
+        },
+        {
+            "m_Id": "5bf07474281b4cf695d7fea1950d54f3"
         }
     ]
 }
@@ -743,7 +766,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "1a538ea4b393453597d8fc47cdeabd16",
     "m_Title": "UI-RadarSweep",
-    "m_Content": "레이더 빔, 잔상 부채꼴, 빔 가장자리, 외곽 호, 탐지 거리 링.\n_Angle, _SweepAlpha, _RangeRadius 는 RadarView 가 채움. _Radius 는 RadarView 가 읽음.",
+    "m_Content": "레이더 빔, 잔상 부채꼴, 빔 가장자리, 외곽 호, 탐지 거리 링, 초계함 파티원 공유 탐지 거리 링.\n_Angle, _SweepAlpha, _RangeRadius 는 RadarView 가 채움. _Radius 는 RadarView 가 읽음.\n공유 링(_Shares, _ShareCount)은 배열이라 그래프 프로퍼티 대신 UI-RadarSweep.hlsl 전역 변수. RadarView 가 채움.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {
@@ -751,7 +774,7 @@
         "x": -1300.0,
         "y": -400.0,
         "width": 400.0,
-        "height": 120.0
+        "height": 150.0
     },
     "m_Group": {
         "m_Id": ""
@@ -2558,6 +2581,9 @@
             "m_Id": "2714a2e2bd744fa4858844d2e937ec49"
         },
         {
+            "m_Id": "9b701013b271436e954f294f24cbc8ca"
+        },
+        {
             "m_Id": "b903caf14c344767a8ee589c6112f2f5"
         },
         {
@@ -3204,5 +3230,122 @@
     "m_CustomColors": {
         "m_SerializableColors": []
     }
+}
+
+{
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
+    "m_ObjectId": "5bf07474281b4cf695d7fea1950d54f3",
+    "m_Guid": {
+        "m_GuidSerialized": "c75b2c00-1f6b-4ad6-8c06-d469bb57e501"
+    },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
+    "m_Name": "Shared Range Alpha",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "Shared Range Alpha",
+    "m_DefaultReferenceName": "_Shared_Range_Alpha",
+    "m_OverrideReferenceName": "_ShareAlpha",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
+    "hideConnector": false,
+    "m_Hidden": false,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
+    "m_Value": 0.5,
+    "m_FloatType": 0,
+    "m_LiteralFloatMode": false,
+    "m_RangeValues": {
+        "x": 0.0,
+        "y": 1.0
+    },
+    "m_SliderType": 0,
+    "m_SliderPower": 3.0,
+    "m_EnumType": 0,
+    "m_CSharpEnumString": "",
+    "m_EnumNames": [
+        "Default"
+    ],
+    "m_EnumValues": [
+        0
+    ]
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "4c40340094674210b1667103397e7aca",
+    "m_Id": 0,
+    "m_DisplayName": "Shared Range Alpha",
+    "m_SlotType": 1,
+    "m_Hidden": false,
+    "m_HideConnector": false,
+    "m_ShaderOutputName": "Out",
+    "m_StageCapability": 3,
+    "m_CustomBinding": "",
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": [],
+    "m_LiteralMode": false
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.PropertyNode",
+    "m_ObjectId": "6cc8a01081c549378f51c4999aa72c90",
+    "m_Group": {
+        "m_Id": ""
+    },
+    "m_Name": "Property",
+    "m_DrawState": {
+        "m_Expanded": true,
+        "m_Position": {
+            "serializedVersion": "2",
+            "x": -1300.0,
+            "y": 560.0,
+            "width": 0.0,
+            "height": 0.0
+        }
+    },
+    "m_Slots": [
+        {
+            "m_Id": "4c40340094674210b1667103397e7aca"
+        }
+    ],
+    "synonyms": [],
+    "m_Precision": 0,
+    "m_PreviewExpanded": true,
+    "m_DismissedVersion": 0,
+    "m_PreviewMode": 0,
+    "m_CustomColors": {
+        "m_SerializableColors": []
+    },
+    "m_Property": {
+        "m_Id": "5bf07474281b4cf695d7fea1950d54f3"
+    }
+}
+
+{
+    "m_SGVersion": 0,
+    "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
+    "m_ObjectId": "9b701013b271436e954f294f24cbc8ca",
+    "m_Id": 14,
+    "m_DisplayName": "ShareAlpha",
+    "m_SlotType": 0,
+    "m_Hidden": false,
+    "m_HideConnector": false,
+    "m_ShaderOutputName": "ShareAlpha",
+    "m_StageCapability": 3,
+    "m_CustomBinding": "",
+    "m_Value": 0.0,
+    "m_DefaultValue": 0.0,
+    "m_Labels": [],
+    "m_LiteralMode": false
 }
 
