@@ -12,10 +12,12 @@ namespace GalaxyIO.DOTS.Client.Systems
 {
     /// <summary>
     /// Ghost 가 아닌 투사체를 클라이언트가 직접 발사하고 움직이는 시스템.
-    /// 서버는 같은 투사체를 복제하지 않고 데미지 판정에만 씀. 클라이언트는 복제된 사격 전환 상태만 보고
-    /// 모든 우주선(자기 우주선 포함)의 투사체를 따로 쏨. 연출 전용이라 서버와 탄 위치가 다를 수 있음.
+    /// <see cref="ProjectileReplication.Local"/> 투사체만 쏨. 서버는 같은 투사체를 복제하지 않고 데미지 판정에만 씀.
+    /// 클라이언트는 복제된 사격 전환 상태만 보고 모든 우주선(자기 우주선 포함)의 투사체를 따로 쏨.
+    /// 연출 전용이라 서버와 탄 위치가 다를 수 있음.
     /// 자동 포탑은 복제된 사격 여부(<see cref="AutoTurretElement.Firing"/>)를 보고 쏨.
     /// e.g. Pyron(화염방사기)
+    /// 움직임과 수명은 <see cref="LocalProjectileTag"/>를 가진 모든 투사체(Shot 투사체 포함)에 적용함.
     /// </summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
@@ -126,7 +128,7 @@ namespace GalaxyIO.DOTS.Client.Systems
                 {
                     TurretSpecData autoSpec = registry.Get(autoTurrets[k].Turret).Turret;
 
-                    if (!autoSpec.LocalLaunch)
+                    if (autoSpec.Replication != ProjectileReplication.Local)
                     {
                         continue;
                     }
@@ -149,8 +151,8 @@ namespace GalaxyIO.DOTS.Client.Systems
                     int auto = i - muzzles.Length;
                     TurretSpecData shotSpec = auto >= 0 ? registry.Get(autoTurrets[auto].Turret).Turret : spec;
 
-                    // Ghost 투사체는 서버, 예측 발사가 냄.
-                    if (!shotSpec.LocalLaunch)
+                    // Ghost, Shot 투사체는 서버, 예측 발사가 냄.
+                    if (shotSpec.Replication != ProjectileReplication.Local)
                     {
                         continue;
                     }

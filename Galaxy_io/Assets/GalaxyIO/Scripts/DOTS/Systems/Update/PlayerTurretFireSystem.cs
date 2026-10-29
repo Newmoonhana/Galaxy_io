@@ -20,7 +20,7 @@ namespace GalaxyIO.DOTS.Systems
     /// 충전 포탑은 쿨다운이 끝났을 때만 충전하고, 다 찬 뒤 떼면 쏨(<see cref="TurretSwitch.UpdateCharge"/>).
     /// 발사대(<see cref="TurretRackComponent"/>)가 있으면 장전 상태도 갱신함.
     /// 클라이언트와 서버가 같은 틱에 각자 투사체를 만들고
-    /// <see cref="ProjectileSpawnClassificationSystem"/>이 둘을 짝지음.
+    /// Ghost 투사체는 <see cref="ProjectileSpawnClassificationSystem"/>이 둘을 짝지음.
     /// </summary>
     [UpdateInGroup(typeof(UpdateSystemGroup))]
     [UpdateAfter(typeof(PlayerMovementSystem))]
@@ -162,12 +162,16 @@ namespace GalaxyIO.DOTS.Systems
                         movement.ValueRW.Velocity -= transform.ValueRO.TransformTransform(muzzle).Up().xy * turret.Recoil;
                     }
 
-                    // 각자 발사하는 투사체는 서버만 스폰함. 클라이언트 연출은 LocalProjectileSystem 이 냄.
+                    // 각자 발사하는 투사체(Local)는 서버만 스폰함. 클라이언트 연출은 LocalProjectileSystem 이 냄.
+                    // 발사 정보를 보내는 투사체(Shot)는 주인 클라이언트도 직접 쏨. 다른 클라이언트는 서버가 보낸 정보로 쏨.
                     // Ghost Prefab이 등록되기 전에는 예측 스폰한 투사체를 초기화할 수 없음.
                     // 스폰 여부와 관계없이 쿨다운은 서버와 같게 진행함.
-                    bool canSpawn = spec.LocalLaunch
-                        ? isServer
-                        : spawn && registeredGhosts.ContainsKey(SystemAPI.GetComponent<GhostType>(spec.ProjectilePrefab));
+                    bool canSpawn = spec.Replication switch
+                    {
+                        ProjectileReplication.Local => isServer,
+                        ProjectileReplication.Shot  => spawn,
+                        _ => spawn && registeredGhosts.ContainsKey(SystemAPI.GetComponent<GhostType>(spec.ProjectilePrefab)),
+                    };
 
                     if (!canSpawn)
                     {

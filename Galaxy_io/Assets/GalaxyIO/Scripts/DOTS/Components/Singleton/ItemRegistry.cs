@@ -19,6 +19,23 @@ namespace GalaxyIO.DOTS.Components.Singleton
     }
 
     /// <summary>
+    /// 투사체를 클라이언트에 보여주는 방식.
+    /// </summary>
+    public enum ProjectileReplication : byte
+    {
+        // Ghost. 서버가 위치를 계속 복제함. 오래 사는 투사체용. e.g. PaladinArtillery, ThorMissile
+        Ghost = 0,
+
+        // Ghost 가 아님. 서버가 발사 정보(위치, 속도)만 한 번 보내고 클라이언트가 받아서 쏨.
+        // 주인 클라이언트는 직접 쏨. 명중 연출은 클라이언트 판정을 따름. 빠르고 짧게 사는 투사체용.
+        // e.g. Bore, Raptor, Brakkar, Vraxx
+        Shot = 1,
+
+        // Ghost 가 아님. 클라이언트가 복제된 사격 전환 상태를 보고 각자 쏨. e.g. Pyron, Veylance
+        Local = 2,
+    }
+
+    /// <summary>
     /// <see cref="ItemId"/>로 월드 아이템 스프라이트와 포탑 사양을 찾는 레지스트리. 월드당 한 개.
     /// 버퍼 인덱스가 곧 <see cref="ItemId"/> 값임. 나머지 정의는 <see cref="ItemRegistryAssetComponent"/>에서 찾음.
     /// </summary>
@@ -69,9 +86,8 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 없으면 쏘지 않음.
         public Entity ProjectilePrefab;
 
-        // 투사체가 Ghost 가 아님. 서버는 복제 없이 데미지 판정용으로만 쏘고,
-        // 클라이언트는 사격 전환 상태를 보고 연출용으로 따로 쏨.
-        public bool LocalLaunch;
+        // 투사체를 클라이언트에 보여주는 방식.
+        public ProjectileReplication Replication;
 
         // 첫 총구의 발사 간격(초)
         public float MaxFireCooldown;
