@@ -122,12 +122,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 1
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -790461118, guid: 58208f39f731dbe47b3a59708110c1fd, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 58208f39f731dbe47b3a59708110c1fd, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 15.5, y: 19.666666}
+  m_Size: {x: 15.833333, y: 20.333334}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -329,12 +329,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 2
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 1643148912, guid: 58208f39f731dbe47b3a59708110c1fd, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 9a84d0bfcd5d4bb48bdca078556a78bb, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 2.25, y: 1.4166666}
+  m_Size: {x: 2.4166667, y: 1.5833334}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -516,12 +516,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 2
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 1643148912, guid: 58208f39f731dbe47b3a59708110c1fd, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 9a84d0bfcd5d4bb48bdca078556a78bb, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 1
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 2.25, y: 1.4166666}
+  m_Size: {x: 2.4166667, y: 1.5833334}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -609,12 +609,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 2
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 1643148912, guid: 58208f39f731dbe47b3a59708110c1fd, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 9a84d0bfcd5d4bb48bdca078556a78bb, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 2.25, y: 1.4166666}
+  m_Size: {x: 2.4166667, y: 1.5833334}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1
@@ -734,12 +734,12 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 2
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 1643148912, guid: 58208f39f731dbe47b3a59708110c1fd, type: 3}
+  m_Sprite: {fileID: 21300000, guid: 9a84d0bfcd5d4bb48bdca078556a78bb, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 1
   m_FlipY: 0
   m_DrawMode: 0
-  m_Size: {x: 2.25, y: 1.4166666}
+  m_Size: {x: 2.4166667, y: 1.5833334}
   m_AdaptiveModeThreshold: 0.5
   m_SpriteTileMode: 0
   m_WasSpriteAssigned: 1

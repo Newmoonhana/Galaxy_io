@@ -14,7 +14,8 @@ namespace GalaxyIO.Scripts.Managed.UI
     public sealed class ScoreboardView : MonoBehaviour
     {
         [SerializeField]
-        private ScoreboardRow rowPrefab;
+        [Tooltip("씬에 배치된 순위 한 줄 템플릿")]
+        private ScoreboardRow rowTemplate;
 
         [SerializeField]
         [Tooltip("줄이 쌓이는 부모. 위에서 아래로 정렬됨.")]
@@ -58,6 +59,11 @@ namespace GalaxyIO.Scripts.Managed.UI
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
 
+        private void Awake()
+        {
+            rowTemplate.gameObject.SetActive(false);
+        }
+
         private void Start()
         {
             clientWorld = ClientServerBootstrap.ClientWorld;
@@ -79,7 +85,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             for (int i = 0; i < rows.Length; i++)
             {
-                rows[i] = Instantiate(rowPrefab, container);
+                rows[i] = Instantiate(rowTemplate, container);
                 rows[i].gameObject.SetActive(false);
             }
         }

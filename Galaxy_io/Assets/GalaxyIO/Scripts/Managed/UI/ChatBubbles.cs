@@ -17,7 +17,8 @@ namespace GalaxyIO.Scripts.Managed.UI
     public sealed class ChatBubbles : MonoBehaviour
     {
         [SerializeField]
-        private ChatBubbleView bubblePrefab;
+        [Tooltip("씬에 배치된 말풍선 템플릿")]
+        private ChatBubbleView bubbleTemplate;
 
         [SerializeField]
         [Tooltip("선체 위쪽 끝과 말풍선 꼬리 끝 사이 간격")]
@@ -53,6 +54,11 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
+
+        private void Awake()
+        {
+            bubbleTemplate.gameObject.SetActive(false);
+        }
 
         private void Start()
         {
@@ -160,7 +166,7 @@ namespace GalaxyIO.Scripts.Managed.UI
         {
             while (bubbles.Count <= index)
             {
-                bubbles.Add(Instantiate(bubblePrefab, transform));
+                bubbles.Add(Instantiate(bubbleTemplate, transform));
                 shownSpeeches.Add(null);
             }
 

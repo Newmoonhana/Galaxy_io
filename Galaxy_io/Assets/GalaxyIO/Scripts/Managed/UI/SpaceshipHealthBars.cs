@@ -17,8 +17,8 @@ namespace GalaxyIO.Scripts.Managed.UI
     public sealed class SpaceshipHealthBars : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("체력바 프리팹")]
-        private HealthBarView barPrefab;
+        [Tooltip("씬에 배치된 체력바 템플릿")]
+        private HealthBarView barTemplate;
 
         [SerializeField]
         [Tooltip("선체 아래쪽 끝과 체력바 사이 간격")]
@@ -32,6 +32,11 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
+
+        private void Awake()
+        {
+            barTemplate.gameObject.SetActive(false);
+        }
 
         private void Start()
         {
@@ -102,7 +107,7 @@ namespace GalaxyIO.Scripts.Managed.UI
         {
             while (bars.Count <= index)
             {
-                bars.Add(Instantiate(barPrefab, transform));
+                bars.Add(Instantiate(barTemplate, transform));
             }
 
             bars[index].gameObject.SetActive(true);

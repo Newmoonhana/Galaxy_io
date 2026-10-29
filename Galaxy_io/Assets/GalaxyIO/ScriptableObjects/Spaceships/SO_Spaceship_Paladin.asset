@@ -15,7 +15,7 @@ MonoBehaviour:
   Id: 8
   Category: 2
   Prefab: {fileID: -6648208624474899887, guid: b28b3de406dab664885082173346df06, type: 3}
-  Sprite: {fileID: -1085663215, guid: 13de217e8b0e75940a5963da021b106b, type: 3}
+  Sprite: {fileID: 21300000, guid: 13de217e8b0e75940a5963da021b106b, type: 3}
   OutlineSensitivity: 0.134
   TurretSlots:
   - {x: 0.09, y: 0.34}
