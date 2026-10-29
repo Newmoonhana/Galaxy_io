@@ -18,8 +18,8 @@ Shader "GalaxyIO/Trail-Wake"
     {
         Tags { "Queue" = "Transparent" "RenderType" = "Transparent" "RenderPipeline" = "UniversalPipeline" }
 
-        // 배경을 그대로 옮겨 그리므로 섞지 않음. 가장자리는 일그러짐이 0 이라 경계가 보이지 않음.
-        Blend Off
+        // 물결 세기를 알파로 섞음. 트레일 전체를 덮어쓰면 겹친 다른 효과가 지워짐.
+        Blend SrcAlpha OneMinusSrcAlpha, One OneMinusSrcAlpha
         Cull Off
         ZWrite Off
 
@@ -101,7 +101,7 @@ Shader "GalaxyIO/Trail-Wake"
                 half3 scene = SAMPLE_TEXTURE2D(_CameraSortingLayerTexture, sampler_CameraSortingLayerTexture, screenUV).rgb;
 
                 half3 color = scene + _Tint.rgb * (_Tint.a * fade * edge);
-                return half4(color, 1.0);
+                return half4(color, fade * edge);
             }
             ENDHLSL
         }

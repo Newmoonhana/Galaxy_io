@@ -84,6 +84,11 @@ namespace GalaxyIO.DOTS.Systems
                         continue;
                     }
 
+                    // 채널링 포탑(e.g. Pyron, Veylance)은 사격이 끊기는 즉시 휴식함.
+                    bool channeling = turret.HeatMode == TurretHeatMode.PerSecond;
+                    bool wasFiring = autoTurret.Firing;
+                    var random = Random.CreateFromIndex(math.hash(new uint3((uint)spaceship.Index, (uint)k, tick)) & 0x7FFFFFFFu);
+
                     float2 pivot = transform.ValueRO.TransformPoint(new float3(mount.Pivot, 0.0F)).xy;
                     float2 center = math.mul(transform.ValueRO.Rotation, new float3(math.normalizesafe(mount.Barrel), 0.0F)).xy;
 
@@ -143,8 +148,6 @@ namespace GalaxyIO.DOTS.Systems
 
                         if (mount.CycleRemaining <= 0.0F)
                         {
-                            var random = Random.CreateFromIndex(math.hash(new uint3((uint)spaceship.Index, (uint)k, tick)) & 0x7FFFFFFFu);
-
                             mount.Resting = !mount.Resting;
                             mount.CycleRemaining = mount.Resting
                                 ? random.NextFloat(auto.RestDurationRange.x, auto.RestDurationRange.y)
@@ -157,11 +160,25 @@ namespace GalaxyIO.DOTS.Systems
                     }
                     else
                     {
-                        // 다음 교전을 사격부터 시작하도록 되돌림.
                         mount.Target = Entity.Null;
-                        mount.Resting = false;
-                        mount.CycleRemaining = auto.FireDuration;
                         autoTurret.Firing = false;
+
+                        // 채널링 포탑은 대상이 없어도 휴식을 마저 셈. 나머지는 다음 교전을 사격부터 시작함.
+                        if (channeling && mount.Resting)
+                        {
+                            mount.CycleRemaining -= deltaTime;
+
+                            if (mount.CycleRemaining <= 0.0F)
+                            {
+                                mount.Resting = false;
+                                mount.CycleRemaining = auto.FireDuration;
+                            }
+                        }
+                        else
+                        {
+                            mount.Resting = false;
+                            mount.CycleRemaining = auto.FireDuration;
+                        }
 
                         if (mount.SweepWait > 0.0F)
                         {
@@ -179,6 +196,13 @@ namespace GalaxyIO.DOTS.Systems
                                 mount.SweepWait = config.AutoTurretSweepWait;
                             }
                         }
+                    }
+
+                    // 남은 사격 시간을 다음 교전으로 넘기지 않음.
+                    if (channeling && wasFiring && !autoTurret.Firing && !mount.Resting)
+                    {
+                        mount.Resting = true;
+                        mount.CycleRemaining = random.NextFloat(auto.RestDurationRange.x, auto.RestDurationRange.y);
                     }
 
                     shots.Clear();

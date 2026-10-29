@@ -20,6 +20,7 @@ namespace GalaxyIO.Scripts.Managed.Audio
     /// 우주선의 <see cref="TurretSwitchComponent"/>를 보고 포탑 사격 시작음과 반복음도 재생함.
     /// 자동 포탑은 <see cref="AutoTurretElement.Firing"/>을 봄.
     /// 충전 포탑은 충전을 시작할 때 충전음을 내고, 떼면 충전음을 줄여 멈추며 다 차기 전이면 취소음을 냄.
+    /// 충전음은 충전 중인 우주선을 따라감.
     /// <para/>
     /// 재생은 <see cref="SoundManager"/>를 거침. 거리 감쇠와 음성 풀링은 Master Audio 의
     /// Sound Group 설정이 담당함.
@@ -60,6 +61,10 @@ namespace GalaxyIO.Scripts.Managed.Audio
         // 키 단위로 들고 있어야 함 - 한 대가 멈춰도 같은 포탑을 쏘는 다른 대가 있으면 유지함.
         private readonly HashSet<FixedString64Bytes> activeLoops = new HashSet<FixedString64Bytes>();
         private readonly List<FixedString64Bytes> stoppedLoops = new List<FixedString64Bytes>();
+
+        // 이번 프레임 충전음 위치. 반복음처럼 가장 가까운 충전 중인 우주선을 따라감.
+        private readonly Dictionary<FixedString64Bytes, PendingSound> chargeTargets =
+            new Dictionary<FixedString64Bytes, PendingSound>();
 
         // 이번 프레임 키별 재생 후보. 리스트를 재사용해 매 프레임 할당을 피함
         private readonly Dictionary<FixedString64Bytes, List<PendingSound>> pending =
@@ -117,6 +122,7 @@ namespace GalaxyIO.Scripts.Managed.Audio
             // 쉬다가 사격 전환이 시작되면 시작음을 한 번, 사격 중에는 반복음을 재생함.
             seen.Clear();
             loopTargets.Clear();
+            chargeTargets.Clear();
 
             // 리스폰 대기 중에는 포탑 소리를 내지 않음. 사망 지점 주변 전투음까지 들리면 안 됨.
             // 후보가 비므로 ApplyLoops 가 재생 중인 반복음을 전부 페이드아웃시킴.
@@ -163,6 +169,11 @@ namespace GalaxyIO.Scripts.Managed.Audio
                         Play(turret.LaunchSound, position);
                     }
 
+                    if (audible && turret.ReleaseFire && current == TurretSwitchState.SpinningUp && !turret.LaunchSound.IsEmpty)
+                    {
+                        TrackNearest(chargeTargets, turret.LaunchSound, position, listener);
+                    }
+
                     // 충전 포탑을 뗀 순간. 한 틱만 머무는 Firing / SpinningDown 을 못 보고 Idle 로 넘어올 수 있어
                     // 마지막으로 본 모자란 충전 시간으로 다 찼는지 가름.
                     if (turret.ReleaseFire && sound.State == TurretSwitchState.SpinningUp && current != TurretSwitchState.SpinningUp)
@@ -181,7 +192,7 @@ namespace GalaxyIO.Scripts.Managed.Audio
 
                     if (!loop.IsEmpty)
                     {
-                        TrackLoopTarget(loop, position, listener);
+                        TrackNearest(loopTargets, loop, position, listener);
                     }
 
                     // 자동 포탑은 사격을 시작할 때 시작음을 내고 사격 중에 반복음을 냄.
@@ -198,7 +209,7 @@ namespace GalaxyIO.Scripts.Managed.Audio
                         if (!audible) continue;
 
                         if ((sound.AutoFiring & (1u << k)) == 0) Play(autoTurret.LaunchSound, position);
-                        if (!autoTurret.LoopSound.IsEmpty) TrackLoopTarget(autoTurret.LoopSound, position, listener);
+                        if (!autoTurret.LoopSound.IsEmpty) TrackNearest(loopTargets, autoTurret.LoopSound, position, listener);
                     }
 
                     sound.State = current;
@@ -225,6 +236,11 @@ namespace GalaxyIO.Scripts.Managed.Audio
             }
 
             ApplyLoops();
+
+            foreach (KeyValuePair<FixedString64Bytes, PendingSound> pair in chargeTargets)
+            {
+                MoveLoop(pair.Key, pair.Value.Position);
+            }
 
             if (messageQuery.IsEmpty)
             {
@@ -322,8 +338,12 @@ namespace GalaxyIO.Scripts.Managed.Audio
             return new Vector3(_position.x, _position.y, z);
         }
 
-        // 이번 프레임에 이 반복음을 낼 위치 후보. 가장 가까운 우주선이 이김.
-        private void TrackLoopTarget(FixedString64Bytes _key, Vector3 _position, float2 _listener)
+        // 이번 프레임에 이 소리를 낼 위치 후보. 가장 가까운 우주선이 이김.
+        private static void TrackNearest(
+            Dictionary<FixedString64Bytes, PendingSound> _targets,
+            FixedString64Bytes _key,
+            Vector3 _position,
+            float2 _listener)
         {
             Vector3 flat = Flatten(_position);
 
@@ -331,9 +351,9 @@ namespace GalaxyIO.Scripts.Managed.Audio
             float dy = flat.y - _listener.y;
             float sqrDistance = dx * dx + dy * dy;
 
-            if (loopTargets.TryGetValue(_key, out PendingSound prev) && prev.SqrDistance <= sqrDistance) return;
+            if (_targets.TryGetValue(_key, out PendingSound prev) && prev.SqrDistance <= sqrDistance) return;
 
-            loopTargets[_key] = new PendingSound { SqrDistance = sqrDistance, Position = flat };
+            _targets[_key] = new PendingSound { SqrDistance = sqrDistance, Position = flat };
         }
 
         /// <summary>
@@ -371,7 +391,7 @@ namespace GalaxyIO.Scripts.Managed.Audio
             }
         }
 
-        // 재생 중인 반복음 그룹의 음원을 옮김. 그룹의 첫 변형만 씀(반복음은 변형 1개로 충분함).
+        // 재생 중인 반복음, 충전음 그룹의 음원을 옮김. 그룹의 첫 변형만 씀(변형 1개로 충분함).
         private static void MoveLoop(FixedString64Bytes _key, Vector3 _flatPosition)
         {
             Transform group = DarkTonic.MasterAudio.MasterAudio.Instance == null
