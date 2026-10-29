@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Mathematics;
 
 namespace GalaxyIO.DOTS.Client.Components.Singleton
 {
@@ -19,8 +20,11 @@ namespace GalaxyIO.DOTS.Client.Components.Singleton
         // 커서가 닫힌 채팅창의 탭 위에 있음. 탭을 누르는 클릭으로 포탑이 발사되지 않게 막음.
         public bool ChatHovered;
 
-        // 커서가 레이더 위에 있음. 휠이 카메라 대신 레이더 표시 거리를 바꿈.
+        // 커서가 레이더 위에 있음. 휠이 카메라 대신 레이더 표시 거리를 바꾸고, 우주선은 RadarCursor 를 바라봄.
         public bool RadarHovered;
+
+        // 커서가 가리키는 레이더 위 지점. 로컬 우주선 기준 월드 좌표 차이. RadarHovered 일 때만 씀.
+        public float2 RadarCursor;
 
         // 우주선이 파괴됨. 리스폰 창이 이 값을 보고 열리고, 리스폰을 요청하면 꺼짐.
         public bool Dead;

@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9868991a90114dd0a355fd93f54ffdd2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Authoring.StraightforwardProjectileAuthoring
-  Lifetime: 0.2
+  Lifetime: 0.4
   Pierce: 5
   ExplosionRadius: 0
   SpawnOnHit: {fileID: 7992951442580070785, guid: 45d5fba5685828d4ba65efafb37a7dd6, type: 3}
@@ -54,7 +54,7 @@ MonoBehaviour:
   Visual: {fileID: 6977692746202840440, guid: f25e177623c69ad40887959f244332ec, type: 3}
   Beam: {fileID: 0}
   SendShot: 1
-  Speed: 60
+  Speed: 120
   Acceleration: 1000
   ReflectOwnerVelocity: 1
 --- !u!114 &8856312466830478681

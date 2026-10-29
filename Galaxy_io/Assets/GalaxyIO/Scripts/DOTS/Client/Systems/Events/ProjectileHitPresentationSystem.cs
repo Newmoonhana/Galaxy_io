@@ -44,13 +44,19 @@ namespace GalaxyIO.DOTS.Client.Systems
             // 칸 -> proxies 인덱스
             var cells = new NativeParallelMultiHashMap<int2, int>(math.max(count * 2, 1), Allocator.TempJob);
 
+            // 투사체 판정은 Solid 를 보지 않으므로 빈 배열을 넘김.
+            var solids = new NativeArray<bool>(0, Allocator.TempJob);
+
             // Spaceship Collider 수집
             state.Dependency = new GatherSpaceshipProxyJob
             {
                 Proxies = proxies,
                 Crafts  = SystemAPI.GetComponentLookup<CarriedCraftComponent>(true),
                 Players = SystemAPI.GetComponentLookup<PlayerSpaceshipMovementComponent>(true),
+                Solids  = solids,
             }.Schedule(state.Dependency);
+
+            state.Dependency = solids.Dispose(state.Dependency);
 
             state.Dependency = new BuildSpatialHashJob
             {
