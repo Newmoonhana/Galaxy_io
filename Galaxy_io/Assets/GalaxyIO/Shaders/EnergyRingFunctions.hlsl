@@ -1,7 +1,7 @@
 // Particle-EnergyRing.shadergraph 의 Custom Function. 고리 마스크만 구하고 색 합성은 그래프 노드.
 // 파티클 렌더러 Custom Vertex Streams: Position, Color, UV, Custom1.x (TEXCOORD0.z)
-#ifndef GALAXYIO_PARTICLE_ENERGY_RING_INCLUDED
-#define GALAXYIO_PARTICLE_ENERGY_RING_INCLUDED
+#ifndef GALAXYIO_ENERGY_RING_FUNCTIONS_INCLUDED
+#define GALAXYIO_ENERGY_RING_FUNCTIONS_INCLUDED
 
 // UV0 xy: UV, z: HoleScale (Custom1.x).
 // Inner: 안쪽 색 비율(두 둘레 0, 그 사이 1). Coverage: 고리 안 1, 고리 밖과 구멍 0.

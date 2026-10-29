@@ -1,6 +1,6 @@
 // UI-PingArrow.shadergraph 의 Custom Function. 채우기와 빛번짐 합성은 그래프 노드.
-#ifndef GALAXYIO_UI_PING_ARROW_INCLUDED
-#define GALAXYIO_UI_PING_ARROW_INCLUDED
+#ifndef GALAXYIO_PING_ARROW_FUNCTIONS_INCLUDED
+#define GALAXYIO_PING_ARROW_FUNCTIONS_INCLUDED
 
 // 삼각형 영역 기준 좌표. (0, 0) 좌하단, (1, 1) 우상단. 가장자리 Padding 만큼은 빛번짐 자리.
 float2 PingArrowPoint(float2 uv, float padding)

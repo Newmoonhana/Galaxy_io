@@ -1,6 +1,6 @@
 // UI-RadarSweep.shadergraph 의 Custom Function. 빔/선 마스크만 구하고 색 합성은 그래프 노드.
-#ifndef GALAXYIO_UI_RADAR_SWEEP_INCLUDED
-#define GALAXYIO_UI_RADAR_SWEEP_INCLUDED
+#ifndef GALAXYIO_RADAR_SWEEP_FUNCTIONS_INCLUDED
+#define GALAXYIO_RADAR_SWEEP_FUNCTIONS_INCLUDED
 
 #include "Assets/GalaxyIO/Shaders/RadarCommon.hlsl"
 

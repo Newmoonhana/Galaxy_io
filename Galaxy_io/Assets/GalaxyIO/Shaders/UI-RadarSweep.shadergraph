@@ -766,7 +766,7 @@
     "m_Type": "UnityEditor.ShaderGraph.StickyNoteData",
     "m_ObjectId": "1a538ea4b393453597d8fc47cdeabd16",
     "m_Title": "UI-RadarSweep",
-    "m_Content": "레이더 빔, 잔상 부채꼴, 빔 가장자리, 외곽 호, 탐지 거리 링, 초계함 파티원 공유 탐지 거리 링.\n_Angle, _SweepAlpha, _RangeRadius 는 RadarView 가 채움. _Radius 는 RadarView 가 읽음.\n공유 링(_Shares, _ShareCount)은 배열이라 그래프 프로퍼티 대신 UI-RadarSweep.hlsl 전역 변수. RadarView 가 채움.",
+    "m_Content": "레이더 빔, 잔상 부채꼴, 빔 가장자리, 외곽 호, 탐지 거리 링, 초계함 파티원 공유 탐지 거리 링.\n_Angle, _SweepAlpha, _RangeRadius 는 RadarView 가 채움. _Radius 는 RadarView 가 읽음.\n공유 링(_Shares, _ShareCount)은 배열이라 그래프 프로퍼티 대신 RadarSweepFunctions.hlsl 전역 변수. RadarView 가 채움.",
     "m_TextSize": 0,
     "m_Theme": 0,
     "m_Position": {

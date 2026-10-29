@@ -26,7 +26,7 @@ namespace GalaxyIO.Scripts.Managed.UI
     public sealed class RadarView : MonoBehaviour
     {
         // 한 번에 띄우는 탐지 점, 표시 거리 밖 파티원 호의 상한.
-        // MaxMembers 는 공유 탐지 거리 원의 상한이기도 함. UI-RadarSweep.hlsl 의 RADAR_MAX_SHARES 와 같아야 함.
+        // MaxMembers 는 공유 탐지 거리 원의 상한이기도 함. RadarSweepFunctions.hlsl 의 RADAR_MAX_SHARES 와 같아야 함.
         private const int MaxBlips = 64;
         private const int MaxMembers = 16;
 
@@ -687,7 +687,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
                 ApplyMembers(memberCount);
 
-                // 공유 탐지 거리 원은 UI-RadarSweep.hlsl 의 전역 배열로 넘김.
+                // 공유 탐지 거리 원은 RadarSweepFunctions.hlsl 의 전역 배열로 넘김.
                 material.SetVectorArray(SharesId, shareBuffer);
                 material.SetFloat(ShareCountId, shareCount);
 

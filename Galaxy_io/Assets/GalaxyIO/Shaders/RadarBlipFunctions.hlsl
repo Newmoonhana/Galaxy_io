@@ -1,6 +1,6 @@
 // UI-RadarBlip.shadergraph 의 Custom Function. 탐지 점 하나(점 + 헤일로). 색은 Image 색.
-#ifndef GALAXYIO_UI_RADAR_BLIP_INCLUDED
-#define GALAXYIO_UI_RADAR_BLIP_INCLUDED
+#ifndef GALAXYIO_RADAR_BLIP_FUNCTIONS_INCLUDED
+#define GALAXYIO_RADAR_BLIP_FUNCTIONS_INCLUDED
 
 // 이미지 중심이 점 중심. Extent: 이미지 가장자리까지의 거리(점 반지름 단위). 헤일로가 잘리지 않게 넉넉히 둠.
 void RadarBlipMask_float(float2 UV, float Extent, out float Mask)

@@ -1,6 +1,6 @@
 // Sprite-BeamGlow.shadergraph 의 Custom Function. 번짐 모양만 구하고 색 합성은 그래프 노드.
-#ifndef GALAXYIO_SPRITE_BEAM_GLOW_INCLUDED
-#define GALAXYIO_SPRITE_BEAM_GLOW_INCLUDED
+#ifndef GALAXYIO_BEAM_GLOW_FUNCTIONS_INCLUDED
+#define GALAXYIO_BEAM_GLOW_FUNCTIONS_INCLUDED
 
 // 총구 쪽 구, 몸통, 끝 쪽 구를 합친 모양까지의 거리로 번짐(1 ~ 0)을 구함.
 // 세 모양의 거리 중 가장 가까운 것만 쓰므로 번짐끼리 겹쳐 두 번 밝아지지 않음.

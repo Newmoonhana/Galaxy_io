@@ -1,8 +1,8 @@
 // Particle-EnergyDust.shadergraph 의 Custom Function. 정점 위치만 다시 구하고 색은 그래프 노드.
 // 파티클 렌더러 Render Mode: Billboard.
 // Custom Vertex Streams: Position, Color, UV, Center (TEXCOORD0.zw|x), Velocity (TEXCOORD1.yzw), Size.x (TEXCOORD2.x)
-#ifndef GALAXYIO_PARTICLE_ENERGY_DUST_INCLUDED
-#define GALAXYIO_PARTICLE_ENERGY_DUST_INCLUDED
+#ifndef GALAXYIO_ENERGY_DUST_FUNCTIONS_INCLUDED
+#define GALAXYIO_ENERGY_DUST_FUNCTIONS_INCLUDED
 
 // 속도 방향으로 늘어난 선분 사각형의 꼭짓점. 길이 = MaxLength * Min(1, 속력 / MaxSpeed), 굵기 = Size.x.
 // UV0 xy: UV, zw: Center.xy / UV1 x: Center.z, yzw: Velocity / UV2 x: Size.x

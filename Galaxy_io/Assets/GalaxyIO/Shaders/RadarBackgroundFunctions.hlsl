@@ -1,6 +1,6 @@
 // UI-RadarBackground.shadergraph 의 Custom Function. 도형 마스크만 구하고 색 합성은 그래프 노드.
-#ifndef GALAXYIO_UI_RADAR_BACKGROUND_INCLUDED
-#define GALAXYIO_UI_RADAR_BACKGROUND_INCLUDED
+#ifndef GALAXYIO_RADAR_BACKGROUND_FUNCTIONS_INCLUDED
+#define GALAXYIO_RADAR_BACKGROUND_FUNCTIONS_INCLUDED
 
 #include "Assets/GalaxyIO/Shaders/RadarCommon.hlsl"
 

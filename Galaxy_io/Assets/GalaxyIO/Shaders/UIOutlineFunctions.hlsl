@@ -1,6 +1,6 @@
 // UI-Outline.shadergraph 의 Custom Function. 텍스처 샘플과 색 합성은 그래프 노드.
-#ifndef GALAXYIO_UI_OUTLINE_INCLUDED
-#define GALAXYIO_UI_OUTLINE_INCLUDED
+#ifndef GALAXYIO_UI_OUTLINE_FUNCTIONS_INCLUDED
+#define GALAXYIO_UI_OUTLINE_FUNCTIONS_INCLUDED
 
 // 중심 UV 에서 좌우상하로 Offset 만큼 떨어진 샘플 위치.
 void OutlineTaps_float(float2 UV, float2 Offset, out float2 Right, out float2 Left, out float2 Up, out float2 Down)
