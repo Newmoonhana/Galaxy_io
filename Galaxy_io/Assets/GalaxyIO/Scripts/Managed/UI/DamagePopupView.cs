@@ -24,8 +24,8 @@ namespace GalaxyIO.Scripts.Managed.UI
     public sealed class DamagePopupView : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("숫자 프리팹. 가운데 정렬.")]
-        private TMP_Text popupPrefab;
+        [Tooltip("씬에 배치된 숫자 템플릿. 가운데 정렬.")]
+        private TMP_Text popupTemplate;
 
         [Header("Animation")]
 
@@ -144,6 +144,11 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
+
+        private void Awake()
+        {
+            popupTemplate.gameObject.SetActive(false);
+        }
 
         private void Start()
         {
@@ -316,7 +321,7 @@ namespace GalaxyIO.Scripts.Managed.UI
         // ratio 는 최대 크기 기준 값의 비율. 로그 곡선으로 글자 크기를 정함.
         private void Spawn(Entity ship, Vector2 position, string text, float ratio, Color color)
         {
-            TMP_Text label = pool.Count > 0 ? pool.Pop() : Instantiate(popupPrefab, transform);
+            TMP_Text label = pool.Count > 0 ? pool.Pop() : Instantiate(popupTemplate, transform);
             label.gameObject.SetActive(true);
             label.transform.SetAsLastSibling();
             label.text = text;

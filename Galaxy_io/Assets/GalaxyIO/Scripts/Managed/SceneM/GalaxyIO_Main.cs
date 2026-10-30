@@ -16,6 +16,7 @@ using Unity.Entities;
 using Unity.NetCode;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 namespace GalaxyIO.Main
 {
@@ -34,8 +35,11 @@ namespace GalaxyIO.Main
         private InputActionReference inventoryAction;
 
         [SerializeField]
-        [Tooltip("인게임에서만 보이는 HUD 캔버스")]
-        private Canvas hud;
+        [Tooltip("HUD 캔버스를 그리는 UI 카메라")]
+        private UnityEngine.Camera uiCamera;
+
+        // 이 컴포넌트가 로드한 HUD 씬인지. 로드 중에 메인 씬이 내려가면 false 로 바뀜.
+        private bool ownsHudScene;
 
         // 로컬 플레이어 상태. 메뉴/인벤토리 열림, 파괴, 접속 실패.
         private EntityQuery stateQuery;
@@ -79,6 +83,10 @@ namespace GalaxyIO.Main
                     ComponentType.ReadOnly<ClientDisconnectedMessage>()
                 );
                 hasQueries = true;
+
+                // 월드가 없으면 HUD 는 어차피 안 보임. 디버그 진입은 월드를 만든 뒤 메인 씬을 다시 올리므로
+                // 그쪽 인스턴스가 로드함.
+                LoadHUD().Forget();
             }
             else
             {
@@ -169,9 +177,49 @@ namespace GalaxyIO.Main
                 ControlUI.Opened?.OnLoadComplete();
             }
 
-            if (hud == null || hud.enabled == visible) return;
+            // 디버그 진입에서 먼저 뜬 메인 씬도 루프가 계속 돎. 자기가 올린 HUD 만 건드림.
+            if (!ownsHudScene || !GalaxyIO_HUD.HasInstance) return;
+
+            Canvas hud = GalaxyIO_HUD.Instance.Hud;
+            if (hud.enabled == visible) return;
 
             hud.enabled = visible;
+        }
+
+        // HUD 씬을 Additive 로 로드하고 UI 카메라 연결.
+        private async Awaitable LoadHUD()
+        {
+            // SceneStack.Push 는 로드 직후 마지막 씬을 자기 프레임으로 집음. 그 전에 HUD 로드를 시작하면
+            // HUD 씬이 집힐 수 있어, 이 씬이 활성 씬으로 잡힐 때까지 기다림.
+            while (SceneManager.GetActiveScene() != gameObject.scene)
+            {
+                await Awaitable.NextFrameAsync();
+                if (this == null) return;
+            }
+
+            // 에디터에서 미리 열어 둔 HUD 씬은 월드가 생기기 전에 뷰의 Start 가 돌아 꺼져 있음. 새로 로드함.
+            Scene opened = SceneManager.GetSceneByName(GalaxyIO_HUD.SceneName);
+            if (opened.isLoaded)
+            {
+                // 이미 언로드 중이면 null 이 옴 (나가기 직후 재입장).
+                AsyncOperation unload = SceneManager.UnloadSceneAsync(opened);
+                if (unload != null) await unload;
+            }
+
+            // 기다리는 동안 메인 씬이 내려감.
+            if (this == null) return;
+
+            ownsHudScene = true;
+            await SceneManager.LoadSceneAsync(GalaxyIO_HUD.SceneName, LoadSceneMode.Additive);
+
+            // 로드 중 메인 씬이 내려갔으면 `UnloadHUD`가 아직 로드 안 된 씬을 못 내렸음. 여기서 내림.
+            if (!ownsHudScene)
+            {
+                SceneManager.UnloadSceneAsync(GalaxyIO_HUD.SceneName);
+                return;
+            }
+
+            if (GalaxyIO_HUD.HasInstance) GalaxyIO_HUD.Instance.Bind(uiCamera);
         }
 
         // 게임 오버 / 인게임 재시작 전환 감지. PlayerStateComponent.Dead 가 기준.
@@ -382,6 +430,17 @@ namespace GalaxyIO.Main
             AddressableAssetsManager.gameObject_lst.RemoveData(inventoryUIKey);
             // 조작법 팝업 키는 ControlUI 가 들고 있음
             ControlUI.Unload();
+            UnloadHUD();
+        }
+
+        // SceneStack.Pop 은 최상단 프레임 씬만 내림. HUD 씬은 메인 씬과 함께 직접 내림.
+        private void UnloadHUD()
+        {
+            if (!ownsHudScene) return;
+            ownsHudScene = false;
+
+            Scene hudScene = SceneManager.GetSceneByName(GalaxyIO_HUD.SceneName);
+            if (hudScene.isLoaded) SceneManager.UnloadSceneAsync(hudScene);
         }
 
         /// <summary>

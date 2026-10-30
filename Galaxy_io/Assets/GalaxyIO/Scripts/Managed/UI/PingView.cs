@@ -23,7 +23,8 @@ namespace GalaxyIO.Scripts.Managed.UI
     public sealed class PingView : MonoBehaviour
     {
         [SerializeField]
-        private PingMarkerView markerPrefab;
+        [Tooltip("씬에 배치된 핑 마커 템플릿. CarrierOrderView 와 공용")]
+        private PingMarkerView markerTemplate;
 
         [SerializeField]
         [Tooltip("핑 찍기 (마우스 오른쪽)")]
@@ -92,6 +93,11 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
+
+        private void Awake()
+        {
+            markerTemplate.gameObject.SetActive(false);
+        }
 
         private void Start()
         {
@@ -349,7 +355,7 @@ namespace GalaxyIO.Scripts.Managed.UI
         {
             while (markers.Count <= index)
             {
-                markers.Add(Instantiate(markerPrefab, transform));
+                markers.Add(Instantiate(markerTemplate, transform));
                 shownTexts.Add(null);
             }
 

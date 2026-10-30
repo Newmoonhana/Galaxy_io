@@ -1288,6 +1288,11 @@ namespace DarkTonic.MasterAudio.EditorScripts
                     case RuntimePlatform.LinuxPlayer:
                     case RuntimePlatform.LinuxServer:
                     case RuntimePlatform.LinuxEditor:
+#if UNITY_6000_4_OR_NEWER
+#else
+                    case RuntimePlatform.EmbeddedLinuxArm32:
+                    case RuntimePlatform.EmbeddedLinuxX86:
+#endif
                     case RuntimePlatform.EmbeddedLinuxArm64:
                     case RuntimePlatform.EmbeddedLinuxX64:
                     case RuntimePlatform.WindowsEditor:

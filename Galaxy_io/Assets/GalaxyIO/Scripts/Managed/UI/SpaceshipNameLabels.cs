@@ -22,15 +22,15 @@ namespace GalaxyIO.Scripts.Managed.UI
     public sealed class SpaceshipNameLabels : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("이름표 프리팹. 위쪽 정렬이라 위치 아래로 글자가 붙음.")]
-        private TMP_Text labelPrefab;
+        [Tooltip("씬에 배치된 이름표 템플릿. 위쪽 정렬이라 위치 아래로 글자가 붙음. 자식에 파티 아이콘.")]
+        private TMP_Text labelTemplate;
 
         [SerializeField]
         [Tooltip("선체 아래쪽 끝과 이름표 사이 간격. 체력바 아래에 둠. 두께 배율이 함께 곱해짐.")]
         private float gap = 0.35F;
 
         [SerializeField]
-        [Tooltip("두께 1 당 늘어나는 크기 배율. 두께 1이면 프리팹 크기 그대로.")]
+        [Tooltip("두께 1 당 늘어나는 크기 배율. 두께 1이면 템플릿 크기 그대로.")]
         [Min(0.0F)]
         private float scalePerThickness = 0.1F;
 
@@ -75,6 +75,11 @@ namespace GalaxyIO.Scripts.Managed.UI
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
 
+        private void Awake()
+        {
+            labelTemplate.gameObject.SetActive(false);
+        }
+
         private void Start()
         {
             clientWorld = ClientServerBootstrap.ClientWorld;
@@ -93,7 +98,7 @@ namespace GalaxyIO.Scripts.Managed.UI
                 ComponentType.ReadOnly<ColliderComponent>(),
                 ComponentType.ReadOnly<LocalTransform>()
             );
-            baseScale = labelPrefab.transform.localScale;
+            baseScale = labelTemplate.transform.localScale;
         }
 
         private void LateUpdate()
@@ -178,13 +183,9 @@ namespace GalaxyIO.Scripts.Managed.UI
         {
             while (labels.Count <= index)
             {
-                TMP_Text label = Instantiate(labelPrefab, transform);
-                Renderer labelRenderer = label.GetComponent<Renderer>();
-
-                SpriteRenderer icon = new GameObject("PartyIcon").AddComponent<SpriteRenderer>();
-                icon.transform.SetParent(label.transform, false);
-                icon.sortingLayerID = labelRenderer.sortingLayerID;
-                icon.sortingOrder = labelRenderer.sortingOrder;
+                TMP_Text label = Instantiate(labelTemplate, transform);
+                // 파티 아이콘. 정렬 레이어/순서는 템플릿에서 이름표와 맞춰 둠.
+                SpriteRenderer icon = label.GetComponentInChildren<SpriteRenderer>(true);
 
                 labels.Add(label);
                 icons.Add(icon);

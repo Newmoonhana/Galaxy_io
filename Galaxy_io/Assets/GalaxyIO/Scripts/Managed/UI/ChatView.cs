@@ -47,7 +47,8 @@ namespace GalaxyIO.Scripts.Managed.UI
         [Header("Layout")]
 
         [SerializeField]
-        private ChatTab tabPrefab;
+        [Tooltip("씬에 배치된 채널 탭 템플릿")]
+        private ChatTab tabTemplate;
 
         [SerializeField]
         [Tooltip("탭이 쌓이는 부모. 왼쪽에서 오른쪽으로 정렬됨. 닫혀 있는 동안엔 입력 줄 자리로 내려감.")]
@@ -214,6 +215,11 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
+
+        private void Awake()
+        {
+            tabTemplate.gameObject.SetActive(false);
+        }
 
         private void Start()
         {
@@ -665,7 +671,8 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private Channel AddChannel(string name, bool closable)
         {
-            var channel = new Channel { Name = name, Tab = Instantiate(tabPrefab, tabContainer) };
+            var channel = new Channel { Name = name, Tab = Instantiate(tabTemplate, tabContainer) };
+            channel.Tab.gameObject.SetActive(true);
 
             channel.Tab.Set(
                 name,

@@ -18,8 +18,8 @@ namespace GalaxyIO.Scripts.Managed.UI
         [Header("Layout")]
 
         [SerializeField]
-        [Tooltip("킬 로그 한 줄 프리팹. 아이콘 스프라이트 에셋이 연결돼 있어야 함.")]
-        private KillLogRow rowPrefab;
+        [Tooltip("씬에 배치된 킬 로그 한 줄 템플릿. 아이콘 스프라이트 에셋이 연결돼 있어야 함.")]
+        private KillLogRow rowTemplate;
 
         [SerializeField]
         [Tooltip("줄이 쌓이는 부모. 위에서 아래로 정렬됨.")]
@@ -70,6 +70,11 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
+
+        private void Awake()
+        {
+            rowTemplate.gameObject.SetActive(false);
+        }
 
         private void Start()
         {
@@ -127,7 +132,8 @@ namespace GalaxyIO.Scripts.Managed.UI
                 Destroy(rows.Dequeue().Row.gameObject);
             }
 
-            KillLogRow row = Instantiate(rowPrefab, container);
+            KillLogRow row = Instantiate(rowTemplate, container);
+            row.gameObject.SetActive(true);
             // 로컬 플레이어가 막타/어시스트/격추 대상 중 하나면 배경을 칠함.
             bool isLocal = message.KillerNetworkId == localNetworkId
                            || message.AssistantNetworkId == localNetworkId

@@ -13,6 +13,7 @@ using Unity.NetCode;
 using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace GalaxyIO.Scripts.Managed.UI
@@ -24,28 +25,36 @@ namespace GalaxyIO.Scripts.Managed.UI
     /// </summary>
     public sealed class RadarView : MonoBehaviour
     {
-        // UI-RadarScanner 셰이더의 MAX_BLIPS, MAX_MEMBERS 와 같아야 함.
+        // 한 번에 띄우는 탐지 점, 표시 거리 밖 파티원 호의 상한.
+        // MaxMembers 는 공유 탐지 거리 원의 상한이기도 함. RadarSweepFunctions.hlsl 의 RADAR_MAX_SHARES 와 같아야 함.
         private const int MaxBlips = 64;
         private const int MaxMembers = 16;
 
         private static readonly int AngleId       = Shader.PropertyToID("_Angle");
-        private static readonly int HeadingId     = Shader.PropertyToID("_Heading");
         private static readonly int RangeRadiusId = Shader.PropertyToID("_RangeRadius");
-        private static readonly int BlipsId       = Shader.PropertyToID("_Blips");
-        private static readonly int BlipScalesId  = Shader.PropertyToID("_BlipScales");
-        private static readonly int BlipCountId   = Shader.PropertyToID("_BlipCount");
-        private static readonly int MembersId     = Shader.PropertyToID("_Members");
-        private static readonly int MemberCountId = Shader.PropertyToID("_MemberCount");
-        private static readonly int SharesId      = Shader.PropertyToID("_Shares");
-        private static readonly int ShareCountId  = Shader.PropertyToID("_ShareCount");
         private static readonly int SweepAlphaId  = Shader.PropertyToID("_SweepAlpha");
         private static readonly int RadiusId      = Shader.PropertyToID("_Radius");
+        private static readonly int SharesId      = Shader.PropertyToID("_Shares");
+        private static readonly int ShareCountId  = Shader.PropertyToID("_ShareCount");
         private static readonly int GridSpacingId = Shader.PropertyToID("_GridSpacing");
         private static readonly int GridOffsetId  = Shader.PropertyToID("_GridOffset");
 
         [SerializeField]
-        [Tooltip("UI-RadarScanner 머티리얼을 쓰는 이미지")]
-        private Image scanner;
+        [Tooltip("빔, 잔상, 테두리를 그리는 스윕 이미지. UI-RadarSweep 머티리얼")]
+        [FormerlySerializedAs("scanner")]
+        private Image sweep;
+
+        [SerializeField]
+        [Tooltip("씬에 배치된 탐지 점 템플릿. 스윕 이미지와 중심이 같은 부모 아래")]
+        private Image blipTemplate;
+
+        [SerializeField]
+        [Tooltip("씬에 배치된 표시 거리 밖 파티원 호 템플릿. 피벗이 레이더 중심")]
+        private Image memberTemplate;
+
+        [SerializeField]
+        [Tooltip("기수 방향 화살표")]
+        private RectTransform heading;
 
         [SerializeField]
         [Tooltip("UI-RadarBackground 머티리얼을 쓰는 이미지")]
@@ -118,6 +127,20 @@ namespace GalaxyIO.Scripts.Managed.UI
         [Tooltip("점 크기 배율 범위. 두께의 제곱근을 따름.")]
         private Vector2 blipScaleRange = new Vector2(0.8F, 3.0F);
 
+        [Header("Blip Color")]
+
+        [SerializeField]
+        [Tooltip("AI 점 색")]
+        private Color blipColor = new Color(0.2F, 1.0F, 1.0F, 1.0F);
+
+        [SerializeField]
+        [Tooltip("다른 플레이어와 그 함재기 점 색")]
+        private Color playerBlipColor = new Color(1.0F, 0.6F, 0.2F, 1.0F);
+
+        [SerializeField]
+        [Tooltip("같은 편(파티원, 함재기) 점 색")]
+        private Color friendlyBlipColor = new Color(0.35F, 1.0F, 0.5F, 1.0F);
+
         [Header("Party")]
 
         [SerializeField]
@@ -132,7 +155,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             public float ShowTime;
 
-            // 셰이더에 넘기는 점 종류. 0: AI, 1: 다른 플레이어와 그 함재기, 2: 같은 편(파티원, 함재기)
+            // 점 종류. 0: AI, 1: 다른 플레이어와 그 함재기, 2: 같은 편(파티원, 함재기)
             public float Kind;
 
             // 점 크기 배율
@@ -239,6 +262,10 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private readonly List<SharedBlip> sharedBlips = new List<SharedBlip>();
 
+        // 템플릿 복제본. 앞에서부터 쓰고 남는 것은 끔.
+        private readonly List<Image> blipImages = new List<Image>();
+        private readonly List<Image> memberImages = new List<Image>();
+
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
 
@@ -278,12 +305,12 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             UnityEngine.Camera uiCamera = canvas.renderMode == RenderMode.ScreenSpaceOverlay ? null : canvas.worldCamera;
 
-            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(scanner.rectTransform, screen, uiCamera, out Vector2 local))
+            if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(sweep.rectTransform, screen, uiCamera, out Vector2 local))
             {
                 return false;
             }
 
-            point = Rect.PointToNormalized(scanner.rectTransform.rect, local) * 2.0F - Vector2.one;
+            point = Rect.PointToNormalized(sweep.rectTransform.rect, local) * 2.0F - Vector2.one;
 
             return point.magnitude <= material.GetFloat(RadiusId);
         }
@@ -329,11 +356,22 @@ namespace GalaxyIO.Scripts.Managed.UI
             );
             stateQuery = entityManager.CreateEntityQuery(ComponentType.ReadWrite<PlayerStateComponent>());
 
-            canvas = scanner.GetComponentInParent<Canvas>();
+            canvas = sweep.GetComponentInParent<Canvas>();
 
-            // 각도, 점 목록은 이 뷰 전용이라 머티리얼을 복제함.
-            material = new Material(scanner.material);
-            scanner.material = material;
+            // 각도, 탐지 거리는 이 뷰 전용이라 머티리얼을 복제함.
+            material = new Material(sweep.material);
+            sweep.material = material;
+
+            // 템플릿은 디자인 원본. 화면에는 복제본만 띄움.
+            if (blipTemplate != null)
+            {
+                blipTemplate.gameObject.SetActive(false);
+            }
+
+            if (memberTemplate != null)
+            {
+                memberTemplate.gameObject.SetActive(false);
+            }
 
             backgroundMaterial = new Material(background.material);
             background.material = backgroundMaterial;
@@ -577,9 +615,12 @@ namespace GalaxyIO.Scripts.Managed.UI
 
                 material.SetFloat(RangeRadiusId, range * scale);
 
-                // 위쪽 0도, 시계 방향
-                float2 forward = SpaceshipHeading.FromRotation(ship.Rotation);
-                material.SetFloat(HeadingId, Mathf.Atan2(forward.x, forward.y) * Mathf.Rad2Deg);
+                // 위쪽 0도, 시계 방향. UI 회전은 반시계가 양수.
+                if (heading != null)
+                {
+                    float2 forward = SpaceshipHeading.FromRotation(ship.Rotation);
+                    heading.localEulerAngles = new Vector3(0.0F, 0.0F, -Mathf.Atan2(forward.x, forward.y) * Mathf.Rad2Deg);
+                }
 
                 // 복제 범위 안의 파티원은 Ghost 위치로 덮어씀.
                 using var ghosts = partyQuery.ToEntityArray(Allocator.Temp);
@@ -644,8 +685,9 @@ namespace GalaxyIO.Scripts.Managed.UI
 
                 expiredMembers.Clear();
 
-                material.SetVectorArray(MembersId, memberBuffer);
-                material.SetFloat(MemberCountId, memberCount);
+                ApplyMembers(memberCount);
+
+                // 공유 탐지 거리 원은 RadarSweepFunctions.hlsl 의 전역 배열로 넘김.
                 material.SetVectorArray(SharesId, shareBuffer);
                 material.SetFloat(ShareCountId, shareCount);
 
@@ -740,9 +782,70 @@ namespace GalaxyIO.Scripts.Managed.UI
                 blipBuffer[count++] = new Vector4(offset.x, offset.y, 1.0F - elapsed / blip.FadeOut, blip.Kind);
             }
 
-            material.SetVectorArray(BlipsId, blipBuffer);
-            material.SetFloatArray(BlipScalesId, blipScaleBuffer);
-            material.SetFloat(BlipCountId, count);
+            ApplyBlips(count, radius);
+        }
+
+        // 버퍼의 점을 템플릿 복제본으로 배치. xy: 레이더 좌표(1 = 표시 거리), z: 알파, w: 종류
+        private void ApplyBlips(int count, float radius)
+        {
+            if (blipTemplate == null)
+            {
+                return;
+            }
+
+            // 스윕 이미지 반지름(px) × 셰이더 스캔 반지름
+            float pixels = sweep.rectTransform.rect.width * 0.5F * radius;
+
+            for (int i = 0; i < count; i++)
+            {
+                Image image = Rent(blipImages, blipTemplate, i);
+                Vector4 blip = blipBuffer[i];
+                Color color = blip.w > 1.5F ? friendlyBlipColor : blip.w > 0.5F ? playerBlipColor : blipColor;
+
+                color.a *= blip.z;
+                image.color = color;
+                image.rectTransform.anchoredPosition = new Vector2(blip.x, blip.y) * pixels;
+                image.rectTransform.localScale = Vector3.one * blipScaleBuffer[i];
+            }
+
+            Hide(blipImages, count);
+        }
+
+        // 표시 거리 밖 파티원을 테두리 호로 배치. x: 방위각(라디안, 위쪽 0, 시계 방향)
+        private void ApplyMembers(int count)
+        {
+            if (memberTemplate == null)
+            {
+                return;
+            }
+
+            for (int i = 0; i < count; i++)
+            {
+                Image image = Rent(memberImages, memberTemplate, i);
+                image.rectTransform.localEulerAngles = new Vector3(0.0F, 0.0F, -memberBuffer[i].x * Mathf.Rad2Deg);
+            }
+
+            Hide(memberImages, count);
+        }
+
+        // 풀에서 index 번째 복제본을 켜서 줌. 모자라면 템플릿을 복제함.
+        private static Image Rent(List<Image> pool, Image template, int index)
+        {
+            while (pool.Count <= index)
+            {
+                pool.Add(Instantiate(template, template.transform.parent));
+            }
+
+            pool[index].gameObject.SetActive(true);
+            return pool[index];
+        }
+
+        private static void Hide(List<Image> pool, int shown)
+        {
+            for (int i = shown; i < pool.Count; i++)
+            {
+                pool[i].gameObject.SetActive(false);
+            }
         }
 
         // from ~ to 각도 사이를 지나간 우주선을 점으로 예약함.

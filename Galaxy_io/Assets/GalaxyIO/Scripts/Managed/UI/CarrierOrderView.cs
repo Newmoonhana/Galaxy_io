@@ -25,7 +25,8 @@ namespace GalaxyIO.Scripts.Managed.UI
     public sealed class CarrierOrderView : MonoBehaviour
     {
         [SerializeField]
-        private PingMarkerView markerPrefab;
+        [Tooltip("PingView 와 같은 씬 템플릿. 템플릿을 끄는 것은 PingView 가 담당")]
+        private PingMarkerView markerTemplate;
 
         [SerializeField]
         [Tooltip("명령 (마우스 왼쪽). 포탑과 같은 입력.")]
@@ -125,7 +126,7 @@ namespace GalaxyIO.Scripts.Managed.UI
             spaceshipRegistryQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<SpaceshipRegistryAssetComponent>());
 
             canvas = GetComponentInParent<Canvas>();
-            marker = Instantiate(markerPrefab, transform);
+            marker = Instantiate(markerTemplate, transform);
             marker.gameObject.SetActive(false);
             SetCraftCountVisible(false);
         }

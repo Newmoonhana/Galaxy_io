@@ -64,6 +64,9 @@ MonoBehaviour:
     - 8d0bbd23be847ef4eb336e2d326712c7
     - 28b1d318494a51241b1ac0fe8d6d9c1b
     - a9059bc8a45221e4fa5eff07e32a9bd7
+    - 597434adc5d0cd84d9e8afafe73b592c
+    - ca78c2a3b55c04c44884cbe976062b29
+    - b2a785da7b7484241b283bb54a0e0fa6
     values:
     - iconNameOrGuid: Terrain Icon
       colorIndex: 0
@@ -81,7 +84,7 @@ MonoBehaviour:
       colorIndex: 0
       isIconRecursive: 0
       isColorRecursive: 0
-    - iconNameOrGuid: Terrain Icon
+    - iconNameOrGuid: SpriteRenderer Icon
       colorIndex: 0
       isIconRecursive: 0
       isColorRecursive: 0
@@ -125,7 +128,7 @@ MonoBehaviour:
       colorIndex: 0
       isIconRecursive: 0
       isColorRecursive: 0
-    - iconNameOrGuid: Terrain Icon
+    - iconNameOrGuid: SpriteRenderer Icon
       colorIndex: 0
       isIconRecursive: 0
       isColorRecursive: 0
@@ -149,7 +152,15 @@ MonoBehaviour:
       colorIndex: 0
       isIconRecursive: 0
       isColorRecursive: 0
-    - iconNameOrGuid: Terrain Icon
+    - iconNameOrGuid: SpriteRenderer Icon
+      colorIndex: 0
+      isIconRecursive: 0
+      isColorRecursive: 0
+    - iconNameOrGuid: SpriteRenderer Icon
+      colorIndex: 0
+      isIconRecursive: 0
+      isColorRecursive: 0
+    - iconNameOrGuid: SpriteRenderer Icon
       colorIndex: 0
       isIconRecursive: 0
       isColorRecursive: 0
@@ -161,19 +172,11 @@ MonoBehaviour:
       colorIndex: 0
       isIconRecursive: 0
       isColorRecursive: 0
-    - iconNameOrGuid: Terrain Icon
+    - iconNameOrGuid: SpriteRenderer Icon
       colorIndex: 0
       isIconRecursive: 0
       isColorRecursive: 0
-    - iconNameOrGuid: Terrain Icon
-      colorIndex: 0
-      isIconRecursive: 0
-      isColorRecursive: 0
-    - iconNameOrGuid: Terrain Icon
-      colorIndex: 0
-      isIconRecursive: 0
-      isColorRecursive: 0
-    - iconNameOrGuid: Terrain Icon
+    - iconNameOrGuid: SpriteRenderer Icon
       colorIndex: 0
       isIconRecursive: 0
       isColorRecursive: 0
@@ -257,11 +260,23 @@ MonoBehaviour:
       colorIndex: 0
       isIconRecursive: 0
       isColorRecursive: 0
-    - iconNameOrGuid: Terrain Icon
+    - iconNameOrGuid: SpriteRenderer Icon
       colorIndex: 0
       isIconRecursive: 0
       isColorRecursive: 0
     - iconNameOrGuid: Prefab Icon
+      colorIndex: 0
+      isIconRecursive: 0
+      isColorRecursive: 0
+    - iconNameOrGuid: SpriteRenderer Icon
+      colorIndex: 0
+      isIconRecursive: 0
+      isColorRecursive: 0
+    - iconNameOrGuid: SpriteRenderer Icon
+      colorIndex: 0
+      isIconRecursive: 0
+      isColorRecursive: 0
+    - iconNameOrGuid: SpriteRenderer Icon
       colorIndex: 0
       isIconRecursive: 0
       isColorRecursive: 0
