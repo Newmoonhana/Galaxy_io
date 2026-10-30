@@ -67,6 +67,10 @@ MonoBehaviour:
     - 597434adc5d0cd84d9e8afafe73b592c
     - ca78c2a3b55c04c44884cbe976062b29
     - b2a785da7b7484241b283bb54a0e0fa6
+    - d3bfea90ea93aef4cbd77863c3cb50f7
+    - fdbeb809d28b90b4baddf8699a457d63
+    - 9cd8b1c923f859846a063e762a1bc0b6
+    - 9a27617e93f9e4b44ac9662c532c5699
     values:
     - iconNameOrGuid: Terrain Icon
       colorIndex: 0
@@ -277,6 +281,22 @@ MonoBehaviour:
       isIconRecursive: 0
       isColorRecursive: 0
     - iconNameOrGuid: SpriteRenderer Icon
+      colorIndex: 0
+      isIconRecursive: 0
+      isColorRecursive: 0
+    - iconNameOrGuid: ScriptableObject Icon
+      colorIndex: 0
+      isIconRecursive: 0
+      isColorRecursive: 0
+    - iconNameOrGuid: ScriptableObject Icon
+      colorIndex: 0
+      isIconRecursive: 0
+      isColorRecursive: 0
+    - iconNameOrGuid: ScriptableObject Icon
+      colorIndex: 0
+      isIconRecursive: 0
+      isColorRecursive: 0
+    - iconNameOrGuid: SceneAsset Icon
       colorIndex: 0
       isIconRecursive: 0
       isColorRecursive: 0
