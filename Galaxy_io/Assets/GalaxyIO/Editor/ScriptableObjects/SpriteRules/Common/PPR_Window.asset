@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Newmoonhana.Editor::Newmoonhana.Editor.SpritePostprocessorRules
   pathContains: UI/Windows
   spriteMode: 1
-  pixelsPerUnit: 24
+  pixelsPerUnit: 0
   meshType: 0
   alphaSource: 1
   alphaIsTransparency: 1

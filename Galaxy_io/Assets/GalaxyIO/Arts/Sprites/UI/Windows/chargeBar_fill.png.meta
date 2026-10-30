@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 62f0ad05dc943864ba341dd9cb255bae
+guid: 4941da610c57fd645a2dab8b4f8f33e3
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: 7046269432684404464
-    second: volumeBar_bg_0
+      213: 8850187364898462476
+    second: volumeBar_value_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -51,12 +51,14 @@ TextureImporter:
   spriteMeshType: 0
   alignment: 0
   spritePivot: {x: 0.5, y: 0.5}
-  spritePixelsToUnits: 24
-  spriteBorder: {x: 7, y: 7, z: 7, w: 7}
+  spritePixelsToUnits: 4
+  spriteBorder: {x: 1, y: 1, z: 1, w: 1}
   spriteGenerateFallbackPhysicsShape: 1
   alphaUsage: 1
   alphaIsTransparency: 1
+  spriteTessellationMethod: 0
   spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
   textureType: 8
   textureShape: 1
   singleChannelComponent: 0
@@ -139,13 +141,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: volumeBar_bg_0
+      name: volumeBar_value_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 144
-        height: 48
+        width: 130
+        height: 34
       alignment: 0
       pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -154,8 +156,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 0fed8de57b069c160800000000000000
-      internalID: 7046269432684404464
+      spriteID: c0b5c60a48e22da70800000000000000
+      internalID: 8850187364898462476
       vertices: []
       indices: 
       edges: []
