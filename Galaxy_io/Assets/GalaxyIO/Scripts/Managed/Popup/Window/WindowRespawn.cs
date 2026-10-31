@@ -16,7 +16,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
 {
     /// <summary>
     /// 리스폰 창. 자유 모드는 리스폰 버튼 하나, 팀 모드는 분류 버튼(계급장 | 우리 팀 기체 수 / 최대 수)과
-    /// 고른 분류의 기종 목록을 보여 주고 기종을 누르면 그 기종으로 부활함. 위에는 격추한 쪽, 아래에는 남은 대기 시간.
+    /// 고른 분류의 기종 목록을 보여 줌. 기종을 눌러 고르고 출격 버튼으로 부활함. 고른 기종을 다시 누르면 사양 창을 엶.
+    /// 위에는 격추한 쪽, 아래에는 남은 대기 시간.
     /// </summary>
     public class WindowRespawn : WindowBase
     {
@@ -38,8 +39,17 @@ namespace GalaxyIO.Tools.PopupUI.Window
         [Tooltip("고른 분류의 기종 목록. 템플릿은 SpaceshipCell.prefab")]
         [SerializeField] private WindowSlotList ship_list;
 
+        [Tooltip("고른 기종으로 부활하는 버튼")]
+        [SerializeField] private Button start_btn;
+
+        [Tooltip("고른 기종을 다시 누르면 여는 사양 창. 장착 버튼이 출격 버튼이 됨")]
+        [SerializeField] private WindowSpaceshipSpec spec_win;
+
         [Tooltip("SpaceshipCategory 순서의 계급장")]
         [SerializeField] private Sprite[] badges;
+
+        [Tooltip("고른 분류, 기종 버튼 색")]
+        [SerializeField] private Color selectedTint = new Color(0.55F, 0.55F, 0.55F, 1.0F);
 
         [Tooltip("팀 모드에서 나가기 버튼을 옮길 위치")]
         [SerializeField] private Vector2 modeQuitPosition = new Vector2(0.0F, -420.0F);
@@ -51,8 +61,9 @@ namespace GalaxyIO.Tools.PopupUI.Window
         private EntityQuery stateQuery;
         private EntityQuery registryQuery;
 
-        // 고른 분류와 그 분류의 기종
+        // 고른 분류와 그 분류의 기종, 고른 기종
         private int category = -1;
+        private int selected = -1;
         private readonly List<SpaceshipAsset> ships = new List<SpaceshipAsset>();
 
         // 분류 버튼에 마지막으로 쓴 글. 바뀔 때만 다시 씀.
@@ -67,6 +78,12 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             category_list.OnSelected += SelectCategory;
             ship_list.OnSelected += OnShipSelected;
+            spec_win.OnEquip += OnStartBtnPress;
+            spec_win.OnClosed += CloseSpec;
+
+            // 처음 한 번은 연출 없이 닫힘.
+            spec_win.Deactivate();
+            spec_win.Close();
 
             clientWorld = ClientServerBootstrap.ClientWorld;
 
@@ -89,12 +106,14 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             base.OnEnable();
             quit_btn.onClick.AddListener(OnQuitBtnPress);
+            start_btn.onClick.AddListener(OnStartBtnPress);
         }
 
         protected override void OnDisable()
         {
             base.OnDisable();
             quit_btn.onClick.RemoveListener(OnQuitBtnPress);
+            start_btn.onClick.RemoveListener(OnStartBtnPress);
         }
 
         private void Update()
@@ -143,13 +162,11 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 }
             }
 
-            bool room = category >= 0 && state.Occupied[category] < state.Max[category];
+            bool canStart = ready && selected >= 0 && category >= 0 && state.Occupied[category] < state.Max[category];
 
-            for (int i = 0; i < ships.Count; i++)
-            {
-                SlotElement element = ship_list.Element(i);
-                if (element != null) element.Btn.interactable = ready && room;
-            }
+            start_btn.interactable = canStart;
+
+            if (spec_win.IsOpen()) spec_win.RefreshStart(canStart);
         }
 
         public void AddListener(UnityAction _onQuit)
@@ -189,14 +206,56 @@ namespace GalaxyIO.Tools.PopupUI.Window
                 cell.SetItem(L10n.Get($"Spaceship/{ships[i].Id}"), ships[i].Sprite, NoCost);
                 cell.SetOutline(ships[i].OutlineSensitivity);
             }
+
+            for (int i = 0; i < category_list.Count; i++) Tint(category_list.Element(i), i == _category);
+
+            SelectShip(-1);
         }
 
-        // 고른 기종으로 부활 요청. 서버가 거절하면 창이 다시 열림.
+        // 고르지 않은 기종을 누르면 고르고, 고른 기종을 다시 누르면 사양 창을 엶.
         private void OnShipSelected(int _index)
         {
             if (!IsActive() || _index >= ships.Count) return;
 
-            ClientNetworkRequestManager.RequestRespawn(ships[_index].Id);
+            if (_index != selected)
+            {
+                SelectShip(_index);
+                return;
+            }
+
+            spec_win.Open();
+            spec_win.SetSpaceship(ships[_index], false);
+            spec_win.Activate();
+            Deactivate();
+        }
+
+        private void SelectShip(int _index)
+        {
+            selected = _index;
+
+            for (int i = 0; i < ships.Count; i++) Tint(ship_list.Element(i), i == _index);
+        }
+
+        private void Tint(SlotElement _element, bool _isSelected)
+        {
+            if (_element == null || _element.Btn.targetGraphic == null) return;
+
+            _element.Btn.targetGraphic.color = _isSelected ? selectedTint : Color.white;
+        }
+
+        // 출격 버튼, 사양 창의 출격 버튼. 서버가 거절하면 창이 다시 열림.
+        private void OnStartBtnPress()
+        {
+            if (selected < 0 || selected >= ships.Count) return;
+
+            ClientNetworkRequestManager.RequestRespawn(ships[selected].Id);
+        }
+
+        private void CloseSpec()
+        {
+            spec_win.Deactivate();
+            spec_win.Close();
+            Activate();
         }
 
         private void OnQuitBtnPress()

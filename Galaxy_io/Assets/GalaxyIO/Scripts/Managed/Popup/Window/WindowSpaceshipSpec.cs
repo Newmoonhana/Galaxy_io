@@ -36,7 +36,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
         /// <summary>
         /// 열 때 호출. 보여줄 기종을 정함.
         /// </summary>
-        public void SetSpaceship(SpaceshipAsset _spaceship)
+        /// <param name="_showCosts">필요 재료 표시. 리스폰 창은 재료 없이 고르므로 끔</param>
+        public void SetSpaceship(SpaceshipAsset _spaceship, bool _showCosts = true)
         {
             spaceship = _spaceship;
 
@@ -56,9 +57,10 @@ namespace GalaxyIO.Tools.PopupUI.Window
                     _spaceship.TurretSlotIn(i, outline_img.rectTransform.rect.size);
 
             List<RecipeAsset.Ingredient> ingredients = _spaceship.Ingredients;
-            cost_list.SetCount(ingredients.Count);
+            int costs = _showCosts ? ingredients.Count : 0;
+            cost_list.SetCount(costs);
 
-            for (int i = 0; i < ingredients.Count; i++)
+            for (int i = 0; i < costs; i++)
             {
                 ItemAsset item = ingredients[i].Item;
                 Element(i)?.SetItem(item != null ? item.Sprite : null, string.Empty);
@@ -150,6 +152,11 @@ namespace GalaxyIO.Tools.PopupUI.Window
             if (_current == spaceship.Id) SetEquip("Shop/Equipped", false);
             else SetEquip("Shop/Equip", spaceship.Prefab != null && _inventory.HasIngredients(ingredients));
         }
+
+        /// <summary>
+        /// 리스폰 창에서 열린 동안 매 프레임 호출됨. 장착 버튼이 출격 버튼이 됨.
+        /// </summary>
+        public void RefreshStart(bool _canStart) => SetEquip("Respawn/Start", _canStart);
 
         private IngredientElement Element(int _index) => cost_list.Element(_index) as IngredientElement;
     }

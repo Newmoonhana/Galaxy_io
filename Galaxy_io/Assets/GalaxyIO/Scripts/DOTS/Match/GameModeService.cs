@@ -59,7 +59,7 @@ namespace GalaxyIO.DOTS.Match
         private static readonly float2 KingSpawnGap = new float2(20.0F, 60.0F);
 
         // 함재기가 찾은 적 대장선 핑을 다시 보내는 간격(초)
-        private const double CraftPingInterval = 1.0;
+        private const double CraftPingInterval = 3.0;
 
         private readonly EntityManager entityManager;
         private readonly PartyService party;

@@ -20,7 +20,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 {
     /// <summary>
     /// 스캐너가 훑고 지나간 주변 우주선을 점으로 표시하는 클라이언트 전용 레이더 뷰.
-    /// 레이더 위에서 마우스 휠로 표시 거리를 바꿈. 파티원과 같은 편 함재기는 스캔과 관계없이 실시간으로 그림.
+    /// 레이더 위에서 마우스 휠로 표시 거리를 바꿈. 레이더 조준 모드(R)에서는 레이더가 커짐. 파티원과 같은 편 함재기는 스캔과 관계없이 실시간으로 그림.
     /// 초계함 파티원은 탐지 거리와 그 레이더가 잡은 점을 공유함. 팀 모드에서는 전투 구역 밖을 빨갛게 칠함.
     /// </summary>
     public sealed class RadarView : MonoBehaviour
@@ -120,6 +120,26 @@ namespace GalaxyIO.Scripts.Managed.UI
         [Tooltip("휠 한 칸당 표시 거리 변화 비율")]
         [Range(0.01F, 0.5F)]
         private float zoomStep = 0.15F;
+
+        [Header("Radar Aim")]
+
+        [SerializeField]
+        [Tooltip("레이더 조준 모드 (R). 켜면 레이더를 키움.")]
+        private InputActionReference aimAction;
+
+        [SerializeField]
+        [Tooltip("레이더 조준 모드에서 키우는 레이더 전체. 앵커(화면 모서리) 쪽에서 안쪽으로 커짐.")]
+        private RectTransform frame;
+
+        [SerializeField]
+        [Tooltip("레이더 조준 모드의 레이더 크기 배율")]
+        [Min(1.0F)]
+        private float aimScale = 1.5F;
+
+        [SerializeField]
+        [Tooltip("크기가 바뀌는 속도. 클수록 즉각적으로 반응한다.")]
+        [Min(0.0F)]
+        private float aimScaleSpeed = 12.0F;
 
         [Header("Blip Size")]
 
@@ -260,6 +280,9 @@ namespace GalaxyIO.Scripts.Managed.UI
         // 고정 프레임마다 갱신되는 스캐너 각도(도). 화면에는 둘 사이를 보간해 그림.
         private float previousAngle;
         private float angle;
+
+        // 배율 1 일 때 레이더 전체의 위치
+        private Vector2 framePosition;
 
         // 표시 중인 좌표. 바뀔 때만 문자열을 만들어 GC 할당을 막음.
         private Vector2Int shownCoordinates = new Vector2Int(int.MinValue, int.MinValue);
@@ -408,6 +431,17 @@ namespace GalaxyIO.Scripts.Managed.UI
             zone.enabled = false;
 
             fadeOut = fadeOutTime;
+            framePosition = frame.anchoredPosition;
+        }
+
+        private void OnEnable()
+        {
+            aimAction?.action.Enable();
+        }
+
+        private void OnDisable()
+        {
+            aimAction?.action.Disable();
         }
 
         private void OnDestroy()
@@ -594,6 +628,22 @@ namespace GalaxyIO.Scripts.Managed.UI
             // 레이더 위에서 휠을 굴리면 표시 거리를 바꿈. 휠 위 = 가까이. 카메라 확대는 막음.
             RefRW<PlayerStateComponent> state = stateQuery.GetSingletonRW<PlayerStateComponent>();
             bool blocked = state.ValueRO.GameMenuOpened || state.ValueRO.InventoryOpened || state.ValueRO.ChatFocused;
+
+            if (aimAction != null && aimAction.action.WasPressedThisFrame() && Application.isFocused && !blocked)
+            {
+                state.ValueRW.RadarAim = !state.ValueRO.RadarAim;
+            }
+
+            // 위치도 같은 배율로 옮겨 앵커 쪽 여백 비율을 유지함. 화면 밖으로 넘치지 않음.
+            float frameScale = Mathf.Lerp(
+                frame.localScale.x,
+                state.ValueRO.RadarAim ? aimScale : 1.0F,
+                1.0F - Mathf.Exp(-aimScaleSpeed * Time.unscaledDeltaTime)
+            );
+
+            frame.localScale = new Vector3(frameScale, frameScale, 1.0F);
+            frame.anchoredPosition = framePosition * frameScale;
+
             Vector2 radarPoint = Vector2.zero;
             bool hovered = Mouse.current != null && Application.isFocused && !blocked
                            && TryGetRadarPoint(Mouse.current.position.ReadValue(), out radarPoint);
@@ -610,7 +660,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             state.ValueRW.RadarHovered = hovered;
 
-            // 우주선이 커서가 가리키는 레이더 위 지점을 바라보게 함.
+            // 레이더 조준 모드면 우주선이 이 지점을 바라봄.
             state.ValueRW.RadarCursor = hovered ? radarPoint / material.GetFloat(RadiusId) * viewRange : Vector2.zero;
 
             // 마지막 고정 프레임 이후 흐른 비율만큼 보간.

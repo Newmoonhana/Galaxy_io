@@ -76,7 +76,7 @@ namespace GalaxyIO.Scripts.Managed.UI
         [SerializeField]
         [Tooltip("받은 핑이 사라지기까지의 시간(초). 대장선과 위성 핑은 사라지지 않음.")]
         [Min(1.0F)]
-        private float duration = 60.0F;
+        private float duration = 30.0F;
 
         // 받은 핑 하나. 대상 이름은 받을 때 번역해 둠. 대상이 사라져도 이름은 남음.
         private sealed class Ping

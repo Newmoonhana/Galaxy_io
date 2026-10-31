@@ -4,6 +4,7 @@ using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Mathematics;
 using Unity.NetCode;
 using Unity.Networking.Transport;
 using UnityEngine;
@@ -163,6 +164,32 @@ namespace GalaxyIO.DOTS.Client.Networking
 
             Entity rpc = entityManager.CreateEntity();
             entityManager.AddComponentData(rpc, new TeamSwitchRPC());
+            entityManager.AddComponentData(rpc, new SendRpcCommandRequest { TargetConnection = connectionQuery.GetSingletonEntity() });
+        }
+
+        /// <summary>
+        /// 우주선이 없는 동안 카메라가 비추는 곳을 알림. 서버가 그 주변을 복제해 줌.
+        /// </summary>
+        public static void RequestSpectate(float2 position)
+        {
+            var clientWorld = ClientServerBootstrap.ClientWorld;
+
+            if (clientWorld == null)
+            {
+                return;
+            }
+
+            var entityManager = clientWorld.EntityManager;
+
+            using var connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
+
+            if (connectionQuery.IsEmpty)
+            {
+                return;
+            }
+
+            Entity rpc = entityManager.CreateEntity();
+            entityManager.AddComponentData(rpc, new SpectateRPC { Position = position });
             entityManager.AddComponentData(rpc, new SendRpcCommandRequest { TargetConnection = connectionQuery.GetSingletonEntity() });
         }
 
