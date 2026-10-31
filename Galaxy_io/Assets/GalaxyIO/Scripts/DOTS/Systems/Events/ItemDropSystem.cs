@@ -28,6 +28,7 @@ namespace GalaxyIO.DOTS.Systems
         {
             state.RequireForUpdate<NetworkTime>();
             state.RequireForUpdate<PrefabRegistryComponent>();
+            state.RequireForUpdate<DropTableRegistryElement>();
             state.RequireForUpdate(
                 SystemAPI.QueryBuilder()
                     .WithAll<SpaceshipSpecComponent, LocalTransform, DropTableComponent, KillingBlowComponent, DamageRecordElement>()
@@ -49,6 +50,7 @@ namespace GalaxyIO.DOTS.Systems
             // 미끄러지는 속력과 줍기 대기 시간은 프리팹 값을 씀.
             ItemComponent item = SystemAPI.GetComponent<ItemComponent>(itemPrefab);
             DynamicBuffer<ItemSpawnMessage> spawns = SystemAPI.GetSingletonBuffer<ItemSpawnMessage>();
+            DynamicBuffer<DropTableRegistryElement> dropTables = SystemAPI.GetSingletonBuffer<DropTableRegistryElement>(true);
 
             double time = SystemAPI.Time.ElapsedTime;
             uint tick = SystemAPI.GetSingleton<NetworkTime>().ServerTick.SerializedData;
@@ -76,12 +78,12 @@ namespace GalaxyIO.DOTS.Systems
                     byPlayer = DamageRecord.IsAlive(records[i], time);
                 }
 
-                if (!byPlayer)
+                if (!byPlayer || !dropTables.TryGet(dropTable.ValueRO.Enemy, out BlobAssetReference<DropTableBlob> table))
                 {
                     continue;
                 }
 
-                ref BlobArray<DropRollBlob> rolls = ref dropTable.ValueRO.Value.Value.Rolls;
+                ref BlobArray<DropRollBlob> rolls = ref table.Value.Rolls;
 
                 for (int r = 0; r < rolls.Length; r++)
                 {

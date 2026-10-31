@@ -208,7 +208,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7696962786aa2f047871dddd3ff5c3df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.DropTableAuthoring
-  Table: {fileID: 11400000, guid: bd206700a108458abc6d40d60ae653b6, type: 2}
+  Enemy: 1
 --- !u!1 &8919795018499728394
 GameObject:
   m_ObjectHideFlags: 0

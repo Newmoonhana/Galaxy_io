@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using GalaxyIO.DOTS.Components.Blob;
 using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Collections;
 using Unity.Entities;
@@ -170,6 +172,83 @@ namespace GalaxyIO.DOTS.Authoring.Config
                 }
 
                 registry[(int)item.Id] = element;
+            }
+        }
+    }
+
+    /// <summary>
+    /// <see cref="ItemRegistryAsset.DropTables"/>를 베이킹함.
+    /// </summary>
+    public sealed class DropTableRegistryBaker : Baker<PrefabRegistryAuthoring>
+    {
+        public override void Bake(PrefabRegistryAuthoring authoring)
+        {
+            ItemRegistryAsset itemRegistry = authoring.ItemRegistry;
+
+            // 에셋 내용이 바뀌면 다시 베이킹. 빈 레지스트리 경고는 ItemRegistryBaker 가 남김.
+            DependsOn(itemRegistry);
+
+            if (itemRegistry == null)
+            {
+                return;
+            }
+
+            Entity entity = GetEntity(TransformUsageFlags.None);
+            DynamicBuffer<DropTableRegistryElement> registry = AddBuffer<DropTableRegistryElement>(entity);
+
+            // 모든 적 종류만큼 빈 칸으로 채워 둠. 칸 번호가 곧 EnemyType.
+            registry.Resize(Enum.GetValues(typeof(EnemyType)).Length, NativeArrayOptions.ClearMemory);
+
+            foreach (DropTableAsset table in itemRegistry.DropTables)
+            {
+                DependsOn(table);
+
+                if (table == null || table.Enemy == EnemyType.None)
+                {
+                    Debug.LogWarning($"DropTableRegistry: 적 종류가 비어 있는 항목을 건너뜀. ({table})", itemRegistry);
+                    continue;
+                }
+
+                if (registry[(int)table.Enemy].Table.IsCreated)
+                {
+                    Debug.LogWarning($"DropTableRegistry: 적 종류 중복. 뒤의 항목을 버림. ({table.Enemy})", itemRegistry);
+                    continue;
+                }
+
+                var rolls = new List<DropRoll>();
+
+                foreach (DropTableAsset.Roll roll in table.Rolls)
+                {
+                    var entries = new List<DropEntryBlob>();
+
+                    foreach (DropTableAsset.Entry entry in roll.Entries)
+                    {
+                        DependsOn(entry.Item);
+
+                        if (entry.Item == null || entry.Item.Id == ItemId.None || entry.Weight <= 0)
+                        {
+                            Debug.LogWarning("DropTableRegistry: 아이템이 비어 있거나 가중치가 0인 항목을 건너뜀.", table);
+                            continue;
+                        }
+
+                        entries.Add(new DropEntryBlob
+                        {
+                            ItemId   = entry.Item.Id,
+                            MinCount = entry.CountRange.x,
+                            MaxCount = entry.CountRange.y,
+                            Weight   = entry.Weight,
+                        });
+                    }
+
+                    rolls.Add(new DropRoll { Chance = roll.Chance, Entries = entries });
+                }
+
+                BlobAssetReference<DropTableBlob> blob = DropTables.Create(rolls);
+
+                // 같은 내용의 블롭은 하나로 합쳐짐.
+                AddBlobAsset(ref blob, out _);
+
+                registry[(int)table.Enemy] = new DropTableRegistryElement { Table = blob };
             }
         }
     }

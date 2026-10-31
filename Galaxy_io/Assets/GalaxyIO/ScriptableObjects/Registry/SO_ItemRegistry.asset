@@ -33,3 +33,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 6656deec890491e1d73fab3b5b1f351c, type: 2}
   - {fileID: 11400000, guid: dfca4aa0cedb08f163a530cc10d37de1, type: 2}
   - {fileID: 11400000, guid: 4e21a69a76007f376c5eaf0218f6f50f, type: 2}
+  DropTables:
+  - {fileID: 11400000, guid: bd206700a108458abc6d40d60ae653b6, type: 2}

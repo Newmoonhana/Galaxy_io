@@ -6,7 +6,7 @@ using UnityEngine;
 namespace GalaxyIO.DOTS.Authoring.Config
 {
     /// <summary>
-    /// 게임에 등장하는 아이템 목록. <see cref="PrefabRegistryAuthoring"/>를 통해 베이킹됨.
+    /// 게임에 등장하는 아이템, 제작법, 드랍 테이블 목록. <see cref="PrefabRegistryAuthoring"/>를 통해 베이킹됨.
     /// </summary>
     [CreateAssetMenu(fileName = "SO_ItemRegistry", menuName = "GalaxyIO/Item Registry")]
     public sealed class ItemRegistryAsset : ScriptableObject
@@ -18,6 +18,10 @@ namespace GalaxyIO.DOTS.Authoring.Config
         [SerializeField]
         [Tooltip("포탑 상점 목록. 이 순서대로 보여줌.")]
         public List<RecipeAsset> Recipes = new List<RecipeAsset>();
+
+        [SerializeField]
+        [Tooltip("적 종류별 드랍 테이블. 순서는 상관없음.")]
+        public List<DropTableAsset> DropTables = new List<DropTableAsset>();
 
         // ItemId -> 아이템. 처음 찾을 때 만듦.
         [NonSerialized]
