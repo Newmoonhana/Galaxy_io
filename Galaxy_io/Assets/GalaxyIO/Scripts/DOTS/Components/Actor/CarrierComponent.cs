@@ -94,5 +94,13 @@ namespace GalaxyIO.DOTS.Components.Actor
 
         // 새 명령을 받아 진형 자리를 다시 나눠야 함.
         public bool Reassign;
+
+        // 서버만. 모선을 마지막으로 맞힌 적 우주선. 호위 함재기가 먼저 노림.
+        public Entity Attacker;
+
+        // 서버만. Attacker 를 노리는 남은 시간(초). 맞을 때마다 AttackerMemory 로 채움.
+        public float AttackerRemaining;
+
+        public const float AttackerMemory = 5.0F;
     }
 }

@@ -1,5 +1,8 @@
-﻿using GalaxyIO.DOTS.Client.Components.Singleton;
+﻿using System.Collections.Generic;
+using GalaxyIO.DOTS.Client.Components.Singleton;
+using GalaxyIO.DOTS.Client.Networking;
 using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.DOTS.Spaceship;
 using GalaxyIO.Scripts.Managed.Background;
 using GalaxyIO.Tools;
@@ -17,7 +20,8 @@ namespace GalaxyIO.Camera
     /// DOTS 오브젝트인 플레이어 우주선을 따라다니는 카메라 로직.
     /// 우주선을 화면 중앙에 고정하지 않고 진행 방향 쪽으로 카메라를 밀어 시야를 확보함.
     /// 마우스 휠로 시야 크기를 조절함. 축소 한계는 우주선마다의 최대 시야 크기를 따름.
-    /// 시점 이동 키를 누르는 동안 커서 쪽으로 카메라를 밀어냄.
+    /// 마우스 조준 모드(휠 누르기로 켜고 끔)에서는 커서 쪽으로, 레이더 조준 모드와 함께 켜면 기수 방향으로 카메라를 밀어냄.
+    /// 팀 모드에서 우주선이 없으면 전장을 비춤. 대장선 잡기는 우리 대장선, 점령전은 부활 지점과 우리 위성을 번갈아.
     /// </summary>
     public sealed class FollowPlayerEntity : MonoBehaviour
     {
@@ -47,7 +51,7 @@ namespace GalaxyIO.Camera
         private float zoomSmoothSpeed = 10F;
 
         [SerializeField]
-        [Tooltip("시점 이동 (마우스 휠 누르기). 누르는 동안 커서 쪽으로 카메라를 밀어냄.")]
+        [Tooltip("마우스 조준 모드 (마우스 휠 누르기). 켜져 있는 동안 커서 쪽으로 카메라를 밀어냄.")]
         private InputActionReference shiftAction;
 
         [SerializeField]
@@ -77,9 +81,36 @@ namespace GalaxyIO.Camera
         [Min(0.0F)]
         private float shakeFrequency = 25.0F;
 
+        [Header("Spectate")]
+
+        [SerializeField]
+        [Tooltip("팀 모드에서 우주선이 없을 때 비출 곳으로 옮겨 가는 속도")]
+        [Min(0.0F)]
+        private float spectateSmoothSpeed = 3.0F;
+
+        [SerializeField]
+        [Tooltip("점령전에서 부활 지점과 우리 위성을 번갈아 비추는 간격(초)")]
+        [Min(0.5F)]
+        private float spectateInterval = 5.0F;
+
+        [SerializeField]
+        [Tooltip("비추는 곳을 서버에 알리는 간격(초). 서버가 그 주변을 복제해 줌.")]
+        [Min(0.1F)]
+        private float spectateSendInterval = 1.0F;
+
         private EntityManager entityManager;
         private EntityQuery playerQuery;
         private EntityQuery stateQuery;
+        private EntityQuery modeQuery;
+        private EntityQuery modeStateQuery;
+        private EntityQuery kingQuery;
+        private EntityQuery satelliteQuery;
+
+        // 우주선이 없을 때 비추는 곳. 매 프레임 다시 채움.
+        private readonly List<Vector2> spots = new List<Vector2>();
+        private int spotIndex;
+        private float nextSpotTime;
+        private float nextSpectateSendTime;
 
         private UnityEngine.Camera targetCamera;
 
@@ -129,7 +160,19 @@ namespace GalaxyIO.Camera
                 ComponentType.ReadOnly<MovementComponent>(),
                 ComponentType.ReadOnly<SpaceshipCameraComponent>()
             );
-            stateQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<PlayerStateComponent>());
+            stateQuery = entityManager.CreateEntityQuery(ComponentType.ReadWrite<PlayerStateComponent>());
+            modeQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<GameModeComponent>());
+            modeStateQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<GameModeStateComponent>());
+            kingQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<GhostOwner>(),
+                ComponentType.ReadOnly<FactionComponent>(),
+                ComponentType.ReadOnly<CarrierComponent>(),
+                ComponentType.ReadOnly<LocalTransform>()
+            );
+            satelliteQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<SatelliteComponent>(),
+                ComponentType.ReadOnly<LocalTransform>()
+            );
 
             targetCamera = GetComponent<UnityEngine.Camera>();
             maxZoom = targetCamera.orthographicSize;
@@ -166,7 +209,7 @@ namespace GalaxyIO.Camera
             bool menuOpen = stateQuery.TryGetSingleton(out PlayerStateComponent playerState)
                             && (playerState.GameMenuOpened || playerState.InventoryOpened);
 
-            // 화면 가운데에서 커서까지를 화면 절반 크기로 나눈 값(-1 ~ 1). 시점 이동 키를 누르는 동안만.
+            // 카메라를 밀어내는 비율(-1 ~ 1). 마우스 조준 모드에서만.
             Vector2 shift = Vector2.zero;
 
             if (Mouse.current != null && Application.isFocused && !menuOpen)
@@ -179,7 +222,14 @@ namespace GalaxyIO.Camera
                     zoomRatio = Mathf.Clamp(zoomRatio * (1F - Mathf.Sign(scroll) * zoomStep), minZoomRatio, 1F);
                 }
 
-                if (shiftAction != null && shiftAction.action.IsPressed() && !playerState.ChatFocused)
+                if (shiftAction != null && shiftAction.action.WasPressedThisFrame() && !playerState.ChatFocused && !stateQuery.IsEmpty)
+                {
+                    playerState.MouseAim = !playerState.MouseAim;
+                    stateQuery.GetSingletonRW<PlayerStateComponent>().ValueRW.MouseAim = playerState.MouseAim;
+                }
+
+                // 레이더 조준 모드와 함께 켜면 커서는 레이더 위에 있으므로 아래에서 기수 방향으로 밀어냄.
+                if (playerState.MouseAim && !playerState.RadarAim && !playerState.ChatFocused)
                 {
                     Vector2 half = new Vector2(Screen.width, Screen.height) * 0.5F;
                     Vector2 cursor = (Mouse.current.position.ReadValue() - half) / half;
@@ -203,14 +253,102 @@ namespace GalaxyIO.Camera
                 1F - Mathf.Exp(-zoomSmoothSpeed * Time.deltaTime)
             );
 
+            // 팀 모드에서 우주선이 없으면 전장을 비춤. 자유 모드는 마지막 자리에 머묾.
             if (player == Entity.Null)
             {
+                Team team = modeStateQuery.IsEmpty ? Team.None : modeStateQuery.GetSingleton<GameModeStateComponent>().Team;
+
+                if (modeQuery.IsEmpty || team == Team.None)
+                {
+                    return;
+                }
+
+                GameModeComponent mode = modeQuery.GetSingleton<GameModeComponent>();
+                spots.Clear();
+
+                if (mode.Mode == GameMode.Regicide)
+                {
+                    using var kings = kingQuery.ToEntityArray(Allocator.Temp);
+
+                    foreach (Entity king in kings)
+                    {
+                        uint party = entityManager.GetComponentData<FactionComponent>(king).Party;
+
+                        if (Teams.IsKing(entityManager.GetComponentData<GhostOwner>(king).NetworkId, party, true)
+                            && Teams.FromParty(party) == team)
+                        {
+                            spots.Add(entityManager.GetComponentData<LocalTransform>(king).Position.xy);
+                        }
+                    }
+                }
+                else if (mode.Mode == GameMode.Conquest)
+                {
+                    spots.Add(team == Team.Red ? mode.RedSpawn : mode.BlueSpawn);
+
+                    using var satellites = satelliteQuery.ToComponentDataArray<SatelliteComponent>(Allocator.Temp);
+                    using var satelliteTransforms = satelliteQuery.ToComponentDataArray<LocalTransform>(Allocator.Temp);
+
+                    // A, B, C 순서
+                    for (int index = 0; index < satellites.Length; index++)
+                    {
+                        for (int i = 0; i < satellites.Length; i++)
+                        {
+                            if (satellites[i].Index == index && satellites[i].Owner == team)
+                            {
+                                spots.Add(satelliteTransforms[i].Position.xy);
+                            }
+                        }
+                    }
+                }
+
+                // 대장선이 아직 복제되지 않음.
+                if (spots.Count == 0)
+                {
+                    return;
+                }
+
+                if (Time.unscaledTime >= nextSpotTime)
+                {
+                    spotIndex++;
+                    nextSpotTime = Time.unscaledTime + spectateInterval;
+                }
+
+                Vector2 spot = spots[spotIndex % spots.Count];
+
+                // 처음에는 바로 옮김. 원점에서 날아가는 모습을 보이지 않음.
+                Vector2 next = backgroundRevealed
+                    ? Vector2.Lerp(transform.position, spot, 1F - Mathf.Exp(-spectateSmoothSpeed * Time.deltaTime))
+                    : spot;
+
+                transform.position = new Vector3(next.x, next.y, transform.position.z);
+                currentLookAhead = Vector2.zero;
+                currentShift = Vector2.zero;
+
+                if (Time.unscaledTime >= nextSpectateSendTime)
+                {
+                    nextSpectateSendTime = Time.unscaledTime + spectateSendInterval;
+                    ClientNetworkRequestManager.RequestSpectate(spot);
+                }
+
+                if (!backgroundRevealed)
+                {
+                    backgroundRevealed = true;
+                    BackgroundView.RevealAcrossScenes();
+                }
+
                 return;
             }
 
             LocalTransform playerTransform = entityManager.GetComponentData<LocalTransform>(player);
             PlayerSpaceshipMovementComponent movement =
                 entityManager.GetComponentData<PlayerSpaceshipMovementComponent>(player);
+
+            // 두 조준 모드를 함께 켜면 우주선이 바라보는 쪽으로 밀어냄.
+            if (playerState.MouseAim && playerState.RadarAim && !menuOpen)
+            {
+                float2 forward = math.normalizesafe(SpaceshipHeading.FromRotation(playerTransform.Rotation), float2.zero);
+                shift = new Vector2(forward.x, forward.y);
+            }
 
             // 오프셋만 보간함. 프레임률과 무관한 지수 감쇠.
             currentLookAhead = Vector2.Lerp(

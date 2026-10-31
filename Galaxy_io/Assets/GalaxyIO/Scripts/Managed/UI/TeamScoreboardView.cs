@@ -1,10 +1,13 @@
+using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using GalaxyIO.DOTS.Authoring;
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Client.Networking;
 using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.Tools;
+using Newmoonhana.Runtime.Tools.PopupUI.Popup;
 using TMPro;
 using Unity.Collections;
 using Unity.Entities;
@@ -18,13 +21,17 @@ namespace GalaxyIO.Scripts.Managed.UI
     /// <summary>
     /// 팀 모드에서 Tab 을 누르고 있는 동안 보이는 점수판. 팀별로 나눠 처치, 어시스트, 사망 순으로 줄을 세움.
     /// 옮긴 뒤 두 팀 인원 차이가 3 이하면 상대 팀으로 옮길 수 있음. 판이 끝나면 승리/패배 로고와 나가기 버튼을 함께 다음 판까지 띄워 둠.
-    /// 열려 있는 동안 뒤 화면을 어둡게 가림.
+    /// 열려 있는 동안 뒤 화면을 어둡게 가림. 인벤토리 창과 같은 연출로 열고 닫음. 리스폰 창보다 위에 그림.
     /// </summary>
     public sealed class TeamScoreboardView : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("Tab 을 누르는 동안만 켜는 판")]
-        private GameObject panel;
+        [Tooltip("판과 결과 제목을 담은 퇴장 연출 대상(Anim Out). Tab 을 누르는 동안만 켬.")]
+        private RectTransform window;
+
+        [SerializeField]
+        [Tooltip("window 의 등장 / 퇴장 연출")]
+        private PopupAnimator windowAnimator;
 
         [SerializeField]
         [Tooltip("판과 함께 켜는 반투명 검은 화면")]
@@ -128,6 +135,9 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private bool dirty;
 
+        // 판을 연 상태. 퇴장 연출 중에는 window 가 켜져 있어도 false.
+        private bool shown;
+
         /// <summary>
         /// 받은 점수판 줄. NetworkId 별 하나.
         /// </summary>
@@ -145,7 +155,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private void Start()
         {
-            panel.SetActive(false);
+            window.gameObject.SetActive(false);
             dimmer.SetActive(false);
             resultPanel.SetActive(false);
             clientWorld = ClientServerBootstrap.ClientWorld;
@@ -182,7 +192,8 @@ namespace GalaxyIO.Scripts.Managed.UI
             // 세션을 나가면 클라이언트 월드가 Dispose 됨. 캐시한 쿼리를 더 쓰면 안 됨.
             if (!ClientWorldScope.IsAlive(clientWorld))
             {
-                panel.SetActive(false);
+                shown = false;
+                window.gameObject.SetActive(false);
                 dimmer.SetActive(false);
                 resultPanel.SetActive(false);
                 enabled = false;
@@ -220,11 +231,32 @@ namespace GalaxyIO.Scripts.Managed.UI
             bool chatting = !playerStateQuery.IsEmpty && playerStateQuery.GetSingleton<PlayerStateComponent>().ChatFocused;
             bool open = finished || (teamMode && Keyboard.current != null && Keyboard.current.tabKey.isPressed && !chatting && !connectionQuery.IsEmpty);
 
-            if (panel.activeSelf != open)
+            if (shown != open)
             {
-                panel.SetActive(open);
+                shown = open;
                 dimmer.SetActive(open);
                 dirty |= open;
+
+                if (open)
+                {
+                    // 지난 퇴장 연출이 남긴 크기를 되돌림.
+                    DOTween.Rewind(window);
+                    window.gameObject.SetActive(true);
+                    _ = windowAnimator.PlayInAsync();
+                }
+                else
+                {
+                    Hide();
+                }
+            }
+
+            // 퇴장 연출 뒤 끔. 도중에 다시 열렸으면 끄지 않음.
+            async void Hide()
+            {
+                try { await windowAnimator.PlayOutAsync(); }
+                catch (OperationCanceledException) { return; }
+
+                if (!shown) window.gameObject.SetActive(false);
             }
 
             if (!open || !dirty) return;

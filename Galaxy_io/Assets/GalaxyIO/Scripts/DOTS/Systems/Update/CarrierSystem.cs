@@ -17,7 +17,7 @@ namespace GalaxyIO.DOTS.Systems
     /// 모선의 함재기 생산, 출격, 흡수와 명령 유지를 담당하는 서버 시스템. 흡수한 함재기의 화물은 주인 인벤토리로 옮김.
     /// 함재기마다 이번 틱의 명령, 교전 대상, 진형 중심, 진형 자리를 채우고, 조종은 <see cref="CarriedCraftBehaviorSystem"/>이 함.
     /// 교전 중인 함재기는 대상을 둘러싼 고리 위에 서고, 공격 명령이면 고리를 따라 돎.
-    /// 지역 확보와 호위는 함재기마다 같은 모선의 다른 함재기가 덜 노리는 적을 고름.
+    /// 지역 확보와 호위는 함재기마다 같은 모선의 다른 함재기가 덜 노리는 적을 고름. 호위는 모선을 맞힌 적을 먼저 노림.
     /// 대장선(<see cref="KingSquadElement"/>)은 편대마다 명령을 따로 유지하고, 편대가 기다리는 수만큼만 내보냄.
     /// </summary>
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
@@ -141,6 +141,12 @@ namespace GalaxyIO.DOTS.Systems
 
                 carrier.OrderRemaining = math.max(carrier.OrderRemaining - deltaTime, 0.0F);
                 carrier.LaunchRemaining = math.max(carrier.LaunchRemaining - deltaTime, 0.0F);
+                carrier.AttackerRemaining = math.max(carrier.AttackerRemaining - deltaTime, 0.0F);
+
+                // 모선을 맞힌 적이 남아 있고 레이더 안이면 호위 함재기가 거리 제한 없이 먼저 노림.
+                bool avenge = carrier.AttackerRemaining > 0.0F
+                              && hulls.TryGet(carrier.Attacker, out float2 attackerCenter, out _, out _)
+                              && math.distancesq(position, attackerCenter) <= range * range;
 
                 // 강화 수치. 강화가 없는 기체는 기본값.
                 float assemblyBonus = 0.0F;
@@ -493,40 +499,47 @@ namespace GalaxyIO.DOTS.Systems
                             Entity best = Entity.Null;
                             float bestScore = float.MaxValue;
 
-                            if (craftState.Engaging
-                                && hulls.TryGet(craftState.Target, out float2 currentCenter, out float currentHull, out _)
-                                && math.distance(positions[i], currentCenter) - currentHull <= chaseDistance
-                                && (carrier.Order != CarrierOrder.Escort || math.distance(currentCenter, position) <= craftSpec.LeashRadius))
+                            if (avenge && carrier.Order == CarrierOrder.Escort)
                             {
-                                if (craftState.RetargetRemaining > 0.0F)
-                                {
-                                    states[i] = craftState;
-                                    continue;
-                                }
-
-                                best = craftState.Target;
-                                bestScore = math.distance(positions[i], currentCenter) - currentHull
-                                            + craftSpec.SpreadDistance * (engaged[craftState.Target] - 1.5F);
+                                best = carrier.Attacker;
                             }
-
-                            foreach (SightOverlapElement sight in SystemAPI.GetBuffer<SightOverlapElement>(mine[i]))
+                            else
                             {
-                                Entity candidate = sight.Message.Other;
-
-                                if (candidate == craftState.Target
-                                    || !hulls.TryGet(candidate, out float2 center, out float hull, out _)
-                                    || (carrier.Order == CarrierOrder.Escort && math.distance(center, position) > craftSpec.LeashRadius))
+                                if (craftState.Engaging
+                                    && hulls.TryGet(craftState.Target, out float2 currentCenter, out float currentHull, out _)
+                                    && math.distance(positions[i], currentCenter) - currentHull <= chaseDistance
+                                    && (carrier.Order != CarrierOrder.Escort || math.distance(currentCenter, position) <= craftSpec.LeashRadius))
                                 {
-                                    continue;
+                                    if (craftState.RetargetRemaining > 0.0F)
+                                    {
+                                        states[i] = craftState;
+                                        continue;
+                                    }
+
+                                    best = craftState.Target;
+                                    bestScore = math.distance(positions[i], currentCenter) - currentHull
+                                                + craftSpec.SpreadDistance * (engaged[craftState.Target] - 1.5F);
                                 }
 
-                                float score = math.distance(positions[i], center) - hull
-                                              + craftSpec.SpreadDistance * (engaged.TryGetValue(candidate, out int others) ? others : 0);
-
-                                if (score < bestScore)
+                                foreach (SightOverlapElement sight in SystemAPI.GetBuffer<SightOverlapElement>(mine[i]))
                                 {
-                                    best = candidate;
-                                    bestScore = score;
+                                    Entity candidate = sight.Message.Other;
+
+                                    if (candidate == craftState.Target
+                                        || !hulls.TryGet(candidate, out float2 center, out float hull, out _)
+                                        || (carrier.Order == CarrierOrder.Escort && math.distance(center, position) > craftSpec.LeashRadius))
+                                    {
+                                        continue;
+                                    }
+
+                                    float score = math.distance(positions[i], center) - hull
+                                                  + craftSpec.SpreadDistance * (engaged.TryGetValue(candidate, out int others) ? others : 0);
+
+                                    if (score < bestScore)
+                                    {
+                                        best = candidate;
+                                        bestScore = score;
+                                    }
                                 }
                             }
 

@@ -118,6 +118,7 @@ namespace GalaxyIO.DOTS.Systems
                 Reports      = SystemAPI.GetBufferLookup<DamageReportElement>(),
                 KillingBlows = SystemAPI.GetComponentLookup<KillingBlowComponent>(),
                 Kings        = SystemAPI.GetComponentLookup<KingCarrierComponent>(),
+                Carriers     = SystemAPI.GetComponentLookup<CarrierComponent>(),
                 ElapsedTime  = SystemAPI.Time.ElapsedTime,
             }.Schedule(state.Dependency);
 
@@ -332,6 +333,7 @@ namespace GalaxyIO.DOTS.Systems
         public BufferLookup<DamageReportElement> Reports;
         public ComponentLookup<KillingBlowComponent> KillingBlows;
         public ComponentLookup<KingCarrierComponent> Kings;
+        public ComponentLookup<CarrierComponent> Carriers;
         public double ElapsedTime;
 
         public void Execute()
@@ -356,6 +358,15 @@ namespace GalaxyIO.DOTS.Systems
                 {
                     king.LastEnemyHitTime = ElapsedTime;
                     Kings[damage.Spaceship] = king;
+                }
+
+                // 모선을 맞힌 적. 호위 함재기가 먼저 노림. 자기 투사체 폭발은 뺌.
+                if (damage.Instigator != Entity.Null && damage.Instigator != damage.Spaceship
+                    && Carriers.TryGetComponent(damage.Spaceship, out CarrierComponent carrier))
+                {
+                    carrier.Attacker = damage.Instigator;
+                    carrier.AttackerRemaining = CarrierComponent.AttackerMemory;
+                    Carriers[damage.Spaceship] = carrier;
                 }
 
                 // 플레이어가 입힌 데미지만 어시스트 판정용으로 기록함.

@@ -65,6 +65,16 @@
                     "interactions": "",
                     "initialStateCheck": false,
                     "priority": 0
+                },
+                {
+                    "name": "Radar_Aim",
+                    "type": "Button",
+                    "id": "5c2e8f41-7b3a-4d6e-9a1f-2e7c4b8d0f63",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false,
+                    "priority": 0
                 }
             ],
             "bindings": [
@@ -230,6 +240,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "Camera_Shift",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "8e4a1c7f-3d2b-4f59-b6e0-9c1a5d7e2b48",
+                    "path": "<Keyboard>/r",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Radar_Aim",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

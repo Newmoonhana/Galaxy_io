@@ -737,7 +737,9 @@ MonoBehaviour:
 
       Ping: Right click
 
-      Pan camera: Middle click
+      Mouse aim mode: Middle click
+
+      Radar aim mode: R
 
       Inventory: E
 
@@ -856,6 +858,10 @@ MonoBehaviour:
       m_Items: []
   - m_Id: 12850971059200003
     m_Localized: The flagship is under attack!
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12850971059200004
+    m_Localized: Start
     m_Metadata:
       m_Items: []
   references:

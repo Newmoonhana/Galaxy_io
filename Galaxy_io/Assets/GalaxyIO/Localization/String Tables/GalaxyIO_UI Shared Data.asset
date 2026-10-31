@@ -831,6 +831,10 @@ MonoBehaviour:
     m_Key: Flagship/UnderAttack
     m_Metadata:
       m_Items: []
+  - m_Id: 12850971059200004
+    m_Key: Respawn/Start
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:
