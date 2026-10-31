@@ -158,7 +158,7 @@ namespace GalaxyIO.DOTS.Networking
         {
             if (IsActive) return;
 
-            Mode = DedicatedServerConfig.LoadMode();
+            Mode = DedicatedServerConfig.Load();
 
             World server = ClientServerBootstrap.CreateServerWorld("ServerWorld");
 
