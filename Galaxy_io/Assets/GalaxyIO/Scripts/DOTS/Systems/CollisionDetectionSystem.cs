@@ -92,6 +92,8 @@ namespace GalaxyIO.DOTS.Systems
                 Specs      = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
                 Crafts     = SystemAPI.GetComponentLookup<CarriedCraftComponent>(true),
                 Players    = SystemAPI.GetComponentLookup<PlayerSpaceshipMovementComponent>(true),
+                Satellites = SystemAPI.GetComponentLookup<SatelliteComponent>(true),
+                Kings      = SystemAPI.GetComponentLookup<KingCarrierComponent>(true),
                 Solids     = solids,
             }.ScheduleParallel(state.Dependency);
 
@@ -208,7 +210,8 @@ namespace GalaxyIO.DOTS.Systems
 
     /// <summary>
     /// 선체 - 선체 충돌. 겹친 상대를 자기 버퍼에 남김. 양쪽이 각자 자기 몫을 찾음.
-    /// 밀려나는 양은 선체 두께(Thickness)로 나눔.
+    /// 밀려나는 양은 선체 두께(Thickness)로 나눔. 점령전 위성은 밀리지 않고 상대가 전부 물러남.
+    /// 대장선도 밀리지 않음. 상대가 전부 물러나고 절반만 튕겨 나감. 대장선 함재기는 플레이어 우주선과 부딪히지 않음.
     /// </summary>
     [BurstCompile]
     [WithAll(typeof(SpaceshipSpecComponent))]
@@ -230,6 +233,15 @@ namespace GalaxyIO.DOTS.Systems
 
         [ReadOnly]
         public ComponentLookup<PlayerSpaceshipMovementComponent> Players;
+
+        [ReadOnly]
+        public ComponentLookup<SatelliteComponent> Satellites;
+
+        [ReadOnly]
+        public ComponentLookup<KingCarrierComponent> Kings;
+
+        // 대장선과 부딪힌 쪽이 튕겨 나가는 배율
+        private const float KingRepulsion = 0.5F;
 
         // SpaceshipId -> 순양함, 모선인지
         [ReadOnly]
@@ -263,6 +275,9 @@ namespace GalaxyIO.DOTS.Systems
 
             var candidates = new SpatialHashCandidates(Cells, Proxies, CellSize, receiver.Bounds);
             float thickness = Specs[entity].Thickness;
+            bool king = Kings.HasComponent(entity);
+            bool kingCraft = IsKingCraft(entity);
+            bool playerShip = Players.HasComponent(entity);
 
             while (candidates.Next(out int i))
             {
@@ -274,11 +289,53 @@ namespace GalaxyIO.DOTS.Systems
                     continue;
                 }
 
+                // 대장선 함재기와 플레이어 우주선은 서로 통과함.
+                if ((kingCraft && Players.HasComponent(target.Entity)) || (playerShip && IsKingCraft(target.Entity)))
+                {
+                    continue;
+                }
+
                 float otherThickness = Specs[target.Entity].Thickness;
 
                 // Min(상대 / 나, 1). 둘 중 하나는 항상 1이라 합이 0이 되지 않음.
                 float mine = thickness <= otherThickness ? 1.0F : otherThickness / thickness;
                 float others = otherThickness <= thickness ? 1.0F : thickness / otherThickness;
+                float damageShare = mine / (mine + others);
+
+                // 위성은 제자리에 고정. 위성 쪽 몫을 0 으로 둠.
+                if (Satellites.HasComponent(entity))
+                {
+                    mine = 0.0F;
+                    others = 1.0F;
+                }
+                else if (Satellites.HasComponent(target.Entity))
+                {
+                    mine = 1.0F;
+                    others = 0.0F;
+                }
+
+                // 위성 박치기 데미지는 지금처럼 밀리는 몫을 따름.
+                if (Satellites.HasComponent(entity) || Satellites.HasComponent(target.Entity))
+                {
+                    damageShare = mine / (mine + others);
+                }
+
+                // 대장선은 밀리지 않음. 상대가 전부 물러나고 절반만 튕김. 대장선끼리는 두께대로.
+                bool otherKing = Kings.HasComponent(target.Entity);
+                float repulsion = mine;
+
+                if (king && !otherKing)
+                {
+                    mine = 0.0F;
+                    others = 1.0F;
+                    repulsion = 0.0F;
+                }
+                else if (otherKing && !king)
+                {
+                    mine = 1.0F;
+                    others = 0.0F;
+                    repulsion = KingRepulsion;
+                }
 
                 messages.Add(new SpaceshipCollisionElement
                 {
@@ -289,11 +346,18 @@ namespace GalaxyIO.DOTS.Systems
                         Normal      = hit.Normal,
                         Depth       = hit.Depth,
                     },
-                    Repulsion = mine,
-                    PushShare = mine / (mine + others),
-                    Grouped   = CarriedCraft.SameGroup(Crafts, entity, target.Entity),
+                    Repulsion   = repulsion,
+                    PushShare   = mine / (mine + others),
+                    DamageShare = damageShare,
+                    Grouped     = CarriedCraft.SameGroup(Crafts, entity, target.Entity),
                 });
             }
+        }
+
+        // 대장선이 띄운 함재기인지
+        private bool IsKingCraft(Entity entity)
+        {
+            return Crafts.TryGetComponent(entity, out CarriedCraftComponent craft) && Kings.HasComponent(craft.Carrier);
         }
     }
 

@@ -1,4 +1,5 @@
 using GalaxyIO.DOTS.Bootstrap;
+using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Client.Networking;
 using GalaxyIO.DOTS.Components.Singleton;
 using Newmoonhana.Runtime.Tools.Scene;
@@ -17,6 +18,7 @@ namespace GalaxyIO.DOTS.Networking
     /// 인게임 씬의 SubScene 은 씬 로드 시점에 존재하는 월드로만 스트리밍됨.
     /// 그래서 월드를 먼저 만들고 씬을 로드함. 접속만 하는 세션에는 서버 월드를 만들지 않으므로
     /// 그 인스턴스에서는 서버 시스템이 아예 생성되지 않음.
+    /// 팀 모드는 인게임 씬 위에 모드 씬을 Additive 로 올림. 접속만 하는 세션은 먼저 접속해 서버의 모드를 받은 뒤 씬을 로드함.
     /// </summary>
     public static class GameSession
     {
@@ -25,6 +27,31 @@ namespace GalaxyIO.DOTS.Networking
 
         // 베이킹 데이터가 월드로 들어오기를 기다리는 최대 프레임 수.
         private const int StreamWaitFrames = 600;
+
+        // 접속 후 서버의 게임 모드를 기다리는 최대 시간(초).
+        private const float ModeWaitTime = 30.0F;
+
+        // 접속 실패 사유. 로비가 안내창 본문 번역 키로 씀.
+        public const string Unreachable = "GameStart/Unreachable";
+        public const string ServerFull = "GameStart/ServerFull";
+
+        /// <summary>
+        /// 이 세션의 게임 모드.
+        /// </summary>
+        public static GameMode Mode { get; private set; }
+
+        /// <summary>
+        /// 인게임 씬 위에 올리는 모드 씬 이름. 자유 모드는 null.
+        /// </summary>
+        public static string SceneOf(GameMode mode)
+        {
+            switch (mode)
+            {
+                case GameMode.Regicide: return "GalaxyIO_Regicide";
+                case GameMode.Conquest: return "GalaxyIO_Conquest";
+                default: return null;
+            }
+        }
 
         /// <summary>
         /// 이 인스턴스가 서버를 들고 있는지 여부.
@@ -41,29 +68,70 @@ namespace GalaxyIO.DOTS.Networking
         {
             IsHosting = false;
             IsActive = false;
+            Mode = GameMode.Free;
         }
 
         /// <summary>
         /// 클라이언트로만 접속. 서버 월드를 만들지 않으므로 외부 접속을 받지 않음.
+        /// 먼저 접속해 서버의 게임 모드를 받고, 그 모드의 씬을 로드함. InGame 은 씬이 들어온 뒤에 됨.
         /// </summary>
-        public static async Awaitable JoinAsClient(NetworkEndpoint endpoint, string playerName)
+        /// <returns>실패 사유의 번역 키. 성공하면 null. 실패하면 세션을 닫고 로비에 남음.</returns>
+        public static async Awaitable<string> JoinAsClient(NetworkEndpoint endpoint, string playerName)
         {
-            if (IsActive) return;
+            if (IsActive) return null;
 
             IsActive = true;
-            ClientServerBootstrap.CreateClientWorld("ClientWorld");
-
-            await LoadGameScene();
+            World client = ClientServerBootstrap.CreateClientWorld("ClientWorld");
             Connect(endpoint, playerName);
+
+            // 실패하면 월드와 함께 버려지므로 직접 Dispose 하지 않음.
+            EntityQuery modeQuery = client.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<GameModeStateComponent>());
+            EntityQuery stateQuery = client.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<PlayerStateComponent>());
+
+            GameModeStateComponent mode = default;
+            float deadline = Time.realtimeSinceStartup + ModeWaitTime;
+
+            while (!mode.ModeReceived)
+            {
+                await Awaitable.NextFrameAsync();
+
+                if (!client.IsCreated)
+                {
+                    return Unreachable;
+                }
+
+                bool failed = stateQuery.TryGetSingleton(out PlayerStateComponent state) && state.ConnectionFailed;
+
+                if (failed || Time.realtimeSinceStartup > deadline)
+                {
+                    Close();
+                    return Unreachable;
+                }
+
+                modeQuery.TryGetSingleton(out mode);
+            }
+
+            if (mode.Full)
+            {
+                ClientNetworkRequestManager.DisconnectImmediately();
+                Close();
+                return ServerFull;
+            }
+
+            Mode = mode.Mode;
+            await LoadGameScene();
+            return null;
         }
 
         /// <summary>
         /// 서버를 열고 자기 서버에 접속. 서버 월드가 씬보다 먼저 생겨야 스폰이 동작함.
         /// </summary>
         /// <returns>서버를 열었는지 여부. 실패 시 세션을 시작하지 않음.</returns>
-        public static async Awaitable<bool> HostAndPlay(string playerName)
+        public static async Awaitable<bool> HostAndPlay(string playerName, GameMode mode)
         {
             if (IsActive) return false;
+
+            Mode = mode;
 
             World server = ClientServerBootstrap.CreateServerWorld("ServerWorld");
 
@@ -84,11 +152,13 @@ namespace GalaxyIO.DOTS.Networking
 
         /// <summary>
         /// 데디케이티드 서버 세션 시작. 클라이언트 월드 없이 서버 월드만 만들고 Listen 함.
-        /// 씬 로드 전에 호출해야 인게임 씬의 SubScene 이 서버 월드로 들어감.
+        /// 씬 로드 전에 호출해야 인게임 씬의 SubScene 이 서버 월드로 들어감. 게임 모드는 서버 설정을 따름.
         /// </summary>
         public static void OpenDedicatedServer()
         {
             if (IsActive) return;
+
+            Mode = DedicatedServerConfig.LoadMode();
 
             World server = ClientServerBootstrap.CreateServerWorld("ServerWorld");
 
@@ -110,10 +180,15 @@ namespace GalaxyIO.DOTS.Networking
         {
             if (!IsActive) return;
 
-            IsActive = false;
-            IsHosting = false;
+            Close();
 
-            DisposeWorlds();
+            // SceneStack.Pop 은 프레임 씬만 내림. 모드 씬은 직접 내림.
+            string modeScene = SceneOf(Mode);
+
+            if (modeScene != null && SceneManager.GetSceneByName(modeScene).isLoaded)
+            {
+                await SceneManager.UnloadSceneAsync(modeScene);
+            }
 
             // 로비 씬은 스택 아래에 그대로 있음. 떠날 때 창·입력값 그대로 되살아남.
             await SceneStack.Pop();
@@ -125,13 +200,35 @@ namespace GalaxyIO.DOTS.Networking
             await SceneManager.LoadSceneAsync(LobbyScene);
         }
 
+        // 월드를 버리고 세션을 닫음. 씬은 그대로 둠.
+        private static void Close()
+        {
+            IsActive = false;
+            IsHosting = false;
+
+            DisposeWorlds();
+        }
+
         /// <summary>
-        /// 인게임 씬을 로드하고 베이킹 데이터가 월드에 들어올 때까지 기다림.
+        /// 인게임 씬과 이 세션 모드의 씬을 로드하고 베이킹 데이터가 월드에 들어올 때까지 기다림.
         /// </summary>
         private static async Awaitable LoadGameScene()
         {
             // 로비 씬을 남긴 채 덧씌움. 접속에 실패해도 로비를 다시 만들지 않음.
             await SceneStack.Push(GameScene);
+
+            string modeScene = SceneOf(Mode);
+
+            if (modeScene != null)
+            {
+                // 에디터에서 미리 열어 둔 모드 씬은 월드가 생기기 전에 열려 SubScene 이 월드로 들어오지 않았음. 새로 로드함.
+                if (SceneManager.GetSceneByName(modeScene).isLoaded)
+                {
+                    await SceneManager.UnloadSceneAsync(modeScene);
+                }
+
+                await SceneManager.LoadSceneAsync(modeScene, LoadSceneMode.Additive);
+            }
 
             World client = ClientServerBootstrap.ClientWorld;
             if (client == null) return;
@@ -139,13 +236,19 @@ namespace GalaxyIO.DOTS.Networking
             using EntityQuery registryQuery = client.EntityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<PrefabRegistryComponent>()
             );
+            using EntityQuery modeQuery = client.EntityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<GameModeComponent>()
+            );
 
-            for (int i = 0; i < StreamWaitFrames && registryQuery.IsEmpty; i++)
+            bool streamed = false;
+
+            for (int i = 0; i < StreamWaitFrames && !streamed; i++)
             {
                 await Awaitable.NextFrameAsync();
+                streamed = !registryQuery.IsEmpty && (modeScene == null || !modeQuery.IsEmpty);
             }
 
-            if (registryQuery.IsEmpty)
+            if (!streamed)
             {
                 DebugLog.LogError("인게임 씬의 베이킹 데이터가 월드로 들어오지 않음.");
             }

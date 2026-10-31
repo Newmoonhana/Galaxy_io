@@ -24,6 +24,9 @@ namespace GalaxyIO.DOTS.Components.Actor
 
         // 모선으로 돌아와 흡수됨
         Return = 4,
+
+        // 점령전 위성으로 가며 만나는 적과 교전하고, 위성에 모여 점령함. 지역 확보와 같은 진형.
+        Occupy = 5,
     }
 
     /// <summary>
@@ -57,11 +60,11 @@ namespace GalaxyIO.DOTS.Components.Actor
         [GhostField]
         public CarrierOrder Order;
 
-        // Attack 대상. 클라이언트에 없는 Ghost 면 Entity.Null 로 받음.
+        // Attack, Occupy 대상. 클라이언트에 없는 Ghost 면 Entity.Null 로 받음.
         [GhostField]
         public Entity Target;
 
-        // 명령 지점. Attack 은 대상의 현재 위치, Escort 는 모선 위치.
+        // 명령 지점. Attack 은 대상의 현재 위치, Escort 는 모선 위치, Occupy 는 위성 위치.
         [GhostField(Quantization = 100)]
         public float2 Position;
 

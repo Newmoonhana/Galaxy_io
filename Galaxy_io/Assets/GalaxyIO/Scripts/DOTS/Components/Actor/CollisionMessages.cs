@@ -35,6 +35,9 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 겹친 깊이 중 내가 물러나는 비율. 두 우주선의 몫을 합치면 1.
         public float PushShare;
 
+        // 박치기 데미지 배율에 쓰는 몫. 두께로만 나눔. 대장선처럼 밀리지 않는 우주선도 박치기 데미지는 그대로 받음.
+        public float DamageShare;
+
         // 같은 모선에 딸린 사이. 밀어내는 거리와 튕기는 속도를 작게 묶음.
         public bool Grouped;
     }

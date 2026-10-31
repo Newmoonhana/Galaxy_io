@@ -1,6 +1,7 @@
 ﻿using GalaxyIO.DOTS.Collision;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Message;
+using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.Tools;
 using System.Collections.Generic;
 using TMPro;
@@ -18,6 +19,7 @@ namespace GalaxyIO.Scripts.Managed.UI
     /// 회전한 선체 충돌체의 아래쪽 끝에 붙이고, 선체 두께(Thickness)만큼 크게 그림.
     /// 로컬 플레이어와 같은 파티원 이름은 초록색으로 칠하고, 파티장과 권한자는 이름 왼쪽에 아이콘을 붙임.
     /// 파티 구성은 <see cref="ChatView"/>가 받은 것을 씀. 다른 파티의 구성은 모르므로 보이지 않음.
+    /// 점령전 위성 아래에는 같은 이름표로 점령도(%)를 점령하는 팀 색으로 그림.
     /// </summary>
     public sealed class SpaceshipNameLabels : MonoBehaviour
     {
@@ -57,11 +59,30 @@ namespace GalaxyIO.Scripts.Managed.UI
         [FormerlySerializedAs("crownGap")]
         private float iconGap = 0.05F;
 
+        [Header("Satellite")]
+
+        [SerializeField]
+        [Tooltip("위성 아래쪽 끝과 점령도 사이 간격. 두께 배율이 함께 곱해짐.")]
+        private float satelliteGap = 0.35F;
+
+        [SerializeField]
+        private Color redColor = new Color(1.0F, 0.3F, 0.3F);
+
+        [SerializeField]
+        private Color blueColor = new Color(0.3F, 0.6F, 1.0F);
+
         // 프리팹 크기. 두께 배율의 기준.
         private Vector3 baseScale;
 
         private EntityManager entityManager;
         private EntityQuery spaceshipQuery;
+        private EntityQuery satelliteQuery;
+
+        // 위성 수만큼 늘어나는 점령도 표시 풀. 아이콘은 끔.
+        private readonly List<TMP_Text> satelliteLabels = new List<TMP_Text>();
+
+        // 점령도 표시마다 보여 주는 값(팀 * 1000 + 정수 %). 바뀔 때만 문자열을 만듦.
+        private readonly List<int> shownProgress = new List<int>();
 
         // 우주선 수만큼 늘어나는 이름표 풀
         private readonly List<TMP_Text> labels = new List<TMP_Text>();
@@ -94,6 +115,12 @@ namespace GalaxyIO.Scripts.Managed.UI
             spaceshipQuery = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<PlayerNameComponent>(),
                 ComponentType.ReadOnly<GhostOwner>(),
+                ComponentType.ReadOnly<SpaceshipSpecComponent>(),
+                ComponentType.ReadOnly<ColliderComponent>(),
+                ComponentType.ReadOnly<LocalTransform>()
+            );
+            satelliteQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<SatelliteComponent>(),
                 ComponentType.ReadOnly<SpaceshipSpecComponent>(),
                 ComponentType.ReadOnly<ColliderComponent>(),
                 ComponentType.ReadOnly<LocalTransform>()
@@ -177,6 +204,80 @@ namespace GalaxyIO.Scripts.Managed.UI
             {
                 labels[i].gameObject.SetActive(false);
             }
+
+            UpdateSatellites();
+        }
+
+        // 점령도가 쌓인 위성 아래에 점령하는 팀 색으로 점령도를 그림.
+        private void UpdateSatellites()
+        {
+            int shown = 0;
+
+            if (!satelliteQuery.IsEmpty)
+            {
+                using var satellites = satelliteQuery.ToEntityArray(Allocator.Temp);
+
+                foreach (Entity entity in satellites)
+                {
+                    SatelliteComponent satellite = entityManager.GetComponentData<SatelliteComponent>(entity);
+
+                    if (satellite.Capturing == Team.None || satellite.Progress <= 0.0F)
+                    {
+                        continue;
+                    }
+
+                    var transformData = entityManager.GetComponentData<LocalTransform>(entity);
+                    float thickness = entityManager.GetComponentData<SpaceshipSpecComponent>(entity).Thickness;
+                    Aabb bounds = ColliderBounds.ToAabb(
+                        ColliderOverlap.ToWorld(entityManager.GetComponentData<ColliderComponent>(entity), transformData)
+                    );
+                    float scale = 1.0F + Mathf.Max(thickness - 1.0F, 0.0F) * scalePerThickness;
+
+                    int index = shown++;
+                    TMP_Text label = RentSatellite(index);
+
+                    label.transform.localScale = baseScale * scale;
+                    label.transform.position = new Vector3(
+                        transformData.Position.x,
+                        bounds.Min.y - satelliteGap * scale,
+                        transformData.Position.z
+                    );
+
+                    int percent = Mathf.FloorToInt(satellite.Progress);
+                    int key = (int)satellite.Capturing * 1000 + percent;
+
+                    if (shownProgress[index] != key)
+                    {
+                        shownProgress[index] = key;
+                        label.text = $"{percent}%";
+                        label.color = satellite.Capturing == Team.Red ? redColor : blueColor;
+                    }
+                }
+            }
+
+            for (int i = shown; i < satelliteLabels.Count; i++)
+            {
+                satelliteLabels[i].gameObject.SetActive(false);
+            }
+        }
+
+        private TMP_Text RentSatellite(int index)
+        {
+            while (satelliteLabels.Count <= index)
+            {
+                TMP_Text label = Instantiate(labelTemplate, transform);
+                label.name = "SatelliteProgress";
+
+                SpriteRenderer icon = label.GetComponentInChildren<SpriteRenderer>(true);
+
+                if (icon != null) icon.gameObject.SetActive(false);
+
+                satelliteLabels.Add(label);
+                shownProgress.Add(-1);
+            }
+
+            satelliteLabels[index].gameObject.SetActive(true);
+            return satelliteLabels[index];
         }
 
         private TMP_Text Rent(int index)

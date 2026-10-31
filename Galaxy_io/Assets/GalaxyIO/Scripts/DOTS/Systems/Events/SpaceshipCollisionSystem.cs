@@ -130,7 +130,7 @@ namespace GalaxyIO.DOTS.Systems
                     {
                         // 마주 올수록 커지고, 같은 방향으로 나란히 가면 0에 가까워짐.
                         // 상대가 두꺼울수록 더 아픔. 두께가 같으면 1배, 최대 2배.
-                        hit = math.length(relative) * RamDamage * element.PushShare * 2.0F;
+                        hit = math.length(relative) * RamDamage * element.DamageShare * 2.0F;
                     }
                 }
 

@@ -24,6 +24,9 @@ namespace GalaxyIO.Main
             if (Definitions.IsServerProcess)
             {
                 SceneManager.LoadScene(GameSession.GameScene);
+
+                string modeScene = GameSession.SceneOf(GameSession.Mode);
+                if (modeScene != null) SceneManager.LoadScene(modeScene, LoadSceneMode.Additive);
                 return;
             }
 

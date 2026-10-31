@@ -11,7 +11,7 @@ namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
     /// 받은 <see cref="PingRPC"/>를 보낸 사람을 포함한 파티원에게 중계하는 서버 시스템.
-    /// 연속으로 찍으면 일정 시간 막음.
+    /// 연속으로 찍으면 일정 시간 막음. 대장선 잡기에서 적 대장선을 찍으면 같은 팀 대장선도 그 위치를 앎.
     /// </summary>
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
@@ -61,6 +61,7 @@ namespace GalaxyIO.DOTS.Systems
             EntityManager.DestroyEntity(requestQuery);
 
             var party = SystemAPI.ManagedAPI.GetSingleton<PartyServiceComponent>().Value;
+            SystemAPI.ManagedAPI.TryGetSingleton(out GameModeServiceComponent modes);
             double time = SystemAPI.Time.ElapsedTime;
 
             for (int i = 0; i < pings.Length; i++)
@@ -103,6 +104,11 @@ namespace GalaxyIO.DOTS.Systems
                     }
 
                     counters[ping.SenderNetworkId] = counter;
+
+                    if (ping.Hostile && modes != null)
+                    {
+                        modes.Value.ReportPing(ping.SenderNetworkId, ping.Position);
+                    }
                 }
 
                 // 파티가 없으면 자신에게만 보냄.

@@ -21,9 +21,16 @@ namespace GalaxyIO.DOTS.Systems
     [UpdateAfter(typeof(EnemyPerceptionSystem))]
     public partial struct StrafingBehaviorSystem : ISystem
     {
+        private EntityQuery hullQuery;
+
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            hullQuery = SystemAPI.QueryBuilder()
+                .WithAll<SpaceshipSpecComponent, ColliderComponent, LocalTransform>()
+                .WithNone<CarriedCraftComponent>()
+                .Build();
+
             state.RequireForUpdate<NetworkTime>();
             state.RequireForUpdate<ItemRegistryElement>();
             state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<StrafingBehaviorComponent>().Build());
@@ -32,12 +39,24 @@ namespace GalaxyIO.DOTS.Systems
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            state.CompleteDependency();
+
+            NativeArray<PathObstacle> obstacles = PathAvoidance.Collect(
+                hullQuery,
+                SystemAPI.GetComponentLookup<PlayerSpaceshipMovementComponent>(true),
+                Allocator.TempJob
+            );
+
             state.Dependency = new StrafingBehaviorJob
             {
+                Obstacles = obstacles,
                 DeltaTime = SystemAPI.Time.DeltaTime,
                 Tick      = SystemAPI.GetSingleton<NetworkTime>().ServerTick.SerializedData,
                 Registry  = SystemAPI.GetSingletonBuffer<ItemRegistryElement>(true),
+                Satellites = SystemAPI.GetComponentLookup<SatelliteComponent>(true),
             }.ScheduleParallel(state.Dependency);
+
+            obstacles.Dispose(state.Dependency);
         }
     }
 
@@ -63,6 +82,17 @@ namespace GalaxyIO.DOTS.Systems
         [ReadOnly]
         public DynamicBuffer<ItemRegistryElement> Registry;
 
+        [ReadOnly]
+        public ComponentLookup<SatelliteComponent> Satellites;
+
+        // 함재기를 뺀 모든 선체. 다가가는 길을 막으면 비켜 감.
+        [ReadOnly]
+        public NativeArray<PathObstacle> Obstacles;
+
+        // 앞길을 살피는 시간(초)과 선체 사이 여유
+        private const float AvoidLookahead = 1.5F;
+        private const float AvoidMargin = 1.0F;
+
         private void Execute(
             Entity entity,
             in LocalTransform transform,
@@ -72,6 +102,7 @@ namespace GalaxyIO.DOTS.Systems
             ref MovementComponent movement,
             in TurretSwitchComponent turretSwitch,
             in EquippedTurretComponent equipped,
+            in SpaceshipSpecComponent self,
             DynamicBuffer<EnemyEventElement> events)
         {
             float2 position = transform.Position.xy;
@@ -83,7 +114,7 @@ namespace GalaxyIO.DOTS.Systems
             // 엔티티와 틱을 섞어 같은 틱의 적끼리도 값이 갈림.
             var random = Random.CreateFromIndex(math.hash(new uint2((uint)entity.Index, Tick)) & 0x7FFFFFFFu);
 
-            bool attacked = React(position, events, ref perception);
+            bool attacked = React(position, events, Satellites, ref perception);
             events.Clear();
 
             StrafingStateID next = NextState(
@@ -130,6 +161,26 @@ namespace GalaxyIO.DOTS.Systems
                     break;
             }
 
+            // 가려는 길을 선체가 막으면 비켜 감. 노리는 대상은 피하지 않음.
+            float desiredSpeed = math.length(desiredVelocity);
+
+            if (desiredSpeed > math.EPSILON)
+            {
+                float2 steered = PathAvoidance.Steer(
+                    position,
+                    desiredVelocity / desiredSpeed,
+                    desiredSpeed * AvoidLookahead + self.Thickness * 0.5F,
+                    self.Thickness * 0.5F,
+                    AvoidMargin,
+                    Obstacles,
+                    entity,
+                    perception.CurrentTarget,
+                    false
+                );
+
+                desiredVelocity = steered * desiredSpeed;
+            }
+
             // 가감속/회전 한계는 플레이어와 같은 헬퍼를 씀. 사격 중이면 장착 포탑에 따라 회전이 더 둔해짐.
             float2 nextForward = SpaceshipHeading.RotateTowards(
                 forward,
@@ -162,6 +213,7 @@ namespace GalaxyIO.DOTS.Systems
         private static bool React(
             float2 position,
             DynamicBuffer<EnemyEventElement> events,
+            in ComponentLookup<SatelliteComponent> satellites,
             ref EnemyPerceptionComponent perception)
         {
             bool attacked = false;
@@ -174,8 +226,10 @@ namespace GalaxyIO.DOTS.Systems
                 {
                     case EnemyEventID.ProjectileHit:
                         // 추격 거리 밖의 공격자는 무시. 지정해도 다음 틱 인지 시스템이 놓침.
+                        // 아무도 점령하지 않은 위성 포탑에 맞아도 반격하지 않음.
                         if (math.distancesq(position, e.InstigatorPosition)
-                            > perception.ChaseDistance * perception.ChaseDistance)
+                            > perception.ChaseDistance * perception.ChaseDistance
+                            || (satellites.TryGetComponent(e.Instigator, out SatelliteComponent satellite) && satellite.Owner == Team.None))
                         {
                             break;
                         }

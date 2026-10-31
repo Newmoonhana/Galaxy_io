@@ -115,3 +115,5 @@ _Recovery.meta
 SceneDependencyCache
 ProfilerCaptures
 /[Pp]ackages/com.besty.unity-skills
+# 데디케이티드 서버 설정. 실행 파일 옆(에디터는 프로젝트 폴더)에 만들어짐.
+server_config.json

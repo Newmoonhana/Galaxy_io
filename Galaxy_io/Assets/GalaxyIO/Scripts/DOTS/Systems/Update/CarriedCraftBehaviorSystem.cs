@@ -22,21 +22,41 @@ namespace GalaxyIO.DOTS.Systems
     [UpdateAfter(typeof(EnemyPerceptionSystem))]
     public partial struct CarriedCraftBehaviorSystem : ISystem
     {
+        private EntityQuery hullQuery;
+
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
+            // 길을 막을 수 있는 선체. 함재기끼리는 진형을 짜므로 빼고, 아군 선체는 넣음.
+            hullQuery = SystemAPI.QueryBuilder()
+                .WithAll<SpaceshipSpecComponent, ColliderComponent, LocalTransform>()
+                .WithNone<CarriedCraftComponent>()
+                .Build();
+
             state.RequireForUpdate(SystemAPI.QueryBuilder().WithAll<CarriedCraftComponent>().Build());
         }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            state.CompleteDependency();
+
+            NativeArray<PathObstacle> obstacles = PathAvoidance.Collect(
+                hullQuery,
+                SystemAPI.GetComponentLookup<PlayerSpaceshipMovementComponent>(true),
+                Allocator.TempJob
+            );
+
             state.Dependency = new CarriedCraftBehaviorJob
             {
                 DeltaTime = SystemAPI.Time.DeltaTime,
                 Specs     = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
                 Colliders = SystemAPI.GetComponentLookup<ColliderComponent>(true),
+                Kings     = SystemAPI.GetComponentLookup<KingCarrierComponent>(true),
+                Obstacles = obstacles,
             }.ScheduleParallel(state.Dependency);
+
+            obstacles.Dispose(state.Dependency);
         }
     }
 
@@ -63,6 +83,13 @@ namespace GalaxyIO.DOTS.Systems
 
         [ReadOnly]
         public ComponentLookup<ColliderComponent> Colliders;
+
+        [ReadOnly]
+        public ComponentLookup<KingCarrierComponent> Kings;
+
+        // 함재기를 뺀 모든 선체. 적 선체만 담기는 시야(sights)와 달리 아군 선체도 피함.
+        [ReadOnly]
+        public NativeArray<PathObstacle> Obstacles;
 
         private void Execute(
             in LocalTransform transform,
@@ -180,7 +207,10 @@ namespace GalaxyIO.DOTS.Systems
                 // 비켜 갈 옆쪽은 지금 움직이는 쪽을 따름.
                 float2 moving = math.normalizesafe(movement.Velocity, forward);
 
-                // 멈출 수 있는 거리 안, 자리에 닿기 전에 적 선체가 있으면 가장 먼저 닿을 선체의 바깥쪽 접선으로 좌우로 비켜 가고
+                // 대장선 함재기는 플레이어 우주선과 부딪히지 않으므로 피하지 않음.
+                bool kingCraft = Kings.HasComponent(craft.Carrier);
+
+                // 멈출 수 있는 거리 안, 자리에 닿기 전에 선체(시야의 적 선체 + 아군을 포함한 모든 선체)가 있으면 가장 먼저 닿을 선체의 바깥쪽 접선으로 좌우로 비켜 가고
                 // 그 선체 앞에서 멈출 수 있는 속력까지 줄임. 교전 대상은 그 속도를 빼고 봄.
                 // 이미 안쪽이면 돌아서지 않고 가던 쪽 옆으로 빠져나감.
                 float nearestEntry = float.MaxValue;
@@ -188,20 +218,49 @@ namespace GalaxyIO.DOTS.Systems
                 float2 avoid = direction;
                 bool escaping = false;
 
-                for (int i = 0; i < sights.Length && !escaping; i++)
+                for (int i = 0; i < sights.Length + Obstacles.Length && !escaping; i++)
                 {
-                    Entity other = sights[i].Message.Other;
+                    Entity other;
+                    float2 otherCenter;
+
+                    if (i < sights.Length)
+                    {
+                        other = sights[i].Message.Other;
+                        otherCenter = sights[i].Message.OtherCenter;
+                    }
+                    else
+                    {
+                        PathObstacle path = Obstacles[i - sights.Length];
+
+                        // 자기 모선은 통과함. 교전 대상은 시야 쪽에서 고리를 따라 돌게 함. 아주 작은 선체는 무시함.
+                        if (path.Entity == craft.Carrier
+                            || path.Entity == craft.Target
+                            || (kingCraft && path.Player)
+                            || PathAvoidance.IsNegligible(path.Thickness, self.Thickness))
+                        {
+                            continue;
+                        }
+
+                        other = path.Entity;
+                        otherCenter = path.Center;
+                    }
 
                     if (!Colliders.TryGetComponent(other, out ColliderComponent obstacle))
                     {
                         continue;
                     }
 
-                    float2 toObstacle = sights[i].Message.OtherCenter - position;
+                    float2 toObstacle = otherCenter - position;
                     float obstacleDistance = math.length(toObstacle);
                     float2 toCenter = toObstacle / math.max(obstacleDistance, math.EPSILON);
                     float clearance = CarrierFormation.HullRadius(new ColliderWorld { Shape = obstacle.Shape, Extents = obstacle.Extents })
                                       + ownRadius + spec.HoverDistance;
+
+                    // 자리가 이 선체 여유 안에 있으면 피해서는 닿을 수 없음. 시야 밖 선체(아군 등)는 이때 피하지 않음.
+                    if (i >= sights.Length && math.distancesq(destination, otherCenter) <= clearance * clearance)
+                    {
+                        continue;
+                    }
 
                     // 교전 대상은 고리 안쪽까지 피해서 고리를 따라 돌게 함. 고리 안쪽에 들어왔으면 옆으로 빠지되 선체는 계속 피함.
                     if (other == craft.Target && obstacleDistance <= ringClearance && obstacleDistance > clearance)

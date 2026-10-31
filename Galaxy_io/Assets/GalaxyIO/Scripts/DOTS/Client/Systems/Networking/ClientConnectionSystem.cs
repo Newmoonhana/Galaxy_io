@@ -1,6 +1,7 @@
 ﻿using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Message;
+using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
@@ -10,6 +11,7 @@ namespace GalaxyIO.DOTS.Client.Systems
     /// <summary>
     /// <see cref="PlayerSpawnRequest"/>가 있을 때 서버 접속 -> 스폰 RPC 전송을
     /// 순서대로 처리하는 시스템. 접속 요청 시점을 제어하도록 도와줌.
+    /// 접속한 뒤에는 모드 씬이 로드될 때까지 기다렸다가 InGame 이 됨.
     /// </summary>
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
     public partial struct ClientConnectionSystem : ISystem
@@ -78,6 +80,20 @@ namespace GalaxyIO.DOTS.Client.Systems
                 return;
             }
 
+            // 서버가 알려 준 모드의 씬이 들어와야 Ghost 를 받을 수 있음. 씬은 GameSession 이 로드함.
+            if (!SystemAPI.HasSingleton<PrefabRegistryComponent>())
+            {
+                return;
+            }
+
+            // 팀 모드는 인게임 씬 위에 올린 모드 씬의 설정까지 들어와야 함.
+            if (SystemAPI.TryGetSingleton(out GameModeStateComponent mode)
+                && mode.Mode != GameMode.Free
+                && !SystemAPI.HasSingleton<GameModeComponent>())
+            {
+                return;
+            }
+
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
             // Ghost 스냅샷을 받으려면 클라이언트 Connection 도 InGame 이어야 함.
@@ -88,7 +104,7 @@ namespace GalaxyIO.DOTS.Client.Systems
 
             Entity rpcEntity = ecb.CreateEntity();
 
-            ecb.AddComponent(rpcEntity, new SpawnRequestRPC { Name = request.Name });
+            ecb.AddComponent(rpcEntity, new SpawnRequestRPC { Name = request.Name, Spaceship = request.Spaceship });
 
             ecb.AddComponent(
                 rpcEntity,

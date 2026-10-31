@@ -75,6 +75,18 @@ namespace GalaxyIO.Tools.PopupUI.Window
         /// <summary>포탑 상점을 연 포탑 칸 번호.</summary>
         public int SelectedSlot { get; private set; }
 
+        // 팀 모드는 기종을 리스폰 창에서 고르므로 우주선 상점 대신 포탑 상점을 늘 띄움.
+        private bool isTurretMarketOnly;
+
+        /// <summary>
+        /// 우주선 상점을 감추고 포탑 상점을 늘 띄움. 빈 곳을 눌러도 포탑 상점이 닫히지 않음.
+        /// </summary>
+        public void ShowTurretMarketOnly()
+        {
+            isTurretMarketOnly = true;
+            ShowTurretMarket(true);
+        }
+
         protected override void Awake()
         {
             base.Awake();
@@ -226,8 +238,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
         private void ShowTurretMarket(bool _isShown)
         {
-            spaceshipMarket_obj.SetActive(!_isShown);
-            turretMarket_obj.SetActive(_isShown);
+            spaceshipMarket_obj.SetActive(!_isShown && !isTurretMarketOnly);
+            turretMarket_obj.SetActive(_isShown || isTurretMarketOnly);
         }
 
         private void OnLocaleChanged(Locale _locale) => isBuilt = false;

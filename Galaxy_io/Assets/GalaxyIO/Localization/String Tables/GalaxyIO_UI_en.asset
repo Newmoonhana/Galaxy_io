@@ -203,8 +203,7 @@ MonoBehaviour:
   - m_Id: 7374434347
     m_Localized: 'Not a JW Server integrated member.
 
-      Please use the normal
-      sign up.'
+      Please use the normal sign up.'
     m_Metadata:
       m_Items: []
   - m_Id: 7374434348
@@ -734,19 +733,129 @@ MonoBehaviour:
 
       Boost: Space
 
-      Fire:
-      Left click
+      Fire: Left click
 
       Ping: Right click
 
       Pan camera: Middle click
 
-      Inventory:
-      E
+      Inventory: E
 
       Chat: Enter
 
       Menu: ESC'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002328535040
+    m_Localized: Free
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383060992
+    m_Localized: Regicide
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383060993
+    m_Localized: Conquest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383060994
+    m_Localized: The server is full.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383060995
+    m_Localized: Shot down by {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383060996
+    m_Localized: Respawn in {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383060997
+    m_Localized: Select a spaceship
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383060998
+    m_Localized: Return to the combat zone immediately! {0}
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383060999
+    m_Localized: RED TEAM WINS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061000
+    m_Localized: BLUE TEAM WINS
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061001
+    m_Localized: Red
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061002
+    m_Localized: Blue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061003
+    m_Localized: Switch Team
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061004
+    m_Localized: You can't switch teams. The team gap would be over 3.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061005
+    m_Localized: '{0} joined the team.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061006
+    m_Localized: '{0} left the team.'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061007
+    m_Localized: Parties are disabled in team modes.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061008
+    m_Localized: Team
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061009
+    m_Localized: Red team captured satellite {0}.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061010
+    m_Localized: Blue team captured satellite {0}.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12791441004732416
+    m_Localized: VICTORY
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12791441092812800
+    m_Localized: DEFEAT
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12805401397469184
+    m_Localized: Ally Flagship
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12850970992091136
+    m_Localized: Enemy Flagship
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12850971059200000
+    m_Localized: Occupy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12850971059200001
+    m_Localized: '{0} captured {1}'
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12850971059200002
+    m_Localized: Next game in {0}s
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12850971059200003
+    m_Localized: The flagship is under attack!
     m_Metadata:
       m_Items: []
   references:

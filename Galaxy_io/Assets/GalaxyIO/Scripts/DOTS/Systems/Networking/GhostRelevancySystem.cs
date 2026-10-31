@@ -129,6 +129,20 @@ namespace GalaxyIO.DOTS.Systems
 
             var relevant = new NativeQueue<RelevantGhostForConnection>(Allocator.TempJob);
 
+            // 항상 복제하는 Ghost 는 위치와 무관하게 모든 접속에 등록함.
+            foreach (var ghost in SystemAPI.Query<RefRO<GhostInstance>>().WithAll<AlwaysRelevantTag>())
+            {
+                if (ghost.ValueRO.ghostId == 0)
+                {
+                    continue;
+                }
+
+                foreach (var networkId in SystemAPI.Query<RefRO<NetworkId>>().WithAll<NetworkStreamInGame>())
+                {
+                    relevant.Enqueue(new RelevantGhostForConnection(networkId.ValueRO.Value, ghost.ValueRO.ghostId));
+                }
+            }
+
             state.Dependency = new CollectRelevantGhostJob
             {
                 Focuses       = focuses,
@@ -153,6 +167,7 @@ namespace GalaxyIO.DOTS.Systems
     /// Ghost 마다 주변 칸의 접속을 찾아 반경 안이면 쌍으로 남김.
     /// </summary>
     [BurstCompile]
+    [WithNone(typeof(AlwaysRelevantTag))]
     public partial struct CollectRelevantGhostJob : IJobEntity
     {
         [ReadOnly]

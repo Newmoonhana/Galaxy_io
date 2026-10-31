@@ -1,5 +1,6 @@
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Message;
+using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.Scripts.Managed.Chat;
 using GalaxyIO.Tools;
 using Newmoonhana.Runtime.Core;
@@ -157,6 +158,7 @@ namespace GalaxyIO.Scripts.Managed.UI
         private EntityQuery stateQuery;
         private EntityQuery inGameQuery;
         private EntityQuery connectionQuery;
+        private EntityQuery modeQuery;
 
         private string publicHex;
         private string whisperHex;
@@ -243,6 +245,7 @@ namespace GalaxyIO.Scripts.Managed.UI
             stateQuery = entityManager.CreateEntityQuery(ComponentType.ReadWrite<PlayerStateComponent>());
             inGameQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkStreamInGame>());
             connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
+            modeQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<GameModeComponent>());
 
             publicHex  = ColorUtility.ToHtmlStringRGB(publicColor);
             whisperHex = ColorUtility.ToHtmlStringRGB(whisperColor);
@@ -310,7 +313,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
                 if (inParty && partyChannel == null)
                 {
-                    partyChannel = AddChannel(L10n.Get("Chat/Party"), false);
+                    partyChannel = AddChannel(L10n.Get(PartyLabel), false);
                 }
                 else if (!inParty && partyChannel != null)
                 {
@@ -550,9 +553,12 @@ namespace GalaxyIO.Scripts.Managed.UI
                         whisperOption.gameObject.SetActive(!self);
 
                         // 서버와 같은 권한 규칙. 상대가 다른 파티 소속인지는 모르므로 초대는 서버가 거름.
+                        // 팀 모드에서는 파티를 직접 꾸리지 않으므로 띄우지 않음.
+                        bool teamMode = !modeQuery.IsEmpty;
+
                         foreach (PartyOption option in partyOptions)
                         {
-                            option.Button.gameObject.SetActive(self ? option.Command == PartyCommand.Quit : option.Command switch
+                            option.Button.gameObject.SetActive(!teamMode && (self ? option.Command == PartyCommand.Quit : option.Command switch
                             {
                                 PartyCommand.Invite    => !member && (!inParty || manage),
                                 PartyCommand.Delegate  => member && master,
@@ -560,7 +566,7 @@ namespace GalaxyIO.Scripts.Managed.UI
                                 PartyCommand.Authorize => member && manage && !targetMaster && !authorized,
                                 PartyCommand.Revoke    => member && master && authorized,
                                 _                      => false,
-                            });
+                            }));
                         }
 
                         RectTransformUtility.ScreenPointToWorldPointInRectangle(
@@ -642,7 +648,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             if (partyChannel != null)
             {
-                partyChannel.Name = L10n.Get("Chat/Party");
+                partyChannel.Name = L10n.Get(PartyLabel);
                 partyChannel.Tab.SetTitle(partyChannel.Name);
             }
             foreach (PartyOption option in partyOptions)
@@ -651,6 +657,9 @@ namespace GalaxyIO.Scripts.Managed.UI
             }
             channelLabel.text = $"[{current.Name}]:";
         }
+
+        // 팀 모드에서는 파티 채널이 팀 채널임.
+        private string PartyLabel => modeQuery.IsEmpty ? "Chat/Party" : "Chat/Team";
 
         private bool Contains(RectTransform rect, Vector2 cursor)
         {

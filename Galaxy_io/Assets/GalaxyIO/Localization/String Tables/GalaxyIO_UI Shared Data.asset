@@ -719,6 +719,118 @@ MonoBehaviour:
     m_Key: Control/IngameGuide
     m_Metadata:
       m_Items: []
+  - m_Id: 12640002328535040
+    m_Key: Mode/Free
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383060992
+    m_Key: Mode/Regicide
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383060993
+    m_Key: Mode/Conquest
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383060994
+    m_Key: GameStart/ServerFull
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383060995
+    m_Key: Respawn/KilledBy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383060996
+    m_Key: Respawn/Countdown
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383060997
+    m_Key: Respawn/Select
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383060998
+    m_Key: Zone/Return
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383060999
+    m_Key: Team/RedWins
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061000
+    m_Key: Team/BlueWins
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061001
+    m_Key: Team/Red
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061002
+    m_Key: Team/Blue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061003
+    m_Key: Team/Switch
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061004
+    m_Key: Team/SwitchDenied
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061005
+    m_Key: Team/Joined
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061006
+    m_Key: Team/Left
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061007
+    m_Key: Party/Disabled
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061008
+    m_Key: Chat/Team
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061009
+    m_Key: Satellite/CapturedRed
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12640002383061010
+    m_Key: Satellite/CapturedBlue
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12791441004732416
+    m_Key: Team/Victory
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12791441092812800
+    m_Key: Team/Defeat
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12805401397469184
+    m_Key: Ping/King
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12850970992091136
+    m_Key: Ping/EnemyKing
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12850971059200000
+    m_Key: Order/Occupy
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12850971059200001
+    m_Key: Satellite/Captured
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12850971059200002
+    m_Key: Team/NextGame
+    m_Metadata:
+      m_Items: []
+  - m_Id: 12850971059200003
+    m_Key: Flagship/UnderAttack
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

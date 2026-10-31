@@ -1,5 +1,7 @@
 ﻿using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Components.Singleton;
+using GalaxyIO.DOTS.Components.Message;
+using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
@@ -28,17 +30,18 @@ namespace GalaxyIO.DOTS.Client.Networking
             var name = new FixedString64Bytes();
             name.CopyFromTruncated(playerName);
 
-            return Enqueue(endpoint, name);
+            return Enqueue(endpoint, name, SpaceshipId.None);
         }
 
         /// <summary>
         /// 파괴된 뒤 다시 스폰을 요청함. 이미 접속돼 있으므로 주소를 싣지 않음.
         /// </summary>
-        public static bool RequestRespawn()
+        /// <param name="spaceship">팀 모드에서 탈 기종. 그 밖에는 None.</param>
+        public static bool RequestRespawn(SpaceshipId spaceship = SpaceshipId.None)
         {
             var clientWorld = ClientServerBootstrap.ClientWorld;
 
-            if (clientWorld == null || !Enqueue(default, default))
+            if (clientWorld == null || !Enqueue(default, default, spaceship))
             {
                 return false;
             }
@@ -138,9 +141,35 @@ namespace GalaxyIO.DOTS.Client.Networking
         }
 
         /// <summary>
+        /// 상대 팀으로 옮겨 달라고 요청함. 팀 모드에서만 받음.
+        /// </summary>
+        public static void RequestTeamSwitch()
+        {
+            var clientWorld = ClientServerBootstrap.ClientWorld;
+
+            if (clientWorld == null)
+            {
+                return;
+            }
+
+            var entityManager = clientWorld.EntityManager;
+
+            using var connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
+
+            if (connectionQuery.IsEmpty)
+            {
+                return;
+            }
+
+            Entity rpc = entityManager.CreateEntity();
+            entityManager.AddComponentData(rpc, new TeamSwitchRPC());
+            entityManager.AddComponentData(rpc, new SendRpcCommandRequest { TargetConnection = connectionQuery.GetSingletonEntity() });
+        }
+
+        /// <summary>
         /// 요청 엔티티를 남김.
         /// </summary>
-        private static bool Enqueue(NetworkEndpoint endpoint, FixedString64Bytes name)
+        private static bool Enqueue(NetworkEndpoint endpoint, FixedString64Bytes name, SpaceshipId spaceship)
         {
             // Thin Client 를 제외한 실제 Client World.
             var clientWorld = ClientServerBootstrap.ClientWorld;
@@ -164,8 +193,9 @@ namespace GalaxyIO.DOTS.Client.Networking
 
                 entityManager.AddComponentData(request, new PlayerSpawnRequest
                 {
-                    Endpoint = endpoint,
-                    Name     = name,
+                    Endpoint  = endpoint,
+                    Name      = name,
+                    Spaceship = spaceship,
                 });
             }
 

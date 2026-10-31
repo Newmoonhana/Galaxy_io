@@ -164,6 +164,10 @@ namespace GalaxyIO.Tools.PopupUI.Popup
                 ComponentType.ReadOnly<SpaceshipKindComponent>(),
                 ComponentType.ReadOnly<EquippedTurretComponent>()
             );
+
+            // 팀 모드는 기종을 리스폰 창에서만 고르므로 포탑 상점만 보임.
+            using EntityQuery modeQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<GameModeComponent>());
+            if (!modeQuery.IsEmpty) inventory_win.ShowTurretMarketOnly();
         }
 
         protected override void OnDestroy()

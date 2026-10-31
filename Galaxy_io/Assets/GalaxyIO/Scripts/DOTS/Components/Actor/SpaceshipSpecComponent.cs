@@ -9,7 +9,8 @@ namespace GalaxyIO.DOTS.Components.Actor
     /// </summary>
     public struct SpaceshipSpecComponent : IComponentData
     {
-        // 최대 체력
+        // 최대 체력. 강화와 대장선 체력이 반영된 서버 값을 복제함.
+        [GhostField]
         public float MaxHealth;
 
         // 자가 수리 속도

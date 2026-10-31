@@ -17,7 +17,7 @@ namespace GalaxyIO.DOTS.Components.Actor
         [GhostField]
         public ItemId Turret;
 
-        // 처음 방향 기준 회전각(라디안). 반시계가 +. 시야각 절반을 넘지 않음.
+        // 처음 방향 기준 회전각(라디안). 반시계가 +. 시야각 절반을 넘지 않음. 시야각 제한이 없으면 -π ~ π.
         [GhostField(Quantization = 1000)]
         public float Angle;
 
@@ -69,6 +69,14 @@ namespace GalaxyIO.DOTS.Components.Actor
     /// </summary>
     public static class AutoTurret
     {
+        /// <summary>
+        /// 각도를 -π ~ π 로 맞춤.
+        /// </summary>
+        public static float Wrap(float angle)
+        {
+            return angle - math.round(angle / (2.0F * math.PI)) * (2.0F * math.PI);
+        }
+
         /// <summary>
         /// angle 만큼 돈 총구의 우주선 기준 위치와 회전. 회전은 투사체가 나가는 방향이 +Y.
         /// </summary>

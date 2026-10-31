@@ -1,4 +1,6 @@
+using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.Tools;
 using System.Collections.Generic;
@@ -11,6 +13,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 {
     /// <summary>
     /// 로컬 플레이어와 같은 파티원 우주선과 그 함재기의 스프라이트(선체, 자동 포탑)에 외곽선 머티리얼을 입히는 클라이언트 전용 뷰.
+    /// 대장선 잡기에서는 우리 팀 대장선과 그 함재기에도 입힘.
     /// 로컬 우주선과 그 함재기는 <see cref="LocalSpaceshipOutline"/>이 맡음.
     /// </summary>
     public sealed class PartySpaceshipOutline : MonoBehaviour
@@ -27,6 +30,8 @@ namespace GalaxyIO.Scripts.Managed.UI
         private EntityQuery spaceshipQuery;
         private EntityQuery craftQuery;
         private EntityQuery connectionQuery;
+        private EntityQuery kingQuery;
+        private EntityQuery stateQuery;
 
         // 외곽선을 입힌 스프라이트 -> 원래 머티리얼. 파티를 나가면 되돌림.
         private readonly Dictionary<SpriteRenderer, Material> originals = new Dictionary<SpriteRenderer, Material>();
@@ -68,6 +73,20 @@ namespace GalaxyIO.Scripts.Managed.UI
                 ComponentType.ReadOnly<SpriteRenderer>()
             );
             connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
+
+            // 대장선은 이름이 없는 모선. 이름 있는 우주선은 위에서 다룸.
+            kingQuery = entityManager.CreateEntityQuery(new EntityQueryDesc
+            {
+                All = new[]
+                {
+                    ComponentType.ReadOnly<GhostOwner>(),
+                    ComponentType.ReadOnly<FactionComponent>(),
+                    ComponentType.ReadOnly<CarrierComponent>(),
+                    ComponentType.ReadOnly<SpriteRenderer>(),
+                },
+                None = new[] { ComponentType.ReadOnly<PlayerNameComponent>() },
+            });
+            stateQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<GameModeStateComponent>());
         }
 
         private void LateUpdate()
@@ -80,12 +99,22 @@ namespace GalaxyIO.Scripts.Managed.UI
             }
 
             PartyRosterRPC roster = chat.PartyRoster;
+            Team team = stateQuery.TryGetSingleton(out GameModeStateComponent state) ? state.Team : Team.None;
             using var spaceships = spaceshipQuery.ToEntityArray(Allocator.Temp);
 
             // Companion 스프라이트. 리스폰, 출격하면 새 인스턴스가 생기므로 매 프레임 확인함.
             foreach (Entity spaceship in spaceships)
             {
-                Outline(spaceship, roster.Members.Contains(entityManager.GetComponentData<GhostOwner>(spaceship).NetworkId));
+                int owner = entityManager.GetComponentData<GhostOwner>(spaceship).NetworkId;
+                Outline(spaceship, roster.Members.Contains(owner) || IsAllyKing(spaceship, owner, team));
+            }
+
+            using (var kings = kingQuery.ToEntityArray(Allocator.Temp))
+            {
+                foreach (Entity king in kings)
+                {
+                    Outline(king, IsAllyKing(king, entityManager.GetComponentData<GhostOwner>(king).NetworkId, team));
+                }
             }
 
             // 함재기는 주인 기준. 자기 함재기는 제외.
@@ -97,10 +126,18 @@ namespace GalaxyIO.Scripts.Managed.UI
                 {
                     int owner = entityManager.GetComponentData<CarriedCraftComponent>(craft).OwnerNetworkId;
 
-                    if (owner != networkId.Value)
+                    if (owner == networkId.Value)
                     {
-                        Outline(craft, roster.Members.Contains(owner));
+                        continue;
                     }
+
+                    // 주인이 없는 함재기는 대장선 것. 모선의 팀 파티를 따름.
+                    bool allyKingCraft = owner < 0
+                                         && team != Team.None
+                                         && entityManager.HasComponent<FactionComponent>(craft)
+                                         && Teams.FromParty(entityManager.GetComponentData<FactionComponent>(craft).Party) == team;
+
+                    Outline(craft, allyKingCraft || roster.Members.Contains(owner));
                 }
             }
 
@@ -118,6 +155,18 @@ namespace GalaxyIO.Scripts.Managed.UI
             }
 
             destroyed.Clear();
+        }
+
+        // 우리 팀 대장선인지
+        private bool IsAllyKing(Entity entity, int owner, Team team)
+        {
+            if (team == Team.None || !entityManager.HasComponent<FactionComponent>(entity))
+            {
+                return false;
+            }
+
+            uint party = entityManager.GetComponentData<FactionComponent>(entity).Party;
+            return Teams.IsKing(owner, party, entityManager.HasComponent<CarrierComponent>(entity)) && Teams.FromParty(party) == team;
         }
 
         // 파티원이면 외곽선을 입히고, 아니면 입혔던 것을 되돌림.

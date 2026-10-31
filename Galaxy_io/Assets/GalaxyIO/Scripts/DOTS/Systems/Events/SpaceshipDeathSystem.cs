@@ -13,6 +13,7 @@ namespace GalaxyIO.DOTS.Systems
     /// <summary>
     /// 체력이 0이 된 우주선을 제거하고 파괴 사실을 근처 클라이언트, 소유자, 막타를 친 플레이어에게 알리는 시스템.
     /// 플레이어 격추는 킬 로그로 전체에 알림. 격추에 따른 점수 변경을 요청함.
+    /// 팀 모드에서는 플레이어 격추를 <see cref="DeathMessage"/>로 남김. 위성은 포탑만 꺼지므로 지우지 않음.
     /// </summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ServerSimulation)]
@@ -66,6 +67,7 @@ namespace GalaxyIO.DOTS.Systems
             }
 
             double time = SystemAPI.Time.ElapsedTime;
+            bool teamMode = SystemAPI.HasSingleton<GameModeComponent>();
 
             // Query 순회 중의 구조 변경(Structural Change)은 ECB 로 미뤄서 처리함.
             var ecb = new EntityCommandBuffer(Allocator.Temp);
@@ -73,6 +75,7 @@ namespace GalaxyIO.DOTS.Systems
             foreach (
                 var (spec, transform, owner, entity) in
                 SystemAPI.Query<RefRO<SpaceshipSpecComponent>, RefRO<LocalTransform>, RefRO<GhostOwner>>()
+                    .WithNone<SatelliteComponent>()
                     .WithEntityAccess()
             ) {
                 if (spec.ValueRO.Health > 0.0F)
@@ -126,6 +129,18 @@ namespace GalaxyIO.DOTS.Systems
                     log.VictimNetworkId = owner.ValueRO.NetworkId;
 
                     Send(ecb, log, Entity.Null);
+
+                    if (teamMode && owner.ValueRO.NetworkId > 0)
+                    {
+                        ecb.AddComponent(ecb.CreateEntity(), new DeathMessage
+                        {
+                            Victim     = owner.ValueRO.NetworkId,
+                            Killer     = log.KillerNetworkId,
+                            KillerName = log.Killer,
+                            Assistant  = log.AssistantNetworkId,
+                            Spaceship  = SystemAPI.GetComponent<SpaceshipKindComponent>(entity).Value,
+                        });
+                    }
 
                     // 사망하면 점수를 모두 잃음.
                     Post(ecb, ScoreMessage.Set(owner.ValueRO.NetworkId, 0));

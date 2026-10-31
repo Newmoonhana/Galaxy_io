@@ -1,9 +1,11 @@
+using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.DOTS.Networking;
 using GalaxyIO.Tools;
 using GalaxyIO.Tools.PopupUI.Popup;
 using Newmoonhana.Runtime.Utils.DEBUG;
 using Unity.NetCode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace GalaxyIO.Main
 {
@@ -36,7 +38,16 @@ namespace GalaxyIO.Main
             // 씬 로드·스트리밍·접속 동안 빈 화면이 보이지 않게 가림. 인게임에서 치움.
             CommonProgress.ShowAcrossScenes().Forget();
 
-            if (!await GameSession.HostAndPlay(DebugPlayerName))
+            // 인게임 씬과 함께 열어 둔 모드 씬의 모드로 엶. 없으면 자유 모드.
+            GameMode mode = GameMode.Free;
+
+            foreach (GameMode candidate in (GameMode[])System.Enum.GetValues(typeof(GameMode)))
+            {
+                string modeScene = GameSession.SceneOf(candidate);
+                if (modeScene != null && SceneManager.GetSceneByName(modeScene).isLoaded) mode = candidate;
+            }
+
+            if (!await GameSession.HostAndPlay(DebugPlayerName, mode))
             {
                 CommonProgress.HideAcrossScenes();
                 DebugLog.LogError("디버그 전용 진입: 호스트 세션 구성 실패. 이미 7979 포트를 쓰는 프로세스가 있는지 확인할 것.");
