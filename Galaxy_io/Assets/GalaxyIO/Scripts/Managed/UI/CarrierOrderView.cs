@@ -20,7 +20,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 {
     /// <summary>
     /// 모선의 함재기 명령을 내리고, 지금 명령을 핑으로 그리는 클라이언트 전용 뷰. 살아 있는 함재기 수도 띄움.
-    /// 적을 누르면 공격, 빈 곳이나 레이더는 지역 확보, 자기 모선은 호위(호위 중이거나 두 번 누르면 귀환).
+    /// 적을 누르면 공격, 점령전 위성은 점령, 빈 곳이나 레이더는 지역 확보, 자기 모선은 호위(호위 중이거나 두 번 누르면 귀환).
     /// </summary>
     public sealed class CarrierOrderView : MonoBehaviour
     {
@@ -222,6 +222,11 @@ namespace GalaxyIO.Scripts.Managed.UI
                         order.Order = doubleClick || carrier.Order == CarrierOrder.Escort ? CarrierOrder.Return : CarrierOrder.Escort;
                         order.Target = Entity.Null;
                     }
+                    else if (entityManager.HasComponent<SatelliteComponent>(order.Target))
+                    {
+                        order.Order = CarrierOrder.Occupy;
+                        order.Position = entityManager.GetComponentData<LocalTransform>(order.Target).Position.xy;
+                    }
                     else if (order.Target != Entity.Null)
                     {
                         // 아군, 같은 편은 공격하지 않음.
@@ -259,6 +264,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             bool showing = carrier.Order == CarrierOrder.Attack
                            || carrier.Order == CarrierOrder.SecureArea
+                           || carrier.Order == CarrierOrder.Occupy
                            || carrier.Order == CarrierOrder.Escort;
 
             marker.gameObject.SetActive(showing);
@@ -277,16 +283,17 @@ namespace GalaxyIO.Scripts.Managed.UI
                     ? (Vector2)entityManager.GetComponentData<LocalTransform>(carrier.Target).Position.xy
                     : (Vector2)carrier.Position;
 
-            // 공격 대상이 늦게 복제되면 그때 이름을 채움.
+            // 공격, 점령 대상이 늦게 복제되면 그때 이름을 채움.
+            bool named = carrier.Order == CarrierOrder.Attack || carrier.Order == CarrierOrder.Occupy;
             bool changed = carrier.Order != shownOrder || carrier.Target != shownTarget
-                           || (targetName == null && carrier.Order == CarrierOrder.Attack && targetVisible);
+                           || (targetName == null && named && targetVisible);
 
             if (changed)
             {
                 shownOrder = carrier.Order;
                 shownTarget = carrier.Target;
                 targetName = carrier.Order == CarrierOrder.Escort ? L10n.Get($"Spaceship/{kind}")
-                    : carrier.Order == CarrierOrder.Attack && targetVisible ? TargetName(carrier.Target)
+                    : named && targetVisible ? TargetName(carrier.Target)
                     : null;
             }
 
@@ -312,9 +319,14 @@ namespace GalaxyIO.Scripts.Managed.UI
             marker.Place(direction, side);
         }
 
-        // 공격 대상의 표시 이름. AI 는 이름, 플레이어는 기종, 함재기는 함재기.
+        // 공격, 점령 대상의 표시 이름. AI 는 이름, 플레이어는 기종, 함재기는 함재기, 위성은 A, B, ...
         private string TargetName(Entity target)
         {
+            if (entityManager.HasComponent<SatelliteComponent>(target))
+            {
+                return SatelliteComponent.Name(entityManager.GetComponentData<SatelliteComponent>(target).Index);
+            }
+
             if (entityManager.HasComponent<EnemyNameComponent>(target))
             {
                 return entityManager.GetComponentData<EnemyNameComponent>(target).Value.ToString();

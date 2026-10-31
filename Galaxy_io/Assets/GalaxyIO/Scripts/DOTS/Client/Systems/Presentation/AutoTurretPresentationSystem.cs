@@ -47,7 +47,8 @@ namespace GalaxyIO.DOTS.Client.Systems
                 for (int i = 0; i < mounts.Length; i++)
                 {
                     ref AutoTurretMountElement mount = ref mounts.ElementAt(i);
-                    mount.VisualAngle = math.lerp(mount.VisualAngle, autoTurrets[i].Angle, follow);
+                    // 시야각 제한이 없는 포탑은 ±π 를 넘나듦. 가까운 쪽으로 따라감.
+                    mount.VisualAngle = AutoTurret.Wrap(mount.VisualAngle + AutoTurret.Wrap(autoTurrets[i].Angle - mount.VisualAngle) * follow);
 
                     if (entityManager.HasComponent<CompanionComponent<SpriteRenderer>>(mount.Sprite))
                     {

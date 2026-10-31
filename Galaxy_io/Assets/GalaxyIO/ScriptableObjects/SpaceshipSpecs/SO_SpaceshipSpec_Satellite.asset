@@ -1,0 +1,46 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea1aadee859fe514883a55b3afebe321, type: 3}
+  m_Name: SO_SpaceshipSpec_Satellite
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.DOTS.Authoring.SpaceshipSpecAsset
+  Speed: 0
+  HoveringSpeed: 0
+  HoveringAcceleration: 0
+  HoveringDeceleration: 0
+  HoveringManeuver: 40
+  Acceleration: 0
+  Deceleration: 0
+  Maneuver: 0
+  ManeuverAcceleration: 3600
+  ManeuverDeceleration: 3600
+  ManeuverPenalty: 0.9
+  MaxHealth: 300
+  Repair: 0
+  RepairDelay: 3
+  Thickness: 2
+  PhaseSpeed: 0
+  MaxHeat: 20
+  KillPoint: 0
+  TurnBrakeTurnRate: 270
+  TurnBrakeDeceleration: 30
+  TurnBrakeExponent: 3
+  TurnBrakeStartSpeed: 15
+  TurnBrakeReferenceSpeed: 30
+  Inertia: 1
+  InertiaDeceleration: 20
+  InertiaTurnRate: 180
+  MaxOrthographicSize: 15
+  RadarRange: 0
+  RadarSweepSpeed: 120
+  RadarResponseTime: 0.1
+  Faction: 2
+  Upgrade: {fileID: 0}

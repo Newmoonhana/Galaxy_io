@@ -13,7 +13,7 @@ namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
     /// 자동 포탑(<see cref="AutoTurretElement"/>)을 돌리고 투사체 스폰 메시지를 남기는 시스템.
-    /// 시야각, 탐지 거리 안의 적을 향해 돌고, 적이 없으면 시야각 끝에서 끝으로 훑음.
+    /// 시야각, 탐지 거리 안의 적을 향해 돌고, 적이 없으면 시야각 끝에서 끝으로 훑음. 점령전 위성 포탑은 시야각 제한이 없음.
     /// 포탑 RPS 위에 포탑마다 사격/휴식 주기를 얹음. 열, 피해 강화는 적용하지 않음.
     /// 투사체는 AI 의 것처럼 모든 클라이언트에서 보간함.
     /// </summary>
@@ -89,6 +89,12 @@ namespace GalaxyIO.DOTS.Systems
                     bool wasFiring = autoTurret.Firing;
                     var random = Random.CreateFromIndex(math.hash(new uint3((uint)spaceship.Index, (uint)k, tick)) & 0x7FFFFFFFu);
 
+                    bool fullSight = SystemAPI.HasComponent<SatelliteComponent>(spaceship);
+
+                    // 아무도 점령하지 않은 위성 포탑은 AI 적(e.g. Corsair)을 노리지 않음. AI 적도 이 포탑을 노리지 않음.
+                    bool neutralSatellite = fullSight && SystemAPI.GetComponent<SatelliteComponent>(spaceship).Owner == Team.None;
+                    float halfSight = fullSight ? math.PI : auto.HalfSightAngle;
+
                     float2 pivot = transform.ValueRO.TransformPoint(new float3(mount.Pivot, 0.0F)).xy;
                     float2 center = math.mul(transform.ValueRO.Rotation, new float3(math.normalizesafe(mount.Barrel), 0.0F)).xy;
 
@@ -102,7 +108,8 @@ namespace GalaxyIO.DOTS.Systems
                         if (hulls[i] == spaceship
                             || hullSpecs[i].Health <= 0.0F
                             || hullFactions[i].Value == FactionID.None
-                            || Faction.IsFriendly(faction.ValueRO, hullFactions[i]))
+                            || Faction.IsFriendly(faction.ValueRO, hullFactions[i])
+                            || (neutralSatellite && SystemAPI.HasComponent<EnemyNameComponent>(hulls[i])))
                         {
                             continue;
                         }
@@ -117,7 +124,7 @@ namespace GalaxyIO.DOTS.Systems
                             math.dot(center, toHull)
                         );
 
-                        if (distanceSq > range * range || math.abs(angle) > auto.HalfSightAngle)
+                        if (distanceSq > range * range || math.abs(angle) > halfSight)
                         {
                             continue;
                         }
@@ -142,7 +149,14 @@ namespace GalaxyIO.DOTS.Systems
                         mount.Target = hulls[target];
 
                         float step = auto.TurningSpeed * deltaTime;
-                        autoTurret.Angle += math.clamp(targetAngle - autoTurret.Angle, -step, step);
+                        float turn = targetAngle - autoTurret.Angle;
+
+                        // 시야각 제한이 없으면 가까운 쪽으로 돎.
+                        if (fullSight) turn = AutoTurret.Wrap(turn);
+
+                        autoTurret.Angle += math.clamp(turn, -step, step);
+
+                        if (fullSight) autoTurret.Angle = AutoTurret.Wrap(autoTurret.Angle);
 
                         mount.CycleRemaining -= deltaTime;
 
@@ -156,7 +170,7 @@ namespace GalaxyIO.DOTS.Systems
 
                         // 대상을 향했을 때만 사격.
                         autoTurret.Firing = !mount.Resting
-                                            && math.abs(targetAngle - autoTurret.Angle) <= config.AutoTurretAimAngle;
+                                            && math.abs(AutoTurret.Wrap(targetAngle - autoTurret.Angle)) <= config.AutoTurretAimAngle;
                     }
                     else
                     {
@@ -183,6 +197,11 @@ namespace GalaxyIO.DOTS.Systems
                         if (mount.SweepWait > 0.0F)
                         {
                             mount.SweepWait -= deltaTime;
+                        }
+                        else if (fullSight)
+                        {
+                            // 끝이 없으므로 한 방향으로 계속 돎.
+                            autoTurret.Angle = AutoTurret.Wrap(autoTurret.Angle + config.AutoTurretSweepSpeed * deltaTime);
                         }
                         else
                         {

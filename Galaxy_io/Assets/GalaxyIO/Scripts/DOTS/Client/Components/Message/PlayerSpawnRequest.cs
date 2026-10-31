@@ -1,4 +1,5 @@
-﻿using Unity.Collections;
+﻿using GalaxyIO.DOTS.Components.Singleton;
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Networking.Transport;
 
@@ -15,5 +16,8 @@ namespace GalaxyIO.DOTS.Client.Components.Message
 
         // 플레이어 이름. 리스폰 요청은 비워 둠.
         public FixedString64Bytes Name;
+
+        // 팀 모드의 리스폰 요청이 탈 기종. 그 밖에는 None.
+        public SpaceshipId Spaceship;
     }
 }

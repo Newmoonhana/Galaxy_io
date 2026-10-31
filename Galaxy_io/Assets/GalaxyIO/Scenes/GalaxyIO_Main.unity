@@ -790,9 +790,53 @@ PrefabInstance:
       propertyPath: m_Name
       value: Core
       objectReference: {fileID: 0}
+    - target: {fileID: 1423057071602705722, guid: 1491bce0182bb724484f06722f2bf1fc, type: 3}
+      propertyPath: m_Volume
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1564526280455622056, guid: 1491bce0182bb724484f06722f2bf1fc, type: 3}
+      propertyPath: showRTPC
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1564526280455622056, guid: 1491bce0182bb724484f06722f2bf1fc, type: 3}
+      propertyPath: showOcclusion
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1564526280455622056, guid: 1491bce0182bb724484f06722f2bf1fc, type: 3}
+      propertyPath: showCustomEvents
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1564526280455622056, guid: 1491bce0182bb724484f06722f2bf1fc, type: 3}
+      propertyPath: showLocalization
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1564526280455622056, guid: 1491bce0182bb724484f06722f2bf1fc, type: 3}
+      propertyPath: showMusicDucking
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2772812145422540749, guid: 1491bce0182bb724484f06722f2bf1fc, type: 3}
+      propertyPath: frames
+      value: 5044
+      objectReference: {fileID: 0}
+    - target: {fileID: 4067299827792310995, guid: 1491bce0182bb724484f06722f2bf1fc, type: 3}
+      propertyPath: frames
+      value: 6344
+      objectReference: {fileID: 0}
+    - target: {fileID: 4303510423254202187, guid: 1491bce0182bb724484f06722f2bf1fc, type: 3}
+      propertyPath: isExpanded
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4503806182957778818, guid: 1491bce0182bb724484f06722f2bf1fc, type: 3}
+      propertyPath: isExpanded
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4656228884814837523, guid: 1491bce0182bb724484f06722f2bf1fc, type: 3}
       propertyPath: m_Volume
       value: 0.528
+      objectReference: {fileID: 0}
+    - target: {fileID: 5833540197431417919, guid: 1491bce0182bb724484f06722f2bf1fc, type: 3}
+      propertyPath: m_Volume
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8247721556838719541, guid: 1491bce0182bb724484f06722f2bf1fc, type: 3}
       propertyPath: m_LocalPosition.x

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Message;
+using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
@@ -10,6 +11,7 @@ namespace GalaxyIO.DOTS.Party
     /// <summary>
     /// 서버의 파티 목록과 파티 명령어 처리. 서버 월드당 한 개.
     /// 파티원은 NetworkId 로 묶음. 우주선이 파괴돼도 파티는 남음.
+    /// 팀 모드에서는 팀마다 파티장 없는 파티 하나를 쓰고, 파티 명령어를 받지 않음.
     /// </summary>
     public sealed class PartyService
     {
@@ -25,6 +27,9 @@ namespace GalaxyIO.DOTS.Party
 
             // 파티 명령어 권한을 받은 파티원
             public readonly HashSet<int> Authorized = new HashSet<int>();
+
+            // 팀 모드의 팀 파티. 한 명만 남아도 해산하지 않음.
+            public bool IsTeam;
 
             public bool CanManage(int networkId)
             {
@@ -44,6 +49,9 @@ namespace GalaxyIO.DOTS.Party
 
         // 0 은 파티 없음. 서버가 도는 동안 같은 값을 다시 쓰지 않음.
         private uint nextId = 1;
+
+        // 팀 -> 팀 파티
+        private readonly Dictionary<Team, Party> teams = new Dictionary<Team, Party>();
 
         public PartyService(EntityManager entityManager)
         {
@@ -66,6 +74,13 @@ namespace GalaxyIO.DOTS.Party
         /// </summary>
         public void Execute(int sender, PartyCommandRPC rpc)
         {
+            // 팀 모드에서는 파티를 직접 꾸리지 않음.
+            if (teams.Count > 0)
+            {
+                Notice(sender, "Party/Disabled");
+                return;
+            }
+
             if (rpc.Command == PartyCommand.Invite)
             {
                 int invitee = Find(rpc.Target, sender);
@@ -217,6 +232,25 @@ namespace GalaxyIO.DOTS.Party
         }
 
         /// <summary>
+        /// 팀 파티에 넣음. 다른 팀에 있었으면 먼저 뺌. 팀 파티는 파티장이 없음.
+        /// </summary>
+        public void JoinTeam(int networkId, Team team)
+        {
+            Remove(networkId, Name(networkId), "Party/Left");
+
+            if (!teams.TryGetValue(team, out Party party))
+            {
+                party = new Party { Id = Teams.Party(team), IsTeam = true };
+                teams[team] = party;
+            }
+
+            party.Members.Add(networkId);
+            parties[networkId] = party;
+            SendRoster(party);
+            Notify(party, "Team/Joined", Name(networkId));
+        }
+
+        /// <summary>
         /// 같은 파티원의 NetworkId. 들어온 순서. 파티가 없으면 null.
         /// </summary>
         public IReadOnlyList<int> Members(int networkId)
@@ -235,6 +269,13 @@ namespace GalaxyIO.DOTS.Party
             foreach (Entity ship in ships)
             {
                 int networkId = entityManager.GetComponentData<GhostOwner>(ship).NetworkId;
+
+                // AI 가 조종하는 플레이어 기체(대장선)는 스폰할 때 정한 편을 그대로 씀.
+                if (networkId <= 0)
+                {
+                    continue;
+                }
+
                 parties.TryGetValue(networkId, out Party party);
 
                 FactionComponent faction = entityManager.GetComponentData<FactionComponent>(ship);
@@ -256,12 +297,18 @@ namespace GalaxyIO.DOTS.Party
                 return;
             }
 
-            Notify(party, key, name);
+            Notify(party, party.IsTeam ? "Team/Left" : key, name);
 
             parties.Remove(networkId);
             party.Members.Remove(networkId);
             party.Authorized.Remove(networkId);
             Send(networkId, new PartyRosterRPC());
+
+            if (party.IsTeam)
+            {
+                SendRoster(party);
+                return;
+            }
 
             if (party.Members.Count < 2)
             {

@@ -127,6 +127,15 @@ namespace GalaxyIO.DOTS.Systems
                         order.Target = Entity.Null;
                         break;
 
+                    case CarrierOrder.Occupy:
+                        if (!EntityManager.HasComponent<SatelliteComponent>(order.Target))
+                        {
+                            continue;
+                        }
+
+                        order.Position = EntityManager.GetComponentData<LocalTransform>(order.Target).Position.xy;
+                        break;
+
                     case CarrierOrder.Escort:
                         order.Target = Entity.Null;
                         order.Position = position;

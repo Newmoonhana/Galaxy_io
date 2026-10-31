@@ -36,6 +36,9 @@ namespace GalaxyIO.DOTS.Systems
 
         // 쏜 포탑. 명중음을 고르는 데 씀.
         public ItemId Turret;
+
+        // 투사체를 쏜 쪽의 파티. 기함이 상대 팀에게 맞았는지 가리는 데 씀.
+        public uint AttackerParty;
     }
 
     /// <summary>
@@ -114,6 +117,7 @@ namespace GalaxyIO.DOTS.Systems
                 Records      = SystemAPI.GetBufferLookup<DamageRecordElement>(),
                 Reports      = SystemAPI.GetBufferLookup<DamageReportElement>(),
                 KillingBlows = SystemAPI.GetComponentLookup<KillingBlowComponent>(),
+                Kings        = SystemAPI.GetComponentLookup<KingCarrierComponent>(),
                 ElapsedTime  = SystemAPI.Time.ElapsedTime,
             }.Schedule(state.Dependency);
 
@@ -191,6 +195,7 @@ namespace GalaxyIO.DOTS.Systems
                 InstigatorNetworkId = instigatorNetworkId,
                 InstigatorEnemyName = enemyName.Value,
                 Turret              = projectile.Turret,
+                AttackerParty       = faction.Party,
             };
 
             float2 start = transform.Position.xy - projectile.Displacement;
@@ -326,6 +331,7 @@ namespace GalaxyIO.DOTS.Systems
         public BufferLookup<DamageRecordElement> Records;
         public BufferLookup<DamageReportElement> Reports;
         public ComponentLookup<KillingBlowComponent> KillingBlows;
+        public ComponentLookup<KingCarrierComponent> Kings;
         public double ElapsedTime;
 
         public void Execute()
@@ -343,6 +349,14 @@ namespace GalaxyIO.DOTS.Systems
                 spec.Health = math.max(spec.Health - damage.Amount, 0.0F);
                 spec.RepairCooldown = spec.RepairDelay;
                 Specs[damage.Spaceship] = spec;
+
+                // 기함이 상대 팀 투사체에 맞음. KingCarrierSystem 이 팀에 알림.
+                if (Kings.TryGetComponent(damage.Spaceship, out KingCarrierComponent king)
+                    && Teams.FromParty(damage.AttackerParty) == Teams.Other(king.Team))
+                {
+                    king.LastEnemyHitTime = ElapsedTime;
+                    Kings[damage.Spaceship] = king;
+                }
 
                 // 플레이어가 입힌 데미지만 어시스트 판정용으로 기록함.
                 if (damage.InstigatorNetworkId > 0

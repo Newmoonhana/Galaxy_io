@@ -21,7 +21,7 @@ namespace GalaxyIO.Scripts.Managed.UI
     /// <summary>
     /// 스캐너가 훑고 지나간 주변 우주선을 점으로 표시하는 클라이언트 전용 레이더 뷰.
     /// 레이더 위에서 마우스 휠로 표시 거리를 바꿈. 파티원과 같은 편 함재기는 스캔과 관계없이 실시간으로 그림.
-    /// 초계함 파티원은 탐지 거리와 그 레이더가 잡은 점을 공유함.
+    /// 초계함 파티원은 탐지 거리와 그 레이더가 잡은 점을 공유함. 팀 모드에서는 전투 구역 밖을 빨갛게 칠함.
     /// </summary>
     public sealed class RadarView : MonoBehaviour
     {
@@ -38,6 +38,7 @@ namespace GalaxyIO.Scripts.Managed.UI
         private static readonly int ShareCountId  = Shader.PropertyToID("_ShareCount");
         private static readonly int GridSpacingId = Shader.PropertyToID("_GridSpacing");
         private static readonly int GridOffsetId  = Shader.PropertyToID("_GridOffset");
+        private static readonly int ZoneId        = Shader.PropertyToID("_Zone");
 
         [SerializeField]
         [Tooltip("빔, 잔상, 테두리를 그리는 스윕 이미지. UI-RadarSweep 머티리얼")]
@@ -59,6 +60,10 @@ namespace GalaxyIO.Scripts.Managed.UI
         [SerializeField]
         [Tooltip("UI-RadarBackground 머티리얼을 쓰는 이미지")]
         private Image background;
+
+        [SerializeField]
+        [Tooltip("전투 구역 밖을 칠하는 이미지. UI-RadarZone 머티리얼, 스윕 이미지와 같은 크기")]
+        private Image zone;
 
         [SerializeField]
         [Tooltip("로컬 플레이어의 월드 좌표를 띄우는 텍스트")]
@@ -141,6 +146,18 @@ namespace GalaxyIO.Scripts.Managed.UI
         [Tooltip("같은 편(파티원, 함재기) 점 색")]
         private Color friendlyBlipColor = new Color(0.35F, 1.0F, 0.5F, 1.0F);
 
+        [SerializeField]
+        [Tooltip("빨강 팀이 점령한 위성 점")]
+        private Color redSatelliteColor = new Color(1.0F, 0.3F, 0.3F, 1.0F);
+
+        [SerializeField]
+        [Tooltip("파랑 팀이 점령한 위성 점")]
+        private Color blueSatelliteColor = new Color(0.3F, 0.6F, 1.0F, 1.0F);
+
+        [SerializeField]
+        [Tooltip("아무도 점령하지 않은 위성 점")]
+        private Color neutralSatelliteColor = Color.white;
+
         [Header("Party")]
 
         [SerializeField]
@@ -155,7 +172,8 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             public float ShowTime;
 
-            // 점 종류. 0: AI, 1: 다른 플레이어와 그 함재기, 2: 같은 편(파티원, 함재기)
+            // 점 종류. 0: AI, 1: 다른 플레이어와 그 함재기, 2: 같은 편(파티원, 함재기),
+            // 3, 4, 5: 빨강, 파랑, 아무도 점령하지 않은 위성
             public float Kind;
 
             // 점 크기 배율
@@ -217,10 +235,13 @@ namespace GalaxyIO.Scripts.Managed.UI
         private EntityQuery sharedQuery;
         private EntityQuery partyQuery;
         private EntityQuery craftQuery;
+        private EntityQuery satelliteQuery;
         private EntityQuery stateQuery;
+        private EntityQuery modeQuery;
 
         private Material material;
         private Material backgroundMaterial;
+        private Material zoneMaterial;
 
         // 레이더가 속한 HUD 캔버스. 게임에 들어가기 전에는 꺼져 있음.
         private Canvas canvas;
@@ -355,6 +376,12 @@ namespace GalaxyIO.Scripts.Managed.UI
                 ComponentType.ReadOnly<LocalTransform>()
             );
             stateQuery = entityManager.CreateEntityQuery(ComponentType.ReadWrite<PlayerStateComponent>());
+            modeQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<GameModeComponent>());
+            satelliteQuery = entityManager.CreateEntityQuery(
+                ComponentType.ReadOnly<SatelliteComponent>(),
+                ComponentType.ReadOnly<SpaceshipSpecComponent>(),
+                ComponentType.ReadOnly<LocalTransform>()
+            );
 
             canvas = sweep.GetComponentInParent<Canvas>();
 
@@ -376,6 +403,10 @@ namespace GalaxyIO.Scripts.Managed.UI
             backgroundMaterial = new Material(background.material);
             background.material = backgroundMaterial;
 
+            zoneMaterial = new Material(zone.material);
+            zone.material = zoneMaterial;
+            zone.enabled = false;
+
             fadeOut = fadeOutTime;
         }
 
@@ -389,6 +420,11 @@ namespace GalaxyIO.Scripts.Managed.UI
             if (backgroundMaterial != null)
             {
                 Destroy(backgroundMaterial);
+            }
+
+            if (zoneMaterial != null)
+            {
+                Destroy(zoneMaterial);
             }
         }
 
@@ -615,6 +651,22 @@ namespace GalaxyIO.Scripts.Managed.UI
 
                 material.SetFloat(RangeRadiusId, range * scale);
 
+                // 전투 구역을 레이더 좌표로 환산. 자유 모드는 구역이 없음.
+                zone.enabled = !modeQuery.IsEmpty;
+
+                if (zone.enabled)
+                {
+                    Vector2 half = (Vector2)modeQuery.GetSingleton<GameModeComponent>().MapSize * 0.5F;
+
+                    zoneMaterial.SetFloat(RadiusId, radius);
+                    zoneMaterial.SetVector(ZoneId, new Vector4(
+                        (-half.x - center.x) * scale,
+                        (-half.y - center.y) * scale,
+                        (half.x - center.x) * scale,
+                        (half.y - center.y) * scale
+                    ));
+                }
+
                 // 위쪽 0도, 시계 방향. UI 회전은 반시계가 양수.
                 if (heading != null)
                 {
@@ -714,6 +766,31 @@ namespace GalaxyIO.Scripts.Managed.UI
                         blipBuffer[count++] = new Vector4(offset.x / viewRange, offset.y / viewRange, 1.0F, 2.0F);
                     }
                 }
+
+                // 점령전 위성은 탐지 거리와 관계없이 표시 거리 안이면 점령한 팀 색으로 늘 그림.
+                using var satellites = satelliteQuery.ToEntityArray(Allocator.Temp);
+
+                foreach (Entity satellite in satellites)
+                {
+                    if (count >= MaxBlips)
+                    {
+                        break;
+                    }
+
+                    Vector2 offset = (Vector2)entityManager.GetComponentData<LocalTransform>(satellite).Position.xy - center;
+                    Team owner = entityManager.GetComponentData<SatelliteComponent>(satellite).Owner;
+
+                    if (offset.sqrMagnitude <= viewRange * viewRange)
+                    {
+                        blipScaleBuffer[count] = BlipScale(entityManager.GetComponentData<SpaceshipSpecComponent>(satellite).Thickness);
+                        blipBuffer[count++] = new Vector4(
+                            offset.x / viewRange,
+                            offset.y / viewRange,
+                            1.0F,
+                            owner == Team.Red ? 3.0F : owner == Team.Blue ? 4.0F : 5.0F
+                        );
+                    }
+                }
             }
 
             while (blips.Count > 0 && Time.time - blips.Peek().ShowTime >= fadeOut)
@@ -800,7 +877,12 @@ namespace GalaxyIO.Scripts.Managed.UI
             {
                 Image image = Rent(blipImages, blipTemplate, i);
                 Vector4 blip = blipBuffer[i];
-                Color color = blip.w > 1.5F ? friendlyBlipColor : blip.w > 0.5F ? playerBlipColor : blipColor;
+                Color color = blip.w > 4.5F ? neutralSatelliteColor
+                    : blip.w > 3.5F ? blueSatelliteColor
+                    : blip.w > 2.5F ? redSatelliteColor
+                    : blip.w > 1.5F ? friendlyBlipColor
+                    : blip.w > 0.5F ? playerBlipColor
+                    : blipColor;
 
                 color.a *= blip.z;
                 image.color = color;
@@ -868,7 +950,8 @@ namespace GalaxyIO.Scripts.Managed.UI
                 var targetTransform = entityManager.GetComponentData<LocalTransform>(target);
                 Vector2 offset = (Vector2)targetTransform.Position.xy - center;
 
-                if (offset.sqrMagnitude > range * range)
+                // 위성은 스캔과 관계없이 늘 그림.
+                if (offset.sqrMagnitude > range * range || entityManager.HasComponent<SatelliteComponent>(target))
                 {
                     continue;
                 }

@@ -28,6 +28,7 @@ namespace GalaxyIO.DOTS.Inventory
         private readonly EntityQuery craftQuery;
         private readonly EntityQuery connectionQuery;
         private readonly EntityQuery spawnQuery;
+        private readonly EntityQuery modeQuery;
 
         // NetworkId -> 인벤토리
         private readonly Dictionary<int, PlayerInventory> inventories = new Dictionary<int, PlayerInventory>();
@@ -66,6 +67,7 @@ namespace GalaxyIO.DOTS.Inventory
             );
             connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
             spawnQuery = entityManager.CreateEntityQuery(ComponentType.ReadWrite<ItemSpawnMessage>());
+            modeQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<GameModeComponent>());
         }
 
         private ItemRegistryAsset Items => registryQuery.GetSingleton<ItemRegistryAssetComponent>().Value;
@@ -191,13 +193,13 @@ namespace GalaxyIO.DOTS.Inventory
         /// <summary>
         /// 재료를 소모해 같은 자리에서 다른 기종으로 바꿔 탐. 장착한 포탑은 그대로 옮기고(고정 포탑 제외) 강화는 처음부터.
         /// 자동 포탑은 옮기지 않음. 새 기종의 자동 포탑 칸은 비어 있음.
-        /// 이미 탄 기종이거나 프리팹이 없거나 재료가 모자라면 아무것도 안 함.
+        /// 이미 탄 기종이거나 프리팹이 없거나 재료가 모자라면 아무것도 안 함. 팀 모드에서는 리스폰 창에서만 기종을 고름.
         /// </summary>
         public void PurchaseSpaceship(int networkId, SpaceshipPurchaseRPC rpc)
         {
             Entity ship = FindShip(networkId);
 
-            if (ship == Entity.Null || spaceshipRegistryQuery.IsEmpty)
+            if (ship == Entity.Null || spaceshipRegistryQuery.IsEmpty || !modeQuery.IsEmpty)
             {
                 return;
             }
@@ -273,6 +275,12 @@ namespace GalaxyIO.DOTS.Inventory
                 foreach (Entity ship in ships)
                 {
                     int networkId = entityManager.GetComponentData<GhostOwner>(ship).NetworkId;
+
+                    // AI 가 조종하는 플레이어 기체(대장선)는 인벤토리가 없음.
+                    if (networkId <= 0)
+                    {
+                        continue;
+                    }
 
                     // 새 우주선은 프리팹에 장착된 포탑을 잠금 해제한 채로 시작함.
                     if (!inventories.ContainsKey(networkId))

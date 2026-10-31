@@ -140,9 +140,20 @@ namespace GalaxyIO.Tools.PopupUI.Window
             // 씬 로드·스트리밍·접속 동안 빈 화면이 보이지 않게 가림. 인게임에서 치움.
             CommonProgress.ShowAcrossScenes().Forget();
 
-            // 월드 생성 → 인게임 씬 로드 → 접속까지 `GameSession`이 처리함.
-            // 이 창은 로비 씬과 함께 꺼져 있다가 접속 실패 시 그대로 되살아남.
-            await GameSession.JoinAsClient(endpoint.Value, requestPlayerName);
+            // 월드 생성 → 접속 → 서버 모드의 인게임 씬 로드까지 `GameSession`이 처리함.
+            // 씬을 로드하기 전에 실패하면 로비에 그대로 남아 안내창을 띄움.
+            string failure = await GameSession.JoinAsClient(endpoint.Value, requestPlayerName);
+
+            if (failure == null) return;
+
+            CommonProgress.HideAcrossScenes();
+            SetLocked(false);
+
+            CommonMessageBox msgBox = await CommonMessageBox.Open(transform.parent);
+            if (msgBox == null) return;
+
+            msgBox.SetWinText(L10n.Get("GameStart/FailedTitle"), L10n.Get(failure));
+            msgBox.Refresh();
         }
 
         /// <summary>

@@ -7,7 +7,7 @@ namespace GalaxyIO.DOTS.Systems
 {
     /// <summary>
     /// 강화 단계(<see cref="UpgradeLevelElement"/>)를 우주선 능력치에 반영하는 시스템.
-    /// 단계만 복제하고 능력치는 서버와 클라이언트가 각자 같은 식으로 계산함.
+    /// 단계만 복제하고 능력치는 서버와 클라이언트가 각자 같은 식으로 계산함. 최대 체력은 서버만 계산해 복제함.
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderFirst = true)]
@@ -24,6 +24,8 @@ namespace GalaxyIO.DOTS.Systems
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            bool isServer = state.WorldUnmanaged.IsServer();
+
             foreach (
                 var (spec, movement, heat, parameters, levels) in
                 SystemAPI.Query<
@@ -34,7 +36,11 @@ namespace GalaxyIO.DOTS.Systems
                     DynamicBuffer<UpgradeLevelElement>
                 >()
             ) {
-                spec.ValueRW.MaxHealth = Upgrade.Value(parameters, levels, UpgradeParam.MaxHealth);
+                if (isServer)
+                {
+                    spec.ValueRW.MaxHealth = Upgrade.Value(parameters, levels, UpgradeParam.MaxHealth);
+                }
+
                 spec.ValueRW.Repair = Upgrade.Value(parameters, levels, UpgradeParam.Repair);
                 heat.ValueRW.MaxHeat = Upgrade.Value(parameters, levels, UpgradeParam.MaxHeat);
 

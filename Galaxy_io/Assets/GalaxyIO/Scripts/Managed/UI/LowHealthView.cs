@@ -1,9 +1,11 @@
 using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.Tools;
 using Newmoonhana.Runtime.Core;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
+using Unity.Transforms;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,6 +14,7 @@ namespace GalaxyIO.Scripts.Managed.UI
     /// <summary>
     /// 로컬 우주선 체력이 낮을 때 화면 가장자리를 붉게 맥동시키고 경보음을 내는 클라이언트 전용 뷰.
     /// 경보음은 포탑 과열 중에도 냄. 두 상태가 모두 끝날 때까지 한 번만 반복 재생함.
+    /// 팀 모드에서 전투 구역을 벗어나도 체력이 낮을 때처럼 경고함.
     /// </summary>
     public sealed class LowHealthView : MonoBehaviour
     {
@@ -68,6 +71,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private EntityQuery shipQuery;
         private EntityQuery heatQuery;
+        private EntityQuery modeQuery;
 
         // 비네트 진하기(0 ~ 1)
         private float weight;
@@ -93,12 +97,14 @@ namespace GalaxyIO.Scripts.Managed.UI
             shipQuery = clientWorld.EntityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<GhostOwnerIsLocal>(),
                 ComponentType.ReadOnly<PlayerSpaceshipMovementComponent>(),
-                ComponentType.ReadOnly<SpaceshipSpecComponent>()
+                ComponentType.ReadOnly<SpaceshipSpecComponent>(),
+                ComponentType.ReadOnly<LocalTransform>()
             );
             heatQuery = clientWorld.EntityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<GhostOwnerIsLocal>(),
                 ComponentType.ReadOnly<TurretHeatComponent>()
             );
+            modeQuery = clientWorld.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<GameModeComponent>());
         }
 
         private void LateUpdate()
@@ -114,6 +120,12 @@ namespace GalaxyIO.Scripts.Managed.UI
             {
                 using var specs = shipQuery.ToComponentDataArray<SpaceshipSpecComponent>(Allocator.Temp);
                 low = specs[0].MaxHealth > 0.0F && specs[0].Health < specs[0].MaxHealth * threshold;
+
+                if (!modeQuery.IsEmpty)
+                {
+                    using var transforms = shipQuery.ToComponentDataArray<LocalTransform>(Allocator.Temp);
+                    low |= !modeQuery.GetSingleton<GameModeComponent>().Contains(transforms[0].Position.xy);
+                }
             }
 
             if (alive && !heatQuery.IsEmpty)

@@ -79,6 +79,9 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 함재기 강화로 투사체 피해에 더하는 값
         public float DamageBonus;
 
+        // 대장선의 편대 번호(<see cref="KingSquadElement"/>). 일반 모선은 0.
+        public int Squad;
+
         public CarrierOrder Order;
 
         // 교전 대상. 공격 명령은 모선의 대상, 지역 확보와 호위는 함재기마다 고른 적.

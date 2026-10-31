@@ -1,5 +1,6 @@
 using GalaxyIO.DOTS.Collision;
 using GalaxyIO.DOTS.Components.Actor;
+using GalaxyIO.DOTS.Components.Singleton;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
@@ -34,13 +35,16 @@ namespace GalaxyIO.DOTS.Systems
                 Transforms = SystemAPI.GetComponentLookup<LocalTransform>(true),
                 Colliders  = SystemAPI.GetComponentLookup<ColliderComponent>(true),
                 Specs      = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
+                Satellites = SystemAPI.GetComponentLookup<SatelliteComponent>(true),
+                Crafts     = SystemAPI.GetComponentLookup<CarriedCraftComponent>(true),
             }.ScheduleParallel(state.Dependency);
         }
     }
 
     /// <summary>
     /// 대상 유효성 검사 후, 대상이 없으면 시야에 겹친 가장 가까운 우주선을 고름.
-    /// 진영 필터는 판정에서 이미 적용됨.
+    /// 진영 필터는 판정에서 이미 적용됨. 체력이 0 인 대상(e.g. 부서진 위성 포탑)은 노리지 않음.
+    /// AI 적은 아무도 점령하지 않은 위성을 노리지 않음. 함재기는 노림.
     /// </summary>
     [BurstCompile]
     [WithAll(typeof(Simulate))]
@@ -55,12 +59,20 @@ namespace GalaxyIO.DOTS.Systems
         [ReadOnly]
         public ComponentLookup<SpaceshipSpecComponent> Specs;
 
+        [ReadOnly]
+        public ComponentLookup<SatelliteComponent> Satellites;
+
+        [ReadOnly]
+        public ComponentLookup<CarriedCraftComponent> Crafts;
+
         private void Execute(
+            Entity entity,
             in DynamicBuffer<SightOverlapElement> overlaps,
             in LocalTransform transform,
             ref EnemyPerceptionComponent perception)
         {
             float2 position = transform.Position.xy;
+            bool craft = Crafts.HasComponent(entity);
 
             // 사라졌으면 놓침. 추격 거리(대상 선체 바깥부터) 밖이면 놓침. 피격으로 정한 대상도 있으므로 진영은 보지 않음.
             if (perception.CurrentTarget != Entity.Null)
@@ -70,7 +82,8 @@ namespace GalaxyIO.DOTS.Systems
                     : 0.0F;
                 float chaseDistance = perception.ChaseDistance + thickness * 0.5F;
 
-                if (TryGetCenter(perception.CurrentTarget, out float2 center)
+                if (!Ignores(perception.CurrentTarget, craft)
+                    && TryGetCenter(perception.CurrentTarget, out float2 center)
                     && math.distancesq(position, center) <= chaseDistance * chaseDistance)
                 {
                     perception.TargetPosition = center;
@@ -87,7 +100,7 @@ namespace GalaxyIO.DOTS.Systems
             {
                 CollisionMessage message = overlaps[i].Message;
 
-                if (!TryGetCenter(message.Other, out float2 center))
+                if (Ignores(message.Other, craft) || !TryGetCenter(message.Other, out float2 center))
                 {
                     continue;
                 }
@@ -100,6 +113,17 @@ namespace GalaxyIO.DOTS.Systems
 
                 return;
             }
+        }
+
+        // 노리지 않는 대상인지. 체력이 0 이거나, 함재기가 아닌 AI 에게 아무도 점령하지 않은 위성.
+        private bool Ignores(Entity target, bool craft)
+        {
+            if (Specs.TryGetComponent(target, out SpaceshipSpecComponent spec) && spec.Health <= 0.0F)
+            {
+                return true;
+            }
+
+            return !craft && Satellites.TryGetComponent(target, out SatelliteComponent satellite) && satellite.Owner == Team.None;
         }
 
         // 대상 충돌체의 월드 중심. 이미 파괴됐으면 false.

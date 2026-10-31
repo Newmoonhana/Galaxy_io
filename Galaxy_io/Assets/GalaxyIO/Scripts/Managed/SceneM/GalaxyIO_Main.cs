@@ -2,6 +2,7 @@
 using GalaxyIO.DOTS.Client.Networking;
 using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Components.Singleton;
+using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.DOTS.Networking;
 using GalaxyIO.Scripts.Managed.Background;
 using Unity.Collections;
@@ -47,7 +48,12 @@ namespace GalaxyIO.Main
         private EntityQuery inGameQuery;
         // 끊김 사유. 안내창 본문에 표기함.
         private EntityQuery disconnectQuery;
+        // 팀 모드 판 상태. 판이 끝나 결과 화면이 떠 있는 동안 리스폰 창을 감춤.
+        private EntityQuery modeStateQuery;
         private bool hasQueries;
+
+        // 새 판의 맵을 받는 동안 띄운 로딩 화면
+        private bool rebuilding;
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
         private RespawnUI respawnUI;
@@ -81,6 +87,9 @@ namespace GalaxyIO.Main
                 );
                 disconnectQuery = clientWorld.EntityManager.CreateEntityQuery(
                     ComponentType.ReadOnly<ClientDisconnectedMessage>()
+                );
+                modeStateQuery = clientWorld.EntityManager.CreateEntityQuery(
+                    ComponentType.ReadOnly<GameModeStateComponent>()
                 );
                 hasQueries = true;
 
@@ -167,10 +176,22 @@ namespace GalaxyIO.Main
         {
             bool visible = hasQueries && !inGameQuery.IsEmpty;
 
+            // 팀 모드의 새 판. 서버가 맵을 다시 만드는 동안 로딩 화면을 띄움.
+            bool loading = visible
+                           && !modeStateQuery.IsEmpty
+                           && modeStateQuery.GetSingleton<GameModeStateComponent>().LoadingUntil > clientWorld.Time.ElapsedTime;
+
+            if (loading && !rebuilding)
+            {
+                CommonProgress.ShowAcrossScenes().Forget();
+            }
+
+            rebuilding = loading;
+
             // 접속까지 끝났으면 로딩 오버레이를 치움.
             // 배경은 여기서 켜지 않음 — 접속 완료가 카메라 순간이동보다 몇 프레임 빨라서
             // 아직 원점에 있는 배경이 잠깐 보임. FollowPlayerEntity 가 카메라를 옮긴 뒤 켬.
-            if (visible)
+            if (visible && !loading)
             {
                 CommonProgress.HideAcrossScenes();
                 // 로딩이 끝났으므로 조작법 창을 펼침. 두 번째 호출부터는 무시됨
@@ -223,9 +244,11 @@ namespace GalaxyIO.Main
         }
 
         // 게임 오버 / 인게임 재시작 전환 감지. PlayerStateComponent.Dead 가 기준.
+        // 팀 모드 결과 화면이 떠 있는 동안은 죽어 있어도 리스폰 창을 띄우지 않음. 다음 판이 시작되면 다시 띄움.
         private void UpdateRespawnUI()
         {
-            bool dead = stateQuery.GetSingleton<PlayerStateComponent>().Dead;
+            bool finished = !modeStateQuery.IsEmpty && modeStateQuery.GetSingleton<GameModeStateComponent>().Winner != Team.None;
+            bool dead = stateQuery.GetSingleton<PlayerStateComponent>().Dead && !finished;
             if (dead == (respawnUI != null)) return;
 
             if (dead) OnGameOver();
@@ -408,7 +431,7 @@ namespace GalaxyIO.Main
         /// <summary>
         /// 서버 접속을 끊고 로비 메인으로 복귀.
         /// </summary>
-        private void QuitGame()
+        public void QuitGame()
         {
             isQuitting = true;
             ClientNetworkRequestManager.RequestQuit();

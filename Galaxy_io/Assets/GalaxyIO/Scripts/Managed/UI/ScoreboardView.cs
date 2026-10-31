@@ -1,4 +1,5 @@
 using GalaxyIO.DOTS.Components.Message;
+using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.Tools;
 using System.Collections.Generic;
 using Unity.Collections;
@@ -9,7 +10,7 @@ using UnityEngine;
 namespace GalaxyIO.Scripts.Managed.UI
 {
     /// <summary>
-    /// 화면 좌측 상단에 점수 상위 플레이어를 보여주는 클라이언트 전용 뷰.
+    /// 화면 좌측 상단에 점수 상위 플레이어를 보여주는 클라이언트 전용 뷰. 팀 모드에서는 처치 수 상위 플레이어를 보여 줌.
     /// </summary>
     public sealed class ScoreboardView : MonoBehaviour
     {
@@ -30,6 +31,10 @@ namespace GalaxyIO.Scripts.Managed.UI
         [Tooltip("로컬 플레이어가 얻은 점수를 띄울 뷰")]
         private DamagePopupView popups;
 
+        [SerializeField]
+        [Tooltip("팀 모드에서 처치 수를 받아 오는 팀 점수판")]
+        private TeamScoreboardView teamScoreboard;
+
         [Header("Colors")]
 
         [SerializeField]
@@ -49,6 +54,10 @@ namespace GalaxyIO.Scripts.Managed.UI
         private EntityManager entityManager;
         private EntityQuery messageQuery;
         private EntityQuery connectionQuery;
+        private EntityQuery modeQuery;
+
+        // 마지막으로 반영한 팀 점수판 버전
+        private int teamVersion = -1;
 
         // NetworkId 별 점수
         private readonly Dictionary<int, Entry> entries = new Dictionary<int, Entry>();
@@ -80,6 +89,7 @@ namespace GalaxyIO.Scripts.Managed.UI
                 ComponentType.ReadOnly<ReceiveRpcCommandRequest>()
             );
             connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
+            modeQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<GameModeComponent>());
 
             rows = new ScoreboardRow[maxRows];
 
@@ -110,6 +120,28 @@ namespace GalaxyIO.Scripts.Managed.UI
                     Refresh(0);
                 }
 
+                return;
+            }
+
+            // 팀 모드는 점수 대신 팀 점수판의 처치 수로 줄을 세움.
+            if (!modeQuery.IsEmpty)
+            {
+                entityManager.DestroyEntity(messageQuery);
+
+                if (teamVersion == teamScoreboard.Version)
+                {
+                    return;
+                }
+
+                teamVersion = teamScoreboard.Version;
+                entries.Clear();
+
+                foreach (TeamScoreboardView.Entry stat in teamScoreboard.Entries)
+                {
+                    entries[stat.NetworkId] = new Entry { NetworkId = stat.NetworkId, Name = stat.Name, Score = stat.Kills };
+                }
+
+                Refresh(connectionQuery.GetSingleton<NetworkId>().Value);
                 return;
             }
 
