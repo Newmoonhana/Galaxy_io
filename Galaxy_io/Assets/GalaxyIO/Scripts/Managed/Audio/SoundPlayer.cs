@@ -1,6 +1,9 @@
 using System;
 using Newmoonhana.Runtime.Core;
 using UnityEngine;
+#if UNITY_WEBGL && !UNITY_EDITOR
+using DarkTonic.MasterAudio;
+#endif
 
 namespace GalaxyIO.Scripts.Managed.Audio
 {
@@ -36,6 +39,31 @@ namespace GalaxyIO.Scripts.Managed.Audio
             if (!isActiveAndEnabled) return;
 
             if (SoundManager.Instance == null || string.IsNullOrEmpty(playlist)) return;
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // 웹은 곡을 비동기로 디코딩함. 디코딩 전에 재생하면 무음으로 지나가므로 곡을 전부 올린 뒤 재생함.
+            MasterAudio.Playlist songs = MasterAudio.GrabPlaylist(playlist);
+
+            if (songs != null)
+            {
+                foreach (MusicSetting song in songs.MusicSettings)
+                {
+                    if (song.clip != null) song.clip.LoadAudioData();
+                }
+
+                foreach (MusicSetting song in songs.MusicSettings)
+                {
+                    while (song.clip != null && song.clip.loadState == AudioDataLoadState.Loading)
+                    {
+                        try { await Awaitable.NextFrameAsync(destroyCancellationToken); }
+                        catch (OperationCanceledException) { return; }
+                    }
+                }
+
+                // 기다리는 동안 씬이 덮였으면 건너뜀.
+                if (!isActiveAndEnabled) return;
+            }
+#endif
 
             SoundManager.Instance.PlayBGM(playlist);
 

@@ -1,9 +1,11 @@
+using System;
 using System.Collections.Generic;
 using GalaxyIO.DOTS.Authoring;
 using GalaxyIO.DOTS.Authoring.Config;
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Client.Networking;
 using GalaxyIO.DOTS.Components.Singleton;
+using GalaxyIO.Tools.PopupUI.Popup;
 using Newmoonhana.Runtime.Tools.PopupUI.Window;
 using TMPro;
 using Unity.Entities;
@@ -17,11 +19,17 @@ namespace GalaxyIO.Tools.PopupUI.Window
     /// <summary>
     /// 리스폰 창. 자유 모드는 리스폰 버튼 하나, 팀 모드는 분류 버튼(계급장 | 우리 팀 기체 수 / 최대 수)과
     /// 고른 분류의 기종 목록을 보여 줌. 기종을 눌러 고르고 출격 버튼으로 부활함. 고른 기종을 다시 누르면 사양 창을 엶.
-    /// 위에는 격추한 쪽, 아래에는 남은 대기 시간.
+    /// 위에는 격추한 쪽, 아래에는 남은 대기 시간. 웹은 로비가 없어서 나가기 대신 크레딧, 설정 버튼을 둠.
     /// </summary>
     public class WindowRespawn : WindowBase
     {
         [SerializeField] private Button quit_btn;
+
+        [Header("Web")]
+        [Tooltip("웹 빌드에서만 켜는 크레딧 버튼")]
+        [SerializeField] private Button credit_btn;
+        [Tooltip("웹 빌드에서만 켜는 설정 버튼")]
+        [SerializeField] private Button settings_btn;
 
         [Tooltip("자유 모드의 리스폰 버튼")]
         [SerializeField] private GameObject respawn_obj;
@@ -85,6 +93,13 @@ namespace GalaxyIO.Tools.PopupUI.Window
             spec_win.Deactivate();
             spec_win.Close();
 
+#if UNITY_WEBGL && !UNITY_EDITOR
+            quit_btn.gameObject.SetActive(false);
+#else
+            credit_btn.gameObject.SetActive(false);
+            settings_btn.gameObject.SetActive(false);
+#endif
+
             clientWorld = ClientServerBootstrap.ClientWorld;
 
             if (clientWorld == null) return;
@@ -107,6 +122,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
             base.OnEnable();
             quit_btn.onClick.AddListener(OnQuitBtnPress);
             start_btn.onClick.AddListener(OnStartBtnPress);
+            credit_btn.onClick.AddListener(OnCreditBtnPress);
+            settings_btn.onClick.AddListener(OnSettingsBtnPress);
         }
 
         protected override void OnDisable()
@@ -114,6 +131,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
             base.OnDisable();
             quit_btn.onClick.RemoveListener(OnQuitBtnPress);
             start_btn.onClick.RemoveListener(OnStartBtnPress);
+            credit_btn.onClick.RemoveListener(OnCreditBtnPress);
+            settings_btn.onClick.RemoveListener(OnSettingsBtnPress);
         }
 
         private void Update()
@@ -262,6 +281,26 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             if (!IsActive()) return;
             _quit?.Invoke();
+        }
+
+        private void OnCreditBtnPress()
+        {
+            if (!IsActive()) return;
+            OpenPopup(CommonCredit.Open).Forget();
+        }
+
+        private void OnSettingsBtnPress()
+        {
+            if (!IsActive()) return;
+            OpenPopup(CommonOption.Open).Forget();
+        }
+
+        private async Awaitable OpenPopup(Func<Awaitable> _open)
+        {
+            // 로드 중 중복 입력 방지. 열린 뒤엔 팝업의 BlockerUI가 입력 차단.
+            Deactivate();
+            await _open();
+            Activate();
         }
     }
 }
