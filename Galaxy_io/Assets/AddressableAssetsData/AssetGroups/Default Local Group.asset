@@ -65,6 +65,11 @@ MonoBehaviour:
     m_ReadOnly: 0
     m_SerializedLabels: []
     FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dbf50546b6d7b2b419e9ef847bf1a2c2
+    m_Address: Common_Credit
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
   - m_GUID: ef1484e690c4c484297b5c657ee794bd
     m_Address: Lobby_UI
     m_ReadOnly: 0

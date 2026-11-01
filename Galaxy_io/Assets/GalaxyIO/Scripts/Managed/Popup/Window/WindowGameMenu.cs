@@ -6,7 +6,7 @@ using UnityEngine.UI;
 namespace GalaxyIO.Tools.PopupUI.Window
 {
     /// <summary>
-    /// 인게임 메뉴 창. 게임 재개/나가기.
+    /// 인게임 메뉴 창. 게임 재개/나가기. 웹은 나가기 없음.
     /// </summary>
     public class WindowGameMenu : WindowBase
     {
@@ -29,6 +29,11 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
             //인게임 팝업이 살아 있으면 중복 표기가 되므로 끔
             controlGuide_obj.SetActive(Popup.ControlUI.IsClosed);
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // 웹은 돌아갈 로비가 없음.
+            quit_btn.gameObject.SetActive(false);
+#endif
         }
 
         public override void Dispose()

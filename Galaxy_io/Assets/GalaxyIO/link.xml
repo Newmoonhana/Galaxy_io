@@ -1,0 +1,7 @@
+<!-- 코드 스트리핑 예외. -->
+<linker>
+    <!-- 웹 도메인 접속용 internal 생성자를 리플렉션으로 씀 (LobbyBootstrap). -->
+    <assembly fullname="Unity.Networking.Transport">
+        <type fullname="Unity.Networking.Transport.NetworkEndpoint" preserve="all"/>
+    </assembly>
+</linker>
