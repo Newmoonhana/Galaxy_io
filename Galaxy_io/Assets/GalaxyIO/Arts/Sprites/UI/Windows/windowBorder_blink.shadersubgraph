@@ -227,7 +227,7 @@
     "m_Type": "UnityEditor.ShaderGraph.Vector1MaterialSlot",
     "m_ObjectId": "058e7dac66834199ad4e476fb921b5d5",
     "m_Id": 0,
-    "m_DisplayName": "Vector1",
+    "m_DisplayName": "alphaTex",
     "m_SlotType": 1,
     "m_Hidden": false,
     "m_HideConnector": false,
@@ -429,7 +429,7 @@
         "x"
     ],
     "m_Precision": 0,
-    "m_PreviewExpanded": true,
+    "m_PreviewExpanded": false,
     "m_DismissedVersion": 0,
     "m_PreviewMode": 0,
     "m_CustomColors": {
@@ -801,9 +801,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -286.0,
-            "y": -138.99996948242188,
-            "width": 208.00001525878906,
+            "x": -370.0,
+            "y": -186.0,
+            "width": 208.0,
             "height": 278.0
         }
     },
@@ -887,10 +887,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": 16.000051498413086,
-            "y": -138.99996948242188,
-            "width": 207.9999237060547,
-            "height": 325.99993896484375
+            "x": -22.0,
+            "y": -139.0,
+            "width": 208.0,
+            "height": 326.0
         }
     },
     "m_Slots": [
@@ -1040,10 +1040,10 @@
     "promotedFromAssetID": "",
     "promotedFromCategoryName": "",
     "promotedOrdering": -1,
-    "m_Name": "Vector1",
+    "m_Name": "alphaTex",
     "m_DefaultRefNameVersion": 1,
-    "m_RefNameGeneratedByDisplayName": "Vector1",
-    "m_DefaultReferenceName": "_Vector1",
+    "m_RefNameGeneratedByDisplayName": "alphaTex",
+    "m_DefaultReferenceName": "_alphaTex",
     "m_OverrideReferenceName": "",
     "m_GeneratePropertyBlock": true,
     "m_UseCustomSlotLabel": false,

@@ -241,7 +241,7 @@
     "m_CustomPragmas": [],
     "m_CustomDefines": [],
     "m_CustomIncludes": [],
-    "m_PreviewMode": 2,
+    "m_PreviewMode": 1,
     "m_OutputNode": {
         "m_Id": "84c84f7760e64e62885eaad4df344b88"
     },
@@ -976,9 +976,9 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -565.0,
-            "y": -212.00001525878906,
-            "width": 207.99996948242188,
+            "x": -602.0,
+            "y": -201.0,
+            "width": 208.0,
             "height": 313.0
         }
     },
@@ -1348,7 +1348,7 @@
     "m_Precision": 0,
     "m_PreviewExpanded": true,
     "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
+    "m_PreviewMode": 1,
     "m_CustomColors": {
         "m_SerializableColors": []
     }
@@ -1454,7 +1454,7 @@
     "m_Precision": 0,
     "m_PreviewExpanded": true,
     "m_DismissedVersion": 0,
-    "m_PreviewMode": 0,
+    "m_PreviewMode": 1,
     "m_CustomColors": {
         "m_SerializableColors": []
     },
