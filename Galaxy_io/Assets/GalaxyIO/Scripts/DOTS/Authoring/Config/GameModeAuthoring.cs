@@ -92,6 +92,9 @@ namespace GalaxyIO.DOTS.Authoring.Config
         [Min(0.0F)]
         public float ScoutArrival = 30.0F;
 
+        [Tooltip("적 대장선을 못 찾은 편대가 마지막 위치에서 찾아볼 지점까지의 거리 범위 (최소, 최대)")]
+        public Vector2 SearchDistance = new Vector2(100.0F, 250.0F);
+
         [Tooltip("편대를 내보내는 간격(초)")]
         [Min(0.0F)]
         public float LaunchCooldown = 10.0F;
@@ -209,6 +212,7 @@ namespace GalaxyIO.DOTS.Authoring.Config
                     MinDistance           = authoring.KingMinDistance,
                     ScoutDistance         = Sort(authoring.ScoutDistance),
                     ScoutArrival          = authoring.ScoutArrival,
+                    SearchDistance        = Sort(authoring.SearchDistance),
                     LaunchCooldown        = authoring.LaunchCooldown,
                     SquadSize             = authoring.SquadSize,
                     MaxSquads             = authoring.MaxSquads,
