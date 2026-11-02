@@ -109,6 +109,10 @@ InitTestScene*.unity*
 # Auto-generated scenes by play mode tests
 /[Aa]ssets/[Ii]nit[Tt]est[Ss]cene*.unity*
 
+# 테스트 샘플 경로 제거
+/[Aa]ssets/[Ss]amples/[Ss]haderExamples
+/[Aa]ssets/[Ss]amples/[Ss]haderExamples.meta
+
 # Local temp files & caches
 _Recovery
 _Recovery.meta

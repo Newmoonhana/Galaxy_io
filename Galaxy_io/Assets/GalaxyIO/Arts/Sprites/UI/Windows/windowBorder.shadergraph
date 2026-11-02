@@ -1280,10 +1280,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -1202.999755859375,
-            "y": 774.0,
-            "width": 207.9998779296875,
-            "height": 301.9998779296875
+            "x": -1250.0,
+            "y": 783.0000610351563,
+            "width": 135.0,
+            "height": 118.0
         }
     },
     "m_Slots": [
@@ -1303,7 +1303,7 @@
         "plus"
     ],
     "m_Precision": 0,
-    "m_PreviewExpanded": true,
+    "m_PreviewExpanded": false,
     "m_DismissedVersion": 0,
     "m_PreviewMode": 0,
     "m_CustomColors": {
@@ -3135,7 +3135,7 @@
     "m_Title": "외곽선 완성",
     "m_Position": {
         "x": -1483.0,
-        "y": 586.0
+        "y": 538.0
     }
 }
 
@@ -4508,10 +4508,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -896.999755859375,
+            "x": -949.9999389648438,
             "y": 415.9999694824219,
-            "width": 154.9998779296875,
-            "height": 118.00003051757813
+            "width": 207.99993896484375,
+            "height": 302.0000305175781
         }
     },
     "m_Slots": [
@@ -4527,7 +4527,7 @@
     ],
     "synonyms": [],
     "m_Precision": 0,
-    "m_PreviewExpanded": false,
+    "m_PreviewExpanded": true,
     "m_DismissedVersion": 0,
     "m_PreviewMode": 0,
     "m_CustomColors": {
@@ -4842,8 +4842,8 @@
         "m_Position": {
             "serializedVersion": "2",
             "x": 872.0,
-            "y": 521.0,
-            "width": 207.9998779296875,
+            "y": 505.0,
+            "width": 208.0,
             "height": 125.0
         }
     },
@@ -4865,8 +4865,8 @@
     "m_Color": {
         "color": {
             "r": 0.0,
-            "g": 2.495086908340454,
-            "b": 5.992157459259033,
+            "g": 1.247543454170227,
+            "b": 2.9960787296295166,
             "a": 0.0
         },
         "mode": 1
@@ -6229,10 +6229,10 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -969.9998168945313,
-            "y": 772.0,
-            "width": 207.99993896484375,
-            "height": 301.9998779296875
+            "x": -1095.0,
+            "y": 783.0000610351563,
+            "width": 154.99993896484375,
+            "height": 118.0
         }
     },
     "m_Slots": [
@@ -6248,7 +6248,7 @@
     ],
     "synonyms": [],
     "m_Precision": 0,
-    "m_PreviewExpanded": true,
+    "m_PreviewExpanded": false,
     "m_DismissedVersion": 0,
     "m_PreviewMode": 0,
     "m_CustomColors": {
@@ -6614,8 +6614,8 @@
         "m_Expanded": true,
         "m_Position": {
             "serializedVersion": "2",
-            "x": -665.0000610351563,
-            "y": 692.0000610351563,
+            "x": -620.0,
+            "y": 599.0000610351563,
             "width": 208.00003051757813,
             "height": 302.0
         }
