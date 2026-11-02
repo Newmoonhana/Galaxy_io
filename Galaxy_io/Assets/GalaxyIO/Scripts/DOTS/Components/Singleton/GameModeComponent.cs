@@ -161,6 +161,9 @@ namespace GalaxyIO.DOTS.Components.Singleton
         // 정찰대가 정찰 지점을 둘러싼 자리에 이만큼 다가가면 돌아옴.
         public float ScoutArrival;
 
+        // 적 대장선을 못 찾은 편대가 마지막 위치에서 찾아볼 지점까지의 거리 범위 (최소, 최대)
+        public float2 SearchDistance;
+
         // 편대를 내보내는 간격(초)
         public float LaunchCooldown;
 

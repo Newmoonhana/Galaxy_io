@@ -43,8 +43,8 @@ namespace GalaxyIO.DOTS.Systems
         private const float ExitMargin = 200.0F;
         private const float InnerMargin = 350.0F;
 
-        // 가려는 방향이 기수에서 이 각도(도) 넘게 벗어나 있으면 가속하지 않고 줄여 가며 돎.
-        // 모선은 빠를수록 거의 돌지 못해(ManeuverPenalty) 가속한 채로 돌면 큰 원을 그리며 밀려 나감.
+        // 맵 가장자리에서 돌아오거나 추격할 때, 가려는 방향이 기수에서 이 각도(도) 넘게 벗어나 있으면
+        // 가속하지 않고 줄여 가며 돎. 모선은 빠를수록 거의 돌지 못해(ManeuverPenalty) 가속한 채로 돌면 밀려 나감.
         private const float TurnAccelerationAngle = 30.0F;
 
         // 상대 팀에게 맞으면 팀에 알림. 이 간격(초)마다 한 번, 마지막으로 맞은 지 AlertRecent 초 안일 때만.
@@ -166,18 +166,18 @@ namespace GalaxyIO.DOTS.Systems
                 }
 
                 // 함재기가 찾음. 팀원에게도 핑을 찍어 줌. 함재기가 모두 사라지면 핑을 지움.
+                // 같은 팀 함재기가 하나라도 보고 있으면 공격 편대가 적 대장선의 실시간 위치를 따라감.
                 bool craftsOut = false;
+                bool spotted = false;
+                bool tracked = false;
+                uint party = Teams.Party(king.Team);
 
                 foreach (Entity craft in crafts)
                 {
-                    if (SystemAPI.GetComponent<CarriedCraftComponent>(craft).Carrier != entity)
-                    {
-                        continue;
-                    }
+                    bool own = SystemAPI.GetComponent<CarriedCraftComponent>(craft).Carrier == entity;
+                    craftsOut |= own;
 
-                    craftsOut = true;
-
-                    if (!hasEnemy)
+                    if (!hasEnemy || (!own && SystemAPI.GetComponent<FactionComponent>(craft).Party != party))
                     {
                         continue;
                     }
@@ -190,7 +190,15 @@ namespace GalaxyIO.DOTS.Systems
                         }
 
                         king.EnemyPosition = enemyPosition;
+                        tracked = true;
+
+                        if (!own)
+                        {
+                            break;
+                        }
+
                         king.KnownUntil = math.max(king.KnownUntil, time + KingCarrierComponent.SightMemory);
+                        spotted = true;
                         sights.Add(new CraftSight
                         {
                             Team     = king.Team,
@@ -335,10 +343,12 @@ namespace GalaxyIO.DOTS.Systems
                     input.MouseCursor = position + steered * math.max(math.length(toCursor), CursorDistance);
                 }
 
-                // 가려는 쪽이 기수에서 크게 벗어나 있으면 가속을 떼고 줄여 가며 돎. 느려지면 더 빨리 돎.
+                // 돌아오거나 추격할 때 가려는 쪽이 기수에서 크게 벗어나 있으면 가속을 떼고 줄여 가며 돎. 느려지면 더 빨리 돎.
+                // 탐색, 도주 중에는 줄이지 않음.
                 float2 wanted = math.normalizesafe(input.MouseCursor - position, heading);
 
-                if (input.AccelerationTriggered && math.dot(heading, wanted) < math.cos(math.radians(TurnAccelerationAngle)))
+                if ((king.Returning || king.State == KingCarrierState.Chasing)
+                    && input.AccelerationTriggered && math.dot(heading, wanted) < math.cos(math.radians(TurnAccelerationAngle)))
                 {
                     input.AccelerationTriggered = false;
 
@@ -351,14 +361,51 @@ namespace GalaxyIO.DOTS.Systems
 
                 inputs.AddCommandData(new InputBufferData<PlayerInputComponent> { Tick = tick, InternalInput = input });
 
-                // 편대 정리: 정찰대는 정찰 지점에 닿으면, 확보 편대는 지점에 닿았는데 교전할 적이 없으면,
-                // 호위대는 더 쫓기지 않고 교전도 끝나면 돌아옴.
+                // 편대 정리: 함재기가 적 대장선을 찾으면 나가 있는 편대가 모두 공격하고, 플레이어 핑을 받으면 그 위치로 감.
+                // 공격 편대는 보는 함재기가 없어지면 마지막 위치 근처를 찾아봄. 귀환, 호위 편대는 그대로 둠.
+                // 정찰대는 정찰 지점에 닿으면, 확보 편대는 지점에 닿았는데 교전할 적이 없으면,
+                // 호위대는 더 쫓기지 않고 교전도 끝나면 돌아옴. 적 대장선을 찾는 편대는 못 찾으면 근처를 찾아봄.
+                bool pinged = king.Pinged;
+                king.Pinged = false;
+
                 for (int i = 0; i < squads.Length; i++)
                 {
                     KingSquadElement squad = squads[i];
 
                     if (squad.Order == CarrierOrder.None || squad.Order == CarrierOrder.Return)
                     {
+                        continue;
+                    }
+
+                    // 출격한 지 일정 시간이 지나면 무조건 돌아옴.
+                    bool expired = time - squad.LaunchTime >= config.SquadTime;
+                    bool escort = squad.Order == CarrierOrder.Escort;
+
+                    if (!expired && !escort && spotted)
+                    {
+                        if (squad.Order != CarrierOrder.Attack || squad.Target != enemy)
+                        {
+                            squad.Order = CarrierOrder.Attack;
+                            squad.Target = enemy;
+                            squad.Reassign = true;
+                            squad.Scouting = false;
+                            squad.Hunting = false;
+                            squads.ElementAt(i) = squad;
+                        }
+
+                        continue;
+                    }
+
+                    bool lost = squad.Order == CarrierOrder.Attack && squad.Target == enemy && !tracked;
+
+                    if (!expired && !escort && (pinged || lost))
+                    {
+                        squad.Order = CarrierOrder.SecureArea;
+                        squad.Position = king.EnemyPosition;
+                        squad.Reassign = true;
+                        squad.Scouting = false;
+                        squad.Hunting = true;
+                        squads.ElementAt(i) = squad;
                         continue;
                     }
 
@@ -380,8 +427,16 @@ namespace GalaxyIO.DOTS.Systems
                                    && math.distance(SystemAPI.GetComponent<LocalTransform>(craft).Position.xy, craftState.Slot) <= config.ScoutArrival;
                     }
 
-                    // 출격한 지 일정 시간이 지나면 무조건 돌아옴.
-                    bool expired = time - squad.LaunchTime >= config.SquadTime;
+                    if (!expired && squad.Hunting && squad.Order == CarrierOrder.SecureArea && arrived && !engaging)
+                    {
+                        float2 search = king.EnemyPosition
+                                        + random.NextFloat2Direction() * random.NextFloat(config.SearchDistance.x, config.SearchDistance.y);
+
+                        squad.Position = math.clamp(search, -half, half);
+                        squad.Reassign = true;
+                        squads.ElementAt(i) = squad;
+                        continue;
+                    }
 
                     if (expired
                         || (squad.Scouting && arrived)
@@ -391,6 +446,7 @@ namespace GalaxyIO.DOTS.Systems
                         squad.Order = CarrierOrder.Return;
                         squad.Reassign = true;
                         squad.Scouting = false;
+                        squad.Hunting = false;
                         squads.ElementAt(i) = squad;
                     }
                 }
@@ -436,8 +492,18 @@ namespace GalaxyIO.DOTS.Systems
                         break;
 
                     case KingCarrierState.Chasing:
-                        launched.Order = CarrierOrder.SecureArea;
                         launched.Position = king.EnemyPosition;
+
+                        if (spotted)
+                        {
+                            launched.Order = CarrierOrder.Attack;
+                            launched.Target = enemy;
+                        }
+                        else
+                        {
+                            launched.Order = CarrierOrder.SecureArea;
+                            launched.Hunting = true;
+                        }
                         break;
 
                     default:

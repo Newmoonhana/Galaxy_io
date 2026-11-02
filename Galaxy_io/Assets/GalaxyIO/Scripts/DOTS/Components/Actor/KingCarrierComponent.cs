@@ -44,6 +44,9 @@ namespace GalaxyIO.DOTS.Components.Actor
         // 적 대장선을 직접 찾음. 아니면 보고만 받음.
         public bool EnemySighted;
 
+        // 플레이어 핑을 새로 받음. 나가 있는 편대를 핑 위치로 보내고 지움.
+        public bool Pinged;
+
         // 직전 틱의 체력과 마지막으로 맞은 시각. 쫓기는지 판단함.
         public float LastHealth;
         public double LastHitTime;
@@ -82,6 +85,9 @@ namespace GalaxyIO.DOTS.Components.Actor
 
         // 정찰대. 정찰 지점에 닿으면 돌아옴.
         public bool Scouting;
+
+        // 적 대장선을 찾는 편대. 지점에 닿았는데 못 찾으면 작전 시간이 끝날 때까지 근처를 찾아봄.
+        public bool Hunting;
 
         // 출격한 시각(ElapsedTime). 작전 시간이 지나면 돌아옴.
         public double LaunchTime;

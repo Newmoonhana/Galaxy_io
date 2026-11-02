@@ -351,6 +351,7 @@ namespace GalaxyIO.DOTS.Match
             KingCarrierComponent state = entityManager.GetComponentData<KingCarrierComponent>(king);
             state.EnemyPosition = enemyPosition;
             state.EnemySighted = false;
+            state.Pinged = true;
             state.KnownUntil = math.max(state.KnownUntil, time + KingCarrierComponent.PingMemory);
             entityManager.SetComponentData(king, state);
         }
