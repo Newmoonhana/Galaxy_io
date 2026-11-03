@@ -35,10 +35,6 @@ MonoBehaviour:
     m_Key: Common/Hide
     m_Metadata:
       m_Items: []
-  - m_Id: 7374434307
-    m_Key: Common/Loading
-    m_Metadata:
-      m_Items: []
   - m_Id: 7374434308
     m_Key: Common/UnknownError
     m_Metadata:
