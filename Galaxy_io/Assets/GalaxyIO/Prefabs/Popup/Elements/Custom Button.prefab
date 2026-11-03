@@ -121,12 +121,12 @@ MonoBehaviour:
   isValid: 1
   target: {fileID: 7447782636833432273}
   animationType: 5
-  targetType: 5
+  targetType: 11
   forcedTargetType: 0
   autoPlay: 0
   useTargetAsV3: 0
   endValueFloat: 0
-  endValueV3: {x: 1.06, y: 1.06, z: 1}
+  endValueV3: {x: 1.01, y: 1.01, z: 1}
   endValueV2: {x: 0, y: 0}
   endValueColor: {r: 1, g: 1, b: 1, a: 1}
   endValueString: 
@@ -296,7 +296,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 2100000, guid: 87c87b47db8b3624f851fbe74e2a5de0, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -554,7 +554,7 @@ MonoBehaviour:
   autoPlay: 0
   useTargetAsV3: 0
   endValueFloat: 0
-  endValueV3: {x: 0.94, y: 0.94, z: 1}
+  endValueV3: {x: 0.96, y: 0.96, z: 1}
   endValueV2: {x: 0, y: 0}
   endValueColor: {r: 1, g: 1, b: 1, a: 1}
   endValueString: 

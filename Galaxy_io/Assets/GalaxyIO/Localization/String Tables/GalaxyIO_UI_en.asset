@@ -38,10 +38,6 @@ MonoBehaviour:
     m_Localized: Hide
     m_Metadata:
       m_Items: []
-  - m_Id: 7374434307
-    m_Localized: Loading...
-    m_Metadata:
-      m_Items: []
   - m_Id: 7374434308
     m_Localized: something error...
     m_Metadata:
