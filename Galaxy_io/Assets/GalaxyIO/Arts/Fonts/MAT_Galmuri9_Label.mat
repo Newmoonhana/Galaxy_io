@@ -58,7 +58,7 @@ Material:
     - _ColorMask: 15
     - _EnableExternalAlpha: 0
     - _OUTLINE: 0
-    - _Padding: 3
+    - _Padding: 4
     - _QueueControl: 0
     - _QueueOffset: 0
     - _Stencil: 0
