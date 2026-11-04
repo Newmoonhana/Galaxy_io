@@ -707,11 +707,11 @@ MonoBehaviour:
     m_Metadata:
       m_Items: []
   - m_Id: 11355460045959171
-    m_Localized: "\uCF58\uD150\uCE20 \uAC1C\uBC1C\uC790, DOTS \uC11C\uBC84: Yesssssman"
+    m_Localized: "Yesssssman: \uCF58\uD150\uCE20 \uAC1C\uBC1C\uC790, DOTS \uC11C\uBC84"
     m_Metadata:
       m_Items: []
   - m_Id: 11355460045959172
-    m_Localized: "UI \uAC1C\uBC1C\uC790, \uB514\uC790\uC778, \uD37C\uBE14\uB9AC\uC2F1, JW \uC11C\uBC84: Newmoonhana"
+    m_Localized: "Newmoonhana: UI \uAC1C\uBC1C\uC790, \uB514\uC790\uC778, \uD37C\uBE14\uB9AC\uC2F1, JW \uC11C\uBC84"
     m_Metadata:
       m_Items: []
   - m_Id: 11372196778536960
