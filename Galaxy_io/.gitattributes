@@ -180,3 +180,7 @@ Packages/packages-lock.json linguist-generated
 
 # Exceptions for .asset files such as lightning pre-baking
 LightingData.asset     binary
+
+# LFS 제외: main과 동일하게 일반 git 바이너리로 관리
+Assets/AssetInventory/Editor/Images/Animation/Test.fbx -filter binary
+Assets/AssetInventory/Editor/ThirdParty/LibGit2Sharp/NativeBinaries/linux-x64/native/libgit2-3f4182d.so -filter binary
