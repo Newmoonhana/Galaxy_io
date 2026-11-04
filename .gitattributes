@@ -6,4 +6,5 @@
 # Galaxy_io/.gitattributes. Keep them in sync with that file.
 [attr]lfs               filter=lfs diff=lfs merge=lfs -text
 [attr]unity-json        eol=lf linguist-language=json
-[attr]unity-yaml        merge=unityyamlmerge eol=lf linguist-language=yaml
+# unity-yaml은 git 기본 텍스트 병합 사용. UnityYAMLMerge는 .meta 미지원, 충돌 마커 미기록, 문자열 테이블 중복 항목 생성 문제로 제외.
+[attr]unity-yaml        eol=lf linguist-language=yaml
