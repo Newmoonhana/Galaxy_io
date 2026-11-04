@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1600882333845801381}
   - component: {fileID: 5652394972325434251}
-  - component: {fileID: 4207448386910516236}
   m_Layer: 5
   m_Name: Canvas_GameStartPrivate
   m_TagString: Untagged
@@ -62,23 +61,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!114 &4207448386910516236
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 441212991604620302}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
-  m_IgnoreReversedGraphics: 1
-  m_BlockingObjects: 0
-  m_BlockingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
 --- !u!1 &1026209862855949607
 GameObject:
   m_ObjectHideFlags: 0
@@ -324,7 +306,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7589071031453950295}
   - component: {fileID: 4391304844395610824}
-  - component: {fileID: 130299909652184548}
   m_Layer: 5
   m_Name: Canvas_ServerBranch
   m_TagString: Untagged
@@ -376,23 +357,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!114 &130299909652184548
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3372614538600998334}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
-  m_IgnoreReversedGraphics: 1
-  m_BlockingObjects: 0
-  m_BlockingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
 --- !u!1 &4562714406553583138
 GameObject:
   m_ObjectHideFlags: 0
@@ -482,7 +446,6 @@ GameObject:
   m_Component:
   - component: {fileID: 8181570416858757536}
   - component: {fileID: 5165599719815238943}
-  - component: {fileID: 4101421730197519121}
   m_Layer: 5
   m_Name: Canvas_SignUp
   m_TagString: Untagged
@@ -534,23 +497,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!114 &4101421730197519121
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4726774708747376343}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
-  m_IgnoreReversedGraphics: 1
-  m_BlockingObjects: 0
-  m_BlockingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
 --- !u!1 &4760468629717182128
 GameObject:
   m_ObjectHideFlags: 0
@@ -561,7 +507,6 @@ GameObject:
   m_Component:
   - component: {fileID: 6599347179129127213}
   - component: {fileID: 3388421681160454054}
-  - component: {fileID: 654148927649338973}
   m_Layer: 5
   m_Name: Canvas_SignIn
   m_TagString: Untagged
@@ -613,23 +558,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!114 &654148927649338973
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4760468629717182128}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
-  m_IgnoreReversedGraphics: 1
-  m_BlockingObjects: 0
-  m_BlockingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
 --- !u!1 &5627063355671976966
 GameObject:
   m_ObjectHideFlags: 0
@@ -781,7 +709,6 @@ GameObject:
   m_Component:
   - component: {fileID: 3267230632053030465}
   - component: {fileID: 1499933750658582701}
-  - component: {fileID: 837347501844219289}
   m_Layer: 5
   m_Name: Canvas_ServerHost
   m_TagString: Untagged
@@ -833,23 +760,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!114 &837347501844219289
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6095853225174431269}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
-  m_IgnoreReversedGraphics: 1
-  m_BlockingObjects: 0
-  m_BlockingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
 --- !u!1 &6577892216461446121
 GameObject:
   m_ObjectHideFlags: 0
@@ -860,7 +770,6 @@ GameObject:
   m_Component:
   - component: {fileID: 7479443413472942233}
   - component: {fileID: 3465672880584436854}
-  - component: {fileID: 9198861804623218478}
   m_Layer: 5
   m_Name: Canvas_GameStartPublic
   m_TagString: Untagged
@@ -912,23 +821,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!114 &9198861804623218478
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6577892216461446121}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
-  m_IgnoreReversedGraphics: 1
-  m_BlockingObjects: 0
-  m_BlockingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
 --- !u!1 &7039990295196139107
 GameObject:
   m_ObjectHideFlags: 0
@@ -1018,7 +910,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2228927685393917972}
   - component: {fileID: 8724541572670131531}
-  - component: {fileID: 1750623866949950644}
   m_Layer: 5
   m_Name: Canvas_SignUpJWServer
   m_TagString: Untagged
@@ -1070,23 +961,6 @@ Canvas:
   m_SortingLayerID: 0
   m_SortingOrder: 0
   m_TargetDisplay: 0
---- !u!114 &1750623866949950644
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7946125664406382282}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc42784cf147c0c48a680349fa168899, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.GraphicRaycaster
-  m_IgnoreReversedGraphics: 1
-  m_BlockingObjects: 0
-  m_BlockingMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
 --- !u!1 &8615642141066535667
 GameObject:
   m_ObjectHideFlags: 0
