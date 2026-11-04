@@ -572,6 +572,7 @@ GameObject:
   - component: {fileID: 6213973724772766426}
   - component: {fileID: 6673703370643100900}
   - component: {fileID: 7118699152214149736}
+  - component: {fileID: 6621054016122552459}
   m_Layer: 5
   m_Name: WIN_Msg
   m_TagString: Untagged
@@ -657,6 +658,18 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &6621054016122552459
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6770510700677496695}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 252f80479e3075247888e16c97c7ea33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Scripts.Managed.UI.SpriteLocalUV
 --- !u!1 &7525868842097930471
 GameObject:
   m_ObjectHideFlags: 0

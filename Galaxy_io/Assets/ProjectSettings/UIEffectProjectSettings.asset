@@ -41,6 +41,7 @@ MonoBehaviour:
     m_RegisteredShaders:
     - {fileID: 4800000, guid: 96246b1ead49a4c5a996fd477bc5a117, type: 3}
     - {fileID: 4800000, guid: 935b7be1c88464d2eb87204fdfab5a38, type: 3}
+    - {fileID: -6465566751694194690, guid: 00f0bb95fe82be44495596f92ec44202, type: 3}
     m_ErrorOnUnregisteredVariant: 0
     m_UnregisteredVariants: []
 --- !u!200 &181588677393518624
@@ -60,4 +61,9 @@ ShaderVariantCollection:
     second:
       variants:
       - keywords: TONE_GRAYSCALE
+        passType: 0
+  - first: {fileID: -6465566751694194690, guid: 00f0bb95fe82be44495596f92ec44202, type: 3}
+    second:
+      variants:
+      - keywords: _OUTLINE_DEFAULT
         passType: 0
