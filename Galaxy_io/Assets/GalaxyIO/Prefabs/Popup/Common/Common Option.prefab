@@ -610,7 +610,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
   m_UseReflectionProbes: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 100
@@ -3183,6 +3183,7 @@ GameObject:
   - component: {fileID: 3598690299462567580}
   - component: {fileID: 7770452009260357372}
   - component: {fileID: 8469333242506353981}
+  - component: {fileID: 2678244221470712183}
   m_Layer: 5
   m_Name: WIN_Option
   m_TagString: Untagged
@@ -3274,6 +3275,18 @@ MonoBehaviour:
   supportedLocaleCodes:
   - en
   - ko
+--- !u!114 &2678244221470712183
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6303552383939695965}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 252f80479e3075247888e16c97c7ea33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Scripts.Managed.UI.SpriteLocalUV
 --- !u!1 &6408312085657643154
 GameObject:
   m_ObjectHideFlags: 0

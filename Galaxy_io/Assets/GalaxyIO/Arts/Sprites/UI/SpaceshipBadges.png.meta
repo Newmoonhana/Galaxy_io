@@ -1,0 +1,977 @@
+fileFormatVersion: 2
+guid: cb51ad6582a758e48ae439c3b825b941
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -7224250522461366442
+    second: SpaceshipBadges_0
+  - first:
+      213: -2550854005881552322
+    second: SpaceshipBadges_1
+  - first:
+      213: 7771908307319681967
+    second: SpaceshipBadges_2
+  - first:
+      213: 6511106653751449884
+    second: SpaceshipBadges_3
+  - first:
+      213: 6146824744780118493
+    second: SpaceshipBadges_4
+  - first:
+      213: -9217369764357099041
+    second: SpaceshipBadges_5
+  - first:
+      213: 6523253735722100494
+    second: SpaceshipBadges_6
+  - first:
+      213: 9159497170928499074
+    second: SpaceshipBadges_7
+  - first:
+      213: -3554741906152404324
+    second: SpaceshipBadges_8
+  - first:
+      213: 4485460997291442965
+    second: SpaceshipBadges_9
+  - first:
+      213: 6294024275286697693
+    second: SpaceshipBadges_10
+  - first:
+      213: 3418977044622577800
+    second: SpaceshipBadges_11
+  - first:
+      213: 3498700776304639492
+    second: SpaceshipBadges_12
+  - first:
+      213: -3769027223940076081
+    second: SpaceshipBadges_13
+  - first:
+      213: 404748854787273366
+    second: SpaceshipBadges_14
+  - first:
+      213: 7955344270854722231
+    second: SpaceshipBadges_15
+  - first:
+      213: -3773118799718353364
+    second: SpaceshipBadges_16
+  - first:
+      213: -2407770866497831428
+    second: SpaceshipBadges_17
+  - first:
+      213: -3417522354669872816
+    second: SpaceshipBadges_18
+  - first:
+      213: 3473828528935851985
+    second: SpaceshipBadges_19
+  - first:
+      213: 4849669376971012574
+    second: SpaceshipBadges_20
+  - first:
+      213: -2781580720183641348
+    second: SpaceshipBadges_21
+  - first:
+      213: 2384258331927351083
+    second: SpaceshipBadges_22
+  - first:
+      213: -1793561373563836350
+    second: SpaceshipBadges_23
+  - first:
+      213: -8700517260456059347
+    second: SpaceshipBadges_24
+  - first:
+      213: 7644138041051004211
+    second: SpaceshipBadges_25
+  - first:
+      213: -3173537801639484680
+    second: SpaceshipBadges_26
+  - first:
+      213: -1329686307714189621
+    second: SpaceshipBadges_27
+  - first:
+      213: 5688325441348349004
+    second: SpaceshipBadges_28
+  - first:
+      213: 6518748468835770083
+    second: SpaceshipBadges_29
+  - first:
+      213: -8997555459190671481
+    second: SpaceshipBadges_30
+  - first:
+      213: 7007630580464946061
+    second: SpaceshipBadges_31
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationMethod: 0
+  spriteTessellationDetail: -1
+  spriteGeometrySubdivision: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Android
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: SpaceshipBadges_0
+      rect:
+        serializedVersion: 2
+        x: 168
+        y: 222
+        width: 9
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6579240fc6e4ebb90800000000000000
+      internalID: -7224250522461366442
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_1
+      rect:
+        serializedVersion: 2
+        x: 173
+        y: 178
+        width: 39
+        height: 60
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e324c81fbcb899cd0800000000000000
+      internalID: -2550854005881552322
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_2
+      rect:
+        serializedVersion: 2
+        x: 175
+        y: 232
+        width: 35
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fa372bc9d6d5bdb60800000000000000
+      internalID: 7771908307319681967
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_3
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 222
+        width: 9
+        height: 15
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c19998711091c5a50800000000000000
+      internalID: 6511106653751449884
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_4
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 185
+        width: 11
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd93331c988ed4550800000000000000
+      internalID: 6146824744780118493
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_5
+      rect:
+        serializedVersion: 2
+        x: 40
+        y: 164
+        width: 47
+        height: 23
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fd1b118f803551080800000000000000
+      internalID: -9217369764357099041
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_6
+      rect:
+        serializedVersion: 2
+        x: 49
+        y: 182
+        width: 29
+        height: 40
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e07a47106b0478a50800000000000000
+      internalID: 6523253735722100494
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_7
+      rect:
+        serializedVersion: 2
+        x: 76
+        y: 185
+        width: 11
+        height: 30
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 289736ad5221d1f70800000000000000
+      internalID: 9159497170928499074
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_8
+      rect:
+        serializedVersion: 2
+        x: 165
+        y: 172
+        width: 12
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c9a4797f1150baec0800000000000000
+      internalID: -3554741906152404324
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_9
+      rect:
+        serializedVersion: 2
+        x: 208
+        y: 172
+        width: 12
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5130d65130f8f3e30800000000000000
+      internalID: 4485460997291442965
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_10
+      rect:
+        serializedVersion: 2
+        x: 171
+        y: 157
+        width: 43
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: dd626203bbdd85750800000000000000
+      internalID: 6294024275286697693
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_11
+      rect:
+        serializedVersion: 2
+        x: 187
+        y: 167
+        width: 11
+        height: 11
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 88091ffe185a27f20800000000000000
+      internalID: 3418977044622577800
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_12
+      rect:
+        serializedVersion: 2
+        x: 158
+        y: 89
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 40e7503b1d1ed8030800000000000000
+      internalID: 3498700776304639492
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_13
+      rect:
+        serializedVersion: 2
+        x: 165
+        y: 101
+        width: 18
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: fcd664085b9b1bbc0800000000000000
+      internalID: -3769027223940076081
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_14
+      rect:
+        serializedVersion: 2
+        x: 178
+        y: 35
+        width: 28
+        height: 81
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 69277d060f4fd9500800000000000000
+      internalID: 404748854787273366
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_15
+      rect:
+        serializedVersion: 2
+        x: 201
+        y: 101
+        width: 18
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b21c32177f076e60800000000000000
+      internalID: 7955344270854722231
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_16
+      rect:
+        serializedVersion: 2
+        x: 218
+        y: 89
+        width: 8
+        height: 16
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c267077417033abc0800000000000000
+      internalID: -3773118799718353364
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_17
+      rect:
+        serializedVersion: 2
+        x: 34
+        y: 54
+        width: 14
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfdbcd16721e59ed0800000000000000
+      internalID: -2407770866497831428
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_18
+      rect:
+        serializedVersion: 2
+        x: 45
+        y: 50
+        width: 38
+        height: 49
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 05912f576858290d0800000000000000
+      internalID: -3417522354669872816
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_19
+      rect:
+        serializedVersion: 2
+        x: 80
+        y: 54
+        width: 15
+        height: 36
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1d7d6d554a4853030800000000000000
+      internalID: 3473828528935851985
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_20
+      rect:
+        serializedVersion: 2
+        x: 149
+        y: 44
+        width: 13
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ed9727c8a9c7d4340800000000000000
+      internalID: 4849669376971012574
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_21
+      rect:
+        serializedVersion: 2
+        x: 160
+        y: 60
+        width: 7
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: cfaf06b8217d569d0800000000000000
+      internalID: -2781580720183641348
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_22
+      rect:
+        serializedVersion: 2
+        x: 167
+        y: 52
+        width: 14
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b2f8b4f0256961120800000000000000
+      internalID: 2384258331927351083
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_23
+      rect:
+        serializedVersion: 2
+        x: 203
+        y: 52
+        width: 14
+        height: 37
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 248add5fe6dfb17e0800000000000000
+      internalID: -1793561373563836350
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_24
+      rect:
+        serializedVersion: 2
+        x: 217
+        y: 60
+        width: 7
+        height: 20
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d2e9c5026ad814780800000000000000
+      internalID: -8700517260456059347
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_25
+      rect:
+        serializedVersion: 2
+        x: 222
+        y: 44
+        width: 12
+        height: 45
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 33d35e64c0f651a60800000000000000
+      internalID: 7644138041051004211
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_26
+      rect:
+        serializedVersion: 2
+        x: 34
+        y: 22
+        width: 60
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 8f2210cfe2455f3d0800000000000000
+      internalID: -3173537801639484680
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_27
+      rect:
+        serializedVersion: 2
+        x: 149
+        y: 13
+        width: 85
+        height: 32
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bc6befd19510c8de0800000000000000
+      internalID: -1329686307714189621
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_28
+      rect:
+        serializedVersion: 2
+        x: 158
+        y: 40
+        width: 6
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c4ca262d9ddf0fe40800000000000000
+      internalID: 5688325441348349004
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_29
+      rect:
+        serializedVersion: 2
+        x: 175
+        y: 38
+        width: 8
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 3eed311d13f377a50800000000000000
+      internalID: 6518748468835770083
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_30
+      rect:
+        serializedVersion: 2
+        x: 201
+        y: 38
+        width: 8
+        height: 13
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 78730102bf2422380800000000000000
+      internalID: -8997555459190671481
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: SpaceshipBadges_31
+      rect:
+        serializedVersion: 2
+        x: 220
+        y: 40
+        width: 6
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: d8b07c982ea104160800000000000000
+      internalID: 7007630580464946061
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      SpaceshipBadges_0: -7224250522461366442
+      SpaceshipBadges_1: -2550854005881552322
+      SpaceshipBadges_10: 6294024275286697693
+      SpaceshipBadges_11: 3418977044622577800
+      SpaceshipBadges_12: 3498700776304639492
+      SpaceshipBadges_13: -3769027223940076081
+      SpaceshipBadges_14: 404748854787273366
+      SpaceshipBadges_15: 7955344270854722231
+      SpaceshipBadges_16: -3773118799718353364
+      SpaceshipBadges_17: -2407770866497831428
+      SpaceshipBadges_18: -3417522354669872816
+      SpaceshipBadges_19: 3473828528935851985
+      SpaceshipBadges_2: 7771908307319681967
+      SpaceshipBadges_20: 4849669376971012574
+      SpaceshipBadges_21: -2781580720183641348
+      SpaceshipBadges_22: 2384258331927351083
+      SpaceshipBadges_23: -1793561373563836350
+      SpaceshipBadges_24: -8700517260456059347
+      SpaceshipBadges_25: 7644138041051004211
+      SpaceshipBadges_26: -3173537801639484680
+      SpaceshipBadges_27: -1329686307714189621
+      SpaceshipBadges_28: 5688325441348349004
+      SpaceshipBadges_29: 6518748468835770083
+      SpaceshipBadges_3: 6511106653751449884
+      SpaceshipBadges_30: -8997555459190671481
+      SpaceshipBadges_31: 7007630580464946061
+      SpaceshipBadges_4: 6146824744780118493
+      SpaceshipBadges_5: -9217369764357099041
+      SpaceshipBadges_6: 6523253735722100494
+      SpaceshipBadges_7: 9159497170928499074
+      SpaceshipBadges_8: -3554741906152404324
+      SpaceshipBadges_9: 4485460997291442965
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
