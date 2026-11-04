@@ -110,8 +110,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: -65}
-  m_SizeDelta: {x: -80, y: -330}
+  m_AnchoredPosition: {x: 0, y: -56.272}
+  m_SizeDelta: {x: -80, y: -312.544}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &37697881177229446
 MonoBehaviour:
@@ -303,10 +303,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 8808503827084249344}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 50}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7893897935713448365
 CanvasRenderer:
@@ -339,7 +339,7 @@ MonoBehaviour:
   m_text: Dev2
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e81b5d9a8b1957447bc77c40597b80a2, type: 2}
-  m_sharedMaterial: {fileID: -1909263686767613974, guid: e81b5d9a8b1957447bc77c40597b80a2, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: a91c96bc239fb834b9e6146d2c21eb27, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -358,13 +358,13 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 26
-  m_fontSizeBase: 26
+  m_fontSize: 40
+  m_fontSizeBase: 40
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -386,7 +386,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
-  m_ActiveFontFeatures: 6e72656b
+  m_ActiveFontFeatures: 6e72656bu
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
@@ -480,10 +480,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 2938813195284714493}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 50}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &5109908567677501173
 CanvasRenderer:
@@ -513,27 +513,47 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uADF8\uB798\uD53D\n\n<b># \uC54C\uD30C \uD14D\uC2A4\uCC98</b>\nKenney
-    Particle Pack(CC0)\n\n---\n\n\uC0AC\uC6B4\uB4DC\n\n<b># SFMusicPack_SND</b>\n-
-    \uD06C\uB808\uB527 \uD544\uC694\n[Copyright](C) 2014 DEGICA, LLC\nMusician: Joel
-    Steudler\n```\nField_-_Ecumenopolis: \uC801\uB2F9\uD788 \uBC15\uC790\uAC10 -
-    \uB85C\uBE44\n\nBattle_-_Disruptor_Ray: \uBE60\uB974\uAC8C \uC2E0\uB0A8\nField_-_Exploring_The_Rim:
-    \uC2DC\uB124\uB9C8\uD2F1 \uC5B4\uB450\uC6C0, \uC801\uB2F9\uD788 \uBC15\uC790\uAC10\nField_-_Nexus_Six:
-    \uAE34\uC7A5\uAC10, \uC801\uB2F9\uD788 \uBC15\uC790\uAC10\nMenu_-_Binary_Suns:
-    \uB9E4\uC6B0 \uC870\uC6A9\uD568, \uC794\uC794\uD55C \uBC15\uC790\uAC10\nMenu_-_Mission_Briefing:
-    \uC870\uC6A9\uD568, \uBD84\uC704\uAE30\nMenu_-_Serious_Decisions: \uC5B4\uB450\uC6C0,
-    \uBD84\uC704\uAE30\n```\n\n<b># SFSoundEffects_SND</b>\n- \uD06C\uB808\uB527
-    \uD544\uC694\n[Copyright](C) 2014 DEGICA, LLC\nMusician: Joel Steudler\n```\nbeep_neutral_04:
-    UI\uBC84\uD2BC \uC785\uB825\uC74C\nblaster_01: Bore \uBC1C\uC0AC\uC74C\nglitch_01:
-    Overheat\nalarm_siren_loop_04: Loop_Overheat\nmanhole_metal_door_lid_impact_03:
-    Crash\n```\n\n<b># Gamemaster Audio - Pro Sound Collection</b>\n\n```\nfoley_soldier_gear_equipment_rattle_movement_light_01:
-    \uC544\uC774\uD15C \uD53D\uC5C5\n```\n\n<b># RPG Maker</b>\n```\nExplosion7:
-    Brakkar \uBC1C\uC0AC\uC74C\nExplosion1: Explosion\n```\n\n<b># Pixarbay</b>\n\n<b>##
-    DavidDumaisAudio</b>\n```\nVraxxShot: Vraxx \uBC1C\uC0AC\uC74C\n- https://pixabay.com/sound-effects/film-special-effects-sci-fi-weapon-laser-shot-04-316416/\n```\n\n<b>##
-    AudioPapkin</b>\n```\nVeylanceLoop: Veylance \uB808\uC774\uC800\n- https://pixabay.com/sound-effects/film-special-effects-science-fiction-effect-019-305479/\n```\n\n<b>##
-    DennisH18</b>\n```\nPyronLaunch, PyronLoop: Pyron \uBC1C\uC0AC\uC74C, \uB8E8\uD504\uC74C\n-
-    https://pixabay.com/sound-effects/film-special-effects-flame-thrower-128555/\n```\n\n<b>##
-    CHAKONG</b>\n```\nRaptorShot: Raptor \uBC1C\uC0AC\uC74C\n- https://pixabay.com/ko/sound-effects/%EC%98%81%ED%99%94-%EB%B0%8F-%ED%8A%B9%EC%88%98-%ED%9A%A8%EA%B3%BC-laser-gun-shot-sound-future-sci-fi-lazer-wobble-chakongaudio-174883/\n```\n"
+  m_text: '<b># Graphic</b>
+
+
+    Pixel UI Sci-Fi Free by heyheythere
+
+    - https://heyheythere.itch.io/pixel-ui-scifi-free - CC BY 4.0
+
+    Kenney Particle Pack(CC0)
+
+
+    ---
+
+
+    <b># Sound</b>
+
+
+    [Copyright](C) 2014 DEGICA, LLC
+
+    Musician: Joel Steudler
+
+
+    [Copyright](C) 2014 DEGICA, LLC
+
+    Musician: Joel Steudler
+
+
+    Gamemaster Audio - Pro Sound Collection
+
+
+    RPG Maker
+
+
+    DavidDumaisAudio
+
+    AudioPapkin
+
+    DennisH18
+
+    CHAKONG
+
+'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e81b5d9a8b1957447bc77c40597b80a2, type: 2}
   m_sharedMaterial: {fileID: -1909263686767613974, guid: e81b5d9a8b1957447bc77c40597b80a2, type: 2}
@@ -555,7 +575,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -583,7 +603,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
-  m_ActiveFontFeatures: 6e72656b
+  m_ActiveFontFeatures: 6e72656bu
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
@@ -695,6 +715,7 @@ GameObject:
   - component: {fileID: 1182990755947879275}
   - component: {fileID: 3181608478693549825}
   - component: {fileID: 3770857338780749927}
+  - component: {fileID: 4034763519570922409}
   m_Layer: 5
   m_Name: WIN_Credit
   m_TagString: Untagged
@@ -745,7 +766,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 2100000, guid: 9f766ddc4373cc3429053a462caa4fdb, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -780,6 +801,18 @@ MonoBehaviour:
   window_anim: {fileID: 0}
   exit_btn: {fileID: 3873694706016934702}
   desc_scroll: {fileID: 37697881177229446}
+--- !u!114 &4034763519570922409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4303447911739524345}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 252f80479e3075247888e16c97c7ea33, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GalaxyIO.Scripts.Managed.UI.SpriteLocalUV
 --- !u!1 &4840416633293093094
 GameObject:
   m_ObjectHideFlags: 0
@@ -815,7 +848,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -110}
+  m_AnchoredPosition: {x: 0, y: -92.544}
   m_SizeDelta: {x: 820, y: 100}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1722491159095708167
@@ -879,8 +912,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -24}
-  m_SizeDelta: {x: 600, y: 72}
+  m_AnchoredPosition: {x: 0, y: -16}
+  m_SizeDelta: {x: 600, y: 46.505}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &949533963511112560
 CanvasRenderer:
@@ -913,7 +946,7 @@ MonoBehaviour:
   m_text: Credit
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e81b5d9a8b1957447bc77c40597b80a2, type: 2}
-  m_sharedMaterial: {fileID: -1909263686767613974, guid: e81b5d9a8b1957447bc77c40597b80a2, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: a91c96bc239fb834b9e6146d2c21eb27, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -932,17 +965,17 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 48
+  m_fontSize: 40
   m_fontSizeBase: 48
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_fontSizeMax: 40
   m_fontStyle: 0
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -960,7 +993,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
-  m_ActiveFontFeatures: 6e72656b
+  m_ActiveFontFeatures: 6e72656bu
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
@@ -1055,10 +1088,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 8808503827084249344}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 200, y: 50}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &3090658170979227777
 CanvasRenderer:
@@ -1091,7 +1124,7 @@ MonoBehaviour:
   m_text: Dev1
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e81b5d9a8b1957447bc77c40597b80a2, type: 2}
-  m_sharedMaterial: {fileID: -1909263686767613974, guid: e81b5d9a8b1957447bc77c40597b80a2, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: a91c96bc239fb834b9e6146d2c21eb27, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1110,13 +1143,13 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 26
-  m_fontSizeBase: 26
+  m_fontSize: 40
+  m_fontSizeBase: 40
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1138,7 +1171,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
-  m_ActiveFontFeatures: 6e72656b
+  m_ActiveFontFeatures: 6e72656bu
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
@@ -1320,8 +1353,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 7720042898039623927}
   m_HandleRect: {fileID: 7709325305351870097}
   m_Direction: 2
-  m_Value: 0
-  m_Size: 0.2
+  m_Value: 0.9999999
+  m_Size: 0.5826174
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -1443,7 +1476,7 @@ MonoBehaviour:
   m_linkedTextComponent: {fileID: 0}
   parentLinkedComponent: {fileID: 0}
   m_enableKerning: 0
-  m_ActiveFontFeatures: 6e72656b
+  m_ActiveFontFeatures: 6e72656bu
   m_enableExtraPadding: 0
   checkPaddingRequired: 0
   m_isRichText: 1
