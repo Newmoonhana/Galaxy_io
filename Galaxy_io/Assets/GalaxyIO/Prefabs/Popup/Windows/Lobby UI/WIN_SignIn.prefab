@@ -61,7 +61,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.99, g: 0.99, b: 0.99, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -916,8 +916,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 272.61}
-  m_SizeDelta: {x: 357.71, y: 81.55}
+  m_AnchoredPosition: {x: 0, y: 310.89}
+  m_SizeDelta: {x: 357.71, y: 46.87}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &427941424803247758
 CanvasRenderer:
@@ -950,7 +950,7 @@ MonoBehaviour:
   m_text: Sign In
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: e81b5d9a8b1957447bc77c40597b80a2, type: 2}
-  m_sharedMaterial: {fileID: -1909263686767613974, guid: e81b5d9a8b1957447bc77c40597b80a2, type: 2}
+  m_sharedMaterial: {fileID: 2100000, guid: a91c96bc239fb834b9e6146d2c21eb27, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -974,12 +974,12 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 50
+  m_fontSize: 40
   m_fontSizeBase: 50
   m_fontWeight: 400
-  m_enableAutoSizing: 0
+  m_enableAutoSizing: 1
   m_fontSizeMin: 18
-  m_fontSizeMax: 72
+  m_fontSizeMax: 40
   m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
@@ -2804,7 +2804,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 0.99, g: 0.99, b: 0.99, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -3713,7 +3713,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4278490668156506612, guid: 72234dbfa0d2cd845bf8ae25e17662fb, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 5
+      value: 11
       objectReference: {fileID: 0}
     - target: {fileID: 4278490668156506612, guid: 72234dbfa0d2cd845bf8ae25e17662fb, type: 3}
       propertyPath: m_AnchoredPosition.y
