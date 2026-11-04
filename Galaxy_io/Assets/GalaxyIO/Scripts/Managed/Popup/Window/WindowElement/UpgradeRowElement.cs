@@ -20,6 +20,8 @@ namespace GalaxyIO.Tools.PopupUI.Window
         [SerializeField] private float backBrightness = 0.45F;
         [SerializeField] private float backAlpha = 0.6F;
 
+        [Tooltip("강화할 수 있는 줄의 쉐이더")]
+        [SerializeField] private Material enabled_mat;
         [Tooltip("강화할 수 없는 줄의 색. 줄 색마다 회색 밝기가 달라지지 않게 모든 줄이 같이 씀")]
         [SerializeField] private Color disabled_color = new Color(0.75F, 0.75F, 0.75F);
 
@@ -59,13 +61,18 @@ namespace GalaxyIO.Tools.PopupUI.Window
             });
 
             Color tint = _isEnabled ? color : disabled_color;
+            Color textTint = _isEnabled ? color + Color.white * 0.3f : disabled_color;
 
-            if (name_tmp != null) name_tmp.color = tint;
-            if (size_tmp != null) size_tmp.color = tint;
+            if (name_tmp != null) name_tmp.color = textTint;
+            if (size_tmp != null) size_tmp.color = textTint;
 
             if (back_img != null)
+            {
                 back_img.color = new Color(
                     tint.r * backBrightness, tint.g * backBrightness, tint.b * backBrightness, backAlpha);
+                back_img.material = _isEnabled ? enabled_mat : null;
+            }
+            
         }
     }
 }
