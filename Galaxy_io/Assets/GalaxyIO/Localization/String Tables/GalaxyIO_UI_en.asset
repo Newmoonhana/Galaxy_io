@@ -860,10 +860,6 @@ MonoBehaviour:
     m_Localized: Start
     m_Metadata:
       m_Items: []
-  - m_Id: 14674587904962560
-    m_Localized: Cancel
-    m_Metadata:
-      m_Items: []
   references:
     version: 2
     RefIds: []
