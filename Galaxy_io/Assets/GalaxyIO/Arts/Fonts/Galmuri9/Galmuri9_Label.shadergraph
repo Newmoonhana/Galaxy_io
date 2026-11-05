@@ -29,6 +29,9 @@
         },
         {
             "m_Id": "c2540a4b450c4ed9891e7e5621072485"
+        },
+        {
+            "m_Id": "99df2fcbedca4b9ebf6eed4a53413c74"
         }
     ],
     "m_Keywords": [],
@@ -1002,6 +1005,9 @@
         },
         {
             "m_Id": "c2540a4b450c4ed9891e7e5621072485"
+        },
+        {
+            "m_Id": "99df2fcbedca4b9ebf6eed4a53413c74"
         }
     ]
 }
@@ -2408,6 +2414,51 @@
     "m_PerRendererData": false,
     "m_customAttributes": [],
     "m_Value": 4.0,
+    "m_FloatType": 0,
+    "m_LiteralFloatMode": false,
+    "m_RangeValues": {
+        "x": 0.0,
+        "y": 1.0
+    },
+    "m_SliderType": 0,
+    "m_SliderPower": 3.0,
+    "m_EnumType": 0,
+    "m_CSharpEnumString": "",
+    "m_EnumNames": [
+        "Default"
+    ],
+    "m_EnumValues": [
+        0
+    ]
+}
+
+{
+    "m_SGVersion": 1,
+    "m_Type": "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty",
+    "m_ObjectId": "99df2fcbedca4b9ebf6eed4a53413c74",
+    "m_Guid": {
+        "m_GuidSerialized": "778c2f65-e859-4bc4-acc5-344b0645836b"
+    },
+    "promotedFromAssetID": "",
+    "promotedFromCategoryName": "",
+    "promotedOrdering": -1,
+    "m_Name": "_CullMode (TMP SubMesh Read)",
+    "m_DefaultRefNameVersion": 1,
+    "m_RefNameGeneratedByDisplayName": "_CullMode (TMP SubMesh Read)",
+    "m_DefaultReferenceName": "_CullMode_TMP_SubMesh_Read",
+    "m_OverrideReferenceName": "_CullMode",
+    "m_GeneratePropertyBlock": true,
+    "m_UseCustomSlotLabel": false,
+    "m_CustomSlotLabel": "",
+    "m_DismissedVersion": 0,
+    "m_Precision": 0,
+    "overrideHLSLDeclaration": false,
+    "hlslDeclarationOverride": 0,
+    "hideConnector": false,
+    "m_Hidden": true,
+    "m_PerRendererData": false,
+    "m_customAttributes": [],
+    "m_Value": 0.0,
     "m_FloatType": 0,
     "m_LiteralFloatMode": false,
     "m_RangeValues": {
