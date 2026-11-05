@@ -84,6 +84,17 @@ namespace GalaxyIO.DOTS.Client.Systems
                     ecb.SetComponent(effect, effectTransform);
                 }
 
+                // 범위 피해 투사체는 카메라 연출용 폭발 이벤트를 남김.
+                if (hit && shared.ValueRO.ExplosionRadius > 0.0F)
+                {
+                    ecb.AddComponent(ecb.CreateEntity(), new CameraEventMessage
+                    {
+                        Kind = CameraEventKind.ProjectileExplosion,
+                        Position = shared.ValueRO.HitPosition,
+                        Radius = shared.ValueRO.ExplosionRadius,
+                    });
+                }
+
                 ItemRegistryElement turret = registry.IsCreated ? registry.Get(shared.ValueRO.Turret) : default;
 
                 FixedString64Bytes sound = prefab != Entity.Null && SystemAPI.HasComponent<EffectSoundComponent>(prefab)

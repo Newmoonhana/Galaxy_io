@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using GalaxyIO.Camera;
+using UnityEngine;
 
 namespace GalaxyIO.Scripts.Managed.Background
 {
@@ -6,7 +7,7 @@ namespace GalaxyIO.Scripts.Managed.Background
     /// 배경 겹을 카메라에 붙여 화면을 덮는 클라이언트 전용 컴포넌트.
     /// 품질 단계에 따라 별 겹 수를 줄임.
     /// </summary>
-    [DefaultExecutionOrder(100)]
+    [DefaultExecutionOrder(CameraExecutionOrder.AfterBrain)]
     public sealed class BackgroundView : MonoBehaviour
     {
         // BackgroundCommon.hlsl 이 선언한 전역들. 머티리얼 프로퍼티가 아님.
