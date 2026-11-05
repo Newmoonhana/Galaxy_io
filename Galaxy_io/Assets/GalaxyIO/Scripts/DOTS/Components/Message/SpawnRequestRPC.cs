@@ -9,10 +9,13 @@ namespace GalaxyIO.DOTS.Components.Message
     /// </summary>
     public struct SpawnRequestRPC : IRpcCommand
     {
-        // 플레이어 이름. 리스폰 요청은 비워 둠. 서버가 접속 시 받은 이름을 씀.
+        // 플레이어 이름. 리스폰 요청에서 비워 두면 서버가 쓰던 이름을 씀. 채우면 이름을 바꿈.
         public FixedString64Bytes Name;
 
         // 팀 모드에서 탈 기종. 입장 요청은 None 이고, 서버는 리스폰 창을 띄우게 함.
         public SpaceshipId Spaceship;
+
+        // 입장만 하고 스폰하지 않음. 웹 접속이 이름 입력 창(리스폰 창)으로 시작할 때 씀.
+        public bool Hold;
     }
 }

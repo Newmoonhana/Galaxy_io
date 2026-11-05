@@ -1,11 +1,12 @@
 using GalaxyIO.DOTS.Client.Networking;
+using GalaxyIO.DOTS.Components.Singleton;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace GalaxyIO.Tools.PopupUI.Window
 {
     /// <summary>
-    /// 자유 모드 리스폰 창. 리스폰 버튼 하나.
+    /// 자유 모드 리스폰 창. 리스폰 버튼 하나. 웹은 첫 입장도 이 창(이름 입력 + 시작)으로 시작함.
     /// </summary>
     public class WindowRespawn : WindowRespawnBase
     {
@@ -27,7 +28,9 @@ namespace GalaxyIO.Tools.PopupUI.Window
         private void OnRespawnBtnPress()
         {
             if (!IsActive()) return;
-            ClientNetworkRequestManager.RequestRespawn();
+            if (!TryTakePlayerName(out string playerName)) return;
+
+            ClientNetworkRequestManager.RequestRespawn(SpaceshipId.None, playerName);
         }
     }
 }

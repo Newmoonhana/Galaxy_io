@@ -2,6 +2,7 @@ using GalaxyIO.DOTS.Bootstrap;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.Scripts.Managed.UI;
 using GalaxyIO.Tools;
+using GalaxyIO.Tools.PopupUI.Popup;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,6 +16,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
     {
         [SerializeField] private ServerAddressField addressField;
         [SerializeField] private TMP_InputField playerName_input;
+        [Tooltip("예전 이름 경고 라벨. 지금은 경고창(PlayerNameWarning)을 쓰므로 항상 숨김.")]
         [SerializeField] private TMP_Text nameWarning;
         [SerializeField] private Button loopbackButton;
 
@@ -64,16 +66,15 @@ namespace GalaxyIO.Tools.PopupUI.Window
 
         protected override string TakePlayerName()
         {
-            // 공백만 입력한 경우도 빈 이름으로 취급함.
-            string requestPlayerName = playerName_input.text.Trim();
+            // 서버와 같은 규칙으로 검증. 공백만 입력한 경우도 빈 이름으로 취급함.
+            PlayerNameError error = PlayerNameComponent.Validate(playerName_input.text, out string requestPlayerName);
 
-            if (requestPlayerName.Length == 0)
+            if (error != PlayerNameError.None)
             {
-                nameWarning.gameObject.SetActive(true);
+                PlayerNameWarning.Show(error, transform.parent);
                 return null;
             }
 
-            nameWarning.gameObject.SetActive(false);
             return requestPlayerName;
         }
 

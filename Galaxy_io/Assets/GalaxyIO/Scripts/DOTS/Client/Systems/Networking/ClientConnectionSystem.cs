@@ -104,7 +104,7 @@ namespace GalaxyIO.DOTS.Client.Systems
 
             Entity rpcEntity = ecb.CreateEntity();
 
-            ecb.AddComponent(rpcEntity, new SpawnRequestRPC { Name = request.Name, Spaceship = request.Spaceship });
+            ecb.AddComponent(rpcEntity, new SpawnRequestRPC { Name = request.Name, Spaceship = request.Spaceship, Hold = request.Hold });
 
             ecb.AddComponent(
                 rpcEntity,
@@ -116,6 +116,15 @@ namespace GalaxyIO.DOTS.Client.Systems
 
             ecb.Playback(state.EntityManager);
             ecb.Dispose();
+
+            // 입장만 했으면 이름 입력 창(리스폰 창)을 띄움.
+            // 팀 모드는 원래 입장 시 스폰하지 않고, 서버의 RespawnRPC 가 팀·대기 시간과 함께 창을 띄움.
+            bool teamMode = SystemAPI.TryGetSingleton(out GameModeStateComponent joinedMode) && joinedMode.Mode != GameMode.Free;
+
+            if (request.Hold && !teamMode)
+            {
+                SystemAPI.GetSingletonRW<PlayerStateComponent>().ValueRW.Dead = true;
+            }
 
             // 요청 처리 완료. 다시 누를 때까지 정지함.
             state.EntityManager.DestroyEntity(requestQuery);

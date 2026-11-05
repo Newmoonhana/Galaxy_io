@@ -23,6 +23,7 @@ namespace GalaxyIO.Tools.PopupUI.Window
     public class WindowServerHost : WindowBase
     {
         [SerializeField] private TMP_InputField playerName_input;
+        [Tooltip("예전 이름 경고 라벨. 지금은 경고창(PlayerNameWarning)을 쓰므로 항상 숨김.")]
         [SerializeField] private TMP_Text nameWarning;
         [SerializeField] private Button hostButton;
         [SerializeField] private Button exitButton;
@@ -151,16 +152,15 @@ namespace GalaxyIO.Tools.PopupUI.Window
         {
             if (!IsActive() || busy) return;
 
-            // 공백만 입력한 경우도 빈 이름으로 취급함.
-            string playerName = playerName_input.text.Trim();
+            // 서버와 같은 규칙으로 검증. 공백만 입력한 경우도 빈 이름으로 취급함.
+            PlayerNameError error = PlayerNameComponent.Validate(playerName_input.text, out string playerName);
 
-            if (playerName.Length == 0)
+            if (error != PlayerNameError.None)
             {
-                nameWarning.gameObject.SetActive(true);
+                PlayerNameWarning.Show(error, transform.parent);
                 return;
             }
 
-            nameWarning.gameObject.SetActive(false);
             HostAsync(playerName).Forget();
         }
 

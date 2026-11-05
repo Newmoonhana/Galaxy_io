@@ -831,6 +831,18 @@ MonoBehaviour:
     m_Key: Respawn/Start
     m_Metadata:
       m_Items: []
+  - m_Id: 14981024971550720
+    m_Key: PlayerName/WarningTitle
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14981025055436800
+    m_Key: PlayerName/Empty
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14981025055436801
+    m_Key: PlayerName/TooLong
+    m_Metadata:
+      m_Items: []
   m_Metadata:
     m_Items: []
   m_KeyGenerator:

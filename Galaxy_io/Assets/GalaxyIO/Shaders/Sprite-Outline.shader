@@ -1,12 +1,13 @@
 ﻿// 스프라이트와 그 외곽선을 그리는 셰이더. 투명 픽셀 중 상하좌우에 불투명 픽셀이 있으면 외곽선 색으로 칠함.
 // 같은 머티리얼을 쓴 스프라이트(선체, 포탑)가 그린 자리에는 외곽선을 그리지 않아 합친 모습의 바깥에만 외곽선이 남음.
 // 발광은 Sprite-Emissive 와 같음. 보조 텍스처 _EmissionMap 이 칠해진 곳을 원래 색 * EmissionIntensity 로 칠함.
+// 외곽선 색은 HDR. 1.37 을 넘는 채널이 블룸됨.
 Shader "GalaxyIO/Sprite-Outline"
 {
     Properties
     {
         _MainTex ("Sprite Texture", 2D) = "white" {}
-        _OutlineColor ("Outline Color", Color) = (1, 0, 0, 1)
+        [HDR] _OutlineColor ("Outline Color", Color) = (1, 0, 0, 1)
         _OutlineWidth ("Outline Width (Texel)", Float) = 1
         _EmissionMap ("Emission Mask", 2D) = "black" {}
         _EmissionIntensity ("Emission Intensity", Float) = 1
