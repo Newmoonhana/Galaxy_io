@@ -5,7 +5,7 @@ using UnityEngine;
 namespace GalaxyIO.Tools
 {
     /// <summary>
-    /// 접속에 사용할 플레이어 이름 결정. 사설 서버 비로그인 접속만 직접 입력을 허용함.
+    /// 접속에 사용할 플레이어 이름 결정. 사설 서버·웹 비로그인 접속만 직접 입력을 허용함.
     /// </summary>
     public static class PlayerNameResolver
     {
@@ -21,7 +21,16 @@ namespace GalaxyIO.Tools
         /// <summary>
         /// 이름을 직접 입력할 수 있는지 여부.
         /// </summary>
-        public static bool IsEditable(bool isPrivateServer) => isPrivateServer && !LoginManager.IsOnline;
+        public static bool IsEditable(bool isPrivateServer) => (isPrivateServer || IsWeb) && !LoginManager.IsOnline;
+
+        /// <summary>
+        /// 웹 빌드 여부. 웹은 로비 없이 접속하므로 리스폰 창에서 이름을 입력함.
+        /// </summary>
+#if UNITY_WEBGL && !UNITY_EDITOR
+        public const bool IsWeb = true;
+#else
+        public const bool IsWeb = false;
+#endif
 
         /// <summary>
         /// 입력창에 채울 이름. 편집 가능하면 세션에 남은 이름, 없으면 고정 이름을 제안함.

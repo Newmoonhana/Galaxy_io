@@ -211,7 +211,8 @@ namespace GalaxyIO.Scripts.Managed.UI
             if (resultPanel.activeSelf != finished)
             {
                 resultPanel.SetActive(finished);
-                exitButton.gameObject.SetActive(finished);
+                // 웹은 나가면 같은 서버로 다시 접속하므로 나가기 버튼을 숨김.
+                exitButton.gameObject.SetActive(finished && !PlayerNameResolver.IsWeb);
                 shownCountdown = -1;
             }
 
@@ -227,8 +228,13 @@ namespace GalaxyIO.Scripts.Managed.UI
                 }
             }
 
-            // 채팅 입력 중의 Tab 은 무시함. 판이 끝나면 다음 판까지 띄워 둠.
-            bool chatting = !playerStateQuery.IsEmpty && playerStateQuery.GetSingleton<PlayerStateComponent>().ChatFocused;
+            // 채팅 / 리스폰 창 이름 입력 중의 Tab 은 무시함. 판이 끝나면 다음 판까지 띄워 둠.
+            bool chatting = false;
+            if (!playerStateQuery.IsEmpty)
+            {
+                PlayerStateComponent playerState = playerStateQuery.GetSingleton<PlayerStateComponent>();
+                chatting = playerState.ChatFocused || playerState.NameFocused;
+            }
             bool open = finished || (teamMode && Keyboard.current != null && Keyboard.current.tabKey.isPressed && !chatting && !connectionQuery.IsEmpty);
 
             if (shown != open)

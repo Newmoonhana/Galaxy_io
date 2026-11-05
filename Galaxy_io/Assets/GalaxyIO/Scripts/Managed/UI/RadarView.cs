@@ -627,7 +627,8 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             // 레이더 위에서 휠을 굴리면 표시 거리를 바꿈. 휠 위 = 가까이. 카메라 확대는 막음.
             RefRW<PlayerStateComponent> state = stateQuery.GetSingletonRW<PlayerStateComponent>();
-            bool blocked = state.ValueRO.GameMenuOpened || state.ValueRO.InventoryOpened || state.ValueRO.ChatFocused;
+            bool blocked = state.ValueRO.GameMenuOpened || state.ValueRO.InventoryOpened || state.ValueRO.ChatFocused
+                           || state.ValueRO.NameFocused;
 
             if (aimAction != null && aimAction.action.WasPressedThisFrame() && Application.isFocused && !blocked)
             {

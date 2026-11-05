@@ -17,6 +17,9 @@ namespace GalaxyIO.DOTS.Client.Components.Singleton
         // 채팅 입력창이 열려 있음. 열린 동안 우주선 조작과 메뉴 단축키를 막음.
         public bool ChatFocused;
 
+        // 리스폰 창의 이름 입력란(웹)에 입력 중. 글자 키가 채팅 열기·레이더 조준·점수판을 켜지 않게 막음.
+        public bool NameFocused;
+
         // 커서가 닫힌 채팅창의 탭 위에 있음. 탭을 누르는 클릭으로 포탑이 발사되지 않게 막음.
         public bool ChatHovered;
 

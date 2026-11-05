@@ -272,6 +272,17 @@ namespace GalaxyIO.DOTS.Match
         }
 
         /// <summary>
+        /// 리스폰 때 바뀐 이름을 반영함. 점수판(PlayerStatRPC)은 Dirty 로 다음 갱신에 다시 보냄.
+        /// </summary>
+        public void Rename(int networkId, FixedString64Bytes name)
+        {
+            if (!players.TryGetValue(networkId, out Player player) || player.Name == name) return;
+
+            player.Name = name;
+            player.Dirty = true;
+        }
+
+        /// <summary>
         /// 부활 요청 검증. 부활 대기가 끝났고 그 분류에 빈자리가 있어야 함. 실패하면 리스폰 창을 다시 띄움.
         /// </summary>
         public bool TrySpawn(int networkId, SpaceshipId spaceship, out float3 position, out quaternion rotation)

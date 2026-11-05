@@ -75,14 +75,15 @@ namespace GalaxyIO.DOTS.Networking
         /// 클라이언트로만 접속. 서버 월드를 만들지 않으므로 외부 접속을 받지 않음.
         /// 먼저 접속해 서버의 게임 모드를 받고, 그 모드의 씬을 로드함. InGame 은 씬이 들어온 뒤에 됨.
         /// </summary>
+        /// <param name="hold">입장만 하고 스폰은 미룸. 리스폰 창(이름 입력 창)으로 시작함. 웹 접속에서 씀.</param>
         /// <returns>실패 사유의 번역 키. 성공하면 null. 실패하면 세션을 닫고 로비에 남음.</returns>
-        public static async Awaitable<string> JoinAsClient(NetworkEndpoint endpoint, string playerName)
+        public static async Awaitable<string> JoinAsClient(NetworkEndpoint endpoint, string playerName, bool hold = false)
         {
             if (IsActive) return null;
 
             IsActive = true;
             World client = ClientServerBootstrap.CreateClientWorld("ClientWorld");
-            Connect(endpoint, playerName);
+            Connect(endpoint, playerName, hold);
 
             // 실패하면 월드와 함께 버려지므로 직접 Dispose 하지 않음.
             EntityQuery modeQuery = client.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<GameModeStateComponent>());
@@ -255,9 +256,9 @@ namespace GalaxyIO.DOTS.Networking
         }
 
         // 스폰 요청. 실제 접속과 RPC 전송은 `ClientConnectionSystem`이 처리함.
-        private static void Connect(NetworkEndpoint endpoint, string playerName)
+        private static void Connect(NetworkEndpoint endpoint, string playerName, bool hold = false)
         {
-            ClientNetworkRequestManager.RequestPlayerSpawn(endpoint, playerName);
+            ClientNetworkRequestManager.RequestPlayerSpawn(endpoint, playerName, hold);
         }
 
         // 모든 드라이버가 수신 대기를 시작하게 함.

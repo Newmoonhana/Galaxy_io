@@ -82,7 +82,7 @@ namespace GalaxyIO.Main
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         /// <summary>
-        /// 웹 페이지를 연 호스트의 데디케이티드 서버로 접속함. 이름은 게스트 이름.
+        /// 웹 페이지를 연 호스트의 데디케이티드 서버로 접속함. 이름은 리스폰 창에서 입력함.
         /// </summary>
         private async Awaitable JoinWebServer()
         {
@@ -104,7 +104,12 @@ namespace GalaxyIO.Main
                     endpoint = (NetworkEndpoint)hostnameEndpoint.Invoke(new object[] { new FixedString512Bytes($"{host}:{NetcodeBootstrap.Port}") });
                 }
 
-                failure = await GameSession.JoinAsClient(endpoint, PlayerNameResolver.Suggest(false));
+                // 이름은 리스폰 창에서 입력. 입장은 기억한 이름(없으면 임시 이름)으로 하고 스폰은 미룸.
+                // 임시 이름은 한 번만 뽑아 기억함. 리스폰 창 입력란·재접속이 같은 이름을 씀.
+                string playerName = PlayerNameResolver.Suggest(true);
+                PlayerNameResolver.Remember(playerName);
+
+                failure = await GameSession.JoinAsClient(endpoint, playerName, hold: true);
             }
 
             if (failure == null) return;

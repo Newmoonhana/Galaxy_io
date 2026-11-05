@@ -145,8 +145,9 @@ namespace GalaxyIO.Tools.PopupUI.Window
         public void RequestStart()
         {
             if (selected < 0 || selected >= ships.Count) return;
+            if (!TryTakePlayerName(out string playerName)) return;
 
-            ClientNetworkRequestManager.RequestRespawn(ships[selected].Id);
+            ClientNetworkRequestManager.RequestRespawn(ships[selected].Id, playerName);
         }
 
         // 분류의 기종 목록을 채움. 프리팹이 없는 기종은 고를 수 없으므로 뺌.

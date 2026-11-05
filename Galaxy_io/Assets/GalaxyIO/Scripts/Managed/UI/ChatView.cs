@@ -31,8 +31,12 @@ namespace GalaxyIO.Scripts.Managed.UI
         private const string NameLink = "name:";
 
         // 본문 글자의 Sprite Asset 에 들어 있는 파티장 / 권한자 아이콘 이름
-        private const string CrownSprite = "Crown";
-        private const string AuthSprite = "Auth";
+        private const string CrownSprite = "IconSet_3";
+        private const string AuthSprite = "IconSet_2";
+
+        // 아이콘 글리프는 가운데 정렬(BX = -폭 / 2)이라 글자 시작보다 반 칸 왼쪽에 그려짐.
+        // 아이콘 폭이 글자 크기(1em)와 같으므로 반 칸 띄워 다른 줄의 글자 시작과 맞춤.
+        private const string IconIndent = "<space=0.5em>";
 
         // 닉네임 메뉴의 파티 명령어 항목 하나
         [System.Serializable]
@@ -457,7 +461,8 @@ namespace GalaxyIO.Scripts.Managed.UI
                     }
                 }
             }
-            else if (!inGameQuery.IsEmpty && !state.ValueRO.GameMenuOpened && !state.ValueRO.InventoryOpened)
+            else if (!inGameQuery.IsEmpty && !state.ValueRO.GameMenuOpened && !state.ValueRO.InventoryOpened
+                     && !state.ValueRO.NameFocused)
             {
                 // 전송하느라 Enter 를 누른 프레임은 위에서 닫히므로 다시 열리지 않음.
                 if (chatAction.action.WasPressedThisFrame())
@@ -769,8 +774,8 @@ namespace GalaxyIO.Scripts.Managed.UI
         private string Format(string nameHex, in ChatRPC message)
         {
             int sender = message.SenderNetworkId;
-            string icon = partyRoster.Master == sender ? $"<sprite name=\"{CrownSprite}\">"
-                : partyRoster.Authorized.Contains(sender) ? $"<sprite name=\"{AuthSprite}\">"
+            string icon = partyRoster.Master == sender ? $"{IconIndent}<sprite name=\"{CrownSprite}\">"
+                : partyRoster.Authorized.Contains(sender) ? $"{IconIndent}<sprite name=\"{AuthSprite}\">"
                 : string.Empty;
 
             return $"{icon}<link=\"{NameLink}{sender}\"><color=#{nameHex}>{Escape(message.Sender.ToString())}</color></link>: "

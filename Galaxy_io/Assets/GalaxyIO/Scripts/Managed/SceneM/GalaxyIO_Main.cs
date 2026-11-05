@@ -2,6 +2,7 @@
 using GalaxyIO.DOTS.Client.Networking;
 using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Components.Singleton;
+using GalaxyIO.DOTS.Client.Systems;
 using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.DOTS.Networking;
 using GalaxyIO.Scripts.Managed.Background;
@@ -445,9 +446,18 @@ namespace GalaxyIO.Main
             GameSession.Leave().Forget();
         }
 
+        public override void Init()
+        {
+            base.Init();
+
+            // 서버가 리스폰 요청의 이름을 거절하면 경고창. 리스폰 창은 Dead 로 다시 열림.
+            PlayerNameRejectedReceiveSystem.Rejected += PlayerNameWarning.Show;
+        }
+
         public override void Release()
         {
             base.Release();
+            PlayerNameRejectedReceiveSystem.Rejected -= PlayerNameWarning.Show;
             AddressableAssetsManager.gameObject_lst.RemoveData(respawnUIKey);
             AddressableAssetsManager.gameObject_lst.RemoveData(gameMenuUIKey);
             AddressableAssetsManager.gameObject_lst.RemoveData(inventoryUIKey);

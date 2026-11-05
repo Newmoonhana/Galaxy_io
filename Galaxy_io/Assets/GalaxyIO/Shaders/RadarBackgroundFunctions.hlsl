@@ -6,11 +6,14 @@
 
 // Disc: 원판 안쪽 1. Grid: 격자 + 눈금(원판 안). LineGlow: 격자의 약한 가짜 블룸.
 // Rim: 외곽 링. Glow: 외곽 링 가짜 블룸(GlowIntensity 포함, 사각형 가장자리에서 0).
+// RimBloom: 외곽 링 위 얇은 띠 x 시간에 따라 AlphaMin ~ AlphaMax 를 왕복하는 투명도. 그래프가 HDR 색을 곱해 BaseColor 에 더함(실제 블룸).
+// Time 은 그래프 Time 노드에서 받음. RimBloomSpeed 는 초당 왕복 횟수.
 void RadarBackgroundMasks_float(
     float2 UV, float PixelResolution, float GridSpacing, float2 GridOffset, float LineWidth,
     float TickCount, float TickInner, float TickOuter, float RimRadius, float RimWidth,
     float GlowWidth, float GlowIntensity, float LineGlowWidth,
-    out float Disc, out float Grid, out float LineGlow, out float Rim, out float Glow)
+    float RimBloomWidth, float RimBloomAlphaMin, float RimBloomAlphaMax, float RimBloomSpeed, float Time,
+    out float Disc, out float Grid, out float LineGlow, out float Rim, out float Glow, out float RimBloom)
 {
     float2 p  = RadarPoint(UV, PixelResolution);
     float  r  = length(p);
@@ -40,6 +43,10 @@ void RadarBackgroundMasks_float(
     Rim  = Band(rimDistance, RimWidth, aa);
     Glow = exp(-max(abs(rimDistance) - RimWidth, 0.0) / GlowWidth) * GlowIntensity;
     Glow *= saturate((1.0 - r) / max(1.0 - RimRadius - RimWidth, 1e-4));
+
+    // 코사인 왕복이라 Min / Max 에서 부드럽게 멈췄다 돌아감.
+    float pulse = 0.5 - 0.5 * cos(Time * RimBloomSpeed * TWO_PI);
+    RimBloom = Band(rimDistance, RimBloomWidth, aa) * lerp(RimBloomAlphaMin, RimBloomAlphaMax, pulse);
 }
 
 #endif

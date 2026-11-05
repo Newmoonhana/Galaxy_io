@@ -21,28 +21,36 @@ namespace GalaxyIO.DOTS.Client.Networking
         /// 실제 접속과 RPC 전송은 <see cref="Systems.ClientConnectionSystem"/>이 처리함.
         /// (DOTS Entities가 제공하는 Networking 기능을 이용하기 위해)
         /// </summary>
-        /// <param name="playerName">플레이어 이름. 비어 있으면 서버가 요청을 버림.</param>
+        /// <param name="playerName">플레이어 이름. 규칙에 어긋나면 서버가 거절함.</param>
+        /// <param name="hold">입장만 하고 스폰은 미룸. 이름 입력 창(리스폰 창)으로 시작함.</param>
         /// <returns>
         /// 요청 접수 여부. Client World가 없으면 false. 접수됐다는 뜻이지
         /// 접속 완료를 의미하지는 않음.
         /// </returns>
-        public static bool RequestPlayerSpawn(NetworkEndpoint endpoint, string playerName)
+        public static bool RequestPlayerSpawn(NetworkEndpoint endpoint, string playerName, bool hold = false)
         {
             var name = new FixedString64Bytes();
             name.CopyFromTruncated(playerName);
 
-            return Enqueue(endpoint, name, SpaceshipId.None);
+            return Enqueue(endpoint, name, SpaceshipId.None, hold);
         }
 
         /// <summary>
         /// 파괴된 뒤 다시 스폰을 요청함. 이미 접속돼 있으므로 주소를 싣지 않음.
         /// </summary>
         /// <param name="spaceship">팀 모드에서 탈 기종. 그 밖에는 None.</param>
-        public static bool RequestRespawn(SpaceshipId spaceship = SpaceshipId.None)
+        /// <param name="playerName">바꿀 이름. 비우면 서버가 쓰던 이름을 씀.</param>
+        public static bool RequestRespawn(SpaceshipId spaceship = SpaceshipId.None, string playerName = null)
         {
             var clientWorld = ClientServerBootstrap.ClientWorld;
+            var name = new FixedString64Bytes();
 
-            if (clientWorld == null || !Enqueue(default, default, spaceship))
+            if (!string.IsNullOrEmpty(playerName))
+            {
+                name.CopyFromTruncated(playerName);
+            }
+
+            if (clientWorld == null || !Enqueue(default, name, spaceship, false))
             {
                 return false;
             }
@@ -196,7 +204,7 @@ namespace GalaxyIO.DOTS.Client.Networking
         /// <summary>
         /// 요청 엔티티를 남김.
         /// </summary>
-        private static bool Enqueue(NetworkEndpoint endpoint, FixedString64Bytes name, SpaceshipId spaceship)
+        private static bool Enqueue(NetworkEndpoint endpoint, FixedString64Bytes name, SpaceshipId spaceship, bool hold)
         {
             // Thin Client 를 제외한 실제 Client World.
             var clientWorld = ClientServerBootstrap.ClientWorld;
@@ -223,6 +231,7 @@ namespace GalaxyIO.DOTS.Client.Networking
                     Endpoint  = endpoint,
                     Name      = name,
                     Spaceship = spaceship,
+                    Hold      = hold,
                 });
             }
 

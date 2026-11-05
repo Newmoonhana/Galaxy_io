@@ -860,6 +860,18 @@ MonoBehaviour:
     m_Localized: Start
     m_Metadata:
       m_Items: []
+  - m_Id: 14981024971550720
+    m_Localized: Check Name
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14981025055436800
+    m_Localized: Please enter a name.
+    m_Metadata:
+      m_Items: []
+  - m_Id: 14981025055436801
+    m_Localized: Names can be up to {0} characters.
+    m_Metadata:
+      m_Items: []
   references:
     version: 2
     RefIds: []

@@ -99,13 +99,22 @@ namespace GalaxyIO.DOTS.Systems
                     playerName = SystemAPI.GetComponent<PlayerNameComponent>(connectionEntity).Value;
                 }
 
-                // 이름 없는 요청은 버림. 클라이언트가 빈 이름을 막으므로 정상 경로로는 오지 않음.
-                if (playerName.IsEmpty)
+                // 이름 검증. 클라이언트와 같은 규칙. 실패하면 거절을 알리고 요청을 버림.
+                PlayerNameError nameError = PlayerNameComponent.Validate(playerName.ToString(), out string trimmedName);
+
+                if (nameError != PlayerNameError.None)
                 {
                     owners.Remove(networkId.Value);
+
+                    Entity reject = ecb.CreateEntity();
+                    ecb.AddComponent(reject, new PlayerNameRejectedRPC { Error = nameError });
+                    ecb.AddComponent(reject, new SendRpcCommandRequest { TargetConnection = connectionEntity });
+
                     ecb.DestroyEntity(rpcEntity);
                     continue;
                 }
+
+                playerName = new FixedString64Bytes(trimmedName);
 
                 bool joining = !SystemAPI.HasComponent<PlayerNameComponent>(connectionEntity);
 
@@ -121,10 +130,28 @@ namespace GalaxyIO.DOTS.Systems
                 if (joining)
                 {
                     Debug.Log($"[Server] Joined: {playerName} (NetworkId {networkId.Value})");
-                    ecb.AddComponent(connectionEntity, new PlayerNameCleanup { Value = playerName });
+                }
+                // 리스폰 때 이름을 바꿈. 이름을 따로 들고 있는 점수판들이 새 이름을 다시 보내게 함.
+                else if (SystemAPI.GetComponent<PlayerNameComponent>(connectionEntity).Value != playerName)
+                {
+                    // 자유 모드 랭킹: 점수 0 을 더하는 요청으로 PlayerScoreSystem 이 새 이름을 담은 점수를 다시 보냄.
+                    ecb.AddComponent(ecb.CreateEntity(), ScoreMessage.Add(networkId.Value, 0));
+
+                    // 팀 점수판: 입장 때 복사한 이름을 고침.
+                    modes?.Value.Rename(networkId.Value, playerName);
                 }
 
+                // 리스폰 때 이름이 바뀔 수 있어 매번 갱신. 퇴장 로그·파티가 이 이름을 씀.
+                ecb.AddComponent(connectionEntity, new PlayerNameCleanup { Value = playerName });
                 ecb.AddComponent(connectionEntity, new PlayerNameComponent { Value = playerName });
+
+                // 입장만 요청. 이름 입력 창(리스폰 창)에서 시작 버튼을 누르면 리스폰 요청이 옴.
+                if (rpc.Hold)
+                {
+                    owners.Remove(networkId.Value);
+                    ecb.DestroyEntity(rpcEntity);
+                    continue;
+                }
 
                 Entity prefab = shipPrefab;
 
