@@ -188,7 +188,15 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             Color normal = fillColor.Evaluate(shownRatio);
             float blink = 0.5F + 0.5F * Mathf.Sin(Time.time * overheatBlinkFrequency * 2.0F * Mathf.PI);
-            Color shown = heat.Overheated ? Color.LerpUnclamped(normal, overheatColor, blink) : normal;
+            // 과열 중에는 깜빡임 바닥도 빨강. overheatColor 를 최대 채널 1 로 줄인 색 ↔ HDR 원색으로 깜빡임.
+            Color shown = normal;
+
+            if (heat.Overheated)
+            {
+                Color overheatBase = overheatColor / Mathf.Max(1.0F, overheatColor.maxColorComponent);
+                overheatBase.a = overheatColor.a;
+                shown = Color.LerpUnclamped(overheatBase, overheatColor, blink);
+            }
 
             // 1 을 넘는 만큼은 머티리얼 배율로 넘기고 Image.color 에는 0 ~ 1 로 나눈 색을 넣음.
             float intensity = fillMaterial != null ? Mathf.Max(1.0F, shown.maxColorComponent) : 1.0F;
