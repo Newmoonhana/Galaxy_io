@@ -69,6 +69,20 @@ namespace GalaxyIO.DOTS.Client.Systems
 
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
+            // 지난번 연출 요청이 읽히지 않고 남아 있으면 지움(연출 뷰가 없는 씬).
+            state.EntityManager.DestroyEntity(SystemAPI.QueryBuilder().WithAll<SpaceshipDestroyedFxMessage>().Build());
+
+            // 크기별 파괴 연출용: 터진 자리에 아직 남아 있는 선체(고스트는 조금 늦게 사라짐)의 크기와 속도.
+            var hulls = new NativeList<float4>(16, Allocator.Temp);
+            var hullVelocities = new NativeList<float2>(16, Allocator.Temp);
+
+            foreach (var (hullTransform, hullSpec, hullMovement) in
+                     SystemAPI.Query<RefRO<LocalTransform>, RefRO<SpaceshipSpecComponent>, RefRO<MovementComponent>>())
+            {
+                hulls.Add(new float4(hullTransform.ValueRO.Position.xy, hullSpec.ValueRO.Thickness * 0.5F, 0.0F));
+                hullVelocities.Add(hullMovement.ValueRO.Velocity);
+            }
+
             foreach (
                 var (destroyed, rpcEntity) in
                 SystemAPI.Query<RefRO<SpaceshipDestroyedRPC>>()
@@ -86,6 +100,29 @@ namespace GalaxyIO.DOTS.Client.Systems
 
                 bool killedByLocal = destroyed.ValueRO.KillerNetworkId == localNetworkId
                                      && destroyed.ValueRO.OwnerNetworkId != localNetworkId;
+
+                // 가장 가까운 선체를 터진 우주선으로 봄.
+                var fx = new SpaceshipDestroyedFxMessage
+                {
+                    Position      = destroyed.ValueRO.Position,
+                    Local         = destroyed.ValueRO.OwnerNetworkId == localNetworkId,
+                    KilledByLocal = killedByLocal,
+                };
+                float nearest = float.MaxValue;
+
+                for (int i = 0; i < hulls.Length; i++)
+                {
+                    float distance = math.distancesq(hulls[i].xy, destroyed.ValueRO.Position);
+
+                    if (distance < nearest && distance <= math.max(hulls[i].z * hulls[i].z, 4.0F))
+                    {
+                        nearest = distance;
+                        fx.Radius = hulls[i].z;
+                        fx.Velocity = hullVelocities[i];
+                    }
+                }
+
+                ecb.AddComponent(ecb.CreateEntity(), fx);
 
                 if (hasSound && killedByLocal)
                 {
@@ -115,6 +152,8 @@ namespace GalaxyIO.DOTS.Client.Systems
 
             ecb.Playback(state.EntityManager);
             ecb.Dispose();
+            hullVelocities.Dispose();
+            hulls.Dispose();
         }
     }
-}
+}

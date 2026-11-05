@@ -26,9 +26,19 @@ namespace GalaxyIO.Camera
     public sealed class FollowPlayerEntity : MonoBehaviour
     {
         [SerializeField]
-        [Tooltip("최대 속력일 때 카메라가 기수 방향으로 앞서 나가는 거리")]
+        [Tooltip("최대 속력일 때 카메라가 진행 방향으로 앞서 나가는 거리. 시야 크기(세로 반폭) 비율이라 큰 배일수록 멀리 봄.")]
+        [Range(0.0F, 1.0F)]
+        private float lookAheadRatio = 0.32F;
+
+        [SerializeField]
+        [Tooltip("카메라가 우주선을 따라가는 빠르기. 작을수록 한 박자 늦게 따라와 속도감이 큼. 0 이면 바로 붙음.")]
         [Min(0.0F)]
-        private float lookAheadDistance = 5F;
+        private float followSpeed = 6.0F;
+
+        [SerializeField]
+        [Tooltip("이보다 멀리 떨어지면(리스폰, 순간이동) 따라가지 않고 바로 옮김. 시야 크기 비율.")]
+        [Min(0.0F)]
+        private float followSnapRatio = 2.0F;
 
         [SerializeField]
         [Tooltip("시야 방향이 목표 방향으로 전환되는 속도. 클수록 즉각적으로 반응한다.")]
@@ -122,6 +132,10 @@ namespace GalaxyIO.Camera
 
         // 휠로 정한 최대 시야 크기 대비 비율. 우주선을 바꿔도 휠 단계가 그대로 유지됨.
         private float zoomRatio = 1F;
+
+        // 카메라가 따라가는 우주선 위치(늦게 따라옴). 처음엔 우주선 위치로 바로 맞춤.
+        private Vector2 followPosition;
+        private bool hasFollowPosition;
 
         // 현재 적용 중인 오프셋. 목표 오프셋을 향해 매 프레임 수렴함.
         private Vector2 currentLookAhead;
@@ -338,6 +352,7 @@ namespace GalaxyIO.Camera
                 transform.position = new Vector3(next.x, next.y, transform.position.z);
                 currentLookAhead = Vector2.zero;
                 currentShift = Vector2.zero;
+                hasFollowPosition = false;
 
                 if (Time.unscaledTime >= nextSpectateSendTime)
                 {
@@ -390,11 +405,25 @@ namespace GalaxyIO.Camera
                 shake = Mathf.Max(shake - shakeDecay * Time.deltaTime, 0.0F);
             }
 
-            // 우주선의 위치는 보간 없이 그대로 따라가므로 화면상 위치가 흔들리지 않음.
+            // 우주선 위치를 한 박자 늦게 따라감. 가속하면 우주선이 화면 앞쪽으로 밀려 나갔다가 카메라가 따라잡음.
+            // 리스폰처럼 멀리 떨어졌으면 바로 맞춤.
+            Vector2 shipPosition = new Vector2(playerTransform.Position.x, playerTransform.Position.y);
+
+            if (!hasFollowPosition || followSpeed <= 0.0F
+                || (followPosition - shipPosition).sqrMagnitude > Mathf.Pow(targetCamera.orthographicSize * followSnapRatio, 2.0F))
+            {
+                followPosition = shipPosition;
+                hasFollowPosition = true;
+            }
+            else
+            {
+                followPosition = Vector2.Lerp(followPosition, shipPosition, 1F - Mathf.Exp(-followSpeed * Time.deltaTime));
+            }
+
             transform.position = new Vector3
             (
-                playerTransform.Position.x + offset.x,
-                playerTransform.Position.y + offset.y,
+                followPosition.x + offset.x,
+                followPosition.y + offset.y,
                 transform.position.z
             );
 
@@ -409,8 +438,8 @@ namespace GalaxyIO.Camera
         }
 
         /// <summary>
-        /// 카메라를 우주선의 기수 방향으로 밀어낼 오프셋(월드 단위)을 계산함.
-        /// 정지 상태면 0, 최대 속력이면 <see cref="lookAheadDistance"/>가 됨.
+        /// 카메라를 우주선의 진행 방향으로 밀어낼 오프셋(월드 단위)을 계산함.
+        /// 정지 상태면 0, 최대 속력이면 시야 크기 x <see cref="lookAheadRatio"/>가 됨.
         /// </summary>
         private Vector2 GetLookAhead(
             in LocalTransform transform,
@@ -422,11 +451,11 @@ namespace GalaxyIO.Camera
                 return Vector2.zero;
             }
 
-            // 기수 방향 * (기수 방향 속력 / 최대 속력). 가속/감속을 따라 오프셋도 늘고 줆.
-            float2 forward = math.normalizesafe(SpaceshipHeading.FromRotation(transform.Rotation), float2.zero);
-            float speedRatio = math.saturate(math.dot(velocity, forward) / movement.MaxSpeed);
+            // 진행 방향 * (속력 / 최대 속력) * 시야 크기 비율. 가속/감속을 따라 오프셋도 늘고 줆.
+            float2 direction = math.normalizesafe(velocity, float2.zero);
+            float speedRatio = math.saturate(math.length(velocity) / movement.MaxSpeed);
 
-            return new Vector2(forward.x, forward.y) * (speedRatio * lookAheadDistance);
+            return new Vector2(direction.x, direction.y) * (speedRatio * lookAheadRatio * targetCamera.orthographicSize);
         }
     }
 }

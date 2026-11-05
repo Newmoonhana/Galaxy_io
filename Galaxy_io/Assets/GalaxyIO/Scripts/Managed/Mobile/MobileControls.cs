@@ -447,6 +447,19 @@ namespace GalaxyIO.Mobile
 
         private readonly HashSet<Canvas> hiddenCanvases = new HashSet<Canvas>();
 
+        // 옮기는 거리는 1920x1080 기준 값. 캔버스 기준 해상도(예: 960x540)에 맞춰 비례시킴.
+        private float CanvasUnit(RectTransform rect)
+        {
+            CanvasScaler scaler = rect.GetComponentInParent<CanvasScaler>();
+
+            if (scaler == null || !original.TryGetValue(scaler, out Vector2 reference))
+            {
+                return 1.0F;
+            }
+
+            return reference.y / 1080.0F;
+        }
+
         // 터치 중이면 move 로 옮기고, 아니면 처음 자리로 되돌림. 한 번만 옮김.
         private void Relocate(RectTransform rect, bool touch, System.Action<RectTransform> move)
         {
@@ -507,9 +520,8 @@ namespace GalaxyIO.Mobile
 
                 scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
                 scaler.matchWidthOrHeight = match;
-                scaler.referenceResolution = portrait
-                    ? new Vector2(1100.0F, 1100.0F * reference.y / Mathf.Max(reference.x, 1.0F))
-                    : reference * enlarge;
+                // 세로: 기준 너비를 1920 기준 1100 비율(0.573)로 줄임. 캔버스마다 기준 해상도가 달라도 같은 비율.
+                scaler.referenceResolution = portrait ? reference * (1100.0F / 1920.0F) : reference * enlarge;
             }
 
             // 터치 조작 중에는 조이스틱과 겹치는 HUD 를 위로 옮김: 레이더(오른쪽 아래 -> 오른쪽 위), 킬 로그(레이더 아래로),
@@ -521,7 +533,7 @@ namespace GalaxyIO.Mobile
                 Relocate((RectTransform)radar.transform, touch, rect =>
                 {
                     rect.anchorMin = rect.anchorMax = new Vector2(1.0F, 1.0F);
-                    rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, -Mathf.Abs(rect.anchoredPosition.y) - 10.0F);
+                    rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, -Mathf.Abs(rect.anchoredPosition.y) - 10.0F * CanvasUnit(rect));
                 });
             }
 
@@ -531,7 +543,7 @@ namespace GalaxyIO.Mobile
                 {
                     if (child.name == "KillLogRows")
                     {
-                        Relocate(child, touch, rect => rect.anchoredPosition += new Vector2(0.0F, -170.0F));
+                        Relocate(child, touch, rect => rect.anchoredPosition += new Vector2(0.0F, -170.0F * CanvasUnit(rect)));
                     }
                 }
             }
@@ -558,7 +570,7 @@ namespace GalaxyIO.Mobile
                 Relocate((RectTransform)chat.transform, touch, rect =>
                 {
                     rect.anchorMin = rect.anchorMax = new Vector2(0.0F, 1.0F);
-                    rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, -380.0F);
+                    rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, -380.0F * CanvasUnit(rect));
                 });
             }
 
