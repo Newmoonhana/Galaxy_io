@@ -1,3 +1,4 @@
+using GalaxyIO.Camera;
 using GalaxyIO.DOTS.Authoring;
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Collision;
@@ -22,6 +23,7 @@ namespace GalaxyIO.Scripts.Managed.UI
     /// 모선의 함재기 명령을 내리고, 지금 명령을 핑으로 그리는 클라이언트 전용 뷰. 살아 있는 함재기 수도 띄움.
     /// 적을 누르면 공격, 점령전 위성은 점령, 빈 곳이나 레이더는 지역 확보, 자기 모선은 호위(호위 중이거나 두 번 누르면 귀환).
     /// </summary>
+    [DefaultExecutionOrder(CameraExecutionOrder.AfterBrain)]
     public sealed class CarrierOrderView : MonoBehaviour
     {
         [SerializeField]

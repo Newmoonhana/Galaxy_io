@@ -21,6 +21,7 @@ namespace GalaxyIO.Scripts.Managed.UI
     /// 때린 플레이어에게는 명중음도 냄. 거리만큼 작아지지만 최소 음량이 있어 화면 밖 명중도 들림.
     /// 로컬 우주선이 맞으면 받은 데미지 / 최대 체력에 비례해 카메라를 흔듦.
     /// </summary>
+    [DefaultExecutionOrder(CameraExecutionOrder.AfterBrain)]
     public sealed class DamagePopupView : MonoBehaviour
     {
         [SerializeField]

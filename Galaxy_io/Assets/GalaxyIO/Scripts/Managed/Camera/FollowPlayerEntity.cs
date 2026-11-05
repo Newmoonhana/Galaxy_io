@@ -7,6 +7,7 @@ using GalaxyIO.DOTS.Spaceship;
 using GalaxyIO.Scripts.Managed.Background;
 using GalaxyIO.Tools;
 using Unity.Collections;
+using Unity.Cinemachine;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.NetCode;
@@ -17,7 +18,7 @@ using UnityEngine.InputSystem;
 namespace GalaxyIO.Camera
 {
     /// <summary>
-    /// DOTS 오브젝트인 플레이어 우주선을 따라다니는 카메라 로직.
+    /// DOTS 오브젝트인 플레이어 우주선을 Cinemachine 카메라가 따라가도록 대상, 렌즈, 오프셋을 갱신하는 로직.
     /// 우주선을 화면 중앙에 고정하지 않고 진행 방향 쪽으로 카메라를 밀어 시야를 확보함.
     /// 마우스 휠로 시야 크기를 조절함. 축소 한계는 우주선마다의 최대 시야 크기를 따름.
     /// 마우스 조준 모드(휠 누르기로 켜고 끔)에서는 커서 쪽으로, 레이더 조준 모드와 함께 켜면 기수 방향으로 카메라를 밀어냄.
@@ -84,11 +85,6 @@ namespace GalaxyIO.Camera
         [Header("Spectate")]
 
         [SerializeField]
-        [Tooltip("팀 모드에서 우주선이 없을 때 비출 곳으로 옮겨 가는 속도")]
-        [Min(0.0F)]
-        private float spectateSmoothSpeed = 3.0F;
-
-        [SerializeField]
         [Tooltip("점령전에서 부활 지점과 우리 위성을 번갈아 비추는 간격(초)")]
         [Min(0.5F)]
         private float spectateInterval = 5.0F;
@@ -97,6 +93,41 @@ namespace GalaxyIO.Camera
         [Tooltip("비추는 곳을 서버에 알리는 간격(초). 서버가 그 주변을 복제해 줌.")]
         [Min(0.1F)]
         private float spectateSendInterval = 1.0F;
+
+        [Header("Cinemachine")]
+
+        [SerializeField]
+        [Tooltip("우주선을 따라가는 카메라")]
+        private CinemachineCamera playerCamera;
+
+        [SerializeField]
+        [Tooltip("시야 확보 오프셋. playerCamera 에 붙은 확장.")]
+        private CinemachineCameraOffset cameraOffset;
+
+        [SerializeField]
+        [Tooltip("피격 흔들림(펄린 노이즈 방식). playerCamera 에 붙은 노이즈. 비우면 hitImpulse 로 흔듦.")]
+        private CinemachineBasicMultiChannelPerlin shakeNoise;
+
+        [SerializeField]
+        [Tooltip("피격 흔들림(임펄스 방식). shakeNoise 가 비어 있을 때 씀.")]
+        private CinemachineImpulseSource hitImpulse;
+
+        [SerializeField]
+        [Tooltip("임펄스 방식 흔들림 폭 배율. 펄린 노이즈 방식과 체감을 맞추는 값.")]
+        [Min(0.0F)]
+        private float hitImpulseScale = 1.0F;
+
+        [SerializeField]
+        [Tooltip("팀 모드에서 우주선이 없을 때 전장을 비추는 카메라. 켜지면 playerCamera 보다 우선함.")]
+        private CinemachineCamera spectateCamera;
+
+        [SerializeField]
+        [Tooltip("playerCamera 가 따라가는 대상. 우주선 위치를 매 프레임 복사함.")]
+        private Transform playerTarget;
+
+        [SerializeField]
+        [Tooltip("spectateCamera 가 따라가는 대상. 비출 곳을 매 프레임 복사함.")]
+        private Transform spectateTarget;
 
         private EntityManager entityManager;
         private EntityQuery playerQuery;
@@ -112,7 +143,25 @@ namespace GalaxyIO.Camera
         private float nextSpotTime;
         private float nextSpectateSendTime;
 
+        // 화면 비율 계산용. 위치와 시야 크기는 CinemachineBrain 이 씀.
         private UnityEngine.Camera targetCamera;
+
+        // 현재 시야 크기. 두 Cinemachine 카메라의 렌즈에 같이 적용함.
+        private float orthographicSize;
+
+        // 관전 중 잠시 우선해서 비출 곳 (위성 점령 등).
+        private Vector2 focusSpot;
+        private float focusUntil;
+
+        /// <summary>
+        /// 휠 줌과 별개로 렌즈에 곱하는 시야 비율 가감(0 = 없음). 스폰 줌인, 킬 펀치 줌에 씀.
+        /// </summary>
+        public float ZoomKick { get; set; }
+
+        /// <summary>
+        /// 가감 전 현재 시야 크기.
+        /// </summary>
+        public float OrthographicSize => orthographicSize;
 
         // 카메라를 스폰 위치로 한 번 옮겼는가. 배경을 그 뒤에 보여 주기 위한 1회성 플래그.
         private bool backgroundRevealed;
@@ -135,6 +184,8 @@ namespace GalaxyIO.Camera
             // 서버에서 비활성화함
             if (Application.isBatchMode)
             {
+                playerCamera.gameObject.SetActive(false);
+                spectateCamera.gameObject.SetActive(false);
                 gameObject.SetActive(false);
             }
         }
@@ -175,7 +226,8 @@ namespace GalaxyIO.Camera
             );
 
             targetCamera = GetComponent<UnityEngine.Camera>();
-            maxZoom = targetCamera.orthographicSize;
+            orthographicSize = playerCamera.Lens.OrthographicSize;
+            maxZoom = orthographicSize;
         }
 
         /// <summary>
@@ -184,6 +236,26 @@ namespace GalaxyIO.Camera
         public void Shake(float damageRatio)
         {
             shake = Mathf.Clamp01(shake + damageRatio * shakeGain);
+
+            // 임펄스 방식: 피격마다 임펄스. 겹치면 더해짐.
+            if (shakeNoise == null && hitImpulse != null)
+            {
+                float strength = Mathf.Clamp01(damageRatio * shakeGain);
+                float angle = UnityEngine.Random.value * Mathf.PI * 2.0F;
+                Vector3 direction = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0.0F);
+
+                hitImpulse.GenerateImpulseWithVelocity(direction * (strength * strength * maxShake * orthographicSize * hitImpulseScale));
+            }
+        }
+
+        /// <summary>
+        /// 관전 중이면 spectateInterval 동안 해당 위치를 우선해서 비춤.
+        /// </summary>
+        public void FocusSpectate(Vector2 spot)
+        {
+            focusSpot = spot;
+            focusUntil = Time.unscaledTime + spectateInterval;
+            nextSpotTime = focusUntil;
         }
 
         private void OnEnable()
@@ -247,11 +319,15 @@ namespace GalaxyIO.Camera
             }
 
             // 우주선을 바꾸면 새 최대 시야 크기로 보간됨.
-            targetCamera.orthographicSize = Mathf.Lerp(
-                targetCamera.orthographicSize,
+            orthographicSize = Mathf.Lerp(
+                orthographicSize,
                 maxZoom * zoomRatio,
                 1F - Mathf.Exp(-zoomSmoothSpeed * Time.deltaTime)
             );
+
+            float lensSize = orthographicSize * (1F + ZoomKick);
+            playerCamera.Lens.OrthographicSize = lensSize;
+            spectateCamera.Lens.OrthographicSize = lensSize;
 
             // 팀 모드에서 우주선이 없으면 전장을 비춤. 자유 모드는 마지막 자리에 머묾.
             if (player == Entity.Null)
@@ -313,14 +389,11 @@ namespace GalaxyIO.Camera
                     nextSpotTime = Time.unscaledTime + spectateInterval;
                 }
 
-                Vector2 spot = spots[spotIndex % spots.Count];
+                Vector2 spot = Time.unscaledTime < focusUntil ? focusSpot : spots[spotIndex % spots.Count];
 
-                // 처음에는 바로 옮김. 원점에서 날아가는 모습을 보이지 않음.
-                Vector2 next = backgroundRevealed
-                    ? Vector2.Lerp(transform.position, spot, 1F - Mathf.Exp(-spectateSmoothSpeed * Time.deltaTime))
-                    : spot;
-
-                transform.position = new Vector3(next.x, next.y, transform.position.z);
+                // 감쇠 이동은 spectateCamera 의 PositionComposer 가 담당.
+                spectateTarget.position = new Vector3(spot.x, spot.y, 0.0F);
+                SetSpectating(true);
                 currentLookAhead = Vector2.zero;
                 currentShift = Vector2.zero;
 
@@ -343,6 +416,8 @@ namespace GalaxyIO.Camera
             PlayerSpaceshipMovementComponent movement =
                 entityManager.GetComponentData<PlayerSpaceshipMovementComponent>(player);
 
+            SetSpectating(false);
+
             // 두 조준 모드를 함께 켜면 우주선이 바라보는 쪽으로 밀어냄.
             if (playerState.MouseAim && playerState.RadarAim && !menuOpen)
             {
@@ -360,28 +435,23 @@ namespace GalaxyIO.Camera
             currentShift = Vector2.Lerp(currentShift, shift, 1F - Mathf.Exp(-smoothSpeed * Time.deltaTime));
 
             // 화면 절반 크기(월드 단위). 우주선이 이 비율 넘게 가장자리로 밀려나지 않게 합친 오프셋을 자름.
-            Vector2 extents = new Vector2(targetCamera.orthographicSize * targetCamera.aspect, targetCamera.orthographicSize) * maxShift;
+            Vector2 extents = new Vector2(orthographicSize * targetCamera.aspect, orthographicSize) * maxShift;
             Vector2 offset = currentLookAhead + Vector2.Scale(currentShift, extents);
 
             offset = new Vector2(Mathf.Clamp(offset.x, -extents.x, extents.x), Mathf.Clamp(offset.y, -extents.y, extents.y));
 
-            // 펄린 노이즈로 흔듦. 세기는 시간에 따라 줄어듦.
-            if (shake > 0.0F)
+            // 펄린 노이즈 방식: 흔들림 폭만 정함. 파형은 shakeNoise 의 노이즈 프로필. 세기는 시간에 따라 줄어듦.
+            if (shakeNoise != null)
             {
-                float time = Time.time * shakeFrequency;
-                float amplitude = shake * shake * maxShake * targetCamera.orthographicSize;
-
-                offset += new Vector2(Mathf.PerlinNoise(time, 0.0F) * 2.0F - 1.0F, Mathf.PerlinNoise(0.0F, time) * 2.0F - 1.0F) * amplitude;
-                shake = Mathf.Max(shake - shakeDecay * Time.deltaTime, 0.0F);
+                shakeNoise.AmplitudeGain = shake * shake * maxShake * orthographicSize;
+                shakeNoise.FrequencyGain = shakeFrequency;
             }
 
-            // 우주선의 위치는 보간 없이 그대로 따라가므로 화면상 위치가 흔들리지 않음.
-            transform.position = new Vector3
-            (
-                playerTransform.Position.x + offset.x,
-                playerTransform.Position.y + offset.y,
-                transform.position.z
-            );
+            shake = Mathf.Max(shake - shakeDecay * Time.deltaTime, 0.0F);
+
+            // 우주선의 위치는 보간 없이 그대로 따라가므로(Damping 0) 화면상 위치가 흔들리지 않음.
+            playerTarget.position = new Vector3(playerTransform.Position.x, playerTransform.Position.y, 0.0F);
+            cameraOffset.Offset = new Vector3(offset.x, offset.y, 0.0F);
 
             // 카메라를 스폰 위치로 처음 옮긴 뒤에야 배경을 보여 줌.
             // 접속 완료(NetworkStreamInGame)는 이보다 몇 프레임 빨라서, 그걸 신호로 쓰면
@@ -391,6 +461,21 @@ namespace GalaxyIO.Camera
                 backgroundRevealed = true;
                 BackgroundView.RevealAcrossScenes();
             }
+        }
+
+        /// <summary>
+        /// spectateCamera 를 켜고 끔. 켜면 직전 카메라 위치에서 출발해 비출 곳으로 감쇠 이동함.
+        /// </summary>
+        private void SetSpectating(bool on)
+        {
+            if (spectateCamera.gameObject.activeSelf == on)
+            {
+                return;
+            }
+
+            // 처음에는 바로 옮김(CenterOnActivate). 원점에서 날아가는 모습을 보이지 않음.
+            spectateCamera.BlendHint = backgroundRevealed ? CinemachineCore.BlendHints.InheritPosition : default;
+            spectateCamera.gameObject.SetActive(on);
         }
 
         /// <summary>

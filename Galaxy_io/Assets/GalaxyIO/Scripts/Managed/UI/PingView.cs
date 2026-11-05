@@ -1,3 +1,4 @@
+using GalaxyIO.Camera;
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Collision;
 using GalaxyIO.DOTS.Components.Actor;
@@ -21,6 +22,7 @@ namespace GalaxyIO.Scripts.Managed.UI
     /// 화면 안의 핑은 그 자리에 원으로, 화면 밖의 핑은 화면 가장자리에서 그쪽을 가리키는 화살표로 그림.
     /// 받은 핑은 일정 시간 뒤 사라짐. 팀 모드에서는 우리 대장선과 위성을 늘 따라다니는 핑을 그림.
     /// </summary>
+    [DefaultExecutionOrder(CameraExecutionOrder.AfterBrain)]
     public sealed class PingView : MonoBehaviour
     {
         [SerializeField]

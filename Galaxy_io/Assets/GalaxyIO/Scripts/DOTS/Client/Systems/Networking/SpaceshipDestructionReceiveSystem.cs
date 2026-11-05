@@ -15,6 +15,7 @@ namespace GalaxyIO.DOTS.Client.Systems
     /// <summary>
     /// 우주선 파괴 알림을 받아 폭발 연출/효과음을 스폰하고 리스폰 창 상태를 켜는 시스템.
     /// 로컬 플레이어가 막타를 쳤으면 폭발음을 <see cref="AttackerHitSoundMessage"/>로 보내 멀어도 들리게 함.
+    /// 카메라 연출용으로 <see cref="CameraEventMessage"/>를 남김.
     /// </summary>
     [BurstCompile]
     [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
@@ -109,6 +110,14 @@ namespace GalaxyIO.DOTS.Client.Systems
                 {
                     SystemAPI.GetSingletonRW<PlayerStateComponent>().ValueRW.Dead = true;
                 }
+
+                ecb.AddComponent(ecb.CreateEntity(), new CameraEventMessage
+                {
+                    Kind = CameraEventKind.ShipDestroyed,
+                    Position = destroyed.ValueRO.Position,
+                    OwnerNetworkId = destroyed.ValueRO.OwnerNetworkId,
+                    KillerNetworkId = destroyed.ValueRO.KillerNetworkId,
+                });
 
                 ecb.DestroyEntity(rpcEntity);
             }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using GalaxyIO.Camera;
 using GalaxyIO.DOTS.Client.Components.Message;
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Client.Systems;
@@ -25,6 +26,7 @@ namespace GalaxyIO.Scripts.Managed.Audio
     /// 재생은 <see cref="SoundManager"/>를 거침. 거리 감쇠와 음성 풀링은 Master Audio 의
     /// Sound Group 설정이 담당함.
     /// </summary>
+    [DefaultExecutionOrder(CameraExecutionOrder.AfterBrain)]
     public sealed class SoundEffectPlayer : MonoBehaviour
     {
         [SerializeField]
