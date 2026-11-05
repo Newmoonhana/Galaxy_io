@@ -2,6 +2,7 @@ using GalaxyIO.DOTS.Components.Message;
 using GalaxyIO.DOTS.Components.Singleton;
 using GalaxyIO.Tools;
 using System.Collections.Generic;
+using DG.Tweening;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
@@ -19,8 +20,12 @@ namespace GalaxyIO.Scripts.Managed.UI
         private ScoreboardRow rowTemplate;
 
         [SerializeField]
-        [Tooltip("줄이 쌓이는 부모. 위에서 아래로 정렬됨.")]
+        [Tooltip("줄이 놓이는 부모. 위쪽 기준으로 코드가 자리를 잡음.")]
         private RectTransform container;
+
+        [SerializeField]
+        [Tooltip("줄 수에 맞춰 높이가 바뀌는 배경. 위쪽 기준(pivot y 1).")]
+        private RectTransform background;
 
         [SerializeField]
         [Tooltip("보여줄 상위 플레이어 수")]
@@ -35,6 +40,33 @@ namespace GalaxyIO.Scripts.Managed.UI
         [Tooltip("팀 모드에서 처치 수를 받아 오는 팀 점수판")]
         private TeamScoreboardView teamScoreboard;
 
+        [Header("Layout")]
+
+        [SerializeField]
+        [Tooltip("배경 안쪽 위아래 여백")]
+        [Min(0.0F)]
+        private float padding = 6.0F;
+
+        [SerializeField]
+        [Tooltip("줄 높이")]
+        [Min(0.0F)]
+        private float rowHeight = 16.0F;
+
+        [SerializeField]
+        [Tooltip("줄 사이 간격")]
+        [Min(0.0F)]
+        private float spacing = 2.0F;
+
+        [SerializeField]
+        [Tooltip("순위가 바뀐 줄이 새 자리로 가는 시간(초)")]
+        [Min(0.0F)]
+        private float moveTime = 0.25F;
+
+        [SerializeField]
+        [Tooltip("줄이 나타나거나 사라지는 시간(초)")]
+        [Min(0.0F)]
+        private float fadeTime = 0.2F;
+
         [Header("Colors")]
 
         [SerializeField]
@@ -42,7 +74,16 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         [SerializeField]
         [Tooltip("로컬 플레이어 이름 색")]
-        private Color localNameColor = new Color(0.95F, 0.3F, 0.3F);
+        private Color localNameColor = new Color(1.0F, 0.85F, 0.35F);
+
+        [SerializeField]
+        [Tooltip("1위부터의 순위 숫자 색. 넘는 순위는 nameColor.")]
+        private Color[] rankColors =
+        {
+            new Color(1.0F, 0.82F, 0.3F),
+            new Color(0.8F, 0.85F, 0.9F),
+            new Color(0.85F, 0.55F, 0.35F),
+        };
 
         private struct Entry
         {
@@ -63,7 +104,15 @@ namespace GalaxyIO.Scripts.Managed.UI
         private readonly Dictionary<int, Entry> entries = new Dictionary<int, Entry>();
         private readonly List<Entry> ranking = new List<Entry>();
 
-        private ScoreboardRow[] rows;
+        // NetworkId 별로 표시 중인 줄
+        private readonly Dictionary<int, ScoreboardRow> shown = new Dictionary<int, ScoreboardRow>();
+
+        // 다시 쓸 줄. 사라지는 중인 줄은 페이드가 끝나야 들어옴.
+        private readonly Stack<ScoreboardRow> pool = new Stack<ScoreboardRow>();
+
+        // Refresh 임시 목록
+        private readonly HashSet<int> visibleIds = new HashSet<int>();
+        private readonly List<int> leaving = new List<int>();
 
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
@@ -91,13 +140,14 @@ namespace GalaxyIO.Scripts.Managed.UI
             connectionQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<NetworkId>());
             modeQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<GameModeComponent>());
 
-            rows = new ScoreboardRow[maxRows];
-
-            for (int i = 0; i < rows.Length; i++)
+            // 한 번에 여러 줄이 바뀌면 사라지는 줄과 나타나는 줄이 겹치므로 두 배를 미리 만듦.
+            for (int i = 0; i < maxRows * 2; i++)
             {
-                rows[i] = Instantiate(rowTemplate, container);
-                rows[i].gameObject.SetActive(false);
+                pool.Push(Instantiate(rowTemplate, container));
             }
+
+            background.sizeDelta = new Vector2(background.sizeDelta.x, 0.0F);
+            background.gameObject.SetActive(false);
         }
 
         private void LateUpdate()
@@ -190,19 +240,84 @@ namespace GalaxyIO.Scripts.Managed.UI
             ranking.AddRange(entries.Values);
             ranking.Sort(Compare);
 
-            for (int i = 0; i < rows.Length; i++)
+            // 로컬 플레이어가 표시 범위 밖이면 마지막 줄을 로컬 플레이어 순위로 씀.
+            int localIndex = -1;
+
+            for (int i = 0; i < ranking.Count; i++)
             {
-                bool visible = i < ranking.Count;
-                rows[i].gameObject.SetActive(visible);
-
-                if (visible)
+                if (ranking[i].NetworkId == localNetworkId)
                 {
-                    Entry entry = ranking[i];
-                    Color color = entry.NetworkId == localNetworkId ? localNameColor : nameColor;
-
-                    rows[i].Set(i + 1, entry.Name, entry.Score, color);
+                    localIndex = i;
+                    break;
                 }
             }
+
+            int count = Mathf.Min(maxRows, ranking.Count);
+            visibleIds.Clear();
+
+            for (int slot = 0; slot < count; slot++)
+            {
+                int index = slot == maxRows - 1 && localIndex >= maxRows ? localIndex : slot;
+                Entry entry = ranking[index];
+                bool isLocal = index == localIndex;
+                float y = -(padding + slot * (rowHeight + spacing));
+
+                visibleIds.Add(entry.NetworkId);
+
+                if (shown.TryGetValue(entry.NetworkId, out ScoreboardRow row))
+                {
+                    row.MoveTo(y, moveTime);
+                }
+                else
+                {
+                    row = Rent();
+                    row.Place(y);
+                    row.FadeIn(fadeTime);
+                    shown.Add(entry.NetworkId, row);
+                }
+
+                Color rankColor = index < rankColors.Length ? rankColors[index] : nameColor;
+                row.Set(index + 1, entry.Name, entry.Score, isLocal ? localNameColor : nameColor, rankColor, isLocal);
+            }
+
+            // 순위권에서 빠진 줄은 흐려진 뒤 반납.
+            leaving.Clear();
+
+            foreach (KeyValuePair<int, ScoreboardRow> pair in shown)
+            {
+                if (!visibleIds.Contains(pair.Key)) leaving.Add(pair.Key);
+            }
+
+            foreach (int networkId in leaving)
+            {
+                ScoreboardRow row = shown[networkId];
+                shown.Remove(networkId);
+                row.FadeOut(fadeTime, () => Return(row));
+            }
+
+            float height = count > 0 ? padding * 2.0F + count * rowHeight + (count - 1) * spacing : 0.0F;
+
+            if (count > 0) background.gameObject.SetActive(true);
+
+            background.DOKill();
+            background.DOSizeDelta(new Vector2(background.sizeDelta.x, height), moveTime)
+                .SetEase(Ease.OutQuad)
+                .SetLink(gameObject)
+                .OnComplete(() => background.gameObject.SetActive(height > 0.0F));
+        }
+
+        private ScoreboardRow Rent()
+        {
+            ScoreboardRow row = pool.Count > 0 ? pool.Pop() : Instantiate(rowTemplate, container);
+            row.gameObject.SetActive(true);
+            return row;
+        }
+
+        private void Return(ScoreboardRow row)
+        {
+            row.Kill();
+            row.gameObject.SetActive(false);
+            pool.Push(row);
         }
 
         // 점수 내림차순. 같으면 NetworkId 오름차순.

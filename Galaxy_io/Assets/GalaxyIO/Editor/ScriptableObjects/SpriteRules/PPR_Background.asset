@@ -25,7 +25,7 @@ MonoBehaviour:
   isAutoDefaultMaxTextureSize: 1
   defaultMaxTextureSize: 2048
   defaultResizeAlgorithm: 0
-  defaultCompression: 0
+  defaultCompression: 1
   defaultUseCrunchCompression: 0
   defaultCompressorQuality: 50
   platformOverrides:

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text;
+using DG.Tweening;
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Singleton;
@@ -71,6 +72,18 @@ namespace GalaxyIO.Scripts.Managed.UI
         [Tooltip("경보가 울릴 때 위성 글자를 흔드는 세기. 글자 크기 대비 비율. 번쩍임과 함께 줄어듦.")]
         private float shakeStrength = 0.08F;
 
+        [Header("Zone")]
+
+        [SerializeField]
+        [Tooltip("이탈 경고 깜빡임의 최저 알파")]
+        [Range(0.0F, 1.0F)]
+        private float zoneBlinkAlpha = 0.45F;
+
+        [SerializeField]
+        [Tooltip("이탈 경고 깜빡임 반주기(초)")]
+        [Min(0.01F)]
+        private float zoneBlinkTime = 0.5F;
+
         private EntityQuery modeQuery;
         private EntityQuery stateQuery;
         private EntityQuery shipQuery;
@@ -80,6 +93,19 @@ namespace GalaxyIO.Scripts.Managed.UI
         // 마지막으로 그린 대장선 체력. 바뀔 때만 글자를 다시 만듦.
         private int shownRedHealth = -1;
         private int shownBlueHealth = -1;
+
+        // 마지막으로 그린 구역 남은 시간, 팀 점수, 위성 주인. 바뀔 때만 글자를 다시 만듦.
+        private int shownZoneSeconds = -1;
+        private int shownRedScore = -1;
+        private int shownBlueScore = -1;
+        private int shownWinScore = -1;
+        private int shownSatelliteKey = -1;
+
+        // 위성이 하나씩 동기화되어 들어오므로 주인 키와 함께 개수도 비교함.
+        private int shownSatelliteCount = -1;
+
+        private string redHex;
+        private string blueHex;
 
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
@@ -97,6 +123,9 @@ namespace GalaxyIO.Scripts.Managed.UI
 
         private void Start()
         {
+            // 꺼진 동안에도 돌지만 글자 하나라 비용 없음.
+            zoneLabel.DOFade(zoneBlinkAlpha, zoneBlinkTime).SetLoops(-1, LoopType.Yoyo).SetEase(Ease.InOutSine).SetLink(gameObject);
+
             clientWorld = ClientServerBootstrap.ClientWorld;
 
             if (clientWorld == null)
@@ -106,6 +135,8 @@ namespace GalaxyIO.Scripts.Managed.UI
             }
 
             EntityManager entityManager = clientWorld.EntityManager;
+            redHex = Hex(redColor);
+            blueHex = Hex(blueColor);
             modeQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<GameModeComponent>());
             stateQuery = entityManager.CreateEntityQuery(ComponentType.ReadOnly<GameModeStateComponent>());
             shipQuery = entityManager.CreateEntityQuery(
@@ -150,7 +181,17 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             if (escaped)
             {
-                zoneLabel.text = string.Format(L10n.Get("Zone/Return"), Mathf.Max(Mathf.CeilToInt(mode.OutOfZoneTime - outside), 0));
+                int seconds = Mathf.Max(Mathf.CeilToInt(mode.OutOfZoneTime - outside), 0);
+
+                if (seconds != shownZoneSeconds)
+                {
+                    shownZoneSeconds = seconds;
+                    zoneLabel.text = string.Format(L10n.Get("Zone/Return"), seconds);
+                }
+            }
+            else
+            {
+                shownZoneSeconds = -1;
             }
 
             // 판이 끝나면 결과 화면과 겹치지 않게 위쪽 표시를 감춤. 최종 점수는 점수판에 있음.
@@ -158,9 +199,13 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             scoreLabel.enabled = playing && mode.WinScore > 0;
 
-            if (scoreLabel.enabled)
+            if (scoreLabel.enabled
+                && (state.RedScore != shownRedScore || state.BlueScore != shownBlueScore || mode.WinScore != shownWinScore))
             {
-                scoreLabel.text = $"<color=#{Hex(redColor)}>{state.RedScore}</color>  :  <color=#{Hex(blueColor)}>{state.BlueScore}</color>   / {mode.WinScore}";
+                shownRedScore = state.RedScore;
+                shownBlueScore = state.BlueScore;
+                shownWinScore = mode.WinScore;
+                scoreLabel.text = $"<color=#{redHex}>{state.RedScore}</color>  :  <color=#{blueHex}>{state.BlueScore}</color>   / {mode.WinScore}";
             }
 
             satelliteLabel.enabled = playing && !satelliteQuery.IsEmpty;
@@ -172,42 +217,25 @@ namespace GalaxyIO.Scripts.Managed.UI
                 // 경보가 울린 순간부터 CaptureZap.Duration 동안. 경보를 듣는 팀(위성 주인)에게만 보임.
                 float zap = CaptureZap.Strength;
 
-                builder.Clear();
-                shaking.Clear();
+                // 위성마다 주인 2비트. 번쩍이는 동안은 색이 매 프레임 바뀌므로 항상 다시 만듦.
+                int key = 0;
 
-                // 태그를 뺀 글자 수. TMP 글자 순번과 맞춤.
-                int plain = 0;
-
-                for (byte index = 0; index < satellites.Length; index++)
+                foreach (SatelliteComponent satellite in satellites)
                 {
-                    foreach (SatelliteComponent satellite in satellites)
-                    {
-                        if (satellite.Index != index) continue;
-
-                        // 평소에는 점령한 팀 색. 우리 위성에 상대 점령도가 쌓이면 경보가 울릴 때 점령하는 팀 색으로 번쩍이며 흔들림.
-                        Color color = TeamColor(satellite.Owner);
-
-                        if (zap > 0.0F && CaptureZap.IsAlarming(satellite, state.Team))
-                        {
-                            color = Color.Lerp(color, TeamColor(satellite.Capturing), zap);
-                            shaking.Add(plain);
-                        }
-
-                        // 점령도는 위성 아래에 그림(SpaceshipNameLabels).
-                        string letter = SatelliteComponent.Name(index);
-                        builder.Append($"<color=#{Hex(color)}>{letter}</color>");
-                        plain += letter.Length;
-
-                        builder.Append("   ");
-                        plain += 3;
-                    }
+                    key |= (int)satellite.Owner << (satellite.Index * 2);
                 }
 
-                satelliteLabel.text = builder.ToString();
+                if (zap > 0.0F || key != shownSatelliteKey || satellites.Length != shownSatelliteCount)
+                {
+                    shownSatelliteKey = zap > 0.0F ? -1 : key;
+                    shownSatelliteCount = satellites.Length;
+                    BuildSatelliteText(satellites, zap, state.Team);
+                }
             }
             else
             {
                 shaking.Clear();
+                shownSatelliteKey = -1;
             }
 
             ShakeLetters();
@@ -219,6 +247,43 @@ namespace GalaxyIO.Scripts.Managed.UI
             {
                 UpdateKingBars();
             }
+        }
+
+        // 위성 글자를 만들고 흔들 글자 위치를 모음.
+        private void BuildSatelliteText(NativeArray<SatelliteComponent> satellites, float zap, Team team)
+        {
+            builder.Clear();
+            shaking.Clear();
+
+            // 태그를 뺀 글자 수. TMP 글자 순번과 맞춤.
+            int plain = 0;
+
+            for (byte index = 0; index < satellites.Length; index++)
+            {
+                foreach (SatelliteComponent satellite in satellites)
+                {
+                    if (satellite.Index != index) continue;
+
+                    // 평소에는 점령한 팀 색. 우리 위성에 상대 점령도가 쌓이면 경보가 울릴 때 점령하는 팀 색으로 번쩍이며 흔들림.
+                    Color color = TeamColor(satellite.Owner);
+
+                    if (zap > 0.0F && CaptureZap.IsAlarming(satellite, team))
+                    {
+                        color = Color.Lerp(color, TeamColor(satellite.Capturing), zap);
+                        shaking.Add(plain);
+                    }
+
+                    // 점령도는 위성 아래에 그림(SpaceshipNameLabels).
+                    string letter = SatelliteComponent.Name(index);
+                    builder.Append($"<color=#{Hex(color)}>{letter}</color>");
+                    plain += letter.Length;
+
+                    builder.Append("   ");
+                    plain += 3;
+                }
+            }
+
+            satelliteLabel.text = builder.ToString();
         }
 
         // 경보가 울린 위성 글자의 정점을 매 프레임 무작위로 옮김. 메시를 새로 만든 뒤 옮기므로 쌓이지 않음.

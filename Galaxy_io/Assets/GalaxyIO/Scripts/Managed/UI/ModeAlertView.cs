@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using GalaxyIO.DOTS.Client.Components.Singleton;
 using GalaxyIO.DOTS.Components.Actor;
 using GalaxyIO.DOTS.Components.Message;
@@ -42,6 +43,11 @@ namespace GalaxyIO.Scripts.Managed.UI
         [SerializeField]
         [Min(0.0F)]
         private float fadeOut = 0.8F;
+
+        [SerializeField]
+        [Tooltip("알림이 뜰 때 시작 크기. 1 로 줄어듦.")]
+        [Min(1.0F)]
+        private float popScale = 1.25F;
 
         [Header("Flagship")]
 
@@ -296,6 +302,11 @@ namespace GalaxyIO.Scripts.Managed.UI
             shownFadeIn = inTime;
             shownHold = holdTime;
             shownFadeOut = outTime;
+
+            Transform target = captureLabel.transform;
+            target.DOKill();
+            target.localScale = Vector3.one * popScale;
+            target.DOScale(1.0F, Mathf.Max(inTime * 2.0F, 0.15F)).SetEase(Ease.OutBack).SetUpdate(true).SetLink(gameObject);
         }
 
         // 나타났다가 머문 뒤 사라짐.

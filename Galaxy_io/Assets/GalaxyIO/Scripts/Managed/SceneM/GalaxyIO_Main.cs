@@ -51,6 +51,8 @@ namespace GalaxyIO.Main
         private EntityQuery disconnectQuery;
         // 팀 모드 판 상태. 판이 끝나 결과 화면이 떠 있는 동안 리스폰 창을 감춤.
         private EntityQuery modeStateQuery;
+        // 게임 모드. 조작법 창을 기본 모드에서만 띄울 때 씀.
+        private EntityQuery gameModeQuery;
         private bool hasQueries;
 
         // 새 판의 맵을 받는 동안 띄운 로딩 화면
@@ -74,12 +76,12 @@ namespace GalaxyIO.Main
 
         protected void Start()
         {
-            // 조작법 팝업. 로딩 중에는 none 상태로 떠 있음
-            ControlUI.Open().Forget();
-
             clientWorld = ClientServerBootstrap.ClientWorld;
             if (clientWorld != null)
             {
+                // 조작법 팝업. 로딩 중에는 none 상태로 떠 있음. 월드 없는 인스턴스(디버그 직접 진입의 첫 Main)는 인게임이 아니라 띄우지 않음
+                ControlUI.Open(gameObject.scene).Forget();
+
                 stateQuery = clientWorld.EntityManager.CreateEntityQuery(
                     ComponentType.ReadWrite<PlayerStateComponent>()
                 );
@@ -91,6 +93,9 @@ namespace GalaxyIO.Main
                 );
                 modeStateQuery = clientWorld.EntityManager.CreateEntityQuery(
                     ComponentType.ReadOnly<GameModeStateComponent>()
+                );
+                gameModeQuery = clientWorld.EntityManager.CreateEntityQuery(
+                    ComponentType.ReadOnly<GameModeComponent>()
                 );
                 hasQueries = true;
 
@@ -195,8 +200,9 @@ namespace GalaxyIO.Main
             if (visible && !loading)
             {
                 CommonProgress.HideAcrossScenes();
-                // 로딩이 끝났으므로 조작법 창을 펼침. 두 번째 호출부터는 무시됨
-                ControlUI.Opened?.OnLoadComplete();
+                // 로딩이 끝났으므로 조작법 창을 띄움. 팀 모드는 상단 모드 HUD와 겹쳐 기본 모드에서만. 두 번째 호출부터는 무시됨
+                bool isFree = gameModeQuery.IsEmpty || gameModeQuery.GetSingleton<GameModeComponent>().Mode == GameMode.Free;
+                ControlUI.Opened?.OnLoadComplete(isFree);
             }
 
             // 디버그 진입에서 먼저 뜬 메인 씬도 루프가 계속 돎. 자기가 올린 HUD 만 건드림.
