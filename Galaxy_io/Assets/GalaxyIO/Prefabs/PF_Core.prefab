@@ -8851,10 +8851,6 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 8300000, guid: d09718f248468db4da68581e8555f1ab, type: 3}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
-      propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[1].clip
-      value: 
-      objectReference: {fileID: 8300000, guid: 4ae084334db8c374da4748e8b1e6480e, type: 3}
-    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[0].clip
       value: 
       objectReference: {fileID: 8300000, guid: 598c33689530f0c4cb81375de8c40d97, type: 3}
@@ -8884,14 +8880,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[0].pitch
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
-      propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[1].alias
-      value: theme2
-      objectReference: {fileID: 0}
-    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
-      propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[1].pitch
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
@@ -8927,10 +8915,6 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
-      propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[1].volume
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[0].volume
       value: 1
       objectReference: {fileID: 0}
@@ -8959,10 +8943,6 @@ PrefabInstance:
       value: Field_-_Ecumenopolis
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
-      propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[1].songName
-      value: theme2
-      objectReference: {fileID: 0}
-    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[1].MusicSettings.Array.data[0].songName
       value: Battle_-_Disruptor_Ray
       objectReference: {fileID: 0}
@@ -8988,10 +8968,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[0].isChecked
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
-      propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[1].isChecked
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
@@ -9048,10 +9024,6 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
       propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[0].metadataExpanded
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
-      propertyPath: musicPlaylists.Array.data[0].MusicSettings.Array.data[1].metadataExpanded
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 511708752887622298, guid: c2e56c8721fe2174f968d5541736b335, type: 3}
