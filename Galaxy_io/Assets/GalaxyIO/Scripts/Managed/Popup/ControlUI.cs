@@ -4,6 +4,7 @@ using Newmoonhana.Runtime.Utils;
 using Newmoonhana.Runtime.Utils.Pattern;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.SceneManagement;
 
 namespace GalaxyIO.Tools.PopupUI.Popup
 {
@@ -118,16 +119,19 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         /// 조작법 팝업 생성. 자체 Canvas가 있어 부모 불필요.
         /// 로딩 중에는 none 상태로 떠 있다가 <see cref="OnLoadComplete"/>로 접힌 창이 뜸.
         /// </summary>
-        public static async Awaitable Open()
+        /// <param name="owner">팝업을 넣을 씬. 이 씬이 내려가면 팝업도 같이 지워짐.</param>
+        public static async Awaitable Open(Scene owner)
         {
             if (opened != null) return;
 
             await AddressableAssetsManager.gameObject_lst.LoadData(key);
 
-            // 로드를 기다리는 동안 다른 호출이 먼저 띄웠을 수 있음.
-            if (opened != null) return;
+            // 로드를 기다리는 동안 다른 호출이 먼저 띄웠거나, 부른 씬이 이미 내려갔을 수 있음.
+            if (opened != null || !owner.isLoaded) return;
 
-            Instantiate(AddressableAssetsManager.gameObject_lst.GetData(key).Data);
+            // 활성 씬은 SceneStack이 로드 뒤에 바꾸므로 믿지 않음. 부른 씬에 직접 넣어 같이 내려가게 함.
+            GameObject popup = Instantiate(AddressableAssetsManager.gameObject_lst.GetData(key).Data);
+            SceneManager.MoveGameObjectToScene(popup, owner);
         }
 
         /// <summary>
@@ -168,10 +172,12 @@ namespace GalaxyIO.Tools.PopupUI.Popup
         /// 로딩(= Common_Progress) 종료 통지. 최초 한 번만 창을 띄움.
         /// 인게임 시야를 가리지 않게 접힌 상태로 시작함. 펼치기는 열기 버튼으로.
         /// </summary>
-        public void OnLoadComplete()
+        /// <param name="show">false면 none 상태에 머물러 아무 창도 안 띄움 (팀 모드).</param>
+        public void OnLoadComplete(bool show)
         {
             if (stateM == null) return;
             if (stateM.CurrentToString != "none") return;
+            if (!show) return;
 
             ChangeState("collapse");
         }

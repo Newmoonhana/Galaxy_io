@@ -27,8 +27,10 @@ namespace GalaxyIO.Scripts.Managed.UI
         private EntityManager entityManager;
         private EntityQuery spaceshipQuery;
 
-        // 우주선 수만큼 늘어나는 체력바 풀
-        private readonly List<HealthBarView> bars = new List<HealthBarView>();
+        // 우주선별 체력바. 바가 다른 우주선으로 옮겨 다니지 않게 고정함.
+        private readonly Dictionary<Entity, HealthBarView> active = new Dictionary<Entity, HealthBarView>();
+        private readonly Stack<HealthBarView> pool = new Stack<HealthBarView>();
+        private readonly List<Entity> released = new List<Entity>();
 
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
@@ -67,7 +69,7 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             using var spaceships = spaceshipQuery.ToEntityArray(Allocator.Temp);
 
-            int shown = 0;
+            int frame = Time.frameCount;
 
             foreach (Entity spaceship in spaceships)
             {
@@ -86,7 +88,13 @@ namespace GalaxyIO.Scripts.Managed.UI
                     ColliderOverlap.ToWorld(entityManager.GetComponentData<ColliderComponent>(spaceship), transformData)
                 );
 
-                HealthBarView bar = Rent(shown++);
+                if (!active.TryGetValue(spaceship, out HealthBarView bar))
+                {
+                    bar = Rent();
+                    active.Add(spaceship, bar);
+                }
+
+                bar.SeenFrame = frame;
                 bar.transform.position = new Vector3(
                     transformData.Position.x,
                     bounds.Min.y - gap,
@@ -96,22 +104,28 @@ namespace GalaxyIO.Scripts.Managed.UI
                 bar.SetRatio(math.saturate(spec.Health / spec.MaxHealth));
             }
 
-            // 이번 프레임에 쓰이지 않은 바는 감춤.
-            for (int i = shown; i < bars.Count; i++)
+            // 이번 프레임에 쓰이지 않은 바는 반납함. 체력이 다 찼거나 우주선이 사라진 경우.
+            released.Clear();
+
+            foreach (KeyValuePair<Entity, HealthBarView> pair in active)
             {
-                bars[i].gameObject.SetActive(false);
+                if (pair.Value.SeenFrame != frame) released.Add(pair.Key);
+            }
+
+            foreach (Entity entity in released)
+            {
+                HealthBarView bar = active[entity];
+                bar.gameObject.SetActive(false);
+                pool.Push(bar);
+                active.Remove(entity);
             }
         }
 
-        private HealthBarView Rent(int index)
+        private HealthBarView Rent()
         {
-            while (bars.Count <= index)
-            {
-                bars.Add(Instantiate(barTemplate, transform));
-            }
-
-            bars[index].gameObject.SetActive(true);
-            return bars[index];
+            HealthBarView bar = pool.Count > 0 ? pool.Pop() : Instantiate(barTemplate, transform);
+            bar.gameObject.SetActive(true);
+            return bar;
         }
     }
 }

@@ -35,6 +35,16 @@ namespace GalaxyIO.Scripts.Managed.UI
         [Min(1)]
         private int maxRows = 5;
 
+        [SerializeField]
+        [Tooltip("나타나는 시간(초)")]
+        [Min(0.0F)]
+        private float fadeIn = 0.15F;
+
+        [SerializeField]
+        [Tooltip("사라지는 시간(초). 수명 안에 포함.")]
+        [Min(0.0F)]
+        private float fadeOut = 0.4F;
+
         [Header("Icons")]
         
         // 투사체 격추 아이콘의 스프라이트 이름
@@ -58,6 +68,10 @@ namespace GalaxyIO.Scripts.Managed.UI
         [Tooltip("로컬 플레이어가 관련된 줄의 배경")]
         private Color localBackground = new Color(1.0F, 0.0F, 0.0F, 0.3F);
 
+        [SerializeField]
+        [Tooltip("그 밖의 줄 배경")]
+        private Color normalBackground = new Color(0.04F, 0.06F, 0.09F, 0.55F);
+
         private EntityManager entityManager;
         private EntityQuery messageQuery;
         private EntityQuery connectionQuery;
@@ -65,8 +79,18 @@ namespace GalaxyIO.Scripts.Managed.UI
         private string allyHex;
         private string hostileHex;
 
-        // 표시 중인 줄과 사라질 시각. 오래된 순.
-        private readonly Queue<(KillLogRow Row, float ExpireTime)> rows = new Queue<(KillLogRow, float)>();
+        private sealed class Shown
+        {
+            public KillLogRow Row;
+            public float ExpireTime;
+            public bool Fading;
+        }
+
+        // 표시 중인 줄. 오래된 순.
+        private readonly Queue<Shown> rows = new Queue<Shown>();
+
+        // 다시 쓸 줄
+        private readonly Stack<Shown> pool = new Stack<Shown>();
 
         // 캐시한 쿼리가 속한 클라이언트 월드. 세션 종료 시 Dispose 되므로 매 프레임 확인함.
         private World clientWorld;
@@ -119,9 +143,18 @@ namespace GalaxyIO.Scripts.Managed.UI
                 entityManager.DestroyEntity(messageQuery);
             }
 
+            foreach (Shown shown in rows)
+            {
+                if (!shown.Fading && Time.time >= shown.ExpireTime - fadeOut)
+                {
+                    shown.Fading = true;
+                    shown.Row.PlayOut(fadeOut);
+                }
+            }
+
             while (rows.Count > 0 && rows.Peek().ExpireTime <= Time.time)
             {
-                Destroy(rows.Dequeue().Row.gameObject);
+                Release(rows.Dequeue());
             }
         }
 
@@ -129,19 +162,33 @@ namespace GalaxyIO.Scripts.Managed.UI
         {
             if (rows.Count >= maxRows)
             {
-                Destroy(rows.Dequeue().Row.gameObject);
+                Release(rows.Dequeue());
             }
 
-            KillLogRow row = Instantiate(rowTemplate, container);
+            Shown shown = pool.Count > 0 ? pool.Pop() : new Shown { Row = Instantiate(rowTemplate, container) };
+            KillLogRow row = shown.Row;
+
+            // 새 줄은 맨 아래.
+            row.transform.SetAsLastSibling();
             row.gameObject.SetActive(true);
             // 로컬 플레이어가 막타/어시스트/격추 대상 중 하나면 배경을 칠함.
             bool isLocal = message.KillerNetworkId == localNetworkId
                            || message.AssistantNetworkId == localNetworkId
                            || message.VictimNetworkId == localNetworkId;
 
-            row.Set(Format(message, localNetworkId), isLocal, localBackground);
+            row.Set(Format(message, localNetworkId), isLocal ? localBackground : normalBackground);
+            row.PlayIn(fadeIn);
 
-            rows.Enqueue((row, Time.time + lifetime));
+            shown.ExpireTime = Time.time + lifetime;
+            shown.Fading = false;
+            rows.Enqueue(shown);
+        }
+
+        private void Release(Shown shown)
+        {
+            shown.Row.Kill();
+            shown.Row.gameObject.SetActive(false);
+            pool.Push(shown);
         }
 
         // [Killer( + Assistant) 아이콘 Victim]. 막타를 알 수 없으면 [ + Assistant 아이콘 Victim].
