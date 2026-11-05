@@ -56,7 +56,40 @@ namespace GalaxyIO.Main
                 return;
             }
 
+            // 관찰자 모드(-spectator)는 로비 UI 없이 바로 관찰자로 접속함.
+            if (Spectator.SpectatorMode.Enabled)
+            {
+                JoinAsSpectator().Forget();
+                return;
+            }
+
             LoadLobbyUI().Forget();
+        }
+
+        /// <summary>
+        /// 관찰자로 접속. 실패하면 몇 초 뒤 다시 시도함.
+        /// </summary>
+        private async Awaitable JoinAsSpectator()
+        {
+            await CommonProgress.ShowAcrossScenes();
+            await L10n.PreloadTables();
+
+            while (this != null)
+            {
+                if (Spectator.SpectatorMode.TryGetEndpoint(out Unity.Networking.Transport.NetworkEndpoint endpoint))
+                {
+                    string failure = await GameSession.JoinAsClient(endpoint, Spectator.SpectatorMode.Name);
+
+                    if (failure == null)
+                    {
+                        return;
+                    }
+
+                    Debug.LogWarning($"[Spectator] 접속 실패: {failure}. 3초 뒤 다시 시도함.");
+                }
+
+                await Awaitable.WaitForSecondsAsync(3.0F);
+            }
         }
 
         private async Awaitable LoadLobbyUI()
@@ -96,17 +129,21 @@ namespace GalaxyIO.Main
             if (!string.IsNullOrEmpty(host))
             {
                 // 도메인은 브라우저가 해석함. 웹 Transport 의 도메인 주소 생성자가 internal 이라 리플렉션으로 만듦.
-                if (!NetworkEndpoint.TryParse(host, NetcodeBootstrap.Port, out NetworkEndpoint endpoint, NetworkFamily.Ipv4))
+                // https 페이지면 TLS 프록시 포트(wss), 아니면 게임 서버 포트(ws).
+                ushort port = WebSecureConnection.ClientPort;
+
+                if (!NetworkEndpoint.TryParse(host, port, out NetworkEndpoint endpoint, NetworkFamily.Ipv4))
                 {
                     ConstructorInfo hostnameEndpoint = typeof(NetworkEndpoint).GetConstructor(
                         BindingFlags.Instance | BindingFlags.NonPublic, null, new[] { typeof(FixedString512Bytes) }, null);
 
-                    endpoint = (NetworkEndpoint)hostnameEndpoint.Invoke(new object[] { new FixedString512Bytes($"{host}:{NetcodeBootstrap.Port}") });
+                    endpoint = (NetworkEndpoint)hostnameEndpoint.Invoke(new object[] { new FixedString512Bytes($"{host}:{port}") });
                 }
 
                 // 이름은 리스폰 창에서 입력. 입장은 기억한 이름(없으면 임시 이름)으로 하고 스폰은 미룸.
+                // 웹 페이지(index.html)에서 닉네임을 입력했으면 그 이름을 리스폰 창 입력란에 미리 채움.
                 // 임시 이름은 한 번만 뽑아 기억함. 리스폰 창 입력란·재접속이 같은 이름을 씀.
-                string playerName = PlayerNameResolver.Suggest(true);
+                string playerName = WebPlayerName.FromPage() ?? PlayerNameResolver.Suggest(true);
                 PlayerNameResolver.Remember(playerName);
 
                 failure = await GameSession.JoinAsClient(endpoint, playerName, hold: true);

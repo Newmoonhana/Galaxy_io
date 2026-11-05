@@ -318,6 +318,37 @@ namespace GalaxyIO.Scripts.Managed.UI
         /// </summary>
         public float ViewRange => viewRange;
 
+        // 관찰자 모드: 우주선 대신 이 지점을 중심으로 이 레이더 값으로 스캔함. 관찰자 카메라가 채움.
+        public static bool SpectatorActive;
+        public static Vector2 SpectatorCenter;
+        public static float SpectatorRange;
+        public static float SpectatorSweepSpeed;
+        public static float SpectatorResponse;
+
+        // 레이더 중심. 관찰자면 관찰 지점, 아니면 로컬 우주선. 우주선이 없으면 false.
+        private bool TryGetCenter(out Vector2 center, out uint party)
+        {
+            if (SpectatorActive)
+            {
+                center = SpectatorCenter;
+                party = 0;
+                return true;
+            }
+
+            center = Vector2.zero;
+            party = 0;
+
+            if (playerQuery.IsEmpty)
+            {
+                return false;
+            }
+
+            using var players = playerQuery.ToEntityArray(Allocator.Temp);
+            center = entityManager.GetComponentData<LocalTransform>(players[0]).Position.xy;
+            party = entityManager.GetComponentData<FactionComponent>(players[0]).Party;
+            return true;
+        }
+
         /// <summary>
         /// 화면 좌표가 레이더 원 안이면 그 자리의 월드 좌표를 줌.
         /// </summary>
@@ -325,14 +356,14 @@ namespace GalaxyIO.Scripts.Managed.UI
         {
             world = Vector2.zero;
 
-            if (!ClientWorldScope.IsAlive(clientWorld) || playerQuery.IsEmpty || viewRange <= 0.0F
+            if (!ClientWorldScope.IsAlive(clientWorld) || viewRange <= 0.0F
+                || !TryGetCenter(out Vector2 center, out _)
                 || !TryGetRadarPoint(screen, out Vector2 point))
             {
                 return false;
             }
 
-            using var players = playerQuery.ToComponentDataArray<LocalTransform>(Allocator.Temp);
-            world = (Vector2)players[0].Position.xy + point / material.GetFloat(RadiusId) * viewRange;
+            world = center + point / material.GetFloat(RadiusId) * viewRange;
 
             return true;
         }
@@ -471,7 +502,22 @@ namespace GalaxyIO.Scripts.Managed.UI
                 return;
             }
 
-            if (!playerQuery.IsEmpty)
+            if (SpectatorActive)
+            {
+                // 관찰자: 정해 준 레이더 값(초계함 최대 강화)을 그대로 씀.
+                sweepSpeed = SpectatorSweepSpeed;
+                response = SpectatorResponse;
+                range = SpectatorRange;
+                sweepBonus = 0.0F;
+
+                if (viewRange <= 0.0F)
+                {
+                    viewRange = Mathf.Clamp(range, minViewRange, maxViewRange);
+                }
+
+                fadeOut = Mathf.Lerp(fadeOutTime, minFadeOutTime, Mathf.InverseLerp(sweepSpeed * 0.5F, fastestSweepSpeed, sweepSpeed));
+            }
+            else if (!playerQuery.IsEmpty)
             {
                 using var players = playerQuery.ToEntityArray(Allocator.Temp);
                 var radar = entityManager.GetComponentData<SpaceshipRadarComponent>(players[0]);
@@ -510,8 +556,8 @@ namespace GalaxyIO.Scripts.Managed.UI
 
             Sweep(previousAngle, angle);
 
-            // 초계함 파티원마다 그 레이더와 같은 속도로 보이지 않는 스캐너를 돌려 공유 점을 띄움.
-            if (!playerQuery.IsEmpty)
+            // 초계함 파티원마다 그 레이더와 같은 속도로 보이지 않는 스캐너를 돌려 공유 점을 띄움. 관찰자는 파티가 없음.
+            if (!SpectatorActive && !playerQuery.IsEmpty)
             {
                 using var players = playerQuery.ToComponentDataArray<LocalTransform>(Allocator.Temp);
                 Vector2 center = players[0].Position.xy;
@@ -681,13 +727,9 @@ namespace GalaxyIO.Scripts.Managed.UI
             // 파티원, 같은 편 함재기 점이 먼저 자리를 차지하고, 스캔된 점이 뒤를 채움.
             int count = 0;
 
-            // 우주선이 없으면 격자, 화살표, 파티원 표시는 마지막 상태를 유지함.
-            if (viewRange > 0.0F && !playerQuery.IsEmpty)
+            // 우주선이 없으면 격자, 화살표, 파티원 표시는 마지막 상태를 유지함. 관찰자는 관찰 지점 기준.
+            if (viewRange > 0.0F && TryGetCenter(out Vector2 center, out uint party))
             {
-                using var players = playerQuery.ToEntityArray(Allocator.Temp);
-                LocalTransform ship = entityManager.GetComponentData<LocalTransform>(players[0]);
-                Vector2 center = ship.Position.xy;
-                uint party = entityManager.GetComponentData<FactionComponent>(players[0]).Party;
 
                 // 격자 간격과 위치를 레이더 좌표로 환산. 스캐너 반지름 = 표시 거리.
                 // 격자는 월드 좌표에 고정이라 우주선이 움직인 만큼 밀림.
@@ -718,9 +760,11 @@ namespace GalaxyIO.Scripts.Managed.UI
                     ));
                 }
 
-                // 위쪽 0도, 시계 방향. UI 회전은 반시계가 양수.
-                if (heading != null)
+                // 위쪽 0도, 시계 방향. UI 회전은 반시계가 양수. 관찰자는 우주선이 없어 화살표를 그대로 둠.
+                if (heading != null && !SpectatorActive && !playerQuery.IsEmpty)
                 {
+                    using var shipEntities = playerQuery.ToEntityArray(Allocator.Temp);
+                    LocalTransform ship = entityManager.GetComponentData<LocalTransform>(shipEntities[0]);
                     float2 forward = SpaceshipHeading.FromRotation(ship.Rotation);
                     heading.localEulerAngles = new Vector3(0.0F, 0.0F, -Mathf.Atan2(forward.x, forward.y) * Mathf.Rad2Deg);
                 }
@@ -984,16 +1028,12 @@ namespace GalaxyIO.Scripts.Managed.UI
         // from ~ to 각도 사이를 지나간 우주선을 점으로 예약함.
         private void Sweep(float from, float to)
         {
-            if (playerQuery.IsEmpty)
+            if (!TryGetCenter(out Vector2 center, out uint party))
             {
                 return;
             }
 
-            using var players = playerQuery.ToEntityArray(Allocator.Temp);
             using var targets = targetQuery.ToEntityArray(Allocator.Temp);
-
-            Vector2 center = entityManager.GetComponentData<LocalTransform>(players[0]).Position.xy;
-            uint party = entityManager.GetComponentData<FactionComponent>(players[0]).Party;
             float swept = to - from;
 
             foreach (Entity target in targets)
@@ -1063,16 +1103,14 @@ namespace GalaxyIO.Scripts.Managed.UI
         // 로컬 우주선이 없으면 마지막 좌표를 유지함.
         private void UpdateCoordinates()
         {
-            if (playerQuery.IsEmpty)
+            if (!TryGetCenter(out Vector2 center, out _))
             {
                 return;
             }
 
-            using var players = playerQuery.ToComponentDataArray<LocalTransform>(Allocator.Temp);
-
             var rounded = new Vector2Int(
-                Mathf.RoundToInt(players[0].Position.x),
-                Mathf.RoundToInt(players[0].Position.y)
+                Mathf.RoundToInt(center.x),
+                Mathf.RoundToInt(center.y)
             );
 
             if (rounded != shownCoordinates)

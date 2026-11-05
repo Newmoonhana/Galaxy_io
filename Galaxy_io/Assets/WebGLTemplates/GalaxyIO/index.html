@@ -1,25 +1,77 @@
 <!DOCTYPE html>
-<html lang="en-us">
+<html lang="ko">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#000000">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
     <title>{{{ PRODUCT_NAME }}}</title>
     <style>
-      html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
-      /* 창 전체를 게임 화면으로 씀 */
-      #unity-canvas { display: block; width: 100%; height: 100%; background: #000; outline: none; }
-      #loading { position: fixed; left: 50%; top: 50%; width: 240px; transform: translate(-50%, -50%); }
+      html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000;
+        overscroll-behavior: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+      /* 창 전체를 게임 화면으로 씀. 휴대폰 주소창을 뺀 실제 높이(dvh). 터치 제스처(확대, 스크롤)는 게임이 받음. */
+      #unity-canvas { display: block; width: 100vw; height: 100vh; height: 100dvh; background: #000; outline: none; touch-action: none; }
+      #loading { position: fixed; left: 50%; top: 50%; width: 240px; transform: translate(-50%, -50%); display: none; }
       #loading-bar { height: 4px; background: #222; }
       #loading-fill { width: 0%; height: 100%; background: #4fd8ff; }
-      #banner { position: fixed; left: 50%; top: 16px; transform: translateX(-50%); font: 14px sans-serif; color: #000; }
+      #banner { position: fixed; left: 50%; top: 16px; transform: translateX(-50%); font: 14px sans-serif; color: #000; z-index: 30; }
       #banner div { margin-bottom: 4px; padding: 8px 12px; background: #ffd84f; }
       #banner div.error { background: #ff5f5f; }
+
+      /* 닉네임 입력 */
+      #start { position: fixed; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 20;
+        background: radial-gradient(ellipse at center, #0b1630 0%, #000 75%); font-family: sans-serif; }
+      #start form { display: flex; flex-direction: column; gap: 12px; width: min(320px, 86vw); padding: 24px;
+        border: 1px solid #4fd8ff; border-radius: 6px; background: rgba(0, 12, 32, 0.85); box-shadow: 0 0 24px rgba(79, 216, 255, 0.25); }
+      #start h1 { margin: 0 0 4px; color: #4fd8ff; font-size: 28px; text-align: center; letter-spacing: 2px; }
+      #start label { color: #9fb6c8; font-size: 13px; }
+      #start input { font-size: 18px; padding: 10px 12px; border: 1px solid #2c5d7a; border-radius: 4px; background: #020a18; color: #fff; outline: none; }
+      #start input:focus { border-color: #4fd8ff; }
+      #start button { font-size: 18px; padding: 12px; border: 0; border-radius: 4px; background: #4fd8ff; color: #001020; font-weight: bold; cursor: pointer; }
+      #start .hint { color: #6f8798; font-size: 12px; text-align: center; }
+
+      /* 휴대폰 세로 안내, 전체화면 버튼(터치 기기만) */
+      #rotate { display: none; position: fixed; left: 50%; top: 10px; transform: translateX(-50%); z-index: 25;
+        padding: 6px 10px; border-radius: 4px; background: rgba(0, 0, 0, 0.6); color: #cfe; font: 13px sans-serif; pointer-events: none; }
+      /* 터치 기기 버튼 줄(오른쪽 가운데). 게임이 키 입력이나 탭 명령으로 받음. */
+      /* 가로: 위쪽 가운데 한 줄(레이더는 오른쪽 위, 조이스틱은 아래). 세로: 오른쪽 세로 한 줄, 레이더 아래. */
+      #touch-bar { display: none; position: fixed; left: 50%; top: 4px; transform: translateX(-50%); z-index: 25; flex-direction: row; gap: 4px; }
+      @media (orientation: portrait) {
+        #touch-bar { left: auto; right: 6px; top: 120px; transform: none; flex-direction: column; }
+      }
+      body.touch.ready #touch-bar { display: flex; }
+      #touch-bar button { min-width: 46px; padding: 6px 7px; border: 1px solid #4fd8ff; border-radius: 4px;
+        background: rgba(0, 0, 0, 0.5); color: #4fd8ff; font: 13px sans-serif; }
+      #touch-bar button.on { background: #4fd8ff; color: #001020; }
+      #touch-bar button.hidden { display: none; }
+      @media (orientation: portrait) { body.touch.playing #rotate { display: block; } }
     </style>
   </head>
   <body>
     <canvas id="unity-canvas" tabindex="-1"></canvas>
     <div id="loading"><div id="loading-bar"><div id="loading-fill"></div></div></div>
     <div id="banner"></div>
+    <div id="rotate">휴대폰을 가로로 돌리면 더 넓게 플레이할 수 있어요</div>
+    <div id="touch-bar">
+      <button type="button" data-key="E">상점</button>
+      <button type="button" data-key="Enter">채팅</button>
+      <button type="button" data-tap="Ping">핑</button>
+      <button type="button" data-tap="Order">명령</button>
+      <button type="button" id="zoom">시야</button>
+      <button type="button" data-key="Escape">메뉴</button>
+      <button type="button" id="fullscreen" class="hidden">전체화면</button>
+    </div>
+    <div id="start">
+      <form id="start-form" autocomplete="off">
+        <h1>GalaxyIO</h1>
+        <label for="nickname">닉네임 (최대 12자)</label>
+        <input id="nickname" name="nickname" maxlength="12" placeholder="비워 두면 게스트 이름" enterkeyhint="go">
+        <button type="submit">게임 시작</button>
+        <div class="hint">PC: 마우스로 조준, WASD 이동 · 휴대폰: 왼쪽 이동, 오른쪽 조준·사격</div>
+      </form>
+    </div>
     <script>
       // 경고는 5초 뒤 사라짐. 에러는 계속 남김.
       function showBanner(msg, type) {
@@ -30,43 +82,129 @@
         if (type != "error") setTimeout(function () { div.remove(); }, 5000);
       }
 
-      var script = document.createElement("script");
-      script.src = "Build/{{{ LOADER_FILENAME }}}";
-      script.onload = function () {
-        var canvas = document.querySelector("#unity-canvas");
+      var touch = window.matchMedia && matchMedia("(pointer: coarse)").matches;
+      if (touch) document.body.classList.add("touch");
+
+      // 게임 화면 위의 브라우저 제스처(당겨서 새로고침, 두 손가락 확대)를 막음.
+      var canvas = document.querySelector("#unity-canvas");
+      ["touchstart", "touchmove"].forEach(function (type) {
+        canvas.addEventListener(type, function (e) { e.preventDefault(); }, { passive: false });
+      });
+      document.addEventListener("gesturestart", function (e) { e.preventDefault(); });
+      canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+
+      var fullscreen = document.querySelector("#fullscreen");
+      if (document.documentElement.requestFullscreen && document.fullscreenEnabled) fullscreen.classList.remove("hidden");
+
+      function enterFullscreen() {
+        if (!touch || !document.documentElement.requestFullscreen || document.fullscreenElement) return;
+        document.documentElement.requestFullscreen({ navigationUI: "hide" }).then(function () {
+          if (screen.orientation && screen.orientation.lock) screen.orientation.lock("landscape").catch(function () {});
+        }).catch(function () {});
+      }
+
+      // 터치 버튼. 시야: 보통 -> 좁게 -> 더 좁게. 상점, 채팅, 메뉴: 키(E, Enter, Esc)를 누른 것처럼.
+      // 핑, 명령(모선 함재기): 누른 뒤 화면이나 레이더를 탭한 자리에 찍음. 다시 누르면 취소.
+      var unity = null;
+      document.querySelector("#zoom").addEventListener("click", function () {
+        if (unity) unity.SendMessage("MobileControls", "CycleZoom");
+      });
+      document.querySelectorAll("#touch-bar [data-key]").forEach(function (button) {
+        button.addEventListener("click", function () {
+          if (unity) unity.SendMessage("MobileControls", "PressKey", button.getAttribute("data-key"));
+        });
+      });
+      var tapButtons = document.querySelectorAll("#touch-bar [data-tap]");
+      tapButtons.forEach(function (button) {
+        button.addEventListener("click", function () {
+          if (!unity) return;
+          var on = !button.classList.contains("on");
+          tapButtons.forEach(function (other) { other.classList.remove("on"); });
+          if (on) button.classList.add("on");
+          unity.SendMessage("MobileControls", "SetTapMode", on ? button.getAttribute("data-tap") : "None");
+        });
+      });
+      // 탭 명령은 한 번 찍으면 꺼짐.
+      canvas.addEventListener("touchend", function () {
+        setTimeout(function () { tapButtons.forEach(function (b) { b.classList.remove("on"); }); }, 50);
+      });
+
+      fullscreen.addEventListener("click", function () {
+        if (document.fullscreenElement) document.exitFullscreen();
+        else enterFullscreen();
+      });
+
+      // 닉네임: 지난번 이름을 채워 둠. 게임은 주소의 ?name= 을 읽음(WebPlayerName).
+      var input = document.querySelector("#nickname");
+      try { input.value = localStorage.getItem("galaxyio-name") || ""; } catch (e) {}
+
+      var params = new URLSearchParams(location.search);
+      if (params.get("name")) input.value = params.get("name");
+
+      document.querySelector("#start-form").addEventListener("submit", function (e) {
+        e.preventDefault();
+        var name = input.value.replace(/[\u0000-\u001f]/g, "").trim().slice(0, 12);
+        try { localStorage.setItem("galaxyio-name", name); } catch (err) {}
+
+        var query = new URLSearchParams(location.search);
+        if (name) query.set("name", name); else query.delete("name");
+        var search = query.toString();
+        history.replaceState(null, "", location.pathname + (search ? "?" + search : "") + location.hash);
+
+        input.blur();
+        enterFullscreen();
+        document.querySelector("#start").remove();
+        document.body.classList.add("playing");
+        // 세로 안내는 8초 뒤 사라짐(세로로도 플레이 가능).
+        setTimeout(function () { document.querySelector("#rotate").style.visibility = "hidden"; }, 8000);
+        startGame();
+      });
+
+      if (!touch) input.focus();
+
+      function startGame() {
         var loading = document.querySelector("#loading");
         var fill = document.querySelector("#loading-fill");
+        loading.style.display = "block";
 
-        createUnityInstance(canvas, {
-          arguments: [],
+        var script = document.createElement("script");
+        script.src = "Build/{{{ LOADER_FILENAME }}}";
+        script.onload = function () {
+          createUnityInstance(canvas, {
+            arguments: [],
 #if PROGRESSIVE_ASSET_LOADING
-          primaryDataUrls: {{{ JSON.stringify(PRIMARY_DATA_FILES) }}},
-          secondaryDataUrls: {{{ JSON.stringify(SECONDARY_DATA_FILES) }}},
+            primaryDataUrls: {{{ JSON.stringify(PRIMARY_DATA_FILES) }}},
+            secondaryDataUrls: {{{ JSON.stringify(SECONDARY_DATA_FILES) }}},
 #else
-          dataUrl: "Build/{{{ DATA_FILENAME }}}",
+            dataUrl: "Build/{{{ DATA_FILENAME }}}",
 #endif
-          frameworkUrl: "Build/{{{ FRAMEWORK_FILENAME }}}",
+            frameworkUrl: "Build/{{{ FRAMEWORK_FILENAME }}}",
 #if USE_WASM
-          codeUrl: "Build/{{{ CODE_FILENAME }}}",
+            codeUrl: "Build/{{{ CODE_FILENAME }}}",
 #endif
 #if SYMBOLS_FILENAME
-          symbolsUrl: "Build/{{{ SYMBOLS_FILENAME }}}",
+            symbolsUrl: "Build/{{{ SYMBOLS_FILENAME }}}",
 #endif
-          streamingAssetsUrl: "StreamingAssets",
-          companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
-          productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
-          productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
-          showBanner: showBanner,
-        }, function (progress) {
-          fill.style.width = 100 * progress + "%";
-        }).then(function () {
-          loading.remove();
-          canvas.focus();
-        }).catch(function (message) {
-          showBanner(message, "error");
-        });
-      };
-      document.body.appendChild(script);
+            streamingAssetsUrl: "StreamingAssets",
+            companyName: {{{ JSON.stringify(COMPANY_NAME) }}},
+            productName: {{{ JSON.stringify(PRODUCT_NAME) }}},
+            productVersion: {{{ JSON.stringify(PRODUCT_VERSION) }}},
+            // 휴대폰 고해상도 화면은 렌더 해상도를 2배까지만(성능).
+            devicePixelRatio: touch ? Math.min(window.devicePixelRatio || 1, 2) : undefined,
+            showBanner: showBanner,
+          }, function (progress) {
+            fill.style.width = 100 * progress + "%";
+          }).then(function (instance) {
+            unity = instance;
+            document.body.classList.add("ready");
+            loading.remove();
+            canvas.focus();
+          }).catch(function (message) {
+            showBanner(message, "error");
+          });
+        };
+        document.body.appendChild(script);
+      }
     </script>
   </body>
 </html>

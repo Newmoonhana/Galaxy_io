@@ -78,6 +78,9 @@ namespace GalaxyIO.DOTS.Systems
                 Entity connectionEntity = SystemAPI.GetComponent<ReceiveRpcCommandRequest>(rpcEntity).SourceConnection;
                 SpawnRequestRPC rpc = SystemAPI.GetComponent<SpawnRequestRPC>(rpcEntity);
 
+                // 관찰자 접속 요청은 우주선을 만들지 않음. SpectatorServerSystem 이 처리함.
+                if (Spectator.SpectatorServerSystem.IsSpectatorName(rpc.Name)) continue;
+
                 // 해당 Connection 이 InGame 상태여야 Ghost 스냅샷이 전송됨.
                 ecb.AddComponent<NetworkStreamInGame>(connectionEntity);
 

@@ -212,7 +212,15 @@ namespace GalaxyIO.Camera
             // 카메라를 밀어내는 비율(-1 ~ 1). 마우스 조준 모드에서만.
             Vector2 shift = Vector2.zero;
 
-            if (Mouse.current != null && Application.isFocused && !menuOpen)
+            // 웹 터치 조작: 시야 버튼(보통 -> 좁게 -> 더 좁게)으로 배율을 바꾸고, 터치가 흉내 낸 마우스로는 카메라를 밀지 않음.
+            if (Mobile.MobileControls.Active)
+            {
+                if (Mobile.MobileControls.TakeZoomStep())
+                {
+                    zoomRatio = zoomRatio > 0.9F ? 0.8F : zoomRatio > 0.7F ? 0.62F : 1F;
+                }
+            }
+            else if (Mouse.current != null && Application.isFocused && !menuOpen)
             {
                 float scroll = Mouse.current.scroll.ReadValue().y;
 
@@ -246,10 +254,17 @@ namespace GalaxyIO.Camera
                 maxZoom = entityManager.GetComponentData<SpaceshipCameraComponent>(player).MaxOrthographicSize;
             }
 
+            // 웹 터치 조작의 세로 화면: 시야 크기는 세로 반폭이라 가로가 너무 좁아짐.
+            // 가로 폭 x 0.75 가 가로 화면의 세로 폭과 같아지게 넓힘(참고 웹 게임과 같은 기준). 가로 화면, PC 는 1.
+            float aspect = targetCamera.aspect;
+            float portraitScale = Mobile.MobileControls.Active && aspect > 0.01F && aspect < 1.0F / 0.75F
+                ? 1.0F / (0.75F * aspect)
+                : 1.0F;
+
             // 우주선을 바꾸면 새 최대 시야 크기로 보간됨.
             targetCamera.orthographicSize = Mathf.Lerp(
                 targetCamera.orthographicSize,
-                maxZoom * zoomRatio,
+                maxZoom * zoomRatio * portraitScale,
                 1F - Mathf.Exp(-zoomSmoothSpeed * Time.deltaTime)
             );
 

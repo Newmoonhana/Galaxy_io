@@ -170,9 +170,13 @@ namespace GalaxyIO.Scripts.Managed.UI
             PlayerStateComponent state = stateQuery.GetSingleton<PlayerStateComponent>();
             bool blocked = state.GameMenuOpened || state.InventoryOpened || state.ChatFocused || state.ChatHovered || state.Dead;
 
-            if (orderAction.action.WasPressedThisFrame() && Application.isFocused && !blocked && Mouse.current != null)
+            // 웹 터치 조작: 명령 버튼을 누른 뒤 탭한 자리. 아니면 마우스 왼쪽 버튼과 커서.
+            bool touchOrder = Mobile.MobileControls.TryTakeTap(Mobile.MobileControls.TapMode.Order, out Vector2 touchPoint);
+            bool mouseOrder = !Mobile.MobileControls.Active && orderAction.action.WasPressedThisFrame() && Mouse.current != null;
+
+            if ((touchOrder || mouseOrder) && Application.isFocused && !blocked)
             {
-                Vector2 cursor = Mouse.current.position.ReadValue();
+                Vector2 cursor = touchOrder ? touchPoint : Mouse.current.position.ReadValue();
                 var order = new CarrierOrderRPC();
 
                 if (radar != null && radar.TryGetWorldPoint(cursor, out Vector2 radarPoint))

@@ -268,10 +268,13 @@ namespace GalaxyIO.Scripts.Managed.UI
             PlayerStateComponent state = stateQuery.GetSingleton<PlayerStateComponent>();
             bool blocked = state.GameMenuOpened || state.InventoryOpened || state.ChatFocused || state.ChatHovered || state.Dead;
 
-            if (pingAction.action.WasPressedThisFrame() && Application.isFocused && !blocked
-                && localShip != Entity.Null && Mouse.current != null)
+            // 웹 터치 조작: 핑 버튼을 누른 뒤 탭한 자리. 아니면 마우스 오른쪽 버튼과 커서.
+            bool touchPing = Mobile.MobileControls.TryTakeTap(Mobile.MobileControls.TapMode.Ping, out Vector2 touchPoint);
+            bool mousePing = !Mobile.MobileControls.Active && pingAction.action.WasPressedThisFrame() && Mouse.current != null;
+
+            if ((touchPing || mousePing) && Application.isFocused && !blocked && localShip != Entity.Null)
             {
-                Vector2 cursor = Mouse.current.position.ReadValue();
+                Vector2 cursor = touchPing ? touchPoint : Mouse.current.position.ReadValue();
 
                 // 자신의 핑을 다시 누르면 지움.
                 if (own != null && Vector2.Distance(cursor, PingMarkerView.Anchor(mainCamera, own.Position, edgeMargin * scale, out _)) <= clickRadius * scale)

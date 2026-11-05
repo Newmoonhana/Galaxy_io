@@ -69,6 +69,16 @@ namespace GalaxyIO.DOTS.Systems
             double time = SystemAPI.Time.ElapsedTime;
             bool teamMode = SystemAPI.HasSingleton<GameModeComponent>();
 
+            // 자유 모드 서버 봇: 무리별로 이번 틱 뒤에도 살아 있는 수. 마지막 한 척이 격추되면 전멸 킬 로그를 냄.
+            var botAlive = new NativeHashMap<Entity, int>(16, Allocator.Temp);
+            var botWiped = new NativeHashSet<Entity>(4, Allocator.Temp);
+
+            foreach (var (bot, botSpec) in SystemAPI.Query<RefRO<Bots.BotComponent>, RefRO<SpaceshipSpecComponent>>())
+            {
+                botAlive.TryGetValue(bot.ValueRO.Group, out int alive);
+                botAlive[bot.ValueRO.Group] = alive + (botSpec.ValueRO.Health > 0.0F ? 1 : 0);
+            }
+
             // Query 순회 중의 구조 변경(Structural Change)은 ECB 로 미뤄서 처리함.
             var ecb = new EntityCommandBuffer(Allocator.Temp);
 
@@ -103,7 +113,33 @@ namespace GalaxyIO.DOTS.Systems
                     }
                 }
 
-                bool isPlayer = SystemAPI.HasComponent<PlayerNameComponent>(entity);
+                // 서버 봇도 이름이 있지만 플레이어가 아님. 봇끼리의 격추는 킬 로그에 띄우지 않음.
+                bool isBot = SystemAPI.HasComponent<Bots.BotComponent>(entity);
+                bool isPlayer = SystemAPI.HasComponent<PlayerNameComponent>(entity) && !isBot;
+
+                // 봇 무리 전멸: 마지막 함선을 격추한 쪽을 "누가 -> [봇]무리 전멸" 로 한 번 띄움.
+                if (isBot && SystemAPI.HasComponent<KillingBlowComponent>(entity))
+                {
+                    Entity botGroup = SystemAPI.GetComponent<Bots.BotComponent>(entity).Group;
+
+                    if (botAlive.TryGetValue(botGroup, out int alive) && alive == 0 && botWiped.Add(botGroup))
+                    {
+                        KillLogRPC wipe = MakeKillLog(
+                            SystemAPI.GetComponent<KillingBlowComponent>(entity),
+                            SystemAPI.GetBuffer<DamageRecordElement>(entity),
+                            time, names
+                        );
+
+                        var victim = new FixedString64Bytes();
+                        victim.Append(SystemAPI.GetComponent<PlayerNameComponent>(entity).Value);
+                        FixedString32Bytes wipedSuffix = " 전멸";
+                        victim.Append(wipedSuffix);
+                        wipe.Victim = victim;
+                        wipe.VictimNetworkId = -1;
+
+                        Send(ecb, wipe, Entity.Null);
+                    }
+                }
 
                 if (SystemAPI.HasComponent<KillingBlowComponent>(entity))
                 {
@@ -151,6 +187,8 @@ namespace GalaxyIO.DOTS.Systems
 
             ecb.Playback(state.EntityManager);
             ecb.Dispose();
+            botWiped.Dispose();
+            botAlive.Dispose();
             names.Dispose();
             focuses.Dispose();
         }

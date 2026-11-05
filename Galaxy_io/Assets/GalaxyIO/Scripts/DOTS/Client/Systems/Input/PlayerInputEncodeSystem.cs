@@ -82,6 +82,28 @@ namespace GalaxyIO.DOTS.Client.Systems
 
             foreach (var (playerInput, transform) in SystemAPI.Query<RefRW<PlayerInputComponent>, RefRO<LocalTransform>>().WithAll<GhostOwnerIsLocal>())
             {
+                // 웹 터치 조작(휴대폰, 태블릿). 켜져 있으면 마우스, 키보드 대신 가상 조이스틱 값을 씀.
+                if (Mobile.MobileControls.Active)
+                {
+                    Mobile.MobileControls.MarkInGame();
+
+                    float2 position = transform.ValueRO.Position.xy;
+                    float2 aim = Mobile.MobileControls.Aim;
+
+                    // 아직 겨눈 적 없으면 지금 기수 방향을 유지함.
+                    float2 forward = math.mul(transform.ValueRO.Rotation, new float3(0.0F, 1.0F, 0.0F)).xy;
+                    playerInput.ValueRW.MouseCursor = menuOpen ? position
+                        : position + (math.lengthsq(aim) > 0.0F ? aim : math.normalizesafe(forward, new float2(0.0F, 1.0F))) * 100.0F;
+                    playerInput.ValueRW.MoveArrows = menuOpen ? float2.zero : Mobile.MobileControls.Move;
+
+                    bool touchFire = !menuOpen && Mobile.MobileControls.Fire;
+                    playerInput.ValueRW.TurretTriggered = touchFire;
+                    playerInput.ValueRW.TurretTriggeredInThisFrame = touchFire && !fireLastlyPressed;
+                    fireLastlyPressed = touchFire;
+                    playerInput.ValueRW.AccelerationTriggered = !menuOpen && Mobile.MobileControls.Boost;
+                    continue;
+                }
+
                 // Unfocused 상태, 메뉴가 열린 동안엔 움직이지 않음.
                 if (!Application.isFocused || menuOpen)
                 {

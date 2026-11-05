@@ -492,11 +492,14 @@ namespace GalaxyIO.Scripts.Managed.UI
             }
 
             // 열려 있는 동안 본문의 닉네임에 커서를 올리면 강조하고, 누르면 메뉴를 띄움.
-            if (opened && Mouse.current != null)
+            // 마우스와 터치(웹 휴대폰) 모두. Pointer.current 는 마지막으로 쓴 포인터.
+            Pointer pointer = Pointer.current;
+
+            if (opened && pointer != null)
             {
-                Vector2 cursor = Mouse.current.position.ReadValue();
-                bool pressed = Mouse.current.leftButton.wasPressedThisFrame
-                               || Mouse.current.rightButton.wasPressedThisFrame;
+                Vector2 cursor = pointer.position.ReadValue();
+                bool pressed = pointer.press.wasPressedThisFrame
+                               || (Mouse.current != null && Mouse.current.rightButton.wasPressedThisFrame);
                 bool overMenu = nameMenu.gameObject.activeSelf && Contains(nameMenu, cursor);
 
                 // 본문 밖으로 밀려나 가려진 줄은 제외.

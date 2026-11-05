@@ -38,7 +38,7 @@ namespace GalaxyIO.DOTS.Systems
 
             // 살아 있는 플레이어가 없으면 스폰하지 않음.
             state.RequireForUpdate(
-                SystemAPI.QueryBuilder().WithAll<PlayerSpaceshipMovementComponent, LocalTransform>().Build()
+                SystemAPI.QueryBuilder().WithAll<PlayerSpaceshipMovementComponent, LocalTransform>().WithNone<Bots.BotComponent>().Build()
             );
         }
 
@@ -46,6 +46,16 @@ namespace GalaxyIO.DOTS.Systems
         {
             double elapsed = SystemAPI.Time.ElapsedTime;
             EnemySpawnConfigComponent config = SystemAPI.GetSingleton<EnemySpawnConfigComponent>();
+
+            // 데디케이티드 서버 설정(Enemies)이 있으면 생성 주기와 수를 덮어씀. 전체 상한은 아래에서 플레이어 수에 비례하게 정함.
+            Networking.DedicatedServerConfig.EnemySettings tuning = Networking.DedicatedServerConfig.Current?.Enemies;
+
+            if (tuning != null)
+            {
+                config.SpawnInterval = tuning.SpawnInterval;
+                config.SpawnPerRadar = tuning.SpawnPerRadar;
+                config.RadarCap = tuning.RadarCap;
+            }
 
             if (elapsed < nextSpawnTime)
             {
@@ -62,9 +72,10 @@ namespace GalaxyIO.DOTS.Systems
                 return;
             }
 
-            int remaining = config.Cap - enemyQuery.CalculateEntityCount();
+            int enemyCount = enemyQuery.CalculateEntityCount();
 
-            if (remaining <= 0)
+            // 설정이 없으면 원래 고정 상한. 있으면 아래에서 플레이어 수로 다시 정함.
+            if (tuning == null && config.Cap - enemyCount <= 0)
             {
                 return;
             }
@@ -76,6 +87,7 @@ namespace GalaxyIO.DOTS.Systems
                 var (position, radius) in
                 SystemAPI.Query<RefRO<GhostConnectionPosition>, RefRO<RelevancyRadiusComponent>>()
                     .WithAll<NetworkStreamInGame>()
+                    .WithNone<Spectator.SpectatorTag>() // 관찰자의 넓은 복제 반경은 스폰 영역 계산에서 뺌.
             ) {
                 radars.Add(new float3(position.ValueRO.Position.xy, radius.ValueRO.Value));
             }
@@ -86,6 +98,7 @@ namespace GalaxyIO.DOTS.Systems
             foreach (
                 var (transform, radar, movement, playerMovement, ship) in
                 SystemAPI.Query<RefRO<LocalTransform>, RefRO<SpaceshipRadarComponent>, RefRO<MovementComponent>, RefRO<PlayerSpaceshipMovementComponent>>()
+                    .WithNone<Bots.BotComponent>() // 서버 봇은 플레이어가 아님. 봇 주변에 적을 만들면 플레이어 몫이 줄어듦.
                     .WithEntityAccess()
             ) {
                 float range = radar.ValueRO.Range;
@@ -107,6 +120,17 @@ namespace GalaxyIO.DOTS.Systems
                 float2 offset = math.normalizesafe(velocity) * ((config.SpawnAreaScale - 1.0F) * range * speedRatio);
 
                 areas.Add(new float3(transform.ValueRO.Position.xy + offset, range * config.SpawnAreaScale));
+            }
+
+            // 전체 상한: 설정이 있으면 기본 + 살아 있는 플레이어 수 x 플레이어당 상한.
+            int cap = tuning != null ? tuning.CapBase + tuning.CapPerPlayer * areas.Length : config.Cap;
+            int remaining = cap - enemyCount;
+
+            if (remaining <= 0)
+            {
+                radars.Dispose();
+                areas.Dispose();
+                return;
             }
 
             // 바깥 원마다 안에 있는 적 수

@@ -26,6 +26,7 @@ namespace GalaxyIO.DOTS.Systems
         {
             connectionQuery = SystemAPI.QueryBuilder()
                 .WithAll<GhostConnectionPosition, RelevancyRadiusComponent, NetworkStreamInGame>()
+                .WithNone<Spectator.SpectatorTag>() // 관찰자는 적을 붙잡아 두지 않음.
                 .Build();
 
             state.RequireForUpdate<RelevancyConfigComponent>();
@@ -55,6 +56,7 @@ namespace GalaxyIO.DOTS.Systems
                 var radius in
                 SystemAPI.Query<RefRO<RelevancyRadiusComponent>>()
                     .WithAll<GhostConnectionPosition, NetworkStreamInGame>()
+                    .WithNone<Spectator.SpectatorTag>()
             ) {
                 maxRadius = math.max(maxRadius, radius.ValueRO.Value * areaScale);
             }
@@ -72,6 +74,7 @@ namespace GalaxyIO.DOTS.Systems
                 var (position, radius) in
                 SystemAPI.Query<RefRO<GhostConnectionPosition>, RefRO<RelevancyRadiusComponent>>()
                     .WithAll<NetworkStreamInGame>()
+                    .WithNone<Spectator.SpectatorTag>()
             ) {
                 float2 xy = position.ValueRO.Position.xy;
 

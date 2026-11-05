@@ -56,6 +56,34 @@ namespace GalaxyIO.DOTS.Networking
         // 적 종류별 드랍 테이블. 없는 적 종류는 서버 시작 시 베이킹된 테이블로 채워 저장함.
         public List<DropTable> DropTables = new List<DropTable>();
 
+        // 자유 모드 서버 봇. 항목이 없으면 기본 세력 구성.
+        public GalaxyIO.DOTS.Bots.BotSettings Bots = new GalaxyIO.DOTS.Bots.BotSettings();
+
+        /// <summary>
+        /// CPU 적 생성. 전체 상한은 CapBase + 살아 있는 플레이어 수 x CapPerPlayer (원래는 25 고정).
+        /// 서버 봇은 플레이어로 치지 않음.
+        /// </summary>
+        [Serializable]
+        public sealed class EnemySettings
+        {
+            public int CapBase = 15;
+            public int CapPerPlayer = 24;
+
+            // 플레이어 한 명 주변 상한, 주기(초)마다 플레이어당 만드는 수
+            public int RadarCap = 24;
+            public int SpawnPerRadar = 5;
+            public float SpawnInterval = 1.5F;
+
+            // 생성되는 AI 적의 최대 체력 배율, 투사체 피해 배율(자유 모드 봇 서버에서 피해 배율을 씀)
+            public float HealthScale = 0.8F;
+            public float DamageScale = 0.8F;
+        }
+
+        public EnemySettings Enemies = new EnemySettings();
+
+        // 관찰자 접속. 항목이 없으면 기본값(켜짐).
+        public GalaxyIO.DOTS.Spectator.SpectatorSettings Spectator = new GalaxyIO.DOTS.Spectator.SpectatorSettings();
+
         /// <summary>
         /// 이번 실행의 설정. 데디케이티드 서버가 아니거나 파일을 읽지 못하면 null.
         /// </summary>

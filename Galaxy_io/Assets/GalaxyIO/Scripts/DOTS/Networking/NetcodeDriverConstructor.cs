@@ -1,6 +1,9 @@
 using Unity.Entities;
 using Unity.NetCode;
 using Unity.Networking.Transport;
+#if UNITY_WEBGL && !UNITY_EDITOR
+using Unity.Networking.Transport.TLS;
+#endif
 
 namespace GalaxyIO.DOTS.Bootstrap
 {
@@ -29,6 +32,14 @@ namespace GalaxyIO.DOTS.Bootstrap
                 config.disconnectTimeoutMS = DisconnectTimeoutMS;
                 settings.AddRawParameterStruct(ref config);
             }
+
+#if UNITY_WEBGL && !UNITY_EDITOR
+            // https 페이지는 ws:// 를 막음(혼합 콘텐츠). 이때는 wss:// 로 접속함. TLS 는 브라우저가 처리함.
+            if (GalaxyIO.DOTS.Networking.WebSecureConnection.TryGetHost(out string secureHost))
+            {
+                settings.WithSecureClientParameters(secureHost);
+            }
+#endif
 
             DefaultDriverBuilder.RegisterClientDriver(world, ref driverStore, netDebug, settings);
         }

@@ -99,6 +99,8 @@ namespace GalaxyIO.DOTS.Systems
                 Specs      = SystemAPI.GetComponentLookup<SpaceshipSpecComponent>(true),
                 Owners     = SystemAPI.GetComponentLookup<GhostOwner>(true),
                 Crafts     = SystemAPI.GetComponentLookup<CarriedCraftComponent>(true),
+                BotShips   = SystemAPI.GetComponentLookup<Bots.BotComponent>(true),
+                Names      = SystemAPI.GetComponentLookup<PlayerNameComponent>(true),
                 Damages    = damages.AsParallelWriter(),
                 Explosions = explosions.AsParallelWriter(),
             }.ScheduleParallel(state.Dependency);
@@ -155,6 +157,13 @@ namespace GalaxyIO.DOTS.Systems
         [ReadOnly]
         public ComponentLookup<CarriedCraftComponent> Crafts;
 
+        // 서버 봇(자유 모드). 봇이 쏜 것은 킬 로그에 봇 무리 이름을 남김.
+        [ReadOnly]
+        public ComponentLookup<Bots.BotComponent> BotShips;
+
+        [ReadOnly]
+        public ComponentLookup<PlayerNameComponent> Names;
+
         public NativeQueue<SpaceshipDamage>.ParallelWriter Damages;
 
         public NativeList<ProjectileExplosion>.ParallelWriter Explosions;
@@ -175,6 +184,20 @@ namespace GalaxyIO.DOTS.Systems
             FindInstigator(projectile.Owner, out Entity instigator, out float2 instigatorPosition);
 
             EnemyNames.TryGetComponent(projectile.Owner, out EnemyNameComponent enemyName);
+            bool enemyShooter = !enemyName.Value.IsEmpty;
+
+            // 서버 봇이 쏜 것(함재기는 모선 기준)은 봇 무리 이름을 막타 이름으로 씀.
+            if (!enemyShooter)
+            {
+                Entity shooterShip = Crafts.TryGetComponent(projectile.Owner, out CarriedCraftComponent shooterCraft)
+                    ? shooterCraft.Carrier
+                    : projectile.Owner;
+
+                if (BotShips.HasComponent(shooterShip) && Names.TryGetComponent(shooterShip, out PlayerNameComponent botName))
+                {
+                    enemyName.Value.CopyFromTruncated(botName.Value);
+                }
+            }
 
             // 함재기가 쏜 것은 모선 주인의 몫.
             int instigatorNetworkId = owner.NetworkId;
@@ -190,7 +213,8 @@ namespace GalaxyIO.DOTS.Systems
 
             var damage = new SpaceshipDamage
             {
-                Amount              = projectile.Damage,
+                // 자유 모드 봇 서버의 배율(봇 무리, 플레이어, AI 적). 봇이 없는 서버는 1.
+                Amount              = projectile.Damage * Bots.BotDamage.For(faction.Party, instigatorNetworkId > 0, enemyShooter),
                 Instigator          = instigator,
                 InstigatorPosition  = instigatorPosition,
                 InstigatorNetworkId = instigatorNetworkId,

@@ -40,6 +40,9 @@ namespace GalaxyIO.DOTS.Systems
                 Factions     = SystemAPI.GetComponentLookup<FactionComponent>(true),
                 Owners       = SystemAPI.GetComponentLookup<GhostOwner>(true),
                 EnemyNames   = SystemAPI.GetComponentLookup<EnemyNameComponent>(true),
+                Crafts       = SystemAPI.GetComponentLookup<CarriedCraftComponent>(true),
+                BotShips     = SystemAPI.GetComponentLookup<Bots.BotComponent>(true),
+                Names        = SystemAPI.GetComponentLookup<PlayerNameComponent>(true),
                 Records      = SystemAPI.GetBufferLookup<DamageRecordElement>(),
                 Reports      = SystemAPI.GetBufferLookup<DamageReportElement>(),
                 KillingBlows = SystemAPI.GetComponentLookup<KillingBlowComponent>(),
@@ -76,6 +79,16 @@ namespace GalaxyIO.DOTS.Systems
 
         [ReadOnly]
         public ComponentLookup<EnemyNameComponent> EnemyNames;
+
+        // 자유 모드 봇: 박치기 무리 피해 배율, 킬 로그 이름
+        [ReadOnly]
+        public ComponentLookup<CarriedCraftComponent> Crafts;
+
+        [ReadOnly]
+        public ComponentLookup<Bots.BotComponent> BotShips;
+
+        [ReadOnly]
+        public ComponentLookup<PlayerNameComponent> Names;
 
         // 아래 셋은 자기 Entity 에만 씀. Entity 마다 한 번씩만 실행돼 병렬이어도 겹치지 않음.
         [NativeDisableParallelForRestriction]
@@ -130,7 +143,8 @@ namespace GalaxyIO.DOTS.Systems
                     {
                         // 마주 올수록 커지고, 같은 방향으로 나란히 가면 0에 가까워짐.
                         // 상대가 두꺼울수록 더 아픔. 두께가 같으면 1배, 최대 2배.
-                        hit = math.length(relative) * RamDamage * element.DamageShare * 2.0F;
+                        hit = math.length(relative) * RamDamage * element.DamageShare * 2.0F
+                              * Bots.BotDamage.RamFor(Factions[message.Other].Party, Crafts.HasComponent(message.Other));
                     }
                 }
 
@@ -190,9 +204,23 @@ namespace GalaxyIO.DOTS.Systems
                     Type      = KillType.Ram,
                     NetworkId = Owners.TryGetComponent(strongest, out GhostOwner killer) ? killer.NetworkId : -1,
                     EnemyName = EnemyNames.TryGetComponent(strongest, out EnemyNameComponent enemyName)
-                        ? enemyName.Value : default,
+                        ? enemyName.Value : BotName(strongest),
                 };
             }
+        }
+
+        // 서버 봇(함재기는 모선)의 무리 이름. 봇이 아니면 빈 값.
+        private FixedString32Bytes BotName(Entity other)
+        {
+            Entity ship = Crafts.TryGetComponent(other, out CarriedCraftComponent craft) ? craft.Carrier : other;
+            var name = new FixedString32Bytes();
+
+            if (BotShips.HasComponent(ship) && Names.TryGetComponent(ship, out PlayerNameComponent botName))
+            {
+                name.CopyFromTruncated(botName.Value);
+            }
+
+            return name;
         }
     }
 
